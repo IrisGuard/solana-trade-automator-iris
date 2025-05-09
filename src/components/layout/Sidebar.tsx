@@ -1,10 +1,40 @@
 
 import React, { useState } from "react";
+import { NavLink } from "react-router-dom";
 import { SidebarNav } from "./SidebarNav";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { 
+  ArrowLeft, 
+  ArrowRight, 
+  Home, 
+  Settings, 
+  List,
+  FileText,
+} from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+
+// Create a Bot icon component since it's not available directly in lucide-react
+const Bot = (props: any) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <rect width="18" height="10" x="3" y="11" rx="2" />
+    <circle cx="12" cy="5" r="2" />
+    <path d="M12 7v4" />
+    <line x1="8" x2="8" y1="16" y2="16" />
+    <line x1="16" x2="16" y1="16" y2="16" />
+  </svg>
+);
 
 interface SidebarProps {
   className?: string;
@@ -44,11 +74,11 @@ export function Sidebar({ className }: SidebarProps) {
       <div className="flex-1 overflow-auto px-4">
         {isCollapsed ? (
           <div className="flex flex-col gap-2 py-2">
-            <NavLink to="/" icon={Home} collapsed />
-            <NavLink to="/bot-control" icon={Bot} collapsed />
-            <NavLink to="/tokens" icon={List} collapsed />
-            <NavLink to="/transactions" icon={FileText} collapsed />
-            <NavLink to="/settings" icon={Settings} collapsed />
+            <CollapsedNavLink to="/" icon={Home} />
+            <CollapsedNavLink to="/bot-control" icon={Bot} />
+            <CollapsedNavLink to="/tokens" icon={List} />
+            <CollapsedNavLink to="/transactions" icon={FileText} />
+            <CollapsedNavLink to="/settings" icon={Settings} />
           </div>
         ) : (
           <SidebarNav />
@@ -94,6 +124,23 @@ const NavLink = ({ to, icon: Icon, children, collapsed, end }: NavLinkProps) => 
     >
       <Icon className="h-4 w-4" />
       {!collapsed && <span>{children}</span>}
+    </NavLink>
+  );
+};
+
+// Create a separate component for collapsed nav links to avoid naming conflict
+const CollapsedNavLink = ({ to, icon: Icon }: { to: string; icon: React.ElementType }) => {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        cn(
+          "flex items-center justify-center rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
+          isActive ? "active-nav-link" : "text-muted-foreground"
+        )
+      }
+    >
+      <Icon className="h-4 w-4" />
     </NavLink>
   );
 };
