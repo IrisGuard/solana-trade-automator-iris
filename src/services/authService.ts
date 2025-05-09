@@ -11,18 +11,27 @@ export const authService = {
    * Sign in with email and password
    */
   async signInWithPassword(email: string, password: string) {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      console.log('Attempting to sign in user:', email);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      toast.error(error.message);
-      return { error };
+      if (error) {
+        console.error('Sign-in error:', error);
+        toast.error(error.message);
+        return { error };
+      }
+
+      console.log('Sign-in successful');
+      toast.success('Συνδεθήκατε με επιτυχία!');
+      return { success: true, data };
+    } catch (err) {
+      console.error('Unexpected error during sign-in:', err);
+      toast.error('Παρουσιάστηκε απρόσμενο σφάλμα κατά τη σύνδεση.');
+      return { error: err };
     }
-
-    toast.success('Συνδεθήκατε με επιτυχία!');
-    return { success: true, data };
   },
 
   /**
@@ -30,6 +39,7 @@ export const authService = {
    */
   async signUp(email: string, password: string) {
     try {
+      console.log('Attempting to sign up user:', email);
       // Εγγραφή χρήστη - το προφίλ θα δημιουργηθεί αυτόματα μέσω του SQL trigger
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -51,10 +61,12 @@ export const authService = {
 
       // Αν η δημιουργία λογαριασμού ήταν επιτυχής
       if (data.user) {
+        console.log('Signup successful, user:', data.user.id);
         toast.success('Η εγγραφή ολοκληρώθηκε με επιτυχία!');
-        console.log("Attempting direct login after signup");
         
         // Άμεση σύνδεση μετά την εγγραφή
+        console.log("Attempting direct login after signup");
+        
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -69,10 +81,12 @@ export const authService = {
             error: signInError 
           };
         } else {
+          console.log('Auto-login successful');
           toast.success('Συνδεθήκατε αυτόματα μετά την εγγραφή!');
         }
       } else {
         // Αυτό συμβαίνει αν έχει ενεργοποιηθεί η επιβεβαίωση email
+        console.log('Email confirmation may be required');
         toast.info('Στάλθηκε email επιβεβαίωσης. Παρακαλώ ελέγξτε τα εισερχόμενά σας.');
       }
       
@@ -88,21 +102,31 @@ export const authService = {
    * Sign out the current user
    */
   async signOut() {
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
-      toast.error(error.message);
-      return { error };
+    try {
+      console.log('Attempting to sign out user');
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Sign-out error:', error);
+        toast.error(error.message);
+        return { error };
+      }
+      
+      console.log('Sign-out successful');
+      toast.success('Αποσυνδεθήκατε με επιτυχία');
+      return { success: true };
+    } catch (err) {
+      console.error('Unexpected error during sign-out:', err);
+      toast.error('Παρουσιάστηκε απρόσμενο σφάλμα κατά την αποσύνδεση');
+      return { error: err };
     }
-    
-    toast.success('Αποσυνδεθήκατε με επιτυχία');
-    return { success: true };
   },
 
   /**
    * Get the current session
    */
   async getSession() {
+    console.log('Getting current session');
     return await supabase.auth.getSession();
   }
 };
