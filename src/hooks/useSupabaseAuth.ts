@@ -25,13 +25,6 @@ export function useSupabaseAuth() {
           created_at: newSession.user.created_at
         } : null);
         setLoading(false);
-        
-        // Load profile data after auth state changes, but don't block the auth flow
-        if (newSession?.user) {
-          setTimeout(() => {
-            fetchProfile(newSession.user.id);
-          }, 0);
-        }
       }
     );
 
@@ -44,12 +37,6 @@ export function useSupabaseAuth() {
         email: currentSession.user.email,
         created_at: currentSession.user.created_at
       } : null);
-      
-      // Load profile data if session exists
-      if (currentSession?.user) {
-        fetchProfile(currentSession.user.id);
-      }
-      
       setLoading(false);
     });
 
@@ -57,13 +44,6 @@ export function useSupabaseAuth() {
       subscription.unsubscribe();
     };
   }, []);
-
-  const fetchProfile = async (userId: string) => {
-    const profileData = await profileService.fetchProfile(userId);
-    if (profileData) {
-      setUser(prev => prev ? { ...prev, profile: profileData } : null);
-    }
-  };
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);

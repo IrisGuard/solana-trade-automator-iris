@@ -101,7 +101,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
         )}
         
         <p className="text-xs text-muted-foreground">
-          Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες
+          Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες
         </p>
       </div>
       <Button type="submit" className="w-full" disabled={loading}>

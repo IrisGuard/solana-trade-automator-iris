@@ -35,18 +35,18 @@ export const authService = {
   },
 
   /**
-   * Sign up with email and password
+   * Sign up with email and password - απλοποιημένη έκδοση
    */
   async signUp(email: string, password: string) {
     try {
       console.log('Attempting to sign up user:', email);
-      // Εγγραφή χρήστη - το προφίλ θα δημιουργηθεί αυτόματα μέσω του SQL trigger
+      
+      // Απλή εγγραφή χωρίς επιπλέον ρυθμίσεις
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: window.location.origin,
-          // Προσθέτουμε κενά δεδομένα για το userData για να αποφύγουμε προβλήματα με το search_path
+          // Προσθέτουμε κενά δεδομένα για το userData για να αποφύγουμε προβλήματα
           data: {
             full_name: ''
           }
@@ -59,37 +59,26 @@ export const authService = {
         return { error };
       }
 
-      // Αν η δημιουργία λογαριασμού ήταν επιτυχής
-      if (data.user) {
-        console.log('Signup successful, user:', data.user.id);
-        toast.success('Η εγγραφή ολοκληρώθηκε με επιτυχία!');
-        
-        // Άμεση σύνδεση μετά την εγγραφή
-        console.log("Attempting direct login after signup");
-        
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        
-        if (signInError) {
-          console.error('Auto-login error:', signInError);
-          toast.error('Παρακαλώ συνδεθείτε χειροκίνητα.');
-          return { 
-            signUpSuccess: true, 
-            loginSuccess: false, 
-            error: signInError 
-          };
-        } else {
-          console.log('Auto-login successful');
-          toast.success('Συνδεθήκατε αυτόματα μετά την εγγραφή!');
-        }
-      } else {
-        // Αυτό συμβαίνει αν έχει ενεργοποιηθεί η επιβεβαίωση email
-        console.log('Email confirmation may be required');
-        toast.info('Στάλθηκε email επιβεβαίωσης. Παρακαλώ ελέγξτε τα εισερχόμενά σας.');
+      // Άμεση σύνδεση μετά την εγγραφή
+      console.log('Signup successful, attempting login');
+      
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (signInError) {
+        console.error('Auto-login error:', signInError);
+        toast.error('Παρακαλώ συνδεθείτε χειροκίνητα.');
+        return { 
+          signUpSuccess: true, 
+          loginSuccess: false, 
+          error: signInError 
+        };
       }
       
+      console.log('Auto-login successful');
+      toast.success('Η εγγραφή ολοκληρώθηκε, συνδεθήκατε αυτόματα!');
       return { success: true, data };
     } catch (err) {
       console.error('Unexpected error during signup:', err);

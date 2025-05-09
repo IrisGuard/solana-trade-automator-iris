@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/providers/SupabaseAuthProvider';
 import { toast } from 'sonner';
-import zxcvbn from 'zxcvbn';
 
 export const useAuthForms = () => {
   const [email, setEmail] = useState('');
@@ -14,16 +13,17 @@ export const useAuthForms = () => {
   const { signIn, signUp, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Ενημερώνει την ισχύ του κωδικού όταν αλλάζει
+  // Απλή επαλήθευση κωδικού - μόνο για το μήκος
   const checkPasswordStrength = (pwd: string) => {
     if (!pwd) {
       setPasswordStrength(0);
       return 0;
     }
     
-    const result = zxcvbn(pwd);
-    setPasswordStrength(result.score);
-    return result.score;
+    // Απλοποιημένη εκδοχή - μόνο έλεγχος μήκους
+    const strength = pwd.length < 6 ? 1 : (pwd.length < 8 ? 2 : (pwd.length < 10 ? 3 : 4));
+    setPasswordStrength(strength);
+    return strength;
   };
 
   // Clear error when switching tabs
@@ -72,15 +72,9 @@ export const useAuthForms = () => {
       return;
     }
     
-    // Έλεγχος ισχύος κωδικού
-    const strength = checkPasswordStrength(password);
-    if (password.length < 8) {
-      setAuthError('Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες');
-      return;
-    }
-    
-    if (strength < 3) {
-      setAuthError('Ο κωδικός είναι πολύ αδύναμος. Παρακαλώ χρησιμοποιήστε συνδυασμό πεζών/κεφαλαίων, αριθμών και συμβόλων.');
+    // Βασικός έλεγχος μήκους κωδικού
+    if (password.length < 6) {
+      setAuthError('Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες');
       return;
     }
     
@@ -98,7 +92,8 @@ export const useAuthForms = () => {
       }
       
       if (success) {
-        console.log('Signup successful!');
+        console.log('Signup successful, redirecting...');
+        navigate('/dashboard');
       }
     } catch (err) {
       console.error('Unexpected signup error:', err);
