@@ -3,6 +3,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { QrCode } from "lucide-react";
+import { TabsContent } from "@/components/ui/tabs";
 
 interface WalletOverviewProps {
   isConnected: boolean;

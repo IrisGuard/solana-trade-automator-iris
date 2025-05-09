@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Zap } from "lucide-react";
+import { TabsContent } from "@/components/ui/tabs";
 
 interface MakerBotTabProps {
   isConnected: boolean;

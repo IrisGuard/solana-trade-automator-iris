@@ -1,5 +1,5 @@
-
 import React from "react";
+import { TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -21,15 +21,15 @@ interface ApiSettings {
 }
 
 interface ApiVaultTabProps {
-  apiKeys: ApiKey[];
+  apiKeys: any[];
   isUnlocked: boolean;
-  apiSettings: ApiSettings;
+  apiSettings: any;
   handleUnlockVault: () => void;
   handleLockVault: () => void;
   handleApiConnect: (index: number) => void;
   handleExportKeys: () => void;
   handleImportKeys: () => void;
-  setApiSettings: (settings: ApiSettings) => void;
+  setApiSettings: (settings: any) => void;
   handleSaveApiSettings: () => void;
 }
 
