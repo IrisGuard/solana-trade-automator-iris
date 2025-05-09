@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 
 interface SignUpFormProps {
   email: string;
@@ -15,6 +16,8 @@ interface SignUpFormProps {
   loading: boolean;
   onSubmit: (e: React.FormEvent) => Promise<void>;
   authError: string | null;
+  passwordStrength?: number;
+  checkPasswordStrength?: (password: string) => number;
 }
 
 const SignUpForm: React.FC<SignUpFormProps> = ({
@@ -27,7 +30,29 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
   loading,
   onSubmit,
   authError,
+  passwordStrength = 0,
+  checkPasswordStrength
 }) => {
+  const getPasswordStrengthText = (strength: number) => {
+    if (!password) return "";
+    const texts = ["Πολύ αδύναμος", "Αδύναμος", "Καλός", "Δυνατός", "Πολύ δυνατός"];
+    return texts[strength] || "";
+  };
+  
+  const getPasswordStrengthColor = (strength: number) => {
+    if (!password) return "bg-gray-200";
+    const colors = ["bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-green-500", "bg-emerald-500"];
+    return colors[strength] || "";
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    if (checkPasswordStrength) {
+      checkPasswordStrength(newPassword);
+    }
+  };
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       {authError && (
@@ -51,7 +76,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
           type={showPassword ? "text" : "password"}
           placeholder="Κωδικός" 
           value={password} 
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={handlePasswordChange}
           required 
           className="pr-10"
         />
@@ -63,8 +88,20 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
         >
           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
+        
+        {password && (
+          <>
+            <div className="mt-2">
+              <Progress value={(passwordStrength / 4) * 100} className={`h-1.5 ${getPasswordStrengthColor(passwordStrength)}`} />
+            </div>
+            <div className="flex justify-between text-xs">
+              <span>Ισχύς κωδικού: {getPasswordStrengthText(passwordStrength)}</span>
+            </div>
+          </>
+        )}
+        
         <p className="text-xs text-muted-foreground">
-          Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες
+          Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες
         </p>
       </div>
       <Button type="submit" className="w-full" disabled={loading}>

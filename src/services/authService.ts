@@ -35,7 +35,11 @@ export const authService = {
         email,
         password,
         options: {
-          emailRedirectTo: window.location.origin
+          emailRedirectTo: window.location.origin,
+          // Προσθέτουμε κενά δεδομένα για το userData για να αποφύγουμε προβλήματα με το search_path
+          data: {
+            full_name: ''
+          }
         }
       });
 

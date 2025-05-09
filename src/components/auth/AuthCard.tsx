@@ -18,6 +18,8 @@ interface AuthCardProps {
   authError: string | null;
   handleSignIn: (e: React.FormEvent) => Promise<void>;
   handleSignUp: (e: React.FormEvent) => Promise<void>;
+  passwordStrength?: number;
+  checkPasswordStrength?: (password: string) => number;
 }
 
 const AuthCard: React.FC<AuthCardProps> = ({
@@ -32,6 +34,8 @@ const AuthCard: React.FC<AuthCardProps> = ({
   authError,
   handleSignIn,
   handleSignUp,
+  passwordStrength,
+  checkPasswordStrength
 }) => {
   return (
     <Card className="w-full max-w-md">
@@ -74,6 +78,8 @@ const AuthCard: React.FC<AuthCardProps> = ({
               loading={loading}
               onSubmit={handleSignUp}
               authError={authError}
+              passwordStrength={passwordStrength}
+              checkPasswordStrength={checkPasswordStrength}
             />
           </TabsContent>
         </Tabs>

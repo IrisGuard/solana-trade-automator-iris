@@ -16,6 +16,8 @@ const Auth = () => {
     showPassword,
     setShowPassword,
     authError,
+    passwordStrength,
+    checkPasswordStrength,
     handleTabChange,
     handleSignIn,
     handleSignUp,
@@ -43,6 +45,8 @@ const Auth = () => {
         authError={authError}
         handleSignIn={handleSignIn}
         handleSignUp={handleSignUp}
+        passwordStrength={passwordStrength}
+        checkPasswordStrength={checkPasswordStrength}
       />
     </div>
   );
