@@ -1,14 +1,7 @@
 
 import React, { createContext, useContext, ReactNode } from 'react';
-import { useSupabaseAuth, UserType } from '@/hooks/useSupabaseAuth';
-
-interface AuthContextType {
-  user: UserType | null;
-  loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error?: any; success?: boolean }>;
-  signUp: (email: string, password: string) => Promise<{ error?: any; success?: boolean }>;
-  signOut: () => Promise<{ error?: any; success?: boolean }>;
-}
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import type { AuthContextType } from '@/types/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
