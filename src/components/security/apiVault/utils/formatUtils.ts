@@ -1,6 +1,4 @@
 
-import { toast } from "sonner";
-
 // Format key display
 export const maskKey = (key: string) => {
   if (key.length <= 8) return "•".repeat(key.length);
