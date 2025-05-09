@@ -7,10 +7,14 @@ import { cn } from "@/lib/utils";
 
 const pageTitles: Record<string, string> = {
   "/": "Dashboard",
+  "/dashboard": "Dashboard",
   "/bot-control": "Bot Control",
   "/tokens": "Tokens",
+  "/wallet": "Wallet",
   "/transactions": "Transactions",
   "/settings": "Settings",
+  "/security": "Security",
+  "/notifications": "Notifications",
 };
 
 export function Layout() {
