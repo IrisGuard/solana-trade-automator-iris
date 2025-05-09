@@ -21,7 +21,7 @@ export const ImportDialog = ({ open, onOpenChange, onImport }: ImportDialogProps
 
   const handleImport = () => {
     try {
-      const importedKeys = parseImportData(importData, importFormat);
+      const importedKeys = parseImportData(importData);
       
       if (importedKeys.length > 0) {
         onImport(importedKeys);

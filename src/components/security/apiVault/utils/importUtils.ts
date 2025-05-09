@@ -41,7 +41,7 @@ export const parseImportData = (importData: string): ApiKey[] => {
             name,
             service,
             key,
-            created: new Date().toISOString()
+            createdAt: new Date().toISOString()
           });
         }
       });
