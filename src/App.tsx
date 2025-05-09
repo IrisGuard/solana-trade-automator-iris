@@ -12,6 +12,11 @@ import Transactions from "./pages/Transactions";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
+// Θα δημιουργήσουμε προσωρινές σελίδες για τις νέες διαδρομές
+import Wallet from "./pages/Wallet";
+import Security from "./pages/Security";
+import Notifications from "./pages/Notifications";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -23,9 +28,13 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
+            <Route path="dashboard" element={<Dashboard />} />
             <Route path="bot-control" element={<BotControl />} />
             <Route path="tokens" element={<Tokens />} />
+            <Route path="wallet" element={<Wallet />} />
             <Route path="transactions" element={<Transactions />} />
+            <Route path="security" element={<Security />} />
+            <Route path="notifications" element={<Notifications />} />
             <Route path="settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<NotFound />} />

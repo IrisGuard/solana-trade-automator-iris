@@ -11,6 +11,11 @@ import {
   Settings, 
   List,
   FileText,
+  Zap,
+  BarChart2,
+  Wallet,
+  Shield,
+  Bell
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -71,19 +76,26 @@ export function Sidebar({ className }: SidebarProps) {
           )}
         </Button>
       </div>
+      
       <div className="flex-1 overflow-auto px-4">
         {isCollapsed ? (
           <div className="flex flex-col gap-2 py-2">
             <CollapsedNavLink to="/" icon={Home} />
+            <CollapsedNavLink to="/dashboard" icon={BarChart2} />
             <CollapsedNavLink to="/bot-control" icon={Bot} />
             <CollapsedNavLink to="/tokens" icon={List} />
+            <CollapsedNavLink to="/wallet" icon={Wallet} />
             <CollapsedNavLink to="/transactions" icon={FileText} />
+            <CollapsedNavLink to="/security" icon={Shield} />
+            <CollapsedNavLink to="/notifications" icon={Bell} />
             <CollapsedNavLink to="/settings" icon={Settings} />
           </div>
         ) : (
           <SidebarNav />
         )}
       </div>
+      
+      {/* User profile section */}
       <div className="border-t p-4">
         <div className={cn("flex items-center", isCollapsed ? "justify-center" : "justify-start gap-3")}>
           <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
