@@ -10,7 +10,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronDown, Settings } from "lucide-react";
+import { ChevronDown, Settings, LogOut } from "lucide-react";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 
 interface HeaderProps {
   title: string;
@@ -18,12 +19,22 @@ interface HeaderProps {
 
 export function Header({ title }: HeaderProps) {
   const [walletConnected] = useState(true);
+  const { user, signOut } = useSupabaseAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-6">
       <div className="flex flex-1 items-center justify-between">
         <h1 className="text-xl font-bold">{title}</h1>
         <div className="flex items-center gap-4">
+          {user && (
+            <div className="text-sm mr-2">
+              <span>{user.email}</span>
+            </div>
+          )}
           {walletConnected ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -54,7 +65,10 @@ export function Header({ title }: HeaderProps) {
                   <span>Settings</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Disconnect</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 text-destructive">
+                  <LogOut className="h-4 w-4" />
+                  <span>Sign Out</span>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
