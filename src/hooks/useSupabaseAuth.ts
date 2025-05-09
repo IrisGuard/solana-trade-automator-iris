@@ -20,6 +20,7 @@ export function useSupabaseAuth() {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
+        console.log('Auth state changed:', event, !!newSession);
         setSession(newSession);
         setUser(newSession?.user ? {
           id: newSession.user.id,
@@ -39,6 +40,7 @@ export function useSupabaseAuth() {
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      console.log('Existing session check:', !!currentSession);
       setSession(currentSession);
       setUser(currentSession?.user ? {
         id: currentSession.user.id,
@@ -101,20 +103,52 @@ export function useSupabaseAuth() {
 
   const signUp = async (email: string, password: string) => {
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    try {
+      // Προσθήκη της επιλογής για απενεργοποίηση της επιβεβαίωσης email
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          // Αυτό επιτρέπει την άμεση σύνδεση χωρίς επιβεβαίωση email
+          data: {
+            email_confirm: true
+          }
+        }
+      });
 
-    if (error) {
-      toast.error(error.message);
+      if (error) {
+        console.error('Signup error:', error);
+        toast.error(error.message);
+        setLoading(false);
+        return { error };
+      }
+
+      // Για development περιβάλλον, προχωράμε με άμεση σύνδεση
+      if (data.user) {
+        toast.success('Η εγγραφή ολοκληρώθηκε! Θα συνδεθείτε αυτόματα.');
+        
+        // Άμεση σύνδεση μετά την εγγραφή
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        
+        if (signInError) {
+          console.error('Auto-login error:', signInError);
+          toast.error('Παρουσιάστηκε πρόβλημα στην αυτόματη σύνδεση. Παρακαλώ συνδεθείτε χειροκίνητα.');
+        }
+      } else {
+        toast.info('Στάλθηκε email επιβεβαίωσης. Παρακαλώ ελέγξτε τα εισερχόμενά σας.');
+      }
+      
       setLoading(false);
-      return { error };
+      return { success: true, data };
+    } catch (err) {
+      console.error('Unexpected error during signup:', err);
+      toast.error('Παρουσιάστηκε ένα απρόσμενο σφάλμα κατά την εγγραφή.');
+      setLoading(false);
+      return { error: err };
     }
-
-    toast.success('Στάλθηκε email επιβεβαίωσης. Παρακαλώ ελέγξτε τα εισερχόμενά σας.');
-    setLoading(false);
-    return { success: true, data };
   };
 
   const signOut = async () => {
