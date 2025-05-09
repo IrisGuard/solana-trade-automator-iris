@@ -12,3 +12,58 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage
   }
 });
+
+// Type assertion helper for database tables
+export type Tables = {
+  profiles: {
+    id: string;
+    full_name?: string;
+    avatar_url?: string;
+    created_at: string;
+    updated_at: string;
+  };
+  wallets: {
+    id: string;
+    user_id: string;
+    address: string;
+    blockchain: string;
+    is_primary: boolean;
+    last_connected: string;
+    created_at: string;
+    updated_at: string;
+  };
+  tokens: {
+    id: string;
+    user_id: string;
+    token_address: string;
+    name: string;
+    symbol: string;
+    amount: number;
+    logo?: string;
+    created_at: string;
+    updated_at: string;
+  };
+  transactions: {
+    id: string;
+    user_id: string;
+    wallet_address: string;
+    signature: string;
+    block_time?: string;
+    type: string;
+    status: string;
+    amount: string;
+    source?: string;
+    destination?: string;
+    created_at: string;
+  };
+  bots: {
+    id: string;
+    user_id: string;
+    name: string;
+    strategy: string;
+    active: boolean;
+    config: any;
+    created_at: string;
+    updated_at: string;
+  };
+};

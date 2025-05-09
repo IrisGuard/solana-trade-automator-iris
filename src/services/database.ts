@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, Tables } from '@/integrations/supabase/client';
 import { Token } from '@/hooks/useWalletConnection';
 
 /**
@@ -14,13 +14,13 @@ export const profileService = {
       .single();
     
     if (error) throw error;
-    return data;
+    return data as Tables['profiles'];
   },
   
-  async updateProfile(userId: string, updates: any) {
+  async updateProfile(userId: string, updates: Partial<Tables['profiles']>) {
     const { data, error } = await supabase
       .from('profiles')
-      .update(updates)
+      .update(updates as any)
       .eq('id', userId);
     
     if (error) throw error;
@@ -40,7 +40,7 @@ export const walletService = {
         address, 
         last_connected: new Date(),
         is_primary: true
-      });
+      } as any);
     
     if (error) throw error;
     return data;
@@ -54,7 +54,7 @@ export const walletService = {
       .order('is_primary', { ascending: false });
     
     if (error) throw error;
-    return data;
+    return data as Tables['wallets'][];
   },
 
   async getPrimaryWallet(userId: string) {
@@ -70,7 +70,7 @@ export const walletService = {
       throw error;
     }
     
-    return data || null;
+    return data as Tables['wallets'] | null;
   }
 };
 
@@ -97,7 +97,7 @@ export const tokensService = {
     
     const { data, error } = await supabase
       .from('tokens')
-      .insert(tokenData);
+      .insert(tokenData as any);
     
     if (error) throw error;
     return data;
@@ -110,7 +110,7 @@ export const tokensService = {
       .eq('user_id', userId);
     
     if (error) throw error;
-    return data;
+    return data as Tables['tokens'][];
   }
 };
 
@@ -121,7 +121,7 @@ export const transactionsService = {
   async saveTransaction(transaction: any) {
     const { data, error } = await supabase
       .from('transactions')
-      .insert([transaction]);
+      .insert([transaction as any]);
     
     if (error) throw error;
     return data;
@@ -135,7 +135,7 @@ export const transactionsService = {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data;
+    return data as Tables['transactions'][];
   },
 
   async getTransactionsByWallet(address: string) {
@@ -146,7 +146,7 @@ export const transactionsService = {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data;
+    return data as Tables['transactions'][];
   }
 };
 
@@ -160,7 +160,7 @@ export const botsService = {
       .insert([{
         user_id: userId,
         ...botData
-      }]);
+      } as any]);
     
     if (error) throw error;
     return data;
@@ -173,13 +173,13 @@ export const botsService = {
       .eq('user_id', userId);
     
     if (error) throw error;
-    return data;
+    return data as Tables['bots'][];
   },
   
   async updateBot(botId: string, updates: any) {
     const { data, error } = await supabase
       .from('bots')
-      .update(updates)
+      .update(updates as any)
       .eq('id', botId);
     
     if (error) throw error;

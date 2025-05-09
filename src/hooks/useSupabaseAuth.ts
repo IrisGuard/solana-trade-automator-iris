@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, Tables } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { User, Session } from '@supabase/supabase-js';
 
@@ -8,7 +8,7 @@ export type UserType = {
   id: string;
   email?: string;
   created_at?: string;
-  profile?: any;
+  profile?: Partial<Tables['profiles']>;
 };
 
 export function useSupabaseAuth() {
@@ -73,7 +73,7 @@ export function useSupabaseAuth() {
       }
       
       if (data) {
-        setUser(prev => prev ? { ...prev, profile: data } : null);
+        setUser(prev => prev ? { ...prev, profile: data as Tables['profiles'] } : null);
       }
     } catch (error) {
       console.error('Failed to fetch profile:', error);
