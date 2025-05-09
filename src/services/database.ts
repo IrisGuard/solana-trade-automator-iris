@@ -1,5 +1,6 @@
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
+import { Token } from '@/hooks/useWalletConnection';
 
 /**
  * User Profile Service
@@ -25,15 +26,6 @@ export const profileService = {
     if (error) throw error;
     return data;
   },
-  
-  async createProfile(profile: any) {
-    const { data, error } = await supabase
-      .from('profiles')
-      .insert([profile]);
-    
-    if (error) throw error;
-    return data;
-  }
 };
 
 /**
@@ -43,7 +35,12 @@ export const walletService = {
   async saveWalletAddress(userId: string, address: string) {
     const { data, error } = await supabase
       .from('wallets')
-      .upsert({ user_id: userId, address, last_connected: new Date() });
+      .upsert({ 
+        user_id: userId, 
+        address, 
+        last_connected: new Date(),
+        is_primary: true
+      });
     
     if (error) throw error;
     return data;
@@ -53,10 +50,27 @@ export const walletService = {
     const { data, error } = await supabase
       .from('wallets')
       .select('*')
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .order('is_primary', { ascending: false });
     
     if (error) throw error;
     return data;
+  },
+
+  async getPrimaryWallet(userId: string) {
+    const { data, error } = await supabase
+      .from('wallets')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_primary', true)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 means no rows returned, which is not an error in this context
+      throw error;
+    }
+    
+    return data || null;
   }
 };
 
@@ -64,7 +78,7 @@ export const walletService = {
  * Tokens Service
  */
 export const tokensService = {
-  async saveTokens(userId: string, tokens: any[]) {
+  async saveTokens(userId: string, tokens: Token[]) {
     // First remove existing tokens for this user
     await supabase
       .from('tokens')
@@ -113,14 +127,72 @@ export const transactionsService = {
     return data;
   },
   
+  async getTransactionsByUser(userId: string) {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  },
+
   async getTransactionsByWallet(address: string) {
     const { data, error } = await supabase
       .from('transactions')
       .select('*')
       .eq('wallet_address', address)
-      .order('timestamp', { ascending: false });
+      .order('created_at', { ascending: false });
     
     if (error) throw error;
     return data;
+  }
+};
+
+/**
+ * Bots Service
+ */
+export const botsService = {
+  async createBot(userId: string, botData: any) {
+    const { data, error } = await supabase
+      .from('bots')
+      .insert([{
+        user_id: userId,
+        ...botData
+      }]);
+    
+    if (error) throw error;
+    return data;
+  },
+  
+  async getBotsByUser(userId: string) {
+    const { data, error } = await supabase
+      .from('bots')
+      .select('*')
+      .eq('user_id', userId);
+    
+    if (error) throw error;
+    return data;
+  },
+  
+  async updateBot(botId: string, updates: any) {
+    const { data, error } = await supabase
+      .from('bots')
+      .update(updates)
+      .eq('id', botId);
+    
+    if (error) throw error;
+    return data;
+  },
+  
+  async deleteBot(botId: string) {
+    const { error } = await supabase
+      .from('bots')
+      .delete()
+      .eq('id', botId);
+    
+    if (error) throw error;
+    return { success: true };
   }
 };

@@ -1,5 +1,9 @@
 
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { walletService, tokensService } from '@/services/database';
+import { useAuth } from '@/providers/SupabaseAuthProvider';
+import { toast } from 'sonner';
 
 export type Transaction = {
   signature: string;
@@ -20,6 +24,7 @@ export type Token = {
 };
 
 export function useWalletConnection() {
+  const { user } = useAuth();
   const [walletAddress, setWalletAddress] = useState<string>('');
   const [balance, setBalance] = useState<number | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
@@ -49,6 +54,26 @@ export function useWalletConnection() {
     }
   ]);
 
+  // Load wallet from database if user is logged in
+  useEffect(() => {
+    const loadSavedWallet = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const wallet = await walletService.getPrimaryWallet(user.id);
+        if (wallet) {
+          setWalletAddress(wallet.address);
+          await fetchBalance(wallet.address);
+          setIsConnected(true);
+        }
+      } catch (err) {
+        console.error('Error loading saved wallet:', err);
+      }
+    };
+    
+    loadSavedWallet();
+  }, [user?.id]);
+
   // Check if wallet is already connected on mount
   useEffect(() => {
     const checkWalletConnection = async () => {
@@ -63,9 +88,19 @@ export function useWalletConnection() {
           const response = await phantom.connect({ onlyIfTrusted: true });
           
           if (response && response.publicKey) {
-            setWalletAddress(response.publicKey.toString());
-            await fetchBalance(response.publicKey.toString());
+            const address = response.publicKey.toString();
+            setWalletAddress(address);
+            await fetchBalance(address);
             setIsConnected(true);
+            
+            // Save wallet to database if user is logged in
+            if (user?.id) {
+              try {
+                await walletService.saveWalletAddress(user.id, address);
+              } catch (err) {
+                console.error('Error saving wallet to database:', err);
+              }
+            }
           }
         }
       } catch (err) {
@@ -75,7 +110,7 @@ export function useWalletConnection() {
     };
 
     checkWalletConnection();
-  }, []);
+  }, [user?.id]);
 
   // Helper function to fetch balance
   const fetchBalance = async (address: string) => {
@@ -112,10 +147,26 @@ export function useWalletConnection() {
         setWalletAddress(address);
         await fetchBalance(address);
         setIsConnected(true);
+        
+        // Save wallet to database if user is logged in
+        if (user?.id) {
+          try {
+            await walletService.saveWalletAddress(user.id, address);
+            
+            // Also save tokens to database
+            await tokensService.saveTokens(user.id, tokens);
+            
+            toast.success('Wallet connected and saved to your account');
+          } catch (err) {
+            console.error('Error saving wallet to database:', err);
+            toast.error('Connected wallet but failed to save to your account');
+          }
+        }
       }
     } catch (err) {
       console.error('Error connecting wallet:', err);
       setError('Failed to connect wallet');
+      toast.error('Failed to connect wallet');
     } finally {
       setIsConnecting(false);
     }
@@ -130,10 +181,12 @@ export function useWalletConnection() {
         setIsConnected(false);
         setWalletAddress('');
         setBalance(null);
+        toast.success('Wallet disconnected');
       }
     } catch (err) {
       console.error('Error disconnecting wallet:', err);
       setError('Failed to disconnect wallet');
+      toast.error('Failed to disconnect wallet');
     }
   };
 

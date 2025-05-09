@@ -1,66 +1,88 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type { User, Session } from '@supabase/supabase-js';
 
 export type UserType = {
   id: string;
   email?: string;
   created_at?: string;
+  profile?: any;
 };
 
 export function useSupabaseAuth() {
   const [user, setUser] = useState<UserType | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check active session
-    const checkSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('Error checking session:', error);
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, newSession) => {
+        setSession(newSession);
+        setUser(newSession?.user ? {
+          id: newSession.user.id,
+          email: newSession.user.email,
+          created_at: newSession.user.created_at
+        } : null);
         setLoading(false);
-        return;
+        
+        // Load profile data after auth state changes, but don't block the auth flow
+        if (newSession?.user) {
+          setTimeout(() => {
+            fetchProfile(newSession.user.id);
+          }, 0);
+        }
       }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      setUser(currentSession?.user ? {
+        id: currentSession.user.id,
+        email: currentSession.user.email,
+        created_at: currentSession.user.created_at
+      } : null);
       
-      if (session) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email,
-          created_at: session.user.created_at
-        });
+      // Load profile data if session exists
+      if (currentSession?.user) {
+        fetchProfile(currentSession.user.id);
       }
       
       setLoading(false);
-    };
-
-    checkSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session) {
-          setUser({
-            id: session.user.id,
-            email: session.user.email,
-            created_at: session.user.created_at
-          });
-        } else {
-          setUser(null);
-        }
-        setLoading(false);
-      }
-    );
+    });
 
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+      
+      if (data) {
+        setUser(prev => prev ? { ...prev, profile: data } : null);
+      }
+    } catch (error) {
+      console.error('Failed to fetch profile:', error);
+    }
+  };
+
   const signIn = async (email: string, password: string) => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -71,14 +93,14 @@ export function useSupabaseAuth() {
       return { error };
     }
 
-    toast.success('Logged in successfully');
+    toast.success('Συνδεθήκατε με επιτυχία!');
     setLoading(false);
-    return { success: true };
+    return { success: true, data };
   };
 
   const signUp = async (email: string, password: string) => {
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
@@ -89,9 +111,9 @@ export function useSupabaseAuth() {
       return { error };
     }
 
-    toast.success('Verification email sent. Please check your inbox.');
+    toast.success('Στάλθηκε email επιβεβαίωσης. Παρακαλώ ελέγξτε τα εισερχόμενά σας.');
     setLoading(false);
-    return { success: true };
+    return { success: true, data };
   };
 
   const signOut = async () => {
@@ -104,13 +126,14 @@ export function useSupabaseAuth() {
       return { error };
     }
     
-    toast.success('Logged out successfully');
+    toast.success('Αποσυνδεθήκατε με επιτυχία');
     setLoading(false);
     return { success: true };
   };
 
   return {
     user,
+    session,
     loading,
     signIn,
     signUp,
