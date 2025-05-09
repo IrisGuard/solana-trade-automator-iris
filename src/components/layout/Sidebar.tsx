@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink as RouterNavLink } from "react-router-dom";
 import { SidebarNav } from "./SidebarNav";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -101,7 +101,7 @@ export function Sidebar({ className }: SidebarProps) {
   );
 }
 
-interface NavLinkProps {
+interface CustomNavLinkProps {
   to: string;
   icon: React.ElementType;
   children?: React.ReactNode;
@@ -109,9 +109,9 @@ interface NavLinkProps {
   end?: boolean;
 }
 
-const NavLink = ({ to, icon: Icon, children, collapsed, end }: NavLinkProps) => {
+const CustomNavLink = ({ to, icon: Icon, children, collapsed, end }: CustomNavLinkProps) => {
   return (
-    <NavLink
+    <RouterNavLink
       to={to}
       end={end}
       className={({ isActive }) =>
@@ -124,14 +124,14 @@ const NavLink = ({ to, icon: Icon, children, collapsed, end }: NavLinkProps) => 
     >
       <Icon className="h-4 w-4" />
       {!collapsed && <span>{children}</span>}
-    </NavLink>
+    </RouterNavLink>
   );
 };
 
 // Create a separate component for collapsed nav links to avoid naming conflict
 const CollapsedNavLink = ({ to, icon: Icon }: { to: string; icon: React.ElementType }) => {
   return (
-    <NavLink
+    <RouterNavLink
       to={to}
       className={({ isActive }) =>
         cn(
@@ -141,6 +141,6 @@ const CollapsedNavLink = ({ to, icon: Icon }: { to: string; icon: React.ElementT
       }
     >
       <Icon className="h-4 w-4" />
-    </NavLink>
+    </RouterNavLink>
   );
 };
