@@ -11,11 +11,10 @@ import Tokens from "./pages/Tokens";
 import Transactions from "./pages/Transactions";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-
-// Θα δημιουργήσουμε προσωρινές σελίδες για τις νέες διαδρομές
 import Wallet from "./pages/Wallet";
 import Security from "./pages/Security";
 import Notifications from "./pages/Notifications";
+import Index from "./pages/Index";
 
 const queryClient = new QueryClient();
 
@@ -27,7 +26,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
-            <Route index element={<Dashboard />} />
+            <Route index element={<Index />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="bot-control" element={<BotControl />} />
             <Route path="tokens" element={<Tokens />} />
