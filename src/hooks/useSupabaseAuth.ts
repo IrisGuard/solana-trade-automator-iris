@@ -104,14 +104,14 @@ export function useSupabaseAuth() {
   const signUp = async (email: string, password: string) => {
     setLoading(true);
     try {
-      // Προσθήκη της επιλογής για απενεργοποίηση της επιβεβαίωσης email
+      // Προσπάθεια εγγραφής χωρίς email επιβεβαίωση
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          // Αυτό επιτρέπει την άμεση σύνδεση χωρίς επιβεβαίωση email
+          emailRedirectTo: window.location.origin,
           data: {
-            email_confirm: true
+            email_confirmed: true
           }
         }
       });
@@ -123,9 +123,10 @@ export function useSupabaseAuth() {
         return { error };
       }
 
-      // Για development περιβάλλον, προχωράμε με άμεση σύνδεση
+      // Για development, αμέσως μετά την εγγραφή, κάνουμε sign in
       if (data.user) {
-        toast.success('Η εγγραφή ολοκληρώθηκε! Θα συνδεθείτε αυτόματα.');
+        toast.success('Η εγγραφή ολοκληρώθηκε με επιτυχία!');
+        console.log("Attempting direct login after signup");
         
         // Άμεση σύνδεση μετά την εγγραφή
         const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -135,9 +136,18 @@ export function useSupabaseAuth() {
         
         if (signInError) {
           console.error('Auto-login error:', signInError);
-          toast.error('Παρουσιάστηκε πρόβλημα στην αυτόματη σύνδεση. Παρακαλώ συνδεθείτε χειροκίνητα.');
+          toast.error('Παρακαλώ συνδεθείτε χειροκίνητα.');
+          setLoading(false);
+          return { 
+            signUpSuccess: true, 
+            loginSuccess: false, 
+            error: signInError 
+          };
+        } else {
+          toast.success('Συνδεθήκατε αυτόματα μετά την εγγραφή!');
         }
       } else {
+        // Αυτό δε θα πρέπει να συμβαίνει πλέον με την αλλαγή στο signUp
         toast.info('Στάλθηκε email επιβεβαίωσης. Παρακαλώ ελέγξτε τα εισερχόμενά σας.');
       }
       

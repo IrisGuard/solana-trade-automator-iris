@@ -34,10 +34,16 @@ const Auth = () => {
     e.preventDefault();
     setAuthError(null);
     
+    if (!email || !password) {
+      setAuthError('Παρακαλώ συμπληρώστε όλα τα πεδία.');
+      return;
+    }
+    
     try {
       const { success, error } = await signIn(email, password);
       
       if (error) {
+        console.error("Sign in error:", error);
         if (error.message.includes('Invalid login credentials')) {
           setAuthError('Λάθος email ή κωδικός πρόσβασης.');
         } else {
@@ -60,6 +66,11 @@ const Auth = () => {
     e.preventDefault();
     setAuthError(null);
     
+    if (!email || !password) {
+      setAuthError('Παρακαλώ συμπληρώστε όλα τα πεδία.');
+      return;
+    }
+    
     // Validate password strength
     if (password.length < 6) {
       setAuthError('Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες');
@@ -70,6 +81,7 @@ const Auth = () => {
       const { success, error } = await signUp(email, password);
       
       if (error) {
+        console.error("Sign up error:", error);
         if (error.message.includes('already registered')) {
           setAuthError('Αυτό το email χρησιμοποιείται ήδη. Παρακαλώ δοκιμάστε να συνδεθείτε.');
         } else {
@@ -81,6 +93,7 @@ const Auth = () => {
       if (success) {
         // Η μετάβαση στο dashboard γίνεται αυτόματα μέσω του useEffect όταν ενημερωθεί το user
         console.log('Signup successful!');
+        // Δεν χρειάζεται να επαναλάβουμε το navigate εδώ καθώς το useEffect θα το κάνει
       }
     } catch (err) {
       console.error('Unexpected signup error:', err);
