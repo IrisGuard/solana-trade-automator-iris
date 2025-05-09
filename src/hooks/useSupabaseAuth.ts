@@ -104,15 +104,12 @@ export function useSupabaseAuth() {
   const signUp = async (email: string, password: string) => {
     setLoading(true);
     try {
-      // Προσπάθεια εγγραφής χωρίς email επιβεβαίωση
+      // Εγγραφή χρήστη - το προφίλ θα δημιουργηθεί αυτόματα μέσω του SQL trigger
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: window.location.origin,
-          data: {
-            email_confirmed: true
-          }
+          emailRedirectTo: window.location.origin
         }
       });
 
@@ -123,7 +120,7 @@ export function useSupabaseAuth() {
         return { error };
       }
 
-      // Για development, αμέσως μετά την εγγραφή, κάνουμε sign in
+      // Αν η δημιουργία λογαριασμού ήταν επιτυχής
       if (data.user) {
         toast.success('Η εγγραφή ολοκληρώθηκε με επιτυχία!');
         console.log("Attempting direct login after signup");
@@ -147,7 +144,7 @@ export function useSupabaseAuth() {
           toast.success('Συνδεθήκατε αυτόματα μετά την εγγραφή!');
         }
       } else {
-        // Αυτό δε θα πρέπει να συμβαίνει πλέον με την αλλαγή στο signUp
+        // Αυτό συμβαίνει αν έχει ενεργοποιηθεί η επιβεβαίωση email
         toast.info('Στάλθηκε email επιβεβαίωσης. Παρακαλώ ελέγξτε τα εισερχόμενά σας.');
       }
       

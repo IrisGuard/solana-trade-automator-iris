@@ -9,7 +9,174 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      bots: {
+        Row: {
+          active: boolean | null
+          config: Json | null
+          created_at: string | null
+          id: string
+          name: string
+          strategy: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          active?: boolean | null
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          name: string
+          strategy: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          active?: boolean | null
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          strategy?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      tokens: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          id: string
+          logo: string | null
+          name: string
+          symbol: string
+          token_address: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string | null
+          id?: string
+          logo?: string | null
+          name: string
+          symbol: string
+          token_address: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string | null
+          id?: string
+          logo?: string | null
+          name?: string
+          symbol?: string
+          token_address?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: string
+          block_time: string | null
+          created_at: string | null
+          destination: string | null
+          id: string
+          signature: string
+          source: string | null
+          status: string
+          type: string
+          user_id: string
+          wallet_address: string
+        }
+        Insert: {
+          amount: string
+          block_time?: string | null
+          created_at?: string | null
+          destination?: string | null
+          id?: string
+          signature: string
+          source?: string | null
+          status: string
+          type: string
+          user_id: string
+          wallet_address: string
+        }
+        Update: {
+          amount?: string
+          block_time?: string | null
+          created_at?: string | null
+          destination?: string | null
+          id?: string
+          signature?: string
+          source?: string | null
+          status?: string
+          type?: string
+          user_id?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
+      wallets: {
+        Row: {
+          address: string
+          blockchain: string
+          created_at: string | null
+          id: string
+          is_primary: boolean
+          last_connected: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          address: string
+          blockchain?: string
+          created_at?: string | null
+          id?: string
+          is_primary?: boolean
+          last_connected?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          address?: string
+          blockchain?: string
+          created_at?: string | null
+          id?: string
+          is_primary?: boolean
+          last_connected?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
