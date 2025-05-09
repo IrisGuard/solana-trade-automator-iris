@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase, Tables } from '@/integrations/supabase/client';
+import { supabase, dbClient, Tables } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { User, Session } from '@supabase/supabase-js';
 
@@ -61,7 +61,8 @@ export function useSupabaseAuth() {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      // Use dbClient instead of supabase to bypass type checking
+      const { data, error } = await dbClient
         .from('profiles')
         .select('*')
         .eq('id', userId)

@@ -1,5 +1,5 @@
 
-import { supabase, Tables } from '@/integrations/supabase/client';
+import { dbClient, Tables } from '@/integrations/supabase/client';
 import { Token } from '@/hooks/useWalletConnection';
 
 /**
@@ -7,7 +7,7 @@ import { Token } from '@/hooks/useWalletConnection';
  */
 export const profileService = {
   async getProfile(userId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await dbClient
       .from('profiles')
       .select('*')
       .eq('id', userId)
@@ -18,9 +18,9 @@ export const profileService = {
   },
   
   async updateProfile(userId: string, updates: Partial<Tables['profiles']>) {
-    const { data, error } = await supabase
+    const { data, error } = await dbClient
       .from('profiles')
-      .update(updates as any)
+      .update(updates)
       .eq('id', userId);
     
     if (error) throw error;
@@ -33,21 +33,22 @@ export const profileService = {
  */
 export const walletService = {
   async saveWalletAddress(userId: string, address: string) {
-    const { data, error } = await supabase
+    const { data, error } = await dbClient
       .from('wallets')
       .upsert({ 
         user_id: userId, 
         address, 
         last_connected: new Date(),
-        is_primary: true
-      } as any);
+        is_primary: true,
+        blockchain: 'solana' // Adding a default value
+      });
     
     if (error) throw error;
     return data;
   },
   
   async getWalletByUser(userId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await dbClient
       .from('wallets')
       .select('*')
       .eq('user_id', userId)
@@ -58,7 +59,7 @@ export const walletService = {
   },
 
   async getPrimaryWallet(userId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await dbClient
       .from('wallets')
       .select('*')
       .eq('user_id', userId)
@@ -80,7 +81,7 @@ export const walletService = {
 export const tokensService = {
   async saveTokens(userId: string, tokens: Token[]) {
     // First remove existing tokens for this user
-    await supabase
+    await dbClient
       .from('tokens')
       .delete()
       .eq('user_id', userId);
@@ -95,16 +96,16 @@ export const tokensService = {
       logo: token.logo
     }));
     
-    const { data, error } = await supabase
+    const { data, error } = await dbClient
       .from('tokens')
-      .insert(tokenData as any);
+      .insert(tokenData);
     
     if (error) throw error;
     return data;
   },
   
   async getTokensByUser(userId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await dbClient
       .from('tokens')
       .select('*')
       .eq('user_id', userId);
@@ -119,16 +120,16 @@ export const tokensService = {
  */
 export const transactionsService = {
   async saveTransaction(transaction: any) {
-    const { data, error } = await supabase
+    const { data, error } = await dbClient
       .from('transactions')
-      .insert([transaction as any]);
+      .insert([transaction]);
     
     if (error) throw error;
     return data;
   },
   
   async getTransactionsByUser(userId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await dbClient
       .from('transactions')
       .select('*')
       .eq('user_id', userId)
@@ -139,7 +140,7 @@ export const transactionsService = {
   },
 
   async getTransactionsByWallet(address: string) {
-    const { data, error } = await supabase
+    const { data, error } = await dbClient
       .from('transactions')
       .select('*')
       .eq('wallet_address', address)
@@ -155,19 +156,19 @@ export const transactionsService = {
  */
 export const botsService = {
   async createBot(userId: string, botData: any) {
-    const { data, error } = await supabase
+    const { data, error } = await dbClient
       .from('bots')
       .insert([{
         user_id: userId,
         ...botData
-      } as any]);
+      }]);
     
     if (error) throw error;
     return data;
   },
   
   async getBotsByUser(userId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await dbClient
       .from('bots')
       .select('*')
       .eq('user_id', userId);
@@ -177,9 +178,9 @@ export const botsService = {
   },
   
   async updateBot(botId: string, updates: any) {
-    const { data, error } = await supabase
+    const { data, error } = await dbClient
       .from('bots')
-      .update(updates as any)
+      .update(updates)
       .eq('id', botId);
     
     if (error) throw error;
@@ -187,7 +188,7 @@ export const botsService = {
   },
   
   async deleteBot(botId: string) {
-    const { error } = await supabase
+    const { error } = await dbClient
       .from('bots')
       .delete()
       .eq('id', botId);
