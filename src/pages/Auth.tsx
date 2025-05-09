@@ -6,13 +6,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Wallet, AlertCircle } from 'lucide-react';
+import { Wallet, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const { signIn, signUp, loading, user } = useAuth();
   const navigate = useNavigate();
@@ -57,6 +58,10 @@ const Auth = () => {
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <Card className="w-full max-w-md">
@@ -92,14 +97,23 @@ const Auth = () => {
                     required 
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 relative">
                   <Input 
-                    type="password" 
+                    type={showPassword ? "text" : "password"} 
                     placeholder="Κωδικός" 
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)}
                     required 
+                    className="pr-10"
                   />
+                  <button 
+                    type="button" 
+                    onClick={togglePasswordVisibility}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? 'Γίνεται σύνδεση...' : 'Σύνδεση'}
@@ -117,14 +131,23 @@ const Auth = () => {
                     required 
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 relative">
                   <Input 
-                    type="password" 
+                    type={showPassword ? "text" : "password"}
                     placeholder="Κωδικός" 
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)}
                     required 
+                    className="pr-10"
                   />
+                  <button 
+                    type="button" 
+                    onClick={togglePasswordVisibility}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                   <p className="text-xs text-muted-foreground">
                     Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες
                   </p>

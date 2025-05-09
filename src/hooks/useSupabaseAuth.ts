@@ -61,8 +61,8 @@ export function useSupabaseAuth() {
 
   const fetchProfile = async (userId: string) => {
     try {
-      // Use dbClient instead of supabase to bypass type checking
-      const { data, error } = await dbClient
+      // Using any type assertion to bypass TypeScript errors
+      const { data, error } = await (dbClient as any)
         .from('profiles')
         .select('*')
         .eq('id', userId)
@@ -74,7 +74,7 @@ export function useSupabaseAuth() {
       }
       
       if (data) {
-        setUser(prev => prev ? { ...prev, profile: data as Tables['profiles'] } : null);
+        setUser(prev => prev ? { ...prev, profile: data } : null);
       }
     } catch (error) {
       console.error('Failed to fetch profile:', error);
