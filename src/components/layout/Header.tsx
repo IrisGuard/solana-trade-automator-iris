@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChevronDown, Settings, LogOut } from "lucide-react";
-import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { useAuth } from "@/providers/SupabaseAuthProvider";
 
 interface HeaderProps {
   title: string;
@@ -19,7 +19,7 @@ interface HeaderProps {
 
 export function Header({ title }: HeaderProps) {
   const [walletConnected] = useState(true);
-  const { user, signOut } = useSupabaseAuth();
+  const { user, signOut } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
