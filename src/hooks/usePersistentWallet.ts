@@ -82,10 +82,10 @@ export function usePersistentWallet() {
                   // Update connection timestamp
                   saveWalletToLocalStorage(primaryWallet.address);
                   
-                  // Update last_connected in Supabase
+                  // Update last_connected in Supabase (convert Date to ISO string)
                   await supabase
                     .from('wallets')
-                    .update({ last_connected: new Date() })
+                    .update({ last_connected: new Date().toISOString() })
                     .eq('id', primaryWallet.id);
                     
                   return;
@@ -130,7 +130,7 @@ export function usePersistentWallet() {
         await supabase
           .from('wallets')
           .update({
-            last_connected: new Date(),
+            last_connected: new Date().toISOString(),
             is_primary: true
           })
           .eq('id', existingWallets[0].id);
@@ -156,7 +156,7 @@ export function usePersistentWallet() {
             user_id: user.id,
             blockchain: 'solana',
             is_primary: true,
-            last_connected: new Date()
+            last_connected: new Date().toISOString()
           });
       }
     } catch (err) {
@@ -263,6 +263,9 @@ declare global {
         isPhantom: boolean;
         connect: (opts?: { onlyIfTrusted?: boolean }) => Promise<any>;
         disconnect: () => Promise<void>;
+        // Adding missing methods that TypeScript is expecting
+        on?: (event: string, callback: Function) => void;
+        off?: (event: string, callback: Function) => void;
       };
     };
   }

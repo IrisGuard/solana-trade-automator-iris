@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { Transaction } from '@/types/wallet';
 import { solanaService } from '@/services/solanaService';
@@ -115,7 +116,7 @@ export function useTransactions(walletAddress: string | null) {
           amount: tx.amount || '',
           source: tx.from,
           destination: tx.to,
-          block_time: tx.blockTime ? new Date(tx.blockTime) : new Date()
+          block_time: tx.blockTime ? new Date(tx.blockTime).toISOString() : new Date().toISOString()
         });
         
       if (error) {
