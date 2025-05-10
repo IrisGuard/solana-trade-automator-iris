@@ -8,7 +8,16 @@ import { FaqSection } from "@/components/home/FaqSection";
 import { FooterSection } from "@/components/home/FooterSection";
 
 const Index = () => {
-  const { isConnected, walletAddress, solBalance, tokens, connectWallet } = useWalletConnection();
+  const { 
+    isConnected, 
+    walletAddress, 
+    solBalance, 
+    tokens, 
+    connectWallet, 
+    isConnecting,
+    error,
+    isPhantomInstalled
+  } = useWalletConnection();
   
   const displayAddress = walletAddress ? 
     `${walletAddress.substring(0, 4)}...${walletAddress.substring(walletAddress.length - 4)}` : "";
@@ -27,7 +36,12 @@ const Index = () => {
           displayAddress={displayAddress}
         />
       ) : (
-        <WalletDisconnectedContent connectWallet={connectWallet} />
+        <WalletDisconnectedContent 
+          connectWallet={connectWallet} 
+          isConnecting={isConnecting}
+          error={error}
+          isPhantomInstalled={isPhantomInstalled}
+        />
       )}
       
       {/* FAQ Section */}

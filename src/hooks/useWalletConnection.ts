@@ -65,9 +65,11 @@ export function useWalletConnection() {
           setWalletAddress(wallet.address);
           await fetchBalance(wallet.address);
           setIsConnected(true);
+          toast.success('Το πορτοφόλι συνδέθηκε αυτόματα');
         }
       } catch (err) {
         console.error('Error loading saved wallet:', err);
+        toast.error('Αποτυχία αυτόματης σύνδεσης πορτοφολιού');
       }
     };
     
@@ -112,6 +114,12 @@ export function useWalletConnection() {
     checkWalletConnection();
   }, [user?.id]);
 
+  // Helper function to check if Phantom is installed
+  const checkPhantomWalletInstalled = () => {
+    if (typeof window === 'undefined') return false;
+    return window.phantom?.solana && window.phantom.solana.isPhantom;
+  };
+
   // Helper function to fetch balance
   const fetchBalance = async (address: string) => {
     try {
@@ -135,11 +143,15 @@ export function useWalletConnection() {
       const phantom = window.phantom?.solana;
 
       if (!phantom) {
-        setError('Phantom wallet not found! Please install it.');
+        const errorMsg = 'Το Phantom wallet δεν βρέθηκε! Παρακαλώ εγκαταστήστε το.';
+        setError(errorMsg);
+        toast.error(errorMsg);
         setIsConnecting(false);
         return;
       }
 
+      toast.loading('Σύνδεση με το Phantom wallet...');
+      
       const response = await phantom.connect();
       
       if (response && response.publicKey) {
@@ -156,19 +168,26 @@ export function useWalletConnection() {
             // Also save tokens to database
             await tokensService.saveTokens(user.id, tokens);
             
-            toast.success('Wallet connected and saved to your account');
+            toast.success('Το πορτοφόλι συνδέθηκε και αποθηκεύτηκε στο λογαριασμό σας');
           } catch (err) {
             console.error('Error saving wallet to database:', err);
-            toast.error('Connected wallet but failed to save to your account');
+            toast.error('Το πορτοφόλι συνδέθηκε αλλά απέτυχε η αποθήκευση στο λογαριασμό σας');
           }
+        } else {
+          toast.success('Το πορτοφόλι συνδέθηκε επιτυχώς');
         }
       }
     } catch (err) {
       console.error('Error connecting wallet:', err);
-      setError('Failed to connect wallet');
-      toast.error('Failed to connect wallet');
+      let errorMsg = 'Αποτυχία σύνδεσης πορτοφολιού';
+      if (err instanceof Error) {
+        errorMsg += `: ${err.message}`;
+      }
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setIsConnecting(false);
+      toast.dismiss();
     }
   };
 
@@ -177,16 +196,20 @@ export function useWalletConnection() {
       const phantom = window.phantom?.solana;
       
       if (phantom && phantom.isPhantom) {
+        toast.loading('Αποσύνδεση πορτοφολιού...');
         await phantom.disconnect();
         setIsConnected(false);
         setWalletAddress('');
         setBalance(null);
-        toast.success('Wallet disconnected');
+        toast.success('Το πορτοφόλι αποσυνδέθηκε');
       }
     } catch (err) {
       console.error('Error disconnecting wallet:', err);
-      setError('Failed to disconnect wallet');
-      toast.error('Failed to disconnect wallet');
+      const errorMsg = 'Αποτυχία αποσύνδεσης πορτοφολιού';
+      setError(errorMsg);
+      toast.error(errorMsg);
+    } finally {
+      toast.dismiss();
     }
   };
 
@@ -201,6 +224,7 @@ export function useWalletConnection() {
     isConnected,
     isConnecting,
     error,
+    isPhantomInstalled: checkPhantomWalletInstalled(),
     connectWallet,
     disconnectWallet,
   };
