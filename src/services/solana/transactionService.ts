@@ -45,38 +45,36 @@ export const transactionService = {
             // Check if we have a versioned message (has getAccountKeys method) or legacy message
             if ('getAccountKeys' in message) {
               // For versioned transactions (MessageV0)
-              const accountKeysObj = message.getAccountKeys();
-              
-              // Properly handle the account keys object
-              if (accountKeysObj && typeof accountKeysObj === 'object') {
-                // Check if staticAccountKeys is available (newer versions of web3.js)
-                if ('staticAccountKeys' in accountKeysObj) {
-                  const staticKeys = accountKeysObj.staticAccountKeys;
-                  if (Array.isArray(staticKeys) && accountIndex < staticKeys.length) {
-                    accountKey = staticKeys[accountIndex].toBase58();
-                  }
-                } 
-                // Fallback to using get method if it exists as a function
-                else if (typeof accountKeysObj.get === 'function') {
-                  try {
-                    const pubkey = accountKeysObj.get(accountIndex);
-                    if (pubkey) {
-                      accountKey = pubkey.toBase58();
-                    }
-                  } catch (err) {
-                    console.error('Error accessing account key:', err);
-                  }
-                }
-                // Additional fallback to handle common alternate structures
-                else if (Array.isArray(accountKeysObj)) {
-                  // Some versions might return an array directly
-                  if (accountIndex < accountKeysObj.length) {
+              try {
+                const accountKeysObj = message.getAccountKeys();
+                
+                // Handle different structures that might be returned based on SDK version
+                if (accountKeysObj) {
+                  // Check if it's an array
+                  if (Array.isArray(accountKeysObj) && accountIndex < accountKeysObj.length) {
                     const key = accountKeysObj[accountIndex];
                     if (key && typeof key.toBase58 === 'function') {
                       accountKey = key.toBase58();
                     }
+                  } 
+                  // Check if it has staticAccountKeys property
+                  else if (typeof accountKeysObj === 'object' && 'staticAccountKeys' in accountKeysObj) {
+                    const staticKeys = accountKeysObj.staticAccountKeys;
+                    if (Array.isArray(staticKeys) && accountIndex < staticKeys.length) {
+                      accountKey = staticKeys[accountIndex].toBase58();
+                    }
+                  }
+                  // Check if it has a get method
+                  else if (typeof accountKeysObj === 'object' && 'get' in accountKeysObj && 
+                          typeof accountKeysObj.get === 'function') {
+                    const pubkey = accountKeysObj.get(accountIndex);
+                    if (pubkey && typeof pubkey.toBase58 === 'function') {
+                      accountKey = pubkey.toBase58();
+                    }
                   }
                 }
+              } catch (err) {
+                console.error('Error accessing account key:', err);
               }
             } else {
               // For legacy transactions
