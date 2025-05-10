@@ -16,7 +16,8 @@ import Security from "./pages/Security";
 import Notifications from "./pages/Notifications";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import { SupabaseAuthProvider, useAuth } from "./providers/SupabaseAuthProvider";
+import { SupabaseAuthProvider } from "./providers/SupabaseAuthProvider";
+import { useAuth } from "./providers/SupabaseAuthProvider";
 
 const queryClient = new QueryClient();
 
@@ -39,33 +40,39 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const AppRoutes = () => {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/" element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<Index />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="bot-control" element={<BotControl />} />
+          <Route path="tokens" element={<Tokens />} />
+          <Route path="wallet" element={<Wallet />} />
+          <Route path="transactions" element={<Transactions />} />
+          <Route path="security" element={<Security />} />
+          <Route path="notifications" element={<Notifications />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <SupabaseAuthProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }>
-              <Route index element={<Index />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="bot-control" element={<BotControl />} />
-              <Route path="tokens" element={<Tokens />} />
-              <Route path="wallet" element={<Wallet />} />
-              <Route path="transactions" element={<Transactions />} />
-              <Route path="security" element={<Security />} />
-              <Route path="notifications" element={<Notifications />} />
-              <Route path="settings" element={<Settings />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        <AppRoutes />
       </SupabaseAuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
