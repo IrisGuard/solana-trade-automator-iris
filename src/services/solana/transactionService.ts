@@ -46,10 +46,11 @@ export const transactionService = {
             if ('getAccountKeys' in message) {
               // For versioned transactions (MessageV0)
               const accountKeys = message.getAccountKeys();
-              accountKey = accountKeys.get(accountIndex)?.toBase58();
+              // Use the get method directly on accountKeys object
+              accountKey = accountKeys?.get?.(accountIndex)?.toBase58();
             } else {
               // For legacy transactions
-              accountKey = message.accountKeys[accountIndex]?.toString();
+              accountKey = message.accountKeys?.[accountIndex]?.toString();
             }
             
             // If the first account is the user's account, it's likely an outgoing transaction
