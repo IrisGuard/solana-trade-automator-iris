@@ -47,27 +47,31 @@ export const transactionService = {
               // For versioned transactions (MessageV0)
               try {
                 // Access the account keys differently based on the library version
-                const keysObj = message.getAccountKeys();
+                const keysObj = message.getAccountKeys?.();
                 
-                // Direct access to staticAccountKeys if available
-                if (keysObj && typeof keysObj === 'object' && 'staticAccountKeys' in keysObj) {
-                  const staticKeys = keysObj.staticAccountKeys;
-                  if (Array.isArray(staticKeys) && accountIndex < staticKeys.length) {
-                    accountKey = staticKeys[accountIndex].toBase58();
+                // Only proceed if keysObj exists
+                if (keysObj) {
+                  // Direct access to staticAccountKeys if available
+                  if (typeof keysObj === 'object' && 'staticAccountKeys' in keysObj) {
+                    const staticKeys = keysObj.staticAccountKeys;
+                    if (Array.isArray(staticKeys) && accountIndex < staticKeys.length) {
+                      accountKey = staticKeys[accountIndex].toBase58();
+                    }
                   }
-                } 
-                // Handle array return type
-                else if (Array.isArray(keysObj) && accountIndex < keysObj.length) {
-                  const key = keysObj[accountIndex];
-                  if (key && typeof key.toBase58 === 'function') {
-                    accountKey = key.toBase58();
+                  // Handle array return type
+                  else if (Array.isArray(keysObj) && accountIndex < keysObj.length) {
+                    const key = keysObj[accountIndex];
+                    if (key && typeof key.toBase58 === 'function') {
+                      accountKey = key.toBase58();
+                    }
                   }
-                }
-                // Last resort - if keysObj has a method called 'at'
-                else if (keysObj && typeof keysObj === 'object' && typeof (keysObj as any).at === 'function') {
-                  const pubkey = (keysObj as any).at(accountIndex);
-                  if (pubkey && typeof pubkey.toBase58 === 'function') {
-                    accountKey = pubkey.toBase58();
+                  // Handle other object types (last resort)
+                  else if (typeof keysObj === 'object') {
+                    // Safe access using index notation
+                    const pubkey = keysObj[accountIndex];
+                    if (pubkey && typeof pubkey.toBase58 === 'function') {
+                      accountKey = pubkey.toBase58();
+                    }
                   }
                 }
               } catch (err) {
