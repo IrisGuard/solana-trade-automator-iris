@@ -39,44 +39,39 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// App routes definition - Auth route is outside the SupabaseAuthProvider
-const AppRoutes = () => {
+// Main app component
+const App = () => {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/" element={
-          <ProtectedRoute>
-            <Layout />
-          </ProtectedRoute>
-        }>
-          <Route index element={<Index />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="bot-control" element={<BotControl />} />
-          <Route path="tokens" element={<Tokens />} />
-          <Route path="wallet" element={<Wallet />} />
-          <Route path="transactions" element={<Transactions />} />
-          <Route path="security" element={<Security />} />
-          <Route path="notifications" element={<Notifications />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <SupabaseAuthProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Layout />
+                </ProtectedRoute>
+              }>
+                <Route index element={<Index />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="bot-control" element={<BotControl />} />
+                <Route path="tokens" element={<Tokens />} />
+                <Route path="wallet" element={<Wallet />} />
+                <Route path="transactions" element={<Transactions />} />
+                <Route path="security" element={<Security />} />
+                <Route path="notifications" element={<Notifications />} />
+                <Route path="settings" element={<Settings />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+          <Toaster />
+          <Sonner />
+        </SupabaseAuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 };
-
-// Main app component
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <SupabaseAuthProvider>
-        <Toaster />
-        <Sonner />
-        <AppRoutes />
-      </SupabaseAuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
 
 export default App;
