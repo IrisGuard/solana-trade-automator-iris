@@ -67,6 +67,16 @@ export const transactionService = {
                     console.error('Error accessing account key:', err);
                   }
                 }
+                // Additional fallback to handle common alternate structures
+                else if (Array.isArray(accountKeysObj)) {
+                  // Some versions might return an array directly
+                  if (accountIndex < accountKeysObj.length) {
+                    const key = accountKeysObj[accountIndex];
+                    if (key && typeof key.toBase58 === 'function') {
+                      accountKey = key.toBase58();
+                    }
+                  }
+                }
               }
             } else {
               // For legacy transactions
