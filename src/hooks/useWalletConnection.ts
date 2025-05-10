@@ -4,7 +4,6 @@ import { useAuth } from '@/providers/SupabaseAuthProvider';
 import { toast } from 'sonner';
 import { Token } from '@/types/wallet';
 import { checkPhantomWalletInstalled, handleWalletError } from '@/utils/walletUtils';
-import { walletService } from '@/services/walletService';
 import { solanaService } from '@/services/solanaService';
 
 export function useWalletConnection() {
@@ -18,56 +17,6 @@ export function useWalletConnection() {
   const [selectedToken, setSelectedToken] = useState<Token | null>(null);
   const [tokenPrices, setTokenPrices] = useState<Record<string, number>>({});
   const [isLoadingTokens, setIsLoadingTokens] = useState<boolean>(false);
-
-  // Φόρτωση του πορτοφολιού από τη βάση δεδομένων αν ο χρήστης είναι συνδεδεμένος
-  useEffect(() => {
-    const loadSavedWallet = async () => {
-      const wallet = await walletService.loadSavedWallet(user?.id);
-      if (wallet) {
-        setWalletAddress(wallet.address);
-        await fetchAndSetBalance(wallet.address);
-        await fetchAndSetTokens(wallet.address);
-        setIsConnected(true);
-        toast.success('Το πορτοφόλι συνδέθηκε αυτόματα');
-      }
-    };
-    
-    loadSavedWallet();
-  }, [user?.id]);
-
-  // Φόρτωση των tokens από το Phantom wallet
-  const fetchAndSetTokens = async (address: string) => {
-    try {
-      setIsLoadingTokens(true);
-      
-      const phantom = window.phantom?.solana;
-      if (!phantom) {
-        console.error('Phantom wallet not found');
-        setIsLoadingTokens(false);
-        return;
-      }
-      
-      toast.loading('Φόρτωση tokens...');
-      
-      // Χρήση του solanaService για φόρτωση πραγματικών tokens
-      const userTokens = await solanaService.getTokenAccounts(address);
-      setTokens(userTokens);
-      
-      // Αποθήκευση στη βάση δεδομένων αν ο χρήστης είναι συνδεδεμένος
-      if (user?.id) {
-        await walletService.saveWalletToDatabase(user.id, address, userTokens);
-      }
-      
-      toast.success('Τα tokens φορτώθηκαν επιτυχώς');
-    } catch (err) {
-      console.error('Error fetching tokens:', err);
-      toast.error('Σφάλμα κατά τη φόρτωση των tokens');
-      setTokens([]);
-    } finally {
-      setIsLoadingTokens(false);
-      toast.dismiss();
-    }
-  };
 
   // Έλεγχος αν το πορτοφόλι είναι ήδη συνδεδεμένο κατά την εκκίνηση
   useEffect(() => {
@@ -88,11 +37,6 @@ export function useWalletConnection() {
             await fetchAndSetBalance(address);
             await fetchAndSetTokens(address);
             setIsConnected(true);
-            
-            // Αποθήκευση του πορτοφολιού στη βάση δεδομένων αν ο χρήστης είναι συνδεδεμένος
-            if (user?.id) {
-              await walletService.saveWalletToDatabase(user.id, address, tokens);
-            }
           }
         }
       } catch (err) {
@@ -102,7 +46,7 @@ export function useWalletConnection() {
     };
 
     checkWalletConnection();
-  }, [user?.id]);
+  }, []);
 
   // Φόρτωση τιμών tokens κατά τη σύνδεση
   useEffect(() => {
@@ -129,6 +73,28 @@ export function useWalletConnection() {
       return () => clearInterval(interval);
     }
   }, [isConnected, tokens]);
+
+  // Φόρτωση των tokens από το Phantom wallet
+  const fetchAndSetTokens = async (address: string) => {
+    try {
+      setIsLoadingTokens(true);
+      
+      toast.loading('Φόρτωση tokens...');
+      
+      // Χρήση του solanaService για φόρτωση πραγματικών tokens
+      const userTokens = await solanaService.getTokenAccounts(address);
+      setTokens(userTokens);
+      
+      toast.success('Τα tokens φορτώθηκαν επιτυχώς');
+    } catch (err) {
+      console.error('Error fetching tokens:', err);
+      toast.error('Σφάλμα κατά τη φόρτωση των tokens');
+      setTokens([]);
+    } finally {
+      setIsLoadingTokens(false);
+      toast.dismiss();
+    }
+  };
 
   // Βοηθητική συνάρτηση για φόρτωση και ρύθμιση υπολοίπου
   const fetchAndSetBalance = async (address: string) => {
@@ -161,14 +127,7 @@ export function useWalletConnection() {
         await fetchAndSetBalance(address);
         await fetchAndSetTokens(address);
         setIsConnected(true);
-        
-        // Αποθήκευση του πορτοφολιού στη βάση δεδομένων αν ο χρήστης είναι συνδεδεμένος
-        if (user?.id) {
-          await walletService.saveWalletToDatabase(user.id, address, tokens);
-          toast.success('Το πορτοφόλι συνδέθηκε και αποθηκεύτηκε');
-        } else {
-          toast.success('Το πορτοφόλι συνδέθηκε επιτυχώς');
-        }
+        toast.success('Το πορτοφόλι συνδέθηκε επιτυχώς');
       }
     } catch (err) {
       const errorMsg = handleWalletError(err);

@@ -91,10 +91,14 @@ export function TokensCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {isLoadingTokens || tokens.length === 0 ? (
+        {isLoadingTokens ? (
           <div className="py-8 text-center text-muted-foreground">
             <Loader className="h-6 w-6 animate-spin mx-auto mb-2" />
             <p>Φόρτωση tokens...</p>
+          </div>
+        ) : tokens.length === 0 ? (
+          <div className="py-8 text-center text-muted-foreground">
+            <p>Δεν βρέθηκαν tokens στο πορτοφόλι</p>
           </div>
         ) : filteredTokens.length === 0 ? (
           <div className="py-8 text-center text-muted-foreground">
@@ -179,13 +183,6 @@ export function TokensCard({
             );
           })
         )}
-        <div className="pt-2">
-          <Link to="/tokens">
-            <Button variant="outline" size="sm" className="w-full">
-              Προβολή όλων των tokens
-            </Button>
-          </Link>
-        </div>
       </CardContent>
       {selectedToken && (
         <CardFooter className="pt-2 pb-4 border-t">
