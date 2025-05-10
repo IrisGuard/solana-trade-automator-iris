@@ -57,7 +57,7 @@ export const transactionService = {
                   }
                 } 
                 // Fallback to using get method if it exists as a function
-                else if (accountKeysObj.get && typeof accountKeysObj.get === 'function') {
+                else if (typeof accountKeysObj.get === 'function') {
                   try {
                     const pubkey = accountKeysObj.get(accountIndex);
                     if (pubkey) {
