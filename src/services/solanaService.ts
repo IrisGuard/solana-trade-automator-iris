@@ -1,6 +1,5 @@
 
 import { Connection, PublicKey, clusterApiUrl, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { toast } from 'sonner';
 import { Token } from '@/types/wallet';
 
@@ -8,6 +7,9 @@ import { Token } from '@/types/wallet';
 // Συνιστάται η χρήση ιδιωτικού RPC endpoint σε παραγωγή
 const SOLANA_NETWORK = 'mainnet-beta';
 const connection = new Connection(clusterApiUrl(SOLANA_NETWORK), 'confirmed');
+
+// SPL Token Program ID - defined here to avoid dependency issues
+const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
 
 // Επίσημες διευθύνσεις των πιο γνωστών tokens
 const KNOWN_TOKEN_ADDRESSES: Record<string, { name: string, symbol: string, logo?: string }> = {
