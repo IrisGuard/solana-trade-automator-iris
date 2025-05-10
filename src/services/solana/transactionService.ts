@@ -39,12 +39,21 @@ export const transactionService = {
             const message = tx.transaction.message;
             
             // Get account keys - handle both versioned and legacy transactions
-            const accountKeys = 'getAccountKeys' in message 
-              ? message.getAccountKeys().get(tx.meta?.postTokenBalances?.[0]?.accountIndex || 0)?.toBase58()
-              : message.accountKeys[tx.meta?.postTokenBalances?.[0]?.accountIndex || 0]?.toString();
+            const accountIndex = tx.meta?.postTokenBalances?.[0]?.accountIndex || 0;
+            
+            let accountKey;
+            // Check if we have a versioned message (has getAccountKeys method) or legacy message
+            if ('getAccountKeys' in message) {
+              // For versioned transactions (MessageV0)
+              const accountKeys = message.getAccountKeys();
+              accountKey = accountKeys.get(accountIndex)?.toBase58();
+            } else {
+              // For legacy transactions
+              accountKey = message.accountKeys[accountIndex]?.toString();
+            }
             
             // If the first account is the user's account, it's likely an outgoing transaction
-            if (accountKeys === publicKey.toBase58()) {
+            if (accountKey === publicKey.toBase58()) {
               type = 'Send';
               amount = `-${tx.meta?.fee ? tx.meta.fee / 1e9 : 0} SOL`;
             } else {
