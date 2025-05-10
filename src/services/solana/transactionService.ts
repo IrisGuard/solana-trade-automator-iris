@@ -45,15 +45,26 @@ export const transactionService = {
             // Check if we have a versioned message (has getAccountKeys method) or legacy message
             if ('getAccountKeys' in message) {
               // For versioned transactions (MessageV0)
-              const accountKeys = message.getAccountKeys();
-              // Fixed: Use proper type checking and property access
-              if (accountKeys) {
-                // Access the 'get' property as an object method, not as a function call
-                const getMethod = accountKeys.get;
-                if (typeof getMethod === 'function') {
-                  const pubkey = getMethod.call(accountKeys, accountIndex);
-                  if (pubkey) {
-                    accountKey = pubkey.toBase58();
+              const accountKeysObj = message.getAccountKeys();
+              
+              // Properly handle the account keys object
+              if (accountKeysObj && typeof accountKeysObj === 'object') {
+                // Check if staticAccountKeys is available (newer versions of web3.js)
+                if ('staticAccountKeys' in accountKeysObj) {
+                  const staticKeys = accountKeysObj.staticAccountKeys;
+                  if (Array.isArray(staticKeys) && accountIndex < staticKeys.length) {
+                    accountKey = staticKeys[accountIndex].toBase58();
+                  }
+                } 
+                // Fallback to using get method if it exists as a function
+                else if (typeof accountKeysObj.get === 'function') {
+                  try {
+                    const pubkey = accountKeysObj.get(accountIndex);
+                    if (pubkey) {
+                      accountKey = pubkey.toBase58();
+                    }
+                  } catch (err) {
+                    console.error('Error accessing account key:', err);
                   }
                 }
               }
