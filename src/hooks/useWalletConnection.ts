@@ -1,13 +1,11 @@
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/providers/SupabaseAuthProvider';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Token } from '@/types/wallet';
 import { checkPhantomWalletInstalled, handleWalletError } from '@/utils/walletUtils';
 import { solanaService } from '@/services/solanaService';
 
 export function useWalletConnection() {
-  const { user } = useAuth();
   const [walletAddress, setWalletAddress] = useState<string>('');
   const [balance, setBalance] = useState<number | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
@@ -37,6 +35,7 @@ export function useWalletConnection() {
             await fetchAndSetBalance(address);
             await fetchAndSetTokens(address);
             setIsConnected(true);
+            console.log('Wallet auto-connected:', address);
           }
         }
       } catch (err) {
@@ -75,7 +74,7 @@ export function useWalletConnection() {
   }, [isConnected, tokens]);
 
   // Φόρτωση των tokens από το Phantom wallet
-  const fetchAndSetTokens = async (address: string) => {
+  const fetchAndSetTokens = useCallback(async (address: string) => {
     try {
       setIsLoadingTokens(true);
       
@@ -94,15 +93,20 @@ export function useWalletConnection() {
       setIsLoadingTokens(false);
       toast.dismiss();
     }
-  };
+  }, []);
 
   // Βοηθητική συνάρτηση για φόρτωση και ρύθμιση υπολοίπου
-  const fetchAndSetBalance = async (address: string) => {
-    const fetchedBalance = await solanaService.getSolBalance(address);
-    setBalance(fetchedBalance);
-  };
+  const fetchAndSetBalance = useCallback(async (address: string) => {
+    try {
+      const fetchedBalance = await solanaService.getSolBalance(address);
+      setBalance(fetchedBalance);
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+      setBalance(0);
+    }
+  }, []);
 
-  const connectWallet = async () => {
+  const connectWallet = useCallback(async () => {
     try {
       setIsConnecting(true);
       setError(null);
@@ -123,6 +127,7 @@ export function useWalletConnection() {
       
       if (response && response.publicKey) {
         const address = response.publicKey.toString();
+        console.log('Connected to wallet:', address);
         setWalletAddress(address);
         await fetchAndSetBalance(address);
         await fetchAndSetTokens(address);
@@ -130,15 +135,16 @@ export function useWalletConnection() {
         toast.success('Το πορτοφόλι συνδέθηκε επιτυχώς');
       }
     } catch (err) {
+      console.error('Connection error:', err);
       const errorMsg = handleWalletError(err);
       setError(errorMsg);
     } finally {
       setIsConnecting(false);
       toast.dismiss();
     }
-  };
+  }, [fetchAndSetBalance, fetchAndSetTokens]);
 
-  const disconnectWallet = async () => {
+  const disconnectWallet = useCallback(async () => {
     try {
       const phantom = window.phantom?.solana;
       
@@ -160,10 +166,10 @@ export function useWalletConnection() {
     } finally {
       toast.dismiss();
     }
-  };
+  }, []);
 
   // Επιλογή ενός token για trading
-  const selectTokenForTrading = (tokenAddress: string) => {
+  const selectTokenForTrading = useCallback((tokenAddress: string) => {
     const token = tokens.find(t => t.address === tokenAddress);
     if (token) {
       setSelectedToken(token);
@@ -171,7 +177,7 @@ export function useWalletConnection() {
       return token;
     }
     return null;
-  };
+  }, [tokens]);
 
   // Λήψη solBalance από την κατάσταση balance
   const solBalance = balance || 0;

@@ -5,6 +5,7 @@ export interface Token {
   symbol: string;
   amount: number;
   logo?: string;
+  price?: number;
 }
 
 export interface Transaction {
@@ -15,6 +16,7 @@ export interface Transaction {
   amount?: string;
   from?: string;
   to?: string;
+  tokenAddress?: string;
 }
 
 export interface WalletState {

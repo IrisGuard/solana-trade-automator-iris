@@ -1,7 +1,7 @@
 
 import { Connection, PublicKey, clusterApiUrl, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { toast } from 'sonner';
-import { Token } from '@/types/wallet';
+import { Token, Transaction } from '@/types/wallet';
 
 // Ορίζουμε το TOKEN_PROGRAM_ID απευθείας ως PublicKey αντί να το εισάγουμε από @solana/spl-token
 const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
@@ -106,30 +106,90 @@ export const solanaService = {
     }
   },
   
-  // Λήψη των πρόσφατων συναλλαγών
-  getRecentTransactions: async (address: string, limit = 10) => {
+  // Λήψη των πρόσφατων συναλλαγών με περισσότερες λεπτομέρειες
+  getRecentTransactions: async (address: string, limit = 10): Promise<Transaction[]> => {
     try {
       const publicKey = new PublicKey(address);
-      const transactions = await connection.getSignaturesForAddress(publicKey, { limit });
+      const signatures = await connection.getSignaturesForAddress(publicKey, { limit });
       
-      return transactions.map(tx => ({
-        signature: tx.signature,
-        blockTime: tx.blockTime ? tx.blockTime * 1000 : Date.now(),
-        status: tx.err ? 'αποτυχία' : 'επιβεβαιώθηκε',
-        // Σημείωση: Για πλήρεις λεπτομέρειες συναλλαγών απαιτείται επιπλέον 
-        // επεξεργασία των δεδομένων συναλλαγής με getTransaction
-        type: 'Συναλλαγή',
-        amount: '',
-        from: '',
-        to: ''
-      }));
+      const transactions: Transaction[] = [];
+      
+      for (const sig of signatures) {
+        try {
+          // Λήψη πλήρων πληροφοριών συναλλαγής
+          const txInfo = await connection.getTransaction(sig.signature, {
+            commitment: 'confirmed',
+            maxSupportedTransactionVersion: 0
+          });
+          
+          if (!txInfo) continue;
+          
+          let type = 'Συναλλαγή';
+          let amount = '';
+          let from = '';
+          let to = '';
+          
+          // Προσπάθεια αναγνώρισης τύπου συναλλαγής και ποσού
+          if (txInfo.meta && txInfo.meta.preTokenBalances && txInfo.meta.postTokenBalances) {
+            // Πιθανή συναλλαγή token
+            if (txInfo.meta.preTokenBalances.length > 0 || txInfo.meta.postTokenBalances.length > 0) {
+              type = 'Token';
+            }
+          }
+          
+          // Έλεγχος για μεταφορά SOL
+          if (txInfo.meta && txInfo.meta.preBalances && txInfo.meta.postBalances) {
+            const preBalances = txInfo.meta.preBalances;
+            const postBalances = txInfo.meta.postBalances;
+            
+            if (preBalances.length > 0 && postBalances.length > 0) {
+              const accountIndex = txInfo.transaction.message.accountKeys.findIndex(
+                key => key.pubkey.toBase58() === address
+              );
+              
+              if (accountIndex >= 0) {
+                const balanceDiff = (postBalances[accountIndex] - preBalances[accountIndex]) / LAMPORTS_PER_SOL;
+                
+                if (balanceDiff > 0) {
+                  type = 'Κατάθεση';
+                  amount = `+${balanceDiff.toFixed(5)} SOL`;
+                } else if (balanceDiff < 0) {
+                  type = 'Ανάληψη';
+                  amount = `${balanceDiff.toFixed(5)} SOL`;
+                }
+              }
+            }
+          }
+          
+          transactions.push({
+            signature: sig.signature,
+            blockTime: sig.blockTime ? sig.blockTime * 1000 : Date.now(),
+            status: sig.err ? 'αποτυχία' : 'επιβεβαιώθηκε',
+            type,
+            amount,
+            from,
+            to
+          });
+        } catch (txError) {
+          console.error('Σφάλμα ανάκτησης λεπτομερειών συναλλαγής:', txError);
+          // Προσθήκη βασικών πληροφοριών αν η ανάκτηση λεπτομερειών αποτύχει
+          transactions.push({
+            signature: sig.signature,
+            blockTime: sig.blockTime ? sig.blockTime * 1000 : Date.now(),
+            status: sig.err ? 'αποτυχία' : 'επιβεβαιώθηκε',
+            type: 'Συναλλαγή'
+          });
+        }
+      }
+      
+      return transactions;
     } catch (error) {
       console.error('Σφάλμα κατά τη φόρτωση των συναλλαγών:', error);
       return [];
     }
   },
   
-  // Λήψη της τρέχουσας τιμής ενός token (σε μια πραγματική υλοποίηση θα συνδεόταν με API τιμών)
+  // Λήψη της τρέχουσας τιμής ενός token 
   getTokenPrice: async (tokenAddress: string): Promise<number> => {
     // Προσομοίωση τιμών για γνωστά tokens
     const mockPrices: Record<string, number> = {
@@ -139,7 +199,13 @@ export const solanaService = {
       'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So': 85.25
     };
     
-    // Εδώ θα μπορούσαμε να συνδεθούμε με πραγματικό API τιμών όπως το CoinGecko
-    return mockPrices[tokenAddress] || Math.random() * 10; // Προσομοίωση τυχαίας τιμής για άγνωστα tokens
+    return mockPrices[tokenAddress] || Math.random() * 10;
+  },
+  
+  // Αποστολή token σε άλλο πορτοφόλι (μελλοντική υλοποίηση)
+  sendToken: async () => {
+    // Θα υλοποιηθεί στο μέλλον
+    toast.error('Η λειτουργία αποστολής token δεν έχει υλοποιηθεί ακόμα');
+    return false;
   }
 };

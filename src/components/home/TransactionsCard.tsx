@@ -23,7 +23,7 @@ export function TransactionsCard({ walletAddress, displayAddress }: Transactions
       
       setIsLoading(true);
       try {
-        const recentTransactions = await solanaService.getRecentTransactions(walletAddress);
+        const recentTransactions = await solanaService.getRecentTransactions(walletAddress, 5);
         setTransactions(recentTransactions);
       } catch (error) {
         console.error("Error loading transactions:", error);
@@ -71,11 +71,11 @@ export function TransactionsCard({ walletAddress, displayAddress }: Transactions
                 </p>
               </div>
               <div className="text-right">
-                <p className={`font-medium ${tx.status === 'επιβεβαιώθηκε' ? 'text-green-500' : 'text-red-500'}`}>
-                  {tx.status}
+                <p className={`font-medium ${tx.amount?.startsWith('+') ? 'text-green-500' : ''}`}>
+                  {tx.amount || '-'}
                 </p>
                 <p className="text-xs text-muted-foreground truncate max-w-[120px]">
-                  {tx.signature.substring(0, 8)}...
+                  {tx.status}
                 </p>
               </div>
             </div>
