@@ -89,11 +89,31 @@ export const useAuthForms = () => {
     }
     
     try {
+      // First check if the user already exists
+      const { data: existingUsers } = await supabase.auth.admin.listUsers({
+        filter: {
+          email: email
+        }
+      }).catch(() => ({ data: null }));
+      
+      // Attempt to check if user exists by sign-in attempt with wrong password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: 'temporaryCheckPassword123!', // Intentionally wrong password
+      });
+      
+      // If the error isn't "Invalid credentials", the user likely exists
+      if (signInError && !signInError.message?.includes('Invalid login credentials')) {
+        setAuthError('Αυτό το email χρησιμοποιείται ήδη. Παρακαλώ δοκιμάστε να συνδεθείτε.');
+        setLoading(false);
+        return;
+      }
+      
       const { success, error } = await authService.signUp(email, password);
       
       if (error) {
         console.error("Sign up error:", error);
-        if (error.message?.includes('already registered')) {
+        if (error.message?.includes('already registered') || error.message?.includes('already exists')) {
           setAuthError('Αυτό το email χρησιμοποιείται ήδη. Παρακαλώ δοκιμάστε να συνδεθείτε.');
         } else {
           setAuthError(error.message);
@@ -104,6 +124,7 @@ export const useAuthForms = () => {
       
       if (success) {
         console.log('Signup successful, redirecting...');
+        toast.success('Η εγγραφή ολοκληρώθηκε με επιτυχία!');
         navigate('/dashboard');
       }
     } catch (err) {

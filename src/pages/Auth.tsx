@@ -23,12 +23,22 @@ const Auth = () => {
     loading
   } = useAuthForms();
 
-  // Check for existing session without using the useAuth hook
+  // Check for existing session directly with supabase client
   useEffect(() => {
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        navigate('/dashboard');
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error("Error checking session:", error);
+          return;
+        }
+        
+        if (data?.session) {
+          console.log("User is already logged in, redirecting to dashboard");
+          navigate('/dashboard');
+        }
+      } catch (err) {
+        console.error("Unexpected error checking session:", err);
       }
     };
     

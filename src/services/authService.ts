@@ -34,7 +34,7 @@ export const authService = {
   },
 
   /**
-   * Sign up with email and password - απλοποιημένη έκδοση
+   * Sign up with email and password - βελτιωμένη έκδοση με έλεγχο για υπάρχον email
    */
   async signUp(email: string, password: string) {
     try {
@@ -57,8 +57,19 @@ export const authService = {
 
       if (error) {
         console.error('Signup error:', error);
-        toast.error(error.message);
-        return { error };
+        
+        // Check if the error is because the user already exists
+        if (error.message?.includes('already registered') || 
+            error.message?.includes('already exists') ||
+            error.status === 422 || 
+            error.status === 400) {
+          const errorMsg = 'Αυτό το email χρησιμοποιείται ήδη. Παρακαλώ δοκιμάστε να συνδεθείτε.';
+          toast.error(errorMsg);
+          return { error: { message: errorMsg } };
+        } else {
+          toast.error(error.message);
+          return { error };
+        }
       }
 
       // Άμεση σύνδεση μετά την εγγραφή
