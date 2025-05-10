@@ -41,7 +41,12 @@ export const authService = {
     try {
       console.log('Attempting to sign up user:', email);
       
-      // Απλή εγγραφή χωρίς επιπλέον ρυθμίσεις
+      // Έλεγχος ασφάλειας κωδικού
+      if (password.length < 6) {
+        return { error: { message: 'Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες' } };
+      }
+      
+      // Απλή εγγραφή
       const { data, error } = await supabase.auth.signUp({
         email,
         password,

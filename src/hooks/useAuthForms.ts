@@ -21,7 +21,12 @@ export const useAuthForms = () => {
     }
     
     // Απλοποιημένη εκδοχή - μόνο έλεγχος μήκους
-    const strength = pwd.length < 6 ? 1 : (pwd.length < 8 ? 2 : (pwd.length < 10 ? 3 : 4));
+    let strength = 0;
+    if (pwd.length >= 6) strength = 1;
+    if (pwd.length >= 8) strength = 2;
+    if (pwd.length >= 10) strength = 3;
+    if (pwd.length >= 12) strength = 4;
+    
     setPasswordStrength(strength);
     return strength;
   };

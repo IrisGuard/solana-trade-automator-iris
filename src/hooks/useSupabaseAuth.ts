@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { authService } from '@/services/authService';
-import { profileService } from '@/services/profileService';
 import type { UserType } from '@/types/auth';
 import type { Session } from '@supabase/supabase-js';
 
