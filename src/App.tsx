@@ -15,29 +15,9 @@ import Wallet from "./pages/Wallet";
 import Security from "./pages/Security";
 import Notifications from "./pages/Notifications";
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import { SupabaseAuthProvider, useAuth } from "./providers/SupabaseAuthProvider";
+import { SupabaseAuthProvider } from "./providers/SupabaseAuthProvider";
 
 const queryClient = new QueryClient();
-
-// Protected route wrapper component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-  
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  return <>{children}</>;
-};
 
 // Main app component
 const App = () => {
@@ -47,12 +27,7 @@ const App = () => {
         <SupabaseAuthProvider>
           <BrowserRouter>
             <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }>
+              <Route path="/" element={<Layout />}>
                 <Route index element={<Index />} />
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="bot-control" element={<BotControl />} />
