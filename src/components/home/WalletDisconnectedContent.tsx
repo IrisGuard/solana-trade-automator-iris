@@ -3,7 +3,7 @@ import React from "react";
 import { ConnectWalletCard } from "./ConnectWalletCard";
 import { PlatformInfoCard } from "./PlatformInfoCard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, AlertTriangle } from "lucide-react";
 
 interface WalletDisconnectedContentProps {
   connectWallet: () => void;
@@ -22,7 +22,7 @@ export function WalletDisconnectedContent({
     <div className="space-y-6">
       {/* Error message if any */}
       {error && (
-        <Alert variant="destructive" className="mb-4">
+        <Alert variant="destructive" className="mb-4 animate-pulse">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
@@ -31,14 +31,14 @@ export function WalletDisconnectedContent({
       {/* Warning if Phantom is not installed */}
       {!isPhantomInstalled && (
         <Alert className="mb-4 bg-yellow-50 border-yellow-100">
-          <AlertCircle className="h-4 w-4 text-yellow-600" />
+          <AlertTriangle className="h-4 w-4 text-yellow-600" />
           <AlertDescription className="text-yellow-700">
             Το Phantom Wallet δεν είναι εγκατεστημένο. 
             <a 
               href="https://phantom.app/"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline ml-1 font-medium"
+              className="underline ml-1 font-medium hover:text-yellow-800 transition-colors"
             >
               Εγκαταστήστε το από εδώ
             </a>

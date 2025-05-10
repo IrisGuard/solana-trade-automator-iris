@@ -11,18 +11,25 @@ interface WalletConnectedContentProps {
   solBalance: number;
   tokens: Token[];
   displayAddress: string;
+  tokenPrices?: Record<string, number>;
+  selectTokenForTrading?: (tokenAddress: string) => Token | null;
 }
 
 export function WalletConnectedContent({ 
   walletAddress, 
   solBalance, 
   tokens, 
-  displayAddress 
+  displayAddress,
+  tokenPrices,
+  selectTokenForTrading
 }: WalletConnectedContentProps) {
   return (
     <div className="space-y-6">
       <WalletInfoCard walletAddress={walletAddress} solBalance={solBalance} />
-      <TokensCard tokens={tokens} displayAddress={displayAddress} />
+      <TokensCard 
+        tokens={tokens} 
+        displayAddress={displayAddress} 
+      />
       <TransactionsCard walletAddress={walletAddress} displayAddress={displayAddress} />
       <BotStatusCard />
     </div>

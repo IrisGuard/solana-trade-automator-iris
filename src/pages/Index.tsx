@@ -6,6 +6,7 @@ import { WalletConnectedContent } from "@/components/home/WalletConnectedContent
 import { WalletDisconnectedContent } from "@/components/home/WalletDisconnectedContent";
 import { FaqSection } from "@/components/home/FaqSection";
 import { FooterSection } from "@/components/home/FooterSection";
+import { formatWalletAddress } from "@/utils/walletUtils";
 
 const Index = () => {
   const { 
@@ -13,14 +14,15 @@ const Index = () => {
     walletAddress, 
     solBalance, 
     tokens, 
+    tokenPrices,
     connectWallet, 
     isConnecting,
     error,
-    isPhantomInstalled
+    isPhantomInstalled,
+    selectTokenForTrading
   } = useWalletConnection();
   
-  const displayAddress = walletAddress ? 
-    `${walletAddress.substring(0, 4)}...${walletAddress.substring(walletAddress.length - 4)}` : "";
+  const displayAddress = walletAddress ? formatWalletAddress(walletAddress) : "";
 
   return (
     <div className="container mx-auto space-y-8 pb-8">
@@ -34,6 +36,8 @@ const Index = () => {
           solBalance={solBalance} 
           tokens={tokens} 
           displayAddress={displayAddress}
+          tokenPrices={tokenPrices}
+          selectTokenForTrading={selectTokenForTrading}
         />
       ) : (
         <WalletDisconnectedContent 

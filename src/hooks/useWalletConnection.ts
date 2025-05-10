@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/providers/SupabaseAuthProvider';
 import { toast } from 'sonner';
 import { Token } from '@/types/wallet';
-import { checkPhantomWalletInstalled, fetchSolanaBalance, handleWalletError } from '@/utils/walletUtils';
+import { checkPhantomWalletInstalled, fetchSolanaBalance, handleWalletError, fetchTokenPrice } from '@/utils/walletUtils';
 import { walletService } from '@/services/walletService';
 import { getMockTokens } from '@/data/mockWalletData';
 
@@ -15,6 +15,8 @@ export function useWalletConnection() {
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [tokens, setTokens] = useState<Token[]>(getMockTokens());
+  const [selectedToken, setSelectedToken] = useState<Token | null>(null);
+  const [tokenPrices, setTokenPrices] = useState<Record<string, number>>({});
 
   // Load wallet from database if user is logged in
   useEffect(() => {
@@ -65,6 +67,32 @@ export function useWalletConnection() {
     checkWalletConnection();
   }, [user?.id]);
 
+  // Fetch token prices on connection
+  useEffect(() => {
+    if (isConnected && tokens.length > 0) {
+      const fetchPrices = async () => {
+        try {
+          const prices: Record<string, number> = {};
+          
+          for (const token of tokens) {
+            // In a real app, you'd fetch prices from an API
+            prices[token.address] = await fetchTokenPrice(token.address);
+          }
+          
+          setTokenPrices(prices);
+        } catch (error) {
+          console.error("Error fetching token prices:", error);
+        }
+      };
+      
+      fetchPrices();
+      
+      // Refresh prices every 60 seconds
+      const interval = setInterval(fetchPrices, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [isConnected, tokens]);
+
   // Helper function to fetch and set balance
   const fetchAndSetBalance = async (address: string) => {
     const fetchedBalance = await fetchSolanaBalance(address);
@@ -99,6 +127,7 @@ export function useWalletConnection() {
         // Save wallet to database if user is logged in
         if (user?.id) {
           await walletService.saveWalletToDatabase(user.id, address, tokens);
+          toast.success('Το πορτοφόλι συνδέθηκε και αποθηκεύτηκε');
         } else {
           toast.success('Το πορτοφόλι συνδέθηκε επιτυχώς');
         }
@@ -122,6 +151,7 @@ export function useWalletConnection() {
         setIsConnected(false);
         setWalletAddress('');
         setBalance(null);
+        setSelectedToken(null);
         toast.success('Το πορτοφόλι αποσυνδέθηκε');
       }
     } catch (err) {
@@ -134,6 +164,17 @@ export function useWalletConnection() {
     }
   };
 
+  // Select a token for trading
+  const selectTokenForTrading = (tokenAddress: string) => {
+    const token = tokens.find(t => t.address === tokenAddress);
+    if (token) {
+      setSelectedToken(token);
+      toast.success(`Επιλέχθηκε το ${token.symbol} για trading`);
+      return token;
+    }
+    return null;
+  };
+
   // Get solBalance from the balance state
   const solBalance = balance || 0;
 
@@ -142,12 +183,15 @@ export function useWalletConnection() {
     balance,
     solBalance,
     tokens,
+    tokenPrices,
+    selectedToken,
     isConnected,
     isConnecting,
     error,
     isPhantomInstalled: checkPhantomWalletInstalled(),
     connectWallet,
     disconnectWallet,
+    selectTokenForTrading,
   };
 }
 

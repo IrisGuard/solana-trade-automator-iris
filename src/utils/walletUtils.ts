@@ -33,9 +33,25 @@ export const formatWalletAddress = (address: string | null): string => {
 export const handleWalletError = (err: unknown): string => {
   console.error('Error connecting wallet:', err);
   let errorMsg = 'Αποτυχία σύνδεσης πορτοφολιού';
+  
   if (err instanceof Error) {
-    errorMsg += `: ${err.message}`;
+    // Handle specific error types
+    if (err.message.includes('User rejected')) {
+      errorMsg = 'Η σύνδεση απορρίφθηκε από τον χρήστη';
+    } else if (err.message.includes('timeout')) {
+      errorMsg = 'Η σύνδεση έληξε. Παρακαλώ δοκιμάστε ξανά';
+    } else {
+      errorMsg += `: ${err.message}`;
+    }
   }
+  
   toast.error(errorMsg);
   return errorMsg;
+};
+
+// Function to simulate fetching token price
+export const fetchTokenPrice = async (tokenAddress: string): Promise<number> => {
+  // In a real app, you'd fetch this from a price API
+  // For now, return a random price between 0.01 and 100
+  return parseFloat((Math.random() * 100 + 0.01).toFixed(2));
 };
