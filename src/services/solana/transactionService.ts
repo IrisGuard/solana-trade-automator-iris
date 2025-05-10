@@ -49,12 +49,12 @@ export const transactionService = {
               } else {
                 // For legacy transactions - fallback to direct access if needed
                 // This should handle older transaction formats
-                accountKeys = txInfo.transaction.message.accountKeys;
+                accountKeys = txInfo.transaction.message.getAccountKeys?.() || [];
               }
               
               if (accountKeys) {
                 const accountIndex = accountKeys.findIndex(
-                  key => key.pubkey.toBase58() === address
+                  key => key.toString() === address
                 );
                 
                 if (accountIndex >= 0) {
