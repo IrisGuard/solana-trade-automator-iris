@@ -17,23 +17,27 @@ export function HeroSection() {
         Αναπτύξτε, διαχειριστείτε και βελτιστοποιήστε trading bots για το Solana blockchain
         χωρίς να χρειάζεται να γράψετε κώδικα.
       </p>
-      <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+      <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
         {isConnected ? (
           <Link to="/dashboard">
-            <Button size="lg" className="gap-2">
+            <Button size="lg" className="gap-2 px-6 py-6 h-auto text-base">
               <LayoutDashboard className="h-5 w-5" />
               Πίνακας Ελέγχου
               <ArrowRight className="h-5 w-5" />
             </Button>
           </Link>
         ) : (
-          <Button size="lg" onClick={connectWallet} className="gap-2">
+          <Button 
+            size="lg" 
+            onClick={connectWallet} 
+            className="gap-2 px-6 py-6 h-auto text-base animate-pulse"
+          >
             <Wallet className="h-5 w-5" />
             Σύνδεση με Phantom Wallet
           </Button>
         )}
         <Link to="/bot-control">
-          <Button size="lg" variant="outline" className="gap-2">
+          <Button size="lg" variant="outline" className="gap-2 px-6 py-6 h-auto text-base">
             <TrendingUp className="h-5 w-5" />
             Έλεγχος Trading Bot
           </Button>
