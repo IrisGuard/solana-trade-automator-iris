@@ -16,12 +16,11 @@ import Security from "./pages/Security";
 import Notifications from "./pages/Notifications";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import { SupabaseAuthProvider } from "./providers/SupabaseAuthProvider";
-import { useAuth } from "./providers/SupabaseAuthProvider";
+import { SupabaseAuthProvider, useAuth } from "./providers/SupabaseAuthProvider";
 
 const queryClient = new QueryClient();
 
-// Protected route wrapper
+// Protected route wrapper component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
 
@@ -40,6 +39,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// App routes component that uses the auth context
 const AppRoutes = () => {
   return (
     <BrowserRouter>
@@ -66,6 +66,7 @@ const AppRoutes = () => {
   );
 };
 
+// Main app component
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
