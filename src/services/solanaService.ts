@@ -143,19 +143,32 @@ export const solanaService = {
             const postBalances = txInfo.meta.postBalances;
             
             if (preBalances.length > 0 && postBalances.length > 0) {
-              const accountIndex = txInfo.transaction.message.accountKeys.findIndex(
-                key => key.pubkey.toBase58() === address
-              );
+              // Fix for versioned transactions - use getAccountKeys() instead of accountKeys
+              let accountKeys;
+              if (typeof txInfo.transaction.message.getAccountKeys === 'function') {
+                // For versioned transactions
+                accountKeys = txInfo.transaction.message.getAccountKeys();
+              } else {
+                // For legacy transactions - fallback to direct access if needed
+                // This should handle older transaction formats
+                accountKeys = txInfo.transaction.message.accountKeys;
+              }
               
-              if (accountIndex >= 0) {
-                const balanceDiff = (postBalances[accountIndex] - preBalances[accountIndex]) / LAMPORTS_PER_SOL;
+              if (accountKeys) {
+                const accountIndex = accountKeys.findIndex(
+                  key => key.pubkey.toBase58() === address
+                );
                 
-                if (balanceDiff > 0) {
-                  type = 'Κατάθεση';
-                  amount = `+${balanceDiff.toFixed(5)} SOL`;
-                } else if (balanceDiff < 0) {
-                  type = 'Ανάληψη';
-                  amount = `${balanceDiff.toFixed(5)} SOL`;
+                if (accountIndex >= 0) {
+                  const balanceDiff = (postBalances[accountIndex] - preBalances[accountIndex]) / LAMPORTS_PER_SOL;
+                  
+                  if (balanceDiff > 0) {
+                    type = 'Κατάθεση';
+                    amount = `+${balanceDiff.toFixed(5)} SOL`;
+                  } else if (balanceDiff < 0) {
+                    type = 'Ανάληψη';
+                    amount = `${balanceDiff.toFixed(5)} SOL`;
+                  }
                 }
               }
             }
