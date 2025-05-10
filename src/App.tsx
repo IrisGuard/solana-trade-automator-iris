@@ -39,7 +39,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// App routes component that uses the auth context
+// App routes definition - Auth route is outside the SupabaseAuthProvider
 const AppRoutes = () => {
   return (
     <BrowserRouter>

@@ -1,12 +1,11 @@
 
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/providers/SupabaseAuthProvider';
 import AuthCard from '@/components/auth/AuthCard';
 import { useAuthForms } from '@/hooks/useAuthForms';
+import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const {
     email,
@@ -24,12 +23,17 @@ const Auth = () => {
     loading
   } = useAuthForms();
 
-  // Redirect to dashboard if already logged in
+  // Check for existing session without using the useAuth hook
   useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
-    }
-  }, [user, navigate]);
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        navigate('/dashboard');
+      }
+    };
+    
+    checkSession();
+  }, [navigate]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">

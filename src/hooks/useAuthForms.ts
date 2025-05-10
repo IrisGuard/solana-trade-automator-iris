@@ -1,8 +1,9 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/providers/SupabaseAuthProvider';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { authService } from '@/services/authService';
 
 export const useAuthForms = () => {
   const [email, setEmail] = useState('');
@@ -10,7 +11,7 @@ export const useAuthForms = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [passwordStrength, setPasswordStrength] = useState(0);
-  const { signIn, signUp, loading } = useAuth();
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   // Απλή επαλήθευση κωδικού - μόνο για το μήκος
@@ -35,14 +36,16 @@ export const useAuthForms = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError(null);
+    setLoading(true);
     
     if (!email || !password) {
       setAuthError('Παρακαλώ συμπληρώστε όλα τα πεδία.');
+      setLoading(false);
       return;
     }
     
     try {
-      const { success, error } = await signIn(email, password);
+      const { success, error } = await authService.signInWithPassword(email, password);
       
       if (error) {
         console.error("Sign in error:", error);
@@ -51,6 +54,7 @@ export const useAuthForms = () => {
         } else {
           setAuthError(error.message);
         }
+        setLoading(false);
         return;
       }
       
@@ -61,26 +65,31 @@ export const useAuthForms = () => {
     } catch (err) {
       console.error('Unexpected login error:', err);
       setAuthError('Παρουσιάστηκε ένα απρόσμενο σφάλμα κατά τη σύνδεση.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError(null);
+    setLoading(true);
     
     if (!email || !password) {
       setAuthError('Παρακαλώ συμπληρώστε όλα τα πεδία.');
+      setLoading(false);
       return;
     }
     
     // Βασικός έλεγχος μήκους κωδικού
     if (password.length < 6) {
       setAuthError('Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες');
+      setLoading(false);
       return;
     }
     
     try {
-      const { success, error } = await signUp(email, password);
+      const { success, error } = await authService.signUp(email, password);
       
       if (error) {
         console.error("Sign up error:", error);
@@ -89,6 +98,7 @@ export const useAuthForms = () => {
         } else {
           setAuthError(error.message);
         }
+        setLoading(false);
         return;
       }
       
@@ -99,6 +109,8 @@ export const useAuthForms = () => {
     } catch (err) {
       console.error('Unexpected signup error:', err);
       setAuthError('Παρουσιάστηκε ένα απρόσμενο σφάλμα κατά την εγγραφή.');
+    } finally {
+      setLoading(false);
     }
   };
 
