@@ -46,8 +46,11 @@ export const transactionService = {
             if ('getAccountKeys' in message) {
               // For versioned transactions (MessageV0)
               const accountKeys = message.getAccountKeys();
-              // Use the get method directly on accountKeys object
-              accountKey = accountKeys?.get?.(accountIndex)?.toBase58();
+              // Fixed: Properly access the returned value from getAccountKeys()
+              // The method returns an object with a get method, not a callable function
+              if (accountKeys && typeof accountKeys === 'object') {
+                accountKey = accountKeys.get?.(accountIndex)?.toBase58();
+              }
             } else {
               // For legacy transactions
               accountKey = message.accountKeys?.[accountIndex]?.toString();
