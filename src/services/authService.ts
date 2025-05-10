@@ -1,7 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import type { User, Session } from '@supabase/supabase-js';
 
 /**
  * Handles direct Supabase authentication API calls
@@ -41,8 +40,9 @@ export const authService = {
     try {
       console.log('Attempting to sign up user:', email);
       
-      // Έλεγχος ασφάλειας κωδικού
+      // Βασικός έλεγχος μήκους κωδικού
       if (password.length < 6) {
+        toast.error('Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες');
         return { error: { message: 'Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες' } };
       }
       
@@ -51,10 +51,7 @@ export const authService = {
         email,
         password,
         options: {
-          // Προσθέτουμε κενά δεδομένα για το userData για να αποφύγουμε προβλήματα
-          data: {
-            full_name: ''
-          }
+          emailRedirectTo: window.location.origin,
         }
       });
 
@@ -65,25 +62,9 @@ export const authService = {
       }
 
       // Άμεση σύνδεση μετά την εγγραφή
-      console.log('Signup successful, attempting login');
+      console.log('Signup successful');
       
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      if (signInError) {
-        console.error('Auto-login error:', signInError);
-        toast.error('Παρακαλώ συνδεθείτε χειροκίνητα.');
-        return { 
-          signUpSuccess: true, 
-          loginSuccess: false, 
-          error: signInError 
-        };
-      }
-      
-      console.log('Auto-login successful');
-      toast.success('Η εγγραφή ολοκληρώθηκε, συνδεθήκατε αυτόματα!');
+      toast.success('Η εγγραφή ολοκληρώθηκε με επιτυχία!');
       return { success: true, data };
     } catch (err) {
       console.error('Unexpected error during signup:', err);

@@ -33,16 +33,14 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
   passwordStrength = 0,
   checkPasswordStrength
 }) => {
-  const getPasswordStrengthText = (strength: number) => {
+  const getPasswordStrengthText = () => {
     if (!password) return "";
-    const texts = ["Πολύ αδύναμος", "Αδύναμος", "Καλός", "Δυνατός", "Πολύ δυνατός"];
-    return texts[strength] || "";
+    return password.length >= 6 ? "Αποδεκτός" : "Πολύ μικρός";
   };
   
-  const getPasswordStrengthColor = (strength: number) => {
+  const getPasswordStrengthColor = () => {
     if (!password) return "bg-gray-200";
-    const colors = ["bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-green-500", "bg-emerald-500"];
-    return colors[strength] || "";
+    return password.length >= 6 ? "bg-green-500" : "bg-red-500";
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,10 +90,10 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
         {password && (
           <>
             <div className="mt-2">
-              <Progress value={(passwordStrength / 4) * 100} className={`h-1.5 ${getPasswordStrengthColor(passwordStrength)}`} />
+              <Progress value={password.length >= 6 ? 100 : (password.length * 100 / 6)} className={`h-1.5 ${getPasswordStrengthColor()}`} />
             </div>
             <div className="flex justify-between text-xs">
-              <span>Ισχύς κωδικού: {getPasswordStrengthText(passwordStrength)}</span>
+              <span>Ισχύς κωδικού: {getPasswordStrengthText()}</span>
             </div>
           </>
         )}

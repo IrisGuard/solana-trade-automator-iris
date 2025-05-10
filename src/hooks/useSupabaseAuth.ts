@@ -46,23 +46,38 @@ export function useSupabaseAuth() {
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
-    const result = await authService.signInWithPassword(email, password);
-    setLoading(false);
-    return result;
+    try {
+      const result = await authService.signInWithPassword(email, password);
+      setLoading(false);
+      return result;
+    } catch (error) {
+      setLoading(false);
+      return { error };
+    }
   };
 
   const signUp = async (email: string, password: string) => {
     setLoading(true);
-    const result = await authService.signUp(email, password);
-    setLoading(false);
-    return result;
+    try {
+      const result = await authService.signUp(email, password);
+      setLoading(false);
+      return result;
+    } catch (error) {
+      setLoading(false);
+      return { error };
+    }
   };
 
   const signOut = async () => {
     setLoading(true);
-    const result = await authService.signOut();
-    setLoading(false);
-    return result;
+    try {
+      const result = await authService.signOut();
+      setLoading(false);
+      return result;
+    } catch (error) {
+      setLoading(false);
+      return { error };
+    }
   };
 
   return {
