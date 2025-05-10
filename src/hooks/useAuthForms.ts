@@ -89,17 +89,10 @@ export const useAuthForms = () => {
     }
     
     try {
-      // First check if the user already exists
-      const { data: existingUsers } = await supabase.auth.admin.listUsers({
-        filter: {
-          email: email
-        }
-      }).catch(() => ({ data: null }));
-      
       // Attempt to check if user exists by sign-in attempt with wrong password
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: email,
-        password: 'temporaryCheckPassword123!', // Intentionally wrong password
+        password: 'temporaryCheckPassword123!' // Intentionally wrong password
       });
       
       // If the error isn't "Invalid credentials", the user likely exists
