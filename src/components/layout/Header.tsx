@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronDown, Settings, LogOut } from "lucide-react";
+import { ChevronDown, Settings } from "lucide-react";
 
 interface HeaderProps {
   title: string;
@@ -53,7 +53,6 @@ export function Header({ title }: HeaderProps) {
                   <Settings className="h-4 w-4" />
                   <span>Settings</span>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
