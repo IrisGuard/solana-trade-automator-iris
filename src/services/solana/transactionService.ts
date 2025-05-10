@@ -46,10 +46,16 @@ export const transactionService = {
             if ('getAccountKeys' in message) {
               // For versioned transactions (MessageV0)
               const accountKeys = message.getAccountKeys();
-              // Fixed: Properly access the returned value from getAccountKeys()
-              // The method returns an object with a get method, not a callable function
-              if (accountKeys && typeof accountKeys === 'object') {
-                accountKey = accountKeys.get?.(accountIndex)?.toBase58();
+              // Fixed: Use proper type checking and property access
+              if (accountKeys) {
+                // Access the 'get' property as an object method, not as a function call
+                const getMethod = accountKeys.get;
+                if (typeof getMethod === 'function') {
+                  const pubkey = getMethod.call(accountKeys, accountIndex);
+                  if (pubkey) {
+                    accountKey = pubkey.toBase58();
+                  }
+                }
               }
             } else {
               // For legacy transactions
