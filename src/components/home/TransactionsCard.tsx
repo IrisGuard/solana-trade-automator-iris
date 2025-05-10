@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink, Loader } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Transaction } from "@/types/wallet";
-import { solanaService } from "@/services/solanaService";
+import { useTransactions } from "@/hooks/useTransactions";
 
 interface TransactionsCardProps {
   walletAddress: string | null;
@@ -13,27 +13,14 @@ interface TransactionsCardProps {
 }
 
 export function TransactionsCard({ walletAddress, displayAddress }: TransactionsCardProps) {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Φόρτωση των πρόσφατων συναλλαγών όταν υπάρχει διεύθυνση πορτοφολιού
+  const { transactions, isLoadingTransactions, loadTransactions } = useTransactions(walletAddress);
+  
+  // Load more transactions if needed
   useEffect(() => {
-    const loadTransactions = async () => {
-      if (!walletAddress) return;
-      
-      setIsLoading(true);
-      try {
-        const recentTransactions = await solanaService.getRecentTransactions(walletAddress, 5);
-        setTransactions(recentTransactions);
-      } catch (error) {
-        console.error("Error loading transactions:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadTransactions();
-  }, [walletAddress]);
+    if (walletAddress) {
+      loadTransactions(walletAddress, 5); // Load 5 most recent transactions
+    }
+  }, [walletAddress, loadTransactions]);
 
   return (
     <Card>
@@ -42,7 +29,7 @@ export function TransactionsCard({ walletAddress, displayAddress }: Transactions
         <CardDescription>Πρόσφατη δραστηριότητα στο πορτοφόλι σας</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {isLoading ? (
+        {isLoadingTransactions ? (
           <div className="py-8 text-center text-muted-foreground">
             <Loader className="h-6 w-6 animate-spin mx-auto mb-2" />
             <p>Φόρτωση συναλλαγών...</p>

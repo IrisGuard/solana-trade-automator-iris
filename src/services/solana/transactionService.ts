@@ -49,7 +49,7 @@ export const transactionService = {
               } else {
                 // For legacy transactions - fallback to direct access if needed
                 // This should handle older transaction formats
-                accountKeys = txInfo.transaction.message.getAccountKeys?.() || [];
+                accountKeys = txInfo.transaction.message.accountKeys || [];
               }
               
               if (accountKeys) {

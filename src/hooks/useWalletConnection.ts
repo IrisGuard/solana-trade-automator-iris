@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useWalletStatus } from './useWalletStatus';
 import { useWalletBalance } from './useWalletBalance';
 import { useTokens } from './useTokens';
+import { useTransactions } from './useTransactions';
 
 export function useWalletConnection() {
   const {
@@ -28,6 +29,8 @@ export function useWalletConnection() {
     fetchTokenPrices,
     setSelectedToken
   } = useTokens();
+
+  const { transactions, isLoadingTransactions } = useTransactions(walletAddress);
 
   // Load token prices when connected
   useEffect(() => {
@@ -65,9 +68,11 @@ export function useWalletConnection() {
     tokens,
     tokenPrices,
     selectedToken,
+    transactions,
     isConnected,
     isConnecting,
     isLoadingTokens,
+    isLoadingTransactions,
     error,
     isPhantomInstalled,
     connectWallet,

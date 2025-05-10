@@ -1,38 +1,16 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Loader } from "lucide-react";
-import { Transaction } from "@/types/wallet";
-import { solanaService } from "@/services/solanaService";
+import { useTransactions } from "@/hooks/useTransactions";
 
 interface TransactionHistoryProps {
   walletAddress: string;
 }
 
 export function TransactionHistory({ walletAddress }: TransactionHistoryProps) {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      if (!walletAddress) return;
-      
-      try {
-        setIsLoading(true);
-        const txs = await solanaService.getRecentTransactions(walletAddress);
-        setTransactions(txs);
-      } catch (error) {
-        console.error('Failed to fetch transactions:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (walletAddress) {
-      fetchTransactions();
-    }
-  }, [walletAddress]);
+  const { transactions, isLoadingTransactions } = useTransactions(walletAddress);
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -46,7 +24,7 @@ export function TransactionHistory({ walletAddress }: TransactionHistoryProps) {
         <CardDescription>Latest activity on your wallet</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {isLoading ? (
+        {isLoadingTransactions ? (
           <div className="py-6 text-center text-muted-foreground">
             <Loader className="h-6 w-6 animate-spin mx-auto mb-2" />
             <p>Loading transactions...</p>
