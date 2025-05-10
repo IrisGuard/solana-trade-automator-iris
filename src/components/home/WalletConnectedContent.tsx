@@ -29,6 +29,8 @@ export function WalletConnectedContent({
       <TokensCard 
         tokens={tokens} 
         displayAddress={displayAddress} 
+        tokenPrices={tokenPrices}
+        selectTokenForTrading={selectTokenForTrading}
       />
       <TransactionsCard walletAddress={walletAddress} displayAddress={displayAddress} />
       <BotStatusCard />
