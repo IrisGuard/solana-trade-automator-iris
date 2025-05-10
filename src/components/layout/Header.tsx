@@ -10,8 +10,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronDown, Settings, Wallet } from "lucide-react";
+import { ChevronDown, Settings, Wallet, ArrowRight } from "lucide-react";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
+import { Link } from "react-router-dom";
 
 interface HeaderProps {
   title: string;
@@ -22,7 +23,7 @@ export function Header({ title }: HeaderProps) {
   
   const displayAddress = walletAddress ? 
     `${walletAddress.substring(0, 4)}...${walletAddress.substring(walletAddress.length - 4)}` : 
-    "3eDZ...f9Kt";
+    "Δεν έχει συνδεθεί πορτοφόλι";
 
   return (
     <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-6">
@@ -48,18 +49,20 @@ export function Header({ title }: HeaderProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>My Wallet</DropdownMenuLabel>
+                <DropdownMenuLabel>Το Πορτοφόλι μου</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="flex justify-between">
-                  <span>Balance</span>
+                  <span>Υπόλοιπο</span>
                   <span className="font-medium">{solBalance} SOL</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={disconnectWallet} className="text-destructive">
-                  Disconnect Wallet
+                <Link to="/settings">
+                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+                    <Settings className="h-4 w-4" />
+                    <span>Ρυθμίσεις</span>
+                  </DropdownMenuItem>
+                </Link>
+                <DropdownMenuItem onClick={disconnectWallet} className="text-destructive cursor-pointer">
+                  Αποσύνδεση Πορτοφολιού
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -70,7 +73,7 @@ export function Header({ title }: HeaderProps) {
               onClick={connectWallet}
             >
               <Wallet className="h-4 w-4" />
-              Connect Wallet
+              Σύνδεση Πορτοφολιού
             </Button>
           )}
         </div>
