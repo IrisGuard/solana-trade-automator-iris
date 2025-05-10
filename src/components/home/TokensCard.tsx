@@ -1,10 +1,9 @@
-
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Token } from "@/hooks/useWalletConnection";
+import { Token } from "@/types/wallet";
 
 interface TokensCardProps {
   tokens: Token[];

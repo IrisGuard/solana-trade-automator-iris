@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Token } from "@/hooks/useWalletConnection";
+import { Token } from "@/types/wallet";
 import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 

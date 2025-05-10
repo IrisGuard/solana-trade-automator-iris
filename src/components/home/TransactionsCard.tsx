@@ -1,19 +1,9 @@
-
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
-
-interface Transaction {
-  signature: string;
-  blockTime: number;
-  type: string;
-  status: string;
-  amount: string;
-  from: string;
-  to: string;
-}
+import { Transaction } from "@/types/wallet";
 
 interface TransactionsCardProps {
   walletAddress: string | null;

@@ -1,27 +1,11 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { walletService, tokensService } from '@/services/database';
 import { useAuth } from '@/providers/SupabaseAuthProvider';
 import { toast } from 'sonner';
-
-export type Transaction = {
-  signature: string;
-  blockTime: number;
-  type: string;
-  status: string;
-  amount: string;
-  from: string;
-  to: string;
-};
-
-export type Token = {
-  address: string;
-  name: string;
-  symbol: string;
-  amount: number;
-  logo?: string;
-};
+import { Token } from '@/types/wallet';
+import { checkPhantomWalletInstalled, fetchSolanaBalance, handleWalletError } from '@/utils/walletUtils';
+import { walletService } from '@/services/walletService';
+import { getMockTokens } from '@/data/mockWalletData';
 
 export function useWalletConnection() {
   const { user } = useAuth();
@@ -30,46 +14,17 @@ export function useWalletConnection() {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [tokens, setTokens] = useState<Token[]>([
-    { 
-      address: 'So11111111111111111111111111111111111111112', 
-      name: 'Solana', 
-      symbol: 'SOL', 
-      amount: 2.5,
-      logo: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/solana/info/logo.png'
-    },
-    { 
-      address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 
-      name: 'USD Coin', 
-      symbol: 'USDC', 
-      amount: 158.42,
-      logo: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png'
-    },
-    { 
-      address: '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R', 
-      name: 'Raydium', 
-      symbol: 'RAY', 
-      amount: 50,
-      logo: 'https://raw.githubusercontent.com/raydium-io/media-assets/master/logo.png'
-    }
-  ]);
+  const [tokens, setTokens] = useState<Token[]>(getMockTokens());
 
   // Load wallet from database if user is logged in
   useEffect(() => {
     const loadSavedWallet = async () => {
-      if (!user?.id) return;
-      
-      try {
-        const wallet = await walletService.getPrimaryWallet(user.id);
-        if (wallet) {
-          setWalletAddress(wallet.address);
-          await fetchBalance(wallet.address);
-          setIsConnected(true);
-          toast.success('Το πορτοφόλι συνδέθηκε αυτόματα');
-        }
-      } catch (err) {
-        console.error('Error loading saved wallet:', err);
-        toast.error('Αποτυχία αυτόματης σύνδεσης πορτοφολιού');
+      const wallet = await walletService.loadSavedWallet(user?.id);
+      if (wallet) {
+        setWalletAddress(wallet.address);
+        await fetchAndSetBalance(wallet.address);
+        setIsConnected(true);
+        toast.success('Το πορτοφόλι συνδέθηκε αυτόματα');
       }
     };
     
@@ -92,16 +47,12 @@ export function useWalletConnection() {
           if (response && response.publicKey) {
             const address = response.publicKey.toString();
             setWalletAddress(address);
-            await fetchBalance(address);
+            await fetchAndSetBalance(address);
             setIsConnected(true);
             
             // Save wallet to database if user is logged in
             if (user?.id) {
-              try {
-                await walletService.saveWalletAddress(user.id, address);
-              } catch (err) {
-                console.error('Error saving wallet to database:', err);
-              }
+              await walletService.saveWalletToDatabase(user.id, address, tokens);
             }
           }
         }
@@ -114,25 +65,10 @@ export function useWalletConnection() {
     checkWalletConnection();
   }, [user?.id]);
 
-  // Helper function to check if Phantom is installed
-  const checkPhantomWalletInstalled = () => {
-    if (typeof window === 'undefined') return false;
-    return window.phantom?.solana && window.phantom.solana.isPhantom;
-  };
-
-  // Helper function to fetch balance
-  const fetchBalance = async (address: string) => {
-    try {
-      const phantom = window.phantom?.solana;
-      if (!phantom) return;
-
-      // For demo purposes, we'll just set a mock balance
-      // In a real app, you'd fetch this from the Solana blockchain
-      setBalance(5.25);
-    } catch (err) {
-      console.error('Error fetching balance:', err);
-      setError('Failed to fetch wallet balance');
-    }
+  // Helper function to fetch and set balance
+  const fetchAndSetBalance = async (address: string) => {
+    const fetchedBalance = await fetchSolanaBalance(address);
+    setBalance(fetchedBalance);
   };
 
   const connectWallet = async () => {
@@ -157,34 +93,19 @@ export function useWalletConnection() {
       if (response && response.publicKey) {
         const address = response.publicKey.toString();
         setWalletAddress(address);
-        await fetchBalance(address);
+        await fetchAndSetBalance(address);
         setIsConnected(true);
         
         // Save wallet to database if user is logged in
         if (user?.id) {
-          try {
-            await walletService.saveWalletAddress(user.id, address);
-            
-            // Also save tokens to database
-            await tokensService.saveTokens(user.id, tokens);
-            
-            toast.success('Το πορτοφόλι συνδέθηκε και αποθηκεύτηκε στο λογαριασμό σας');
-          } catch (err) {
-            console.error('Error saving wallet to database:', err);
-            toast.error('Το πορτοφόλι συνδέθηκε αλλά απέτυχε η αποθήκευση στο λογαριασμό σας');
-          }
+          await walletService.saveWalletToDatabase(user.id, address, tokens);
         } else {
           toast.success('Το πορτοφόλι συνδέθηκε επιτυχώς');
         }
       }
     } catch (err) {
-      console.error('Error connecting wallet:', err);
-      let errorMsg = 'Αποτυχία σύνδεσης πορτοφολιού';
-      if (err instanceof Error) {
-        errorMsg += `: ${err.message}`;
-      }
+      const errorMsg = handleWalletError(err);
       setError(errorMsg);
-      toast.error(errorMsg);
     } finally {
       setIsConnecting(false);
       toast.dismiss();
@@ -230,15 +151,5 @@ export function useWalletConnection() {
   };
 }
 
-// Add Phantom wallet type definitions
-declare global {
-  interface Window {
-    phantom?: {
-      solana?: {
-        isPhantom: boolean;
-        connect: (options?: { onlyIfTrusted: boolean }) => Promise<{ publicKey: { toString: () => string } }>;
-        disconnect: () => Promise<void>;
-      };
-    };
-  }
-}
+// Re-export types for backward compatibility
+export type { Token, Transaction } from '@/types/wallet';

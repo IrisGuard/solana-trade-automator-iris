@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Token } from "@/hooks/useWalletConnection";
+import { Token } from "@/types/wallet";
 import { WalletInfoCard } from "./WalletInfoCard";
 import { TokensCard } from "./TokensCard";
 import { TransactionsCard } from "./TransactionsCard";

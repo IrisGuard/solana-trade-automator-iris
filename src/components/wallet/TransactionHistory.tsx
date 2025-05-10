@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
-import { Transaction } from "@/hooks/useWalletConnection";
+import { Transaction } from "@/types/wallet";
 
 interface TransactionHistoryProps {
   walletAddress: string;
