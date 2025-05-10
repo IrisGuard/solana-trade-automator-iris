@@ -9,26 +9,27 @@ export function PlatformInfoCard() {
     <Card>
       <CardHeader>
         <CardTitle>Τι είναι το Solana Trade Automator;</CardTitle>
-        <CardDescription>Μια εισαγωγή στην πλατφόρμα μας</CardDescription>
+        <CardDescription>Αυτοματοποιημένο trading με τεχνολογία AI</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <p>
-          Το Solana Trade Automator σας επιτρέπει να δημιουργήσετε και να διαχειριστείτε 
-          αυτοματοποιημένα trading bots στο Solana blockchain, χωρίς να χρειάζεται να γράψετε κώδικα.
+          Το Solana Trade Automator είναι μια προηγμένη πλατφόρμα που σας επιτρέπει να δημιουργήσετε 
+          και να διαχειριστείτε αυτοματοποιημένα trading bots στο Solana blockchain, χωρίς να 
+          χρειάζεται να γράψετε κώδικα.
         </p>
         <div className="bg-muted p-3 rounded-lg">
-          <h4 className="font-medium mb-2">Βασικά Χαρακτηριστικά:</h4>
+          <h4 className="font-medium mb-2">Πώς λειτουργεί το bot:</h4>
           <ul className="space-y-1 list-disc pl-5 text-sm">
-            <li>Αυτοματοποιημένες αγορές και πωλήσεις με βάση τις στρατηγικές σας</li>
-            <li>Παρακολούθηση τιμών και ευκαιριών σε πραγματικό χρόνο</li>
-            <li>Διαχείριση πολλαπλών bots ταυτόχρονα</li>
-            <li>Στατιστικά και αναλύσεις της απόδοσης των bots</li>
-            <li>Ασφαλής διαχείριση API κλειδιών για συνδέσεις με ανταλλακτήρια</li>
+            <li>Παρακολουθεί τις τιμές των επιλεγμένων tokens σε πραγματικό χρόνο</li>
+            <li>Αναλύει τάσεις της αγοράς με αλγορίθμους τεχνητής νοημοσύνης</li>
+            <li>Εντοπίζει ευκαιρίες αγοράς/πώλησης βάσει των παραμέτρων σας</li>
+            <li>Προτείνει συναλλαγές που απαιτούν την έγκρισή σας</li>
+            <li>Παρέχει αναλυτικά στατιστικά και αναφορές απόδοσης</li>
           </ul>
         </div>
         <Button variant="outline" className="w-full" asChild>
-          <Link to="/dashboard">
-            Εξερευνήστε το Dashboard
+          <Link to="/bot-control">
+            Δημιουργήστε το πρώτο σας bot
           </Link>
         </Button>
       </CardContent>

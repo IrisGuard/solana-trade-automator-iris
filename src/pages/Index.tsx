@@ -6,6 +6,7 @@ import { WalletConnectedContent } from "@/components/home/WalletConnectedContent
 import { WalletDisconnectedContent } from "@/components/home/WalletDisconnectedContent";
 import { FaqSection } from "@/components/home/FaqSection";
 import { FooterSection } from "@/components/home/FooterSection";
+import { BotExplanationSection } from "@/components/home/BotExplanationSection";
 import { formatWalletAddress } from "@/utils/walletUtils";
 
 const Index = () => {
@@ -47,6 +48,9 @@ const Index = () => {
           isPhantomInstalled={isPhantomInstalled}
         />
       )}
+      
+      {/* Bot Explanation Section */}
+      <BotExplanationSection />
       
       {/* FAQ Section */}
       <FaqSection />

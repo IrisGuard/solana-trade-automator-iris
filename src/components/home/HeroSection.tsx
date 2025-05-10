@@ -14,8 +14,9 @@ export function HeroSection() {
         Αυτοματοποιημένη αγορά & πώληση <span className="text-primary">Solana tokens</span> με AI
       </h1>
       <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-        Αναπτύξτε, διαχειριστείτε και βελτιστοποιήστε trading bots για το Solana blockchain
-        χωρίς να χρειάζεται να γράψετε κώδικα.
+        Αναπτύξτε προσωπικά trading bots που παρακολουθούν την αγορά 24/7, 
+        αναλύουν τάσεις με τεχνητή νοημοσύνη και μεγιστοποιούν τα κέρδη σας 
+        στο Solana blockchain, χωρίς γνώσεις προγραμματισμού.
       </p>
       <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
         {isConnected ? (
