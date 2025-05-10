@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthCard from '@/components/auth/AuthCard';
 import { useAuthForms } from '@/hooks/useAuthForms';
@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
   const {
     email,
     setEmail,
@@ -27,7 +28,9 @@ const Auth = () => {
   useEffect(() => {
     const checkSession = async () => {
       try {
+        setIsCheckingSession(true);
         const { data, error } = await supabase.auth.getSession();
+        
         if (error) {
           console.error("Error checking session:", error);
           return;
@@ -39,11 +42,21 @@ const Auth = () => {
         }
       } catch (err) {
         console.error("Unexpected error checking session:", err);
+      } finally {
+        setIsCheckingSession(false);
       }
     };
     
     checkSession();
   }, [navigate]);
+
+  if (isCheckingSession) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">

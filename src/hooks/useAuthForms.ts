@@ -45,8 +45,12 @@ export const useAuthForms = () => {
     }
     
     try {
-      const { success, error } = await authService.signInWithPassword(email, password);
-      
+      console.log('Attempting to sign in with:', email);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
       if (error) {
         console.error("Sign in error:", error);
         if (error.message?.includes('Invalid login credentials')) {
@@ -58,8 +62,9 @@ export const useAuthForms = () => {
         return;
       }
       
-      if (success) {
+      if (data.session) {
         console.log('Login successful, redirecting...');
+        toast.success('Συνδεθήκατε με επιτυχία!');
         navigate('/dashboard');
       }
     } catch (err) {
@@ -102,7 +107,13 @@ export const useAuthForms = () => {
         return;
       }
       
-      const { success, error } = await authService.signUp(email, password);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: window.location.origin,
+        }
+      });
       
       if (error) {
         console.error("Sign up error:", error);
@@ -115,10 +126,15 @@ export const useAuthForms = () => {
         return;
       }
       
-      if (success) {
+      if (data.session) {
         console.log('Signup successful, redirecting...');
         toast.success('Η εγγραφή ολοκληρώθηκε με επιτυχία!');
         navigate('/dashboard');
+      } else if (data.user) {
+        // For services with email confirmation enabled
+        toast.success('Η εγγραφή ολοκληρώθηκε! Παρακαλώ επιβεβαιώστε το email σας.');
+        setEmail('');
+        setPassword('');
       }
     } catch (err) {
       console.error('Unexpected signup error:', err);

@@ -72,9 +72,14 @@ export const authService = {
         }
       }
 
+      // For services with email confirmation enabled
+      if (data.user && !data.session) {
+        toast.success('Η εγγραφή ολοκληρώθηκε! Παρακαλώ επιβεβαιώστε το email σας.');
+        return { success: true, data, emailConfirmationRequired: true };
+      }
+      
       // Άμεση σύνδεση μετά την εγγραφή
       console.log('Signup successful');
-      
       toast.success('Η εγγραφή ολοκληρώθηκε με επιτυχία!');
       return { success: true, data };
     } catch (err) {
