@@ -1,34 +1,59 @@
 
-import { toast } from 'sonner';
-
-// Βοηθητική συνάρτηση για έλεγχο αν το Phantom είναι εγκατεστημένο
+/**
+ * Ελέγχει εάν το Phantom wallet είναι εγκατεστημένο στον browser
+ * @returns boolean - true αν το Phantom είναι εγκατεστημένο
+ */
 export const checkPhantomWalletInstalled = (): boolean => {
-  if (typeof window === 'undefined') return false;
-  return window.phantom?.solana && window.phantom.solana.isPhantom;
+  return window.phantom?.solana?.isPhantom || false;
 };
 
-// Βοηθητική συνάρτηση για μορφοποίηση της διεύθυνσης πορτοφολιού για εμφάνιση
-export const formatWalletAddress = (address: string | null): string => {
-  if (!address) return '';
+/**
+ * Διαχειρίζεται τα σφάλματα του Phantom wallet και επιστρέφει καταάλληλο μήνυμα σφάλματος
+ * @param err - Το αντικείμενο σφάλματος που επιστρέφεται από το Phantom
+ * @returns string - Το μήνυμα σφάλματος που θα εμφανιστεί στο χρήστη
+ */
+export const handleWalletError = (err: any): string => {
+  console.error('Wallet error:', err);
+
+  // Έλεγχος για συγκεκριμένους κωδικούς σφάλματος του Phantom
+  if (err.code === 4001) {
+    return 'Ο χρήστης απέρριψε το αίτημα σύνδεσης.';
+  }
+  
+  if (err.code === 4900) {
+    return 'Το Phantom wallet είναι κλειδωμένο. Παρακαλώ ξεκλειδώστε το.';
+  }
+
+  if (err.message) {
+    return `Σφάλμα: ${err.message}`;
+  }
+
+  return 'Προέκυψε απρόσμενο σφάλμα κατά την επικοινωνία με το πορτοφόλι.';
+};
+
+/**
+ * Μορφοποιεί μια διεύθυνση πορτοφολιού για εμφάνιση
+ * @param address - Η πλήρης διεύθυνση του πορτοφολιού
+ * @returns string - Η συντομευμένη διεύθυνση (π.χ. Nj7G...8Xtp)
+ */
+export const formatWalletAddress = (address: string): string => {
+  if (!address || address.length < 10) return address;
   return `${address.substring(0, 4)}...${address.substring(address.length - 4)}`;
 };
 
-// Βοηθητική συνάρτηση για χειρισμό σφαλμάτων σύνδεσης
-export const handleWalletError = (err: unknown): string => {
-  console.error('Error connecting wallet:', err);
-  let errorMsg = 'Αποτυχία σύνδεσης πορτοφολιού';
-  
-  if (err instanceof Error) {
-    // Χειρισμός συγκεκριμένων τύπων σφαλμάτων
-    if (err.message.includes('User rejected')) {
-      errorMsg = 'Η σύνδεση απορρίφθηκε από τον χρήστη';
-    } else if (err.message.includes('timeout')) {
-      errorMsg = 'Η σύνδεση έληξε. Παρακαλώ δοκιμάστε ξανά';
-    } else {
-      errorMsg += `: ${err.message}`;
-    }
+/**
+ * Ορισμός των τύπων για το Phantom wallet
+ */
+declare global {
+  interface Window {
+    phantom?: {
+      solana?: {
+        isPhantom: boolean;
+        connect: (opts?: { onlyIfTrusted?: boolean }) => Promise<any>;
+        disconnect: () => Promise<void>;
+        on: (event: string, callback: Function) => void;
+        off: (event: string, callback: Function) => void;
+      };
+    };
   }
-  
-  toast.error(errorMsg);
-  return errorMsg;
-};
+}
