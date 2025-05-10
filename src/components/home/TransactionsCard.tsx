@@ -1,9 +1,11 @@
-import React from "react";
+
+import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Loader } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Transaction } from "@/types/wallet";
+import { solanaService } from "@/services/solanaService";
 
 interface TransactionsCardProps {
   walletAddress: string | null;
@@ -11,35 +13,27 @@ interface TransactionsCardProps {
 }
 
 export function TransactionsCard({ walletAddress, displayAddress }: TransactionsCardProps) {
-  const transactions: Transaction[] = [
-    { 
-      signature: "4ZjPsQuVrLh5U6gFiDMzJHwdKVZhm7GYmAKbpvV4KSH5qhVb9TyQVypF5yQBiZcZwAJTCTUGEobYYgBfynUYdHcf",
-      blockTime: Date.now() - 1000 * 60 * 5,
-      type: "Μεταφορά",
-      status: "επιβεβαιώθηκε",
-      amount: "+0.1 SOL",
-      from: "3xT...9hN",
-      to: displayAddress
-    },
-    {
-      signature: "4PqRdnw9qZpU5gTC9Eqob2hsZXxVnB9GULsmgfJkJVgQZbp7sYMZYJPABAw9LJE6Y9fFQzL1FLSpnEE7zzRNc9X6",
-      blockTime: Date.now() - 1000 * 60 * 30,
-      type: "Ανταλλαγή",
-      status: "επιβεβαιώθηκε",
-      amount: "-10 USDC",
-      from: displayAddress,
-      to: "0.05 SOL"
-    },
-    {
-      signature: "5HvAyNxRJhY6RwtZ4QwzPJ21ZBU9f5P8rdBzx2pMRAQrMZoJWQ8YehJdhxmYw4GPDCYQXoJ6r6f1QphMTkTMLTUV",
-      blockTime: Date.now() - 1000 * 60 * 120,
-      type: "Μεταφορά",
-      status: "επιβεβαιώθηκε",
-      amount: "-0.2 SOL",
-      from: displayAddress,
-      to: "5zT...j2Lm"
-    }
-  ];
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Φόρτωση των πρόσφατων συναλλαγών όταν υπάρχει διεύθυνση πορτοφολιού
+  useEffect(() => {
+    const loadTransactions = async () => {
+      if (!walletAddress) return;
+      
+      setIsLoading(true);
+      try {
+        const recentTransactions = await solanaService.getRecentTransactions(walletAddress);
+        setTransactions(recentTransactions);
+      } catch (error) {
+        console.error("Error loading transactions:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadTransactions();
+  }, [walletAddress]);
 
   return (
     <Card>
@@ -48,32 +42,45 @@ export function TransactionsCard({ walletAddress, displayAddress }: Transactions
         <CardDescription>Πρόσφατη δραστηριότητα στο πορτοφόλι σας</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {transactions.map((tx, i) => (
-          <div key={i} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="font-medium">{tx.type}</p>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-6 px-2 text-xs"
-                  onClick={() => window.open(`https://solscan.io/tx/${tx.signature}`, '_blank')}
-                >
-                  <ExternalLink className="h-3 w-3" />
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {new Date(tx.blockTime).toLocaleString()}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className={`font-medium ${tx.amount?.startsWith('+') ? 'text-green-500' : ''}`}>{tx.amount}</p>
-              <p className="text-xs text-muted-foreground">
-                {tx.type === "Ανταλλαγή" ? "Για: " : "Προς: "}{tx.to}
-              </p>
-            </div>
+        {isLoading ? (
+          <div className="py-8 text-center text-muted-foreground">
+            <Loader className="h-6 w-6 animate-spin mx-auto mb-2" />
+            <p>Φόρτωση συναλλαγών...</p>
           </div>
-        ))}
+        ) : transactions.length === 0 ? (
+          <div className="py-8 text-center text-muted-foreground">
+            <p>Δεν βρέθηκαν πρόσφατες συναλλαγές</p>
+          </div>
+        ) : (
+          transactions.map((tx, i) => (
+            <div key={i} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium">{tx.type}</p>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 px-2 text-xs"
+                    onClick={() => window.open(`https://solscan.io/tx/${tx.signature}`, '_blank')}
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(tx.blockTime).toLocaleString()}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className={`font-medium ${tx.status === 'επιβεβαιώθηκε' ? 'text-green-500' : 'text-red-500'}`}>
+                  {tx.status}
+                </p>
+                <p className="text-xs text-muted-foreground truncate max-w-[120px]">
+                  {tx.signature.substring(0, 8)}...
+                </p>
+              </div>
+            </div>
+          ))
+        )}
         {walletAddress && (
           <Link to="/transactions">
             <Button 

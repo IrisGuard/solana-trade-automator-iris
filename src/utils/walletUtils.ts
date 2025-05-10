@@ -1,41 +1,25 @@
 
 import { toast } from 'sonner';
 
-// Helper function to check if Phantom is installed
+// Βοηθητική συνάρτηση για έλεγχο αν το Phantom είναι εγκατεστημένο
 export const checkPhantomWalletInstalled = (): boolean => {
   if (typeof window === 'undefined') return false;
   return window.phantom?.solana && window.phantom.solana.isPhantom;
 };
 
-// Helper function to fetch balance
-export const fetchSolanaBalance = async (address: string): Promise<number> => {
-  try {
-    const phantom = window.phantom?.solana;
-    if (!phantom) return 0;
-
-    // For demo purposes, we'll just return a mock balance
-    // In a real app, you'd fetch this from the Solana blockchain
-    return 5.25;
-  } catch (err) {
-    console.error('Error fetching balance:', err);
-    toast.error('Αποτυχία λήψης υπολοίπου πορτοφολιού');
-    return 0;
-  }
-};
-
-// Helper function to format wallet address for display
+// Βοηθητική συνάρτηση για μορφοποίηση της διεύθυνσης πορτοφολιού για εμφάνιση
 export const formatWalletAddress = (address: string | null): string => {
   if (!address) return '';
   return `${address.substring(0, 4)}...${address.substring(address.length - 4)}`;
 };
 
-// Helper function to handle connection errors
+// Βοηθητική συνάρτηση για χειρισμό σφαλμάτων σύνδεσης
 export const handleWalletError = (err: unknown): string => {
   console.error('Error connecting wallet:', err);
   let errorMsg = 'Αποτυχία σύνδεσης πορτοφολιού';
   
   if (err instanceof Error) {
-    // Handle specific error types
+    // Χειρισμός συγκεκριμένων τύπων σφαλμάτων
     if (err.message.includes('User rejected')) {
       errorMsg = 'Η σύνδεση απορρίφθηκε από τον χρήστη';
     } else if (err.message.includes('timeout')) {
@@ -47,11 +31,4 @@ export const handleWalletError = (err: unknown): string => {
   
   toast.error(errorMsg);
   return errorMsg;
-};
-
-// Function to simulate fetching token price
-export const fetchTokenPrice = async (tokenAddress: string): Promise<number> => {
-  // In a real app, you'd fetch this from a price API
-  // For now, return a random price between 0.01 and 100
-  return parseFloat((Math.random() * 100 + 0.01).toFixed(2));
 };

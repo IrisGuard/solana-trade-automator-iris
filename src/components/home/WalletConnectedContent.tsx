@@ -12,6 +12,7 @@ interface WalletConnectedContentProps {
   tokens: Token[];
   displayAddress: string;
   tokenPrices?: Record<string, number>;
+  isLoadingTokens?: boolean;
   selectTokenForTrading?: (tokenAddress: string) => Token | null;
 }
 
@@ -21,6 +22,7 @@ export function WalletConnectedContent({
   tokens, 
   displayAddress,
   tokenPrices,
+  isLoadingTokens,
   selectTokenForTrading
 }: WalletConnectedContentProps) {
   return (
@@ -30,6 +32,7 @@ export function WalletConnectedContent({
         tokens={tokens} 
         displayAddress={displayAddress} 
         tokenPrices={tokenPrices}
+        isLoadingTokens={isLoadingTokens}
         selectTokenForTrading={selectTokenForTrading}
       />
       <TransactionsCard walletAddress={walletAddress} displayAddress={displayAddress} />

@@ -20,7 +20,8 @@ const Index = () => {
     isConnecting,
     error,
     isPhantomInstalled,
-    selectTokenForTrading
+    selectTokenForTrading,
+    isLoadingTokens
   } = useWalletConnection();
   
   const displayAddress = walletAddress ? formatWalletAddress(walletAddress) : "";
@@ -38,6 +39,7 @@ const Index = () => {
           tokens={tokens} 
           displayAddress={displayAddress}
           tokenPrices={tokenPrices}
+          isLoadingTokens={isLoadingTokens}
           selectTokenForTrading={selectTokenForTrading}
         />
       ) : (
