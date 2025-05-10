@@ -3,6 +3,11 @@ import { PublicKey, PartiallyDecodedInstruction, ParsedTransactionWithMeta, Conn
 import { Transaction } from '@/types/wallet';
 import { connection } from './config';
 
+// Helper type guard
+function hasGetAccountKeysMethod(obj: any): obj is { getAccountKeys(): any } {
+  return obj && typeof obj.getAccountKeys === 'function';
+}
+
 export const transactionService = {
   // Get recent transactions for a wallet address
   getRecentTransactions: async (address: string, limit = 10): Promise<Transaction[]> => {
@@ -42,35 +47,33 @@ export const transactionService = {
             const accountIndex = tx.meta?.postTokenBalances?.[0]?.accountIndex || 0;
             
             let accountKey;
-            // Check if we have a versioned message (has getAccountKeys method) or legacy message
-            if ('getAccountKeys' in message) {
+            // Use proper type guard to check if we have a versioned message
+            if (hasGetAccountKeysMethod(message)) {
               // For versioned transactions (MessageV0)
               try {
-                // Access the account keys differently based on the library version
-                const keysObj = message.getAccountKeys?.();
+                const accountKeys = message.getAccountKeys();
                 
-                // Only proceed if keysObj exists
-                if (keysObj) {
-                  // Direct access to staticAccountKeys if available
-                  if (typeof keysObj === 'object' && 'staticAccountKeys' in keysObj) {
-                    const staticKeys = keysObj.staticAccountKeys;
-                    if (Array.isArray(staticKeys) && accountIndex < staticKeys.length) {
+                // Check if accountKeys has staticAccountKeys property
+                if (accountKeys && typeof accountKeys === 'object') {
+                  if ('staticAccountKeys' in accountKeys && Array.isArray(accountKeys.staticAccountKeys)) {
+                    // Direct access to staticAccountKeys
+                    const staticKeys = accountKeys.staticAccountKeys;
+                    if (accountIndex < staticKeys.length) {
                       accountKey = staticKeys[accountIndex].toBase58();
                     }
-                  }
-                  // Handle array return type
-                  else if (Array.isArray(keysObj) && accountIndex < keysObj.length) {
-                    const key = keysObj[accountIndex];
-                    if (key && typeof key.toBase58 === 'function') {
-                      accountKey = key.toBase58();
+                  } else if (Array.isArray(accountKeys)) {
+                    // Handle array return type
+                    if (accountIndex < accountKeys.length) {
+                      const key = accountKeys[accountIndex];
+                      if (key && typeof key.toBase58 === 'function') {
+                        accountKey = key.toBase58();
+                      }
                     }
-                  }
-                  // Handle other object types (last resort)
-                  else if (typeof keysObj === 'object') {
-                    // Safe access using index notation
-                    const pubkey = keysObj[accountIndex];
-                    if (pubkey && typeof pubkey.toBase58 === 'function') {
-                      accountKey = pubkey.toBase58();
+                  } else {
+                    // Generic object access fallback, safely accessing by property
+                    const possibleKey = (accountKeys as Record<string, any>)[accountIndex];
+                    if (possibleKey && typeof possibleKey.toBase58 === 'function') {
+                      accountKey = possibleKey.toBase58();
                     }
                   }
                 }
