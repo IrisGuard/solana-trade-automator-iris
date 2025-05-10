@@ -2,11 +2,11 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight, LayoutDashboard, Loader, TrendingUp, Wallet } from "lucide-react";
+import { ArrowRight, LayoutDashboard, TrendingUp } from "lucide-react";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
 
 export function HeroSection() {
-  const { isConnected, isConnecting, connectWallet, isPhantomInstalled } = useWalletConnection();
+  const { isConnected } = useWalletConnection();
   
   return (
     <section className="py-12 md:py-16 text-center space-y-6 max-w-3xl mx-auto">
@@ -26,27 +26,7 @@ export function HeroSection() {
               <ArrowRight className="h-5 w-5" />
             </Button>
           </Link>
-        ) : (
-          <Button 
-            size="lg" 
-            onClick={connectWallet} 
-            className="gap-2 px-6 py-6 h-auto text-base"
-            disabled={isConnecting || !isPhantomInstalled}
-            {...(!isConnecting && { className: "gap-2 px-6 py-6 h-auto text-base animate-pulse" })}
-          >
-            {isConnecting ? (
-              <>
-                <Loader className="h-5 w-5 animate-spin" />
-                Γίνεται σύνδεση...
-              </>
-            ) : (
-              <>
-                <Wallet className="h-5 w-5" />
-                Σύνδεση με Phantom Wallet
-              </>
-            )}
-          </Button>
-        )}
+        ) : null}
         <Link to="/bot-control">
           <Button size="lg" variant="outline" className="gap-2 px-6 py-6 h-auto text-base">
             <TrendingUp className="h-5 w-5" />
