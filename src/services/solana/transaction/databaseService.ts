@@ -1,5 +1,5 @@
 
-import { transactionService as dbTransactionService } from '@/services/transactionService';
+import { transactionService } from '@/services/transactionService';
 import { Transaction } from '@/types/wallet';
 
 /**
@@ -11,9 +11,9 @@ export async function saveTransactionToDatabase(
   userId?: string
 ): Promise<boolean> {
   try {
-    // Using the database service to save the transaction
+    // Using the transaction service to save the transaction
     if (userId) {
-      return await dbTransactionService.saveTransactionToDatabase(transaction, walletAddress, userId);
+      return await transactionService.saveTransactionToDatabase(transaction, walletAddress, userId);
     }
     console.log('Saving transaction to database failed: User ID is undefined');
     return false;

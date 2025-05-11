@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Transaction } from '@/types/wallet';
 import { toast } from 'sonner';
+import { transactionsService } from './transactionsService';
 
 /**
  * Service for managing transaction operations
