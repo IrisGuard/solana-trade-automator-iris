@@ -35,8 +35,22 @@ export const loadKeysFromStorage = (
         parsedKeys = JSON.parse(savedKeys);
       }
       
-      setApiKeys(parsedKeys);
+      // Ensure all keys have the required fields
+      const validKeys = parsedKeys.filter((key: any) => key && key.name && key.service && key.key)
+        .map((key: ApiKey) => ({
+          ...key,
+          id: key.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+          createdAt: key.createdAt || new Date().toISOString()
+        }));
+      
+      setApiKeys(validKeys);
       setIsLocked(false);
+      
+      if (parsedKeys.length !== validKeys.length) {
+        console.warn(`${parsedKeys.length - validKeys.length} κλειδιά αγνοήθηκαν λόγω μη έγκυρης μορφής`);
+      }
+      
+      console.log(`Φορτώθηκαν ${validKeys.length} κλειδιά από το localStorage`);
     } catch (e) {
       console.error('Σφάλμα φόρτωσης κλειδιών:', e);
       toast.error("Σφάλμα φόρτωσης κλειδιών");
@@ -51,19 +65,25 @@ export const saveKeysToStorage = (
   savedMasterPassword: string
 ) => {
   if (apiKeys.length > 0 || localStorage.getItem('apiKeys')) {
-    let dataToStore;
-    
-    if (isEncryptionEnabled && savedMasterPassword) {
-      // Encrypt data
-      const encrypted = CryptoJS.AES.encrypt(
-        JSON.stringify(apiKeys),
-        savedMasterPassword
-      ).toString();
-      dataToStore = encrypted;
-    } else {
-      dataToStore = JSON.stringify(apiKeys);
+    try {
+      let dataToStore;
+      
+      if (isEncryptionEnabled && savedMasterPassword) {
+        // Encrypt data
+        const encrypted = CryptoJS.AES.encrypt(
+          JSON.stringify(apiKeys),
+          savedMasterPassword
+        ).toString();
+        dataToStore = encrypted;
+      } else {
+        dataToStore = JSON.stringify(apiKeys);
+      }
+      
+      localStorage.setItem('apiKeys', dataToStore);
+      console.log(`Αποθηκεύτηκαν ${apiKeys.length} κλειδιά στο localStorage`);
+    } catch (e) {
+      console.error('Σφάλμα αποθήκευσης κλειδιών:', e);
+      toast.error("Σφάλμα κατά την αποθήκευση των κλειδιών");
     }
-    
-    localStorage.setItem('apiKeys', dataToStore);
   }
 };

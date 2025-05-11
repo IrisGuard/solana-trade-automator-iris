@@ -91,7 +91,14 @@ export function useApiVault() {
 
   // Add new key
   const addNewKey = (newKey: ApiKey) => {
-    setApiKeys([...apiKeys, newKey]);
+    // Ensure the key has an ID and createdAt
+    const keyWithDefaults = {
+      ...newKey,
+      id: newKey.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      createdAt: newKey.createdAt || new Date().toISOString()
+    };
+    
+    setApiKeys(prev => [...prev, keyWithDefaults]);
     toast.success("Το κλειδί προστέθηκε επιτυχώς");
   };
 
@@ -111,7 +118,24 @@ export function useApiVault() {
 
   // Handle bulk import
   const handleImport = (importedKeys: ApiKey[]) => {
-    setApiKeys([...apiKeys, ...importedKeys]);
+    // Check for duplicates by comparing key values
+    const existingKeyValues = new Set(apiKeys.map(key => key.key));
+    
+    // Filter out keys that already exist
+    const newKeys = importedKeys.filter(key => !existingKeyValues.has(key.key));
+    
+    // Add new keys
+    if (newKeys.length > 0) {
+      setApiKeys(prev => [...prev, ...newKeys]);
+      
+      if (newKeys.length !== importedKeys.length) {
+        toast.warning(`Προστέθηκαν ${newKeys.length} νέα κλειδιά. ${importedKeys.length - newKeys.length} παραλείφθηκαν ως διπλότυπα.`);
+      } else {
+        toast.success(`Προστέθηκαν ${newKeys.length} νέα κλειδιά επιτυχώς!`);
+      }
+    } else if (importedKeys.length > 0) {
+      toast.warning("Όλα τα κλειδιά υπάρχουν ήδη στην κλειδοθήκη σας");
+    }
   };
 
   // Get keys filtered by search term and service
@@ -119,10 +143,11 @@ export function useApiVault() {
     return apiKeys.filter(key => {
       const matchesSearch = 
         key.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        key.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        key.key.toLowerCase().includes(searchTerm.toLowerCase());
+        (key.description?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+        key.key.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        key.service.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesFilter = filterService === 'all' || key.service === filterService;
+      const matchesFilter = filterService === 'all' || key.service.toLowerCase() === filterService.toLowerCase();
       
       return matchesSearch && matchesFilter;
     });
@@ -133,18 +158,25 @@ export function useApiVault() {
     const grouped: Record<string, ApiKey[]> = {};
     
     getFilteredKeys().forEach(key => {
-      if (!grouped[key.service]) {
-        grouped[key.service] = [];
+      const service = key.service.toLowerCase();
+      if (!grouped[service]) {
+        grouped[service] = [];
       }
-      grouped[key.service].push(key);
+      grouped[service].push(key);
     });
     
     return grouped;
   };
 
   // Handle unlock
-  const handleUnlock = () => {
-    setIsLocked(false);
+  const handleUnlock = (password: string) => {
+    if (password === savedMasterPassword) {
+      setIsLocked(false);
+      setIsUnlocking(false);
+      toast.success("Η κλειδοθήκη ξεκλειδώθηκε επιτυχώς");
+    } else {
+      toast.error("Λάθος κωδικός πρόσβασης");
+    }
   };
 
   // Handle lock vault

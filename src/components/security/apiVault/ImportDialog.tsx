@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { parseImportData } from "./utils";
 import { ApiKey } from "./types";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, Info } from "lucide-react";
 
 interface ImportDialogProps {
   open: boolean;
@@ -21,7 +23,12 @@ export const ImportDialog = ({ open, onOpenChange, onImport }: ImportDialogProps
 
   const handleImport = () => {
     try {
-      const importedKeys = parseImportData(importData);
+      if (!importData.trim()) {
+        toast.error("Παρακαλώ εισάγετε δεδομένα για εισαγωγή");
+        return;
+      }
+      
+      const importedKeys = parseImportData(importData, importFormat);
       
       if (importedKeys.length > 0) {
         onImport(importedKeys);
@@ -34,6 +41,30 @@ export const ImportDialog = ({ open, onOpenChange, onImport }: ImportDialogProps
     } catch (e) {
       console.error('Σφάλμα εισαγωγής:', e);
       toast.error("Σφάλμα κατά την εισαγωγή κλειδιών");
+    }
+  };
+
+  const getFormatExample = () => {
+    switch(importFormat) {
+      case 'json':
+        return `[
+  {
+    "name": "AWS Key",
+    "service": "aws",
+    "key": "AKIAIOSFODNN7EXAMPLE",
+    "description": "Κλειδί για S3"
+  },
+  {
+    "name": "Github Token",
+    "service": "github",
+    "key": "ghp_xxxxxxxxxxxxxxxx"
+  }
+]`;
+      case 'text':
+        return `OpenAI Key|sk-xxxxxxxxxxxxxxxxxxxx|openai|API κλειδί για GPT
+Stripe Test|sk_test_xxxxxxxxxxxxx|stripe|Test key|2024-12-31`;
+      default:
+        return '';
     }
   };
 
@@ -58,18 +89,25 @@ export const ImportDialog = ({ open, onOpenChange, onImport }: ImportDialogProps
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="json">JSON</SelectItem>
-                <SelectItem value="text">Text με διαχωριστικό |</SelectItem>
+                <SelectItem value="text">Κείμενο με διαχωριστικό | ή ,</SelectItem>
               </SelectContent>
             </Select>
           </div>
+          
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {importFormat === 'json' ? 
+                "Κάθε κλειδί πρέπει να έχει τουλάχιστον τα πεδία name, service και key" : 
+                "Κάθε γραμμή πρέπει να έχει τουλάχιστον Όνομα|Κλειδί|Υπηρεσία"}
+            </AlertDescription>
+          </Alert>
+          
           <div className="space-y-2">
             <Label htmlFor="import-data">Δεδομένα</Label>
             <Textarea 
               id="import-data" 
-              placeholder={importFormat === 'json' ? 
-                '[{"name":"Example Key","key":"your-key-here","service":"aws"}]' : 
-                'Key Name|your-key-here|service|optional description|optional expiry date'
-              }
+              placeholder={getFormatExample()}
               value={importData}
               onChange={(e) => setImportData(e.target.value)}
               rows={10}
