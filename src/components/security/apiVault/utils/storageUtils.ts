@@ -30,11 +30,47 @@ export const loadKeysFromStorage = (
           }
         } catch (e) {
           console.error('Σφάλμα αποκρυπτογράφησης:', e);
-          setIsLocked(true);
-          return;
+          // Αν αποτύχει η αποκρυπτογράφηση, δοκιμάζουμε να διαβάσουμε τα κλειδιά ως μη κρυπτογραφημένα
+          try {
+            parsedKeys = JSON.parse(savedKeys);
+            console.log('Βρέθηκαν μη κρυπτογραφημένα κλειδιά μετά από αποτυχία αποκρυπτογράφησης');
+            setIsLocked(false);
+          } catch {
+            setIsLocked(true);
+            console.log('Δεν ήταν δυνατή η ανάγνωση των κλειδιών ως μη κρυπτογραφημένα');
+            return;
+          }
         }
       } else {
-        parsedKeys = JSON.parse(savedKeys);
+        try {
+          parsedKeys = JSON.parse(savedKeys);
+          console.log('Επιτυχής φόρτωση μη κρυπτογραφημένων κλειδιών');
+        } catch (e) {
+          // Σε περίπτωση που το αποθηκευμένο είναι κρυπτογραφημένο αλλά δεν έχει ενεργοποιηθεί η κρυπτογράφηση
+          console.log('Δοκιμή αποκρυπτογράφησης καθώς απέτυχε η φόρτωση ως μη κρυπτογραφημένα');
+          if (savedMasterPassword) {
+            try {
+              const decrypted = CryptoJS.AES.decrypt(savedKeys, savedMasterPassword).toString(CryptoJS.enc.Utf8);
+              if (decrypted) {
+                parsedKeys = JSON.parse(decrypted);
+                setIsLocked(false);
+                console.log('Επιτυχής αποκρυπτογράφηση κλειδιών μετά από δοκιμή');
+              } else {
+                setIsLocked(true);
+                console.error('Αποτυχία αποκρυπτογράφησης μετά από δοκιμή');
+                return;
+              }
+            } catch (e) {
+              console.error('Τελική αποτυχία φόρτωσης κλειδιών:', e);
+              setIsLocked(false);
+              return;
+            }
+          } else {
+            console.error('Αποτυχία φόρτωσης κλειδιών και δεν υπάρχει διαθέσιμο master password:', e);
+            toast.error("Δεν ήταν δυνατή η φόρτωση των κλειδιών. Το αποθηκευμένο αρχείο ενδέχεται να είναι κατεστραμμένο.");
+            return;
+          }
+        }
       }
       
       // Ensure all keys have the required fields
@@ -53,10 +89,16 @@ export const loadKeysFromStorage = (
       }
       
       console.log(`Φορτώθηκαν ${validKeys.length} κλειδιά από το localStorage`);
+      
+      if (validKeys.length === 0) {
+        toast.warning("Δεν βρέθηκαν έγκυρα κλειδιά στην κλειδοθήκη");
+      }
     } catch (e) {
       console.error('Σφάλμα φόρτωσης κλειδιών:', e);
       toast.error("Σφάλμα φόρτωσης κλειδιών");
     }
+  } else {
+    console.log('Δεν βρέθηκαν αποθηκευμένα κλειδιά στο localStorage');
   }
 };
 
