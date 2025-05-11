@@ -30,7 +30,11 @@ export function useWalletConnection() {
     setSelectedToken
   } = useTokens();
 
-  const { transactions, isLoadingTransactions } = useTransactions(walletAddress);
+  const { 
+    transactions, 
+    isLoadingTransactions,
+    refreshTransactions 
+  } = useTransactions(walletAddress);
 
   // Load token prices when connected
   useEffect(() => {
@@ -44,19 +48,20 @@ export function useWalletConnection() {
   }, [isConnected, tokens, fetchTokenPrices]);
 
   // Connect wallet and fetch data
-  const connectWallet = async () => {
+  const connectWallet = useCallback(async () => {
     const address = await connectWalletStatus();
     if (address) {
       await fetchAndSetBalance(address);
       await fetchAndSetTokens(address);
     }
-  };
+    return address;
+  }, [connectWalletStatus, fetchAndSetBalance, fetchAndSetTokens]);
 
   // Disconnect wallet and clear data
-  const disconnectWallet = async () => {
+  const disconnectWallet = useCallback(async () => {
     await disconnectWalletStatus();
     setSelectedToken(null);
-  };
+  }, [disconnectWalletStatus, setSelectedToken]);
 
   // Derived SOL balance from state
   const solBalance = balance || 0;
@@ -78,6 +83,7 @@ export function useWalletConnection() {
     connectWallet,
     disconnectWallet,
     selectTokenForTrading,
+    refreshTransactions
   };
 }
 
