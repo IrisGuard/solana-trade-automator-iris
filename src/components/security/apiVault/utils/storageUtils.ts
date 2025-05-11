@@ -22,8 +22,10 @@ export const loadKeysFromStorage = (
           if (decrypted) {
             parsedKeys = JSON.parse(decrypted);
             setIsLocked(false);
+            console.log('Επιτυχής αποκρυπτογράφηση και φόρτωση κλειδιών');
           } else {
             setIsLocked(true);
+            console.log('Αποτυχία αποκρυπτογράφησης, κλειδοθήκη κλειδωμένη');
             return;
           }
         } catch (e) {
@@ -74,8 +76,10 @@ export const saveKeysToStorage = (
         savedMasterPassword
       ).toString();
       dataToStore = encrypted;
+      console.log('Τα κλειδιά αποθηκεύτηκαν κρυπτογραφημένα');
     } else {
       dataToStore = JSON.stringify(apiKeys);
+      console.log('Τα κλειδιά αποθηκεύτηκαν χωρίς κρυπτογράφηση');
     }
     
     localStorage.setItem('apiKeys', dataToStore);
