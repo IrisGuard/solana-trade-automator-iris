@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { useApiVault } from "./hooks/useApiVault";
 import { ApiVaultHeader } from "./ApiVaultHeader";
@@ -9,6 +9,9 @@ import { ImportDialog } from "./ImportDialog";
 import { ExportSheet } from "./ExportSheet";
 import { SecuritySettingsDialog } from "./SecuritySettingsDialog";
 import { UnlockDialog } from "./UnlockDialog";
+import { ApiKeyStats } from "./components/ApiKeyStats";
+import { ServiceStats } from "./components/ServiceStats";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const ApiVaultCard = () => {
   const {
@@ -46,6 +49,32 @@ export const ApiVaultCard = () => {
     handleUnlock,
     handleLock
   } = useApiVault();
+  
+  const [activeTab, setActiveTab] = useState<string>("keys");
+
+  // Calculate key statistics
+  const keyStats = {
+    total: apiKeys.length,
+    active: apiKeys.filter(key => !key.status || key.status === "active").length,
+    expired: apiKeys.filter(key => key.status === "expired").length,
+    revoked: apiKeys.filter(key => key.status === "revoked").length,
+  };
+  
+  // Calculate services statistics
+  const services = apiKeys.reduce((acc, key) => {
+    if (!acc[key.service]) {
+      acc[key.service] = {
+        name: key.service,
+        count: 0,
+        workingCount: 0
+      };
+    }
+    acc[key.service].count += 1;
+    if (!key.isWorking === false) {
+      acc[key.service].workingCount += 1;
+    }
+    return acc;
+  }, {} as Record<string, {name: string, count: number, workingCount: number}>);
 
   return (
     <Card>
@@ -63,21 +92,56 @@ export const ApiVaultCard = () => {
         <CardDescription>Διαχειριστείτε τα κλειδιά API σας με ασφάλεια</CardDescription>
       </CardHeader>
       <CardContent>
-        <ApiVaultContent 
-          isLocked={isLocked}
-          apiKeys={apiKeys}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          filterService={filterService}
-          setFilterService={setFilterService}
-          isKeyVisible={isKeyVisible}
-          toggleKeyVisibility={toggleKeyVisibility}
-          deleteKey={deleteKey}
-          getFilteredKeys={getFilteredKeys}
-          getKeysByService={getKeysByService}
-          onAddKeyClick={() => setShowDialogApiKey(true)}
-          onUnlockClick={() => setIsUnlocking(true)}
-        />
+        {!isLocked && apiKeys.length > 0 && (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+            <TabsList className="grid grid-cols-3 mb-2">
+              <TabsTrigger value="keys">Κλειδιά API</TabsTrigger>
+              <TabsTrigger value="stats">Στατιστικά</TabsTrigger>
+              <TabsTrigger value="services">Υπηρεσίες</TabsTrigger>
+            </TabsList>
+            <TabsContent value="keys" className="space-y-4">
+              <ApiVaultContent 
+                isLocked={isLocked}
+                apiKeys={apiKeys}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                filterService={filterService}
+                setFilterService={setFilterService}
+                isKeyVisible={isKeyVisible}
+                toggleKeyVisibility={toggleKeyVisibility}
+                deleteKey={deleteKey}
+                getFilteredKeys={getFilteredKeys}
+                getKeysByService={getKeysByService}
+                onAddKeyClick={() => setShowDialogApiKey(true)}
+                onUnlockClick={() => setIsUnlocking(true)}
+              />
+            </TabsContent>
+            <TabsContent value="stats">
+              <ApiKeyStats stats={keyStats} />
+            </TabsContent>
+            <TabsContent value="services">
+              <ServiceStats services={Object.values(services)} />
+            </TabsContent>
+          </Tabs>
+        )}
+        
+        {(isLocked || apiKeys.length === 0) && (
+          <ApiVaultContent 
+            isLocked={isLocked}
+            apiKeys={apiKeys}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filterService={filterService}
+            setFilterService={setFilterService}
+            isKeyVisible={isKeyVisible}
+            toggleKeyVisibility={toggleKeyVisibility}
+            deleteKey={deleteKey}
+            getFilteredKeys={getFilteredKeys}
+            getKeysByService={getKeysByService}
+            onAddKeyClick={() => setShowDialogApiKey(true)}
+            onUnlockClick={() => setIsUnlocking(true)}
+          />
+        )}
 
         {/* Dialogs and Sheets */}
         <NewApiKeyDialog 

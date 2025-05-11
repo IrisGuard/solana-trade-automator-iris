@@ -2,6 +2,7 @@
 import React from "react";
 import { ApiKey } from "./types";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, 
   AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -32,7 +33,7 @@ export const ApiKeysByService = ({
   return (
     <>
       {Object.entries(keysByService).map(([service, keys]) => (
-        <div key={service} className="space-y-2">
+        <div key={service} className="space-y-2 mb-6">
           <div className="flex items-center gap-2">
             <div className="text-xl">{getServiceIcon(service)}</div>
             <h3 className="font-semibold capitalize">{service}</h3>
@@ -44,13 +45,30 @@ export const ApiKeysByService = ({
             {keys.map((apiKey) => (
               <div key={apiKey.id} className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-medium">{apiKey.name}</p>
-                    {apiKey.expires && new Date(apiKey.expires) < new Date() && (
-                      <span className="bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded">Ληγμένο</span>
+                    {apiKey.status === "expired" && (
+                      <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                        Ληγμένο
+                      </Badge>
+                    )}
+                    {apiKey.status === "revoked" && (
+                      <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
+                        Ανακληθέν
+                      </Badge>
+                    )}
+                    {apiKey.isWorking === false && (
+                      <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
+                        Δεν λειτουργεί
+                      </Badge>
+                    )}
+                    {apiKey.isWorking === true && (
+                      <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+                        Λειτουργικό
+                      </Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap mt-1">
                     <code className="text-sm bg-secondary p-1 px-2 rounded flex-1 min-w-0 truncate">
                       {isKeyVisible[apiKey.id] ? apiKey.key : maskKey(apiKey.key)}
                     </code>

@@ -2,6 +2,7 @@
 import React from "react";
 import { ApiKey } from "./types";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, 
   AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -32,14 +33,31 @@ export const ApiKeyList = ({
   return (
     <>
       {apiKeys.map((apiKey) => (
-        <div key={apiKey.id} className="flex items-center justify-between p-4 border rounded-lg">
+        <div key={apiKey.id} className="flex items-center justify-between p-4 border rounded-lg mb-3">
           <div className="flex items-center gap-3">
             <div className="text-2xl">{getServiceIcon(apiKey.service)}</div>
             <div className="space-y-1 flex-1 min-w-0">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-medium">{apiKey.name}</p>
-                {apiKey.expires && new Date(apiKey.expires) < new Date() && (
-                  <span className="bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded">Ληγμένο</span>
+                {apiKey.status === "expired" && (
+                  <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                    Ληγμένο
+                  </Badge>
+                )}
+                {apiKey.status === "revoked" && (
+                  <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
+                    Ανακληθέν
+                  </Badge>
+                )}
+                {apiKey.isWorking === false && (
+                  <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
+                    Δεν λειτουργεί
+                  </Badge>
+                )}
+                {apiKey.isWorking === true && (
+                  <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+                    Λειτουργικό
+                  </Badge>
                 )}
               </div>
               <div className="flex items-center gap-2 flex-wrap">

@@ -10,3 +10,16 @@ export interface ApiKey {
   status?: 'active' | 'expired' | 'revoked';
   isWorking?: boolean;
 }
+
+export interface ApiKeyStats {
+  total: number;
+  active: number;
+  expired: number;
+  revoked: number;
+}
+
+export interface ServiceInfo {
+  name: string;
+  count: number;
+  workingCount: number;
+}
