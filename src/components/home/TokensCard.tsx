@@ -12,6 +12,7 @@ interface TokensCardProps {
   tokenPrices?: Record<string, number>;
   selectTokenForTrading?: (tokenAddress: string) => Token | null;
   isLoadingTokens?: boolean;
+  connectionError?: string | null;
 }
 
 export function TokensCard({ 
@@ -19,7 +20,8 @@ export function TokensCard({
   displayAddress,
   tokenPrices,
   selectTokenForTrading,
-  isLoadingTokens = false
+  isLoadingTokens = false,
+  connectionError = null
 }: TokensCardProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
@@ -70,6 +72,7 @@ export function TokensCard({
           tokenPrices={tokenPrices}
           isLoadingTokens={isLoadingTokens}
           isLoading={isLoading}
+          connectionError={connectionError}
           onSelectToken={handleSelectToken}
           onTradingClick={handleTradingClick}
         />

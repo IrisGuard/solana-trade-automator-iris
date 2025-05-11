@@ -8,8 +8,6 @@ import { FooterSection } from "@/components/home/FooterSection";
 import { BotExplanationSection } from "@/components/home/BotExplanationSection";
 import { formatWalletAddress } from "@/utils/walletUtils";
 import { useSolanaWallet } from "@/hooks/useSolanaWallet";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
 
 const Index = () => {
   const { 
@@ -20,6 +18,7 @@ const Index = () => {
     connecting,
     isLoadingTokens,
     isLoadingBalance,
+    connectionError,
     selectWallet,
     connectWallet
   } = useSolanaWallet();
@@ -40,6 +39,7 @@ const Index = () => {
           tokens={tokens} 
           displayAddress={displayAddress}
           isLoadingTokens={isLoadingTokens || isLoadingBalance}
+          connectionError={connectionError}
         />
       ) : (
         <WalletDisconnectedContent 

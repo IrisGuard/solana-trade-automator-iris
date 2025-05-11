@@ -1,8 +1,9 @@
 
 import React from "react";
-import { Loader } from "lucide-react";
+import { Loader, AlertCircle } from "lucide-react";
 import { Token } from "@/types/wallet";
 import { TokenItem } from "./TokenItem";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface TokensListProps {
   tokens: Token[];
@@ -11,6 +12,7 @@ interface TokensListProps {
   tokenPrices?: Record<string, number>;
   isLoadingTokens?: boolean;
   isLoading?: boolean;
+  connectionError?: string | null;
   onSelectToken: (tokenAddress: string) => void;
   onTradingClick: (tokenAddress: string) => void;
 }
@@ -22,6 +24,7 @@ export function TokensList({
   tokenPrices,
   isLoadingTokens = false,
   isLoading = false,
+  connectionError = null,
   onSelectToken,
   onTradingClick
 }: TokensListProps) {
@@ -31,6 +34,17 @@ export function TokensList({
         <Loader className="h-6 w-6 animate-spin mx-auto mb-2" />
         <p>Φόρτωση tokens...</p>
       </div>
+    );
+  }
+
+  if (connectionError) {
+    return (
+      <Alert variant="destructive" className="my-4">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Αδυναμία φόρτωσης: {connectionError}
+        </AlertDescription>
+      </Alert>
     );
   }
 

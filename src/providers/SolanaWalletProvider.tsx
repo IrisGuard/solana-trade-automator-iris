@@ -10,7 +10,6 @@ import {
   CloverWalletAdapter,
   MathWalletAdapter
 } from '@solana/wallet-adapter-wallets';
-import { clusterApiUrl } from '@solana/web3.js';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 
 // Εισαγωγή προεπιλεγμένων στυλ
@@ -24,8 +23,10 @@ export const SolanaWalletProvider: React.FC<SolanaWalletProviderProps> = ({ chil
   // Το δίκτυο Solana μπορεί να οριστεί ως 'devnet', 'testnet', ή 'mainnet-beta'
   const network = WalletAdapterNetwork.Mainnet;
 
-  // Μπορείτε επίσης να παρέχετε το δικό σας endpoint
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  // Χρησιμοποιούμε ένα πιο αξιόπιστο public RPC endpoint
+  const endpoint = useMemo(() => 
+    'https://solana-mainnet.rpc.extrnode.com', 
+  []);
 
   const wallets = useMemo(
     () => [

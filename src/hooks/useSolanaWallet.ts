@@ -24,6 +24,7 @@ export function useSolanaWallet() {
   const [tokens, setTokens] = useState<Token[]>([]);
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
   const [isLoadingTokens, setIsLoadingTokens] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   // Φόρτωση υπολοίπου
   const fetchBalance = useCallback(async () => {
@@ -31,13 +32,16 @@ export function useSolanaWallet() {
 
     try {
       setIsLoadingBalance(true);
+      setConnectionError(null);
       const balanceInLamports = await connection.getBalance(publicKey);
       const solBalance = balanceInLamports / LAMPORTS_PER_SOL;
       setBalance(solBalance);
       return solBalance;
     } catch (error) {
       console.error("Σφάλμα κατά τη φόρτωση του υπολοίπου:", error);
-      toast.error("Δεν ήταν δυνατή η φόρτωση του υπολοίπου");
+      const errorMessage = "Δεν ήταν δυνατή η φόρτωση του υπολοίπου";
+      toast.error(errorMessage);
+      setConnectionError(errorMessage);
       return null;
     } finally {
       setIsLoadingBalance(false);
@@ -50,6 +54,7 @@ export function useSolanaWallet() {
     
     try {
       setIsLoadingTokens(true);
+      setConnectionError(null);
       toast.loading('Φόρτωση tokens...');
       
       // Χρήση του tokenService για τη φόρτωση των tokens
@@ -60,7 +65,9 @@ export function useSolanaWallet() {
       return userTokens;
     } catch (err) {
       console.error('Σφάλμα φόρτωσης tokens:', err);
-      toast.error('Σφάλμα κατά τη φόρτωση των tokens');
+      const errorMessage = 'Σφάλμα κατά τη φόρτωση των tokens';
+      toast.error(errorMessage);
+      setConnectionError(errorMessage);
       setTokens([]);
       return [];
     } finally {
@@ -73,16 +80,21 @@ export function useSolanaWallet() {
   const connectWallet = useCallback(async () => {
     try {
       if (wallet) {
+        setConnectionError(null);
         toast.loading('Σύνδεση με το πορτοφόλι...');
         await connect();
         return true;
       } else {
-        toast.error('Επιλέξτε ένα πορτοφόλι πρώτα');
+        const errorMessage = 'Επιλέξτε ένα πορτοφόλι πρώτα';
+        toast.error(errorMessage);
+        setConnectionError(errorMessage);
         return false;
       }
     } catch (error) {
       console.error('Σφάλμα σύνδεσης πορτοφολιού:', error);
-      toast.error('Δεν ήταν δυνατή η σύνδεση με το πορτοφόλι');
+      const errorMessage = 'Δεν ήταν δυνατή η σύνδεση με το πορτοφόλι';
+      toast.error(errorMessage);
+      setConnectionError(errorMessage);
       return false;
     } finally {
       toast.dismiss();
@@ -97,10 +109,13 @@ export function useSolanaWallet() {
       toast.success('Το πορτοφόλι αποσυνδέθηκε');
       setBalance(null);
       setTokens([]);
+      setConnectionError(null);
       return true;
     } catch (error) {
       console.error('Σφάλμα αποσύνδεσης πορτοφολιού:', error);
-      toast.error('Δεν ήταν δυνατή η αποσύνδεση του πορτοφολιού');
+      const errorMessage = 'Δεν ήταν δυνατή η αποσύνδεση του πορτοφολιού';
+      toast.error(errorMessage);
+      setConnectionError(errorMessage);
       return false;
     } finally {
       toast.dismiss();
@@ -115,6 +130,18 @@ export function useSolanaWallet() {
     }
   }, [connected, publicKey, fetchBalance, fetchTokens]);
 
+  // Επανάληψη της φόρτωσης κάθε 30 δευτερόλεπτα όταν είναι συνδεδεμένο
+  useEffect(() => {
+    if (!connected || !publicKey) return;
+    
+    const interval = setInterval(() => {
+      fetchBalance();
+      fetchTokens();
+    }, 30000); // Κάθε 30 δευτερόλεπτα
+    
+    return () => clearInterval(interval);
+  }, [connected, publicKey, fetchBalance, fetchTokens]);
+
   return {
     publicKey,
     walletAddress: publicKey?.toString() || '',
@@ -125,6 +152,7 @@ export function useSolanaWallet() {
     isLoadingBalance,
     tokens,
     isLoadingTokens,
+    connectionError,
     selectWallet: select,
     connectWallet,
     disconnectWallet,

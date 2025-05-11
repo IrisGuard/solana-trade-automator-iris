@@ -14,6 +14,7 @@ interface WalletConnectedContentProps {
   displayAddress: string;
   tokenPrices?: Record<string, number>;
   isLoadingTokens?: boolean;
+  connectionError?: string | null;
   selectTokenForTrading?: (tokenAddress: string) => Token | null;
 }
 
@@ -24,17 +25,18 @@ export function WalletConnectedContent({
   displayAddress,
   tokenPrices,
   isLoadingTokens,
+  connectionError,
   selectTokenForTrading
 }: WalletConnectedContentProps) {
   // Εμφάνιση μηνύματος καλωσορίσματος όταν φορτώνεται το component
   useEffect(() => {
-    if (walletAddress) {
+    if (walletAddress && !connectionError) {
       toast.success(`Το πορτοφόλι σας συνδέθηκε επιτυχώς: ${displayAddress}`, {
         duration: 4000,
         position: "top-center"
       });
     }
-  }, [walletAddress, displayAddress]);
+  }, [walletAddress, displayAddress, connectionError]);
 
   return (
     <div className="space-y-6">
@@ -44,6 +46,7 @@ export function WalletConnectedContent({
         displayAddress={displayAddress} 
         tokenPrices={tokenPrices}
         isLoadingTokens={isLoadingTokens}
+        connectionError={connectionError}
         selectTokenForTrading={selectTokenForTrading}
       />
       <TransactionsCard walletAddress={walletAddress} displayAddress={displayAddress} />
