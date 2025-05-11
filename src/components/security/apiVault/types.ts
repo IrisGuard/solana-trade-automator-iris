@@ -7,4 +7,6 @@ export interface ApiKey {
   createdAt: string;
   description?: string;
   expires?: string;
+  status?: 'active' | 'expired' | 'revoked';
+  isWorking?: boolean;
 }
