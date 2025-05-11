@@ -20,6 +20,14 @@ export function TransactionPagination({
   indexOfLastTransaction,
   totalTransactions
 }: PaginationProps) {
+  const goToPreviousPage = () => {
+    setCurrentPage(Math.max(currentPage - 1, 1));
+  };
+  
+  const goToNextPage = () => {
+    setCurrentPage(Math.min(currentPage + 1, totalPages));
+  };
+
   return (
     <div className="flex items-center justify-between">
       <p className="text-sm text-muted-foreground">
@@ -29,7 +37,7 @@ export function TransactionPagination({
         <Button
           variant="outline"
           size="icon"
-          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+          onClick={goToPreviousPage}
           disabled={currentPage === 1}
         >
           <ChevronLeft className="h-4 w-4" />
@@ -47,7 +55,7 @@ export function TransactionPagination({
         <Button
           variant="outline"
           size="icon"
-          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+          onClick={goToNextPage}
           disabled={currentPage === totalPages}
         >
           <ChevronRight className="h-4 w-4" />
