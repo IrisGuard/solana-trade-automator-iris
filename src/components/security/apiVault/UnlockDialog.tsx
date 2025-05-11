@@ -22,14 +22,8 @@ export const UnlockDialog = ({
   const [unlockPassword, setUnlockPassword] = useState("");
 
   const handleUnlock = () => {
-    if (unlockPassword === savedMasterPassword) {
-      onUnlock(unlockPassword);
-      setUnlockPassword("");
-      onOpenChange(false);
-      toast.success("Η κλειδοθήκη ξεκλείδωθηκε με επιτυχία");
-    } else {
-      toast.error("Λάθος κωδικός πρόσβασης");
-    }
+    onUnlock(unlockPassword);
+    setUnlockPassword("");
   };
 
   return (

@@ -28,7 +28,6 @@ export const ImportDialog = ({ open, onOpenChange, onImport }: ImportDialogProps
         return;
       }
       
-      // Fix: Update to call parseImportData with the correct number of arguments
       const importedKeys = parseImportData(importData);
       
       if (importedKeys.length > 0) {

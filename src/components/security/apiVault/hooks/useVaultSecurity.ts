@@ -55,7 +55,7 @@ export function useVaultSecurity({ apiKeys, setApiKeys }: VaultSecurityProps) {
 
   // Save keys to localStorage when they change
   useEffect(() => {
-    if (apiKeys.length > 0) {
+    if (apiKeys.length > 0 || localStorage.getItem('apiKeys')) {
       saveKeysToStorage(apiKeys, isEncryptionEnabled, savedMasterPassword);
     }
   }, [apiKeys, isEncryptionEnabled, savedMasterPassword]);
