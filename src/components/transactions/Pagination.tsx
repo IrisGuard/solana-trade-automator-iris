@@ -21,10 +21,12 @@ export function TransactionPagination({
   totalTransactions
 }: PaginationProps) {
   const goToPreviousPage = () => {
+    // Direct number assignment instead of using a callback function
     setCurrentPage(Math.max(currentPage - 1, 1));
   };
   
   const goToNextPage = () => {
+    // Direct number assignment instead of using a callback function
     setCurrentPage(Math.min(currentPage + 1, totalPages));
   };
 
