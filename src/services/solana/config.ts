@@ -10,6 +10,16 @@ export const connection = new Connection(SOLANA_RPC_ENDPOINT);
 // SPL Token program ID
 export const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
 
+// Γνωστά προγράμματα για αναγνώριση τύπου συναλλαγής
+export const KNOWN_PROGRAMS: Record<string, string> = {
+  "11111111111111111111111111111111": "System Program",
+  "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA": "Token Program",
+  "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL": "Associated Token Account Program",
+  "JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB": "Jupiter Aggregator",
+  "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8": "Raydium AMM Program",
+  "So1endDq2YkqhipRh3WViPa8hdiSpxWy6z75Qb8xsse": "Solend Program"
+};
+
 // Γνωστές διευθύνσεις tokens
 export const KNOWN_TOKEN_ADDRESSES: Record<string, { name: string; symbol: string; logo?: string }> = {
   "So11111111111111111111111111111111111111112": {
