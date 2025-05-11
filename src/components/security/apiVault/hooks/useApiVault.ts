@@ -168,7 +168,7 @@ export function useApiVault() {
     return grouped;
   };
 
-  // Handle unlock
+  // Handle unlock - Updated to accept password parameter
   const handleUnlock = (password: string) => {
     if (password === savedMasterPassword) {
       setIsLocked(false);

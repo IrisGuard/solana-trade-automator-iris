@@ -10,7 +10,7 @@ interface UnlockDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   savedMasterPassword: string;
-  onUnlock: () => void;
+  onUnlock: (password: string) => void;  // Updated to accept a password parameter
 }
 
 export const UnlockDialog = ({ 
@@ -23,7 +23,7 @@ export const UnlockDialog = ({
 
   const handleUnlock = () => {
     if (unlockPassword === savedMasterPassword) {
-      onUnlock();
+      onUnlock(unlockPassword);  // Pass the password to the onUnlock function
       setUnlockPassword("");
       onOpenChange(false);
       toast.success("Η κλειδοθήκη ξεκλείδωθηκε με επιτυχία");
