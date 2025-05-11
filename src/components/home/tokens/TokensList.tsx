@@ -82,9 +82,10 @@ export function TokensList({
         <TokenItem
           key={token.address}
           token={token}
-          price={tokenPrices?.[token.address]}
-          isSelected={selectedToken === token.address}
-          onSelect={() => onSelectToken(token.address)}
+          tokenPrice={tokenPrices?.[token.address]}
+          selectedToken={selectedToken}
+          isLoading={isLoading}
+          onSelectToken={() => onSelectToken(token.address)}
           onTradingClick={() => onTradingClick(token.address)}
         />
       ))}
