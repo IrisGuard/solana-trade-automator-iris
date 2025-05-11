@@ -7,17 +7,29 @@ import { AlertCircle } from "lucide-react";
 
 interface WalletDisconnectedContentProps {
   isConnecting: boolean;
+  isPhantomInstalled?: boolean;
 }
 
 export function WalletDisconnectedContent({ 
-  isConnecting
+  isConnecting,
+  isPhantomInstalled = true
 }: WalletDisconnectedContentProps) {
   return (
     <div className="space-y-6">
+      {!isPhantomInstalled && (
+        <Alert variant="warning">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Το Phantom Wallet δεν είναι εγκατεστημένο. Παρακαλώ εγκαταστήστε το για να συνδεθείτε.
+          </AlertDescription>
+        </Alert>
+      )}
+      
       {/* Grid content */}
       <div className="grid md:grid-cols-2 gap-6">
         <ConnectWalletCard 
           isConnecting={isConnecting}
+          isPhantomInstalled={isPhantomInstalled}
         />
         <PlatformInfoCard />
       </div>

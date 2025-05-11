@@ -18,12 +18,16 @@ export function TransactionFooter({
     return null;
   }
   
+  const handleViewAllClick = () => {
+    window.open(`https://solscan.io/account/${walletAddress}?cluster=mainnet`, '_blank');
+  };
+  
   return (
     <Button 
       variant="outline" 
       size="sm" 
-      className="w-full"
-      onClick={() => window.open(`https://solscan.io/account/${walletAddress}?cluster=mainnet`, '_blank')}
+      className="w-full hover:bg-primary/5"
+      onClick={handleViewAllClick}
     >
       Προβολή Όλων των Συναλλαγών <ExternalLink className="ml-2 h-3 w-3" />
     </Button>

@@ -19,10 +19,14 @@ const Index = () => {
     tokens,
     connecting,
     isLoadingTokens,
-    isLoadingBalance
+    isLoadingBalance,
+    tokenPrices,
+    selectWallet,
+    connectWallet
   } = useSolanaWallet();
   
   const displayAddress = walletAddress ? formatWalletAddress(walletAddress) : "";
+  const isPhantomInstalled = typeof window !== 'undefined' && window.phantom?.solana;
 
   return (
     <div className="container mx-auto space-y-8 pb-8">
@@ -37,10 +41,12 @@ const Index = () => {
           tokens={tokens} 
           displayAddress={displayAddress}
           isLoadingTokens={isLoadingTokens || isLoadingBalance}
+          tokenPrices={tokenPrices}
         />
       ) : (
         <WalletDisconnectedContent 
           isConnecting={connecting}
+          isPhantomInstalled={!!isPhantomInstalled}
         />
       )}
       

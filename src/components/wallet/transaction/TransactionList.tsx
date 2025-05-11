@@ -3,6 +3,8 @@ import React from "react";
 import { Loader } from "lucide-react";
 import { Transaction } from "@/types/wallet";
 import { TransactionItem } from "./TransactionItem";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -32,17 +34,23 @@ export function TransactionList({
   
   if (!walletAddress) {
     return (
-      <div className="py-6 text-center text-muted-foreground">
-        <p>Δεν έχετε συνδέσει πορτοφόλι</p>
-      </div>
+      <Alert variant="default" className="bg-muted/50">
+        <AlertCircle className="h-5 w-5 text-muted-foreground" />
+        <AlertDescription className="text-muted-foreground">
+          Δεν έχετε συνδέσει πορτοφόλι. Συνδεθείτε για να δείτε τις συναλλαγές σας.
+        </AlertDescription>
+      </Alert>
     );
   }
   
   if (transactions.length === 0) {
     return (
-      <div className="py-6 text-center text-muted-foreground">
-        <p>Δεν βρέθηκαν συναλλαγές</p>
-      </div>
+      <Alert variant="default" className="bg-muted/50">
+        <AlertCircle className="h-5 w-5 text-muted-foreground" />
+        <AlertDescription className="text-muted-foreground">
+          Δεν βρέθηκαν συναλλαγές για αυτό το πορτοφόλι.
+        </AlertDescription>
+      </Alert>
     );
   }
   
