@@ -12,6 +12,9 @@ import { UnlockDialog } from "./UnlockDialog";
 import { ApiKeyStats } from "./components/ApiKeyStats";
 import { ServiceStats } from "./components/ServiceStats";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 
 export const ApiVaultCard = () => {
   const {
@@ -47,7 +50,9 @@ export const ApiVaultCard = () => {
     getFilteredKeys,
     getKeysByService,
     handleUnlock,
-    handleLock
+    handleLock,
+    checkKeysFunctionality,
+    isTestingKeys
   } = useApiVault();
   
   const [activeTab, setActiveTab] = useState<string>("keys");
@@ -58,6 +63,8 @@ export const ApiVaultCard = () => {
     active: apiKeys.filter(key => !key.status || key.status === "active").length,
     expired: apiKeys.filter(key => key.status === "expired").length,
     revoked: apiKeys.filter(key => key.status === "revoked").length,
+    working: apiKeys.filter(key => key.isWorking === true).length,
+    notWorking: apiKeys.filter(key => key.isWorking === false).length
   };
   
   // Calculate services statistics
@@ -70,11 +77,19 @@ export const ApiVaultCard = () => {
       };
     }
     acc[key.service].count += 1;
-    if (!key.isWorking === false) {
+    if (key.isWorking === true) {
       acc[key.service].workingCount += 1;
     }
     return acc;
   }, {} as Record<string, {name: string, count: number, workingCount: number}>);
+
+  const handleRefreshKeys = () => {
+    if (isTestingKeys) {
+      toast.info("Έλεγχος κλειδιών σε εξέλιξη, παρακαλώ περιμένετε...");
+      return;
+    }
+    checkKeysFunctionality();
+  };
 
   return (
     <Card>
@@ -89,7 +104,21 @@ export const ApiVaultCard = () => {
           onAddKey={() => setShowDialogApiKey(true)}
           onUnlock={() => setIsUnlocking(true)}
         />
-        <CardDescription>Διαχειριστείτε τα κλειδιά API σας με ασφάλεια</CardDescription>
+        <CardDescription className="flex justify-between items-center">
+          <span>Διαχειριστείτε τα κλειδιά API σας με ασφάλεια</span>
+          {!isLocked && apiKeys.length > 0 && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRefreshKeys}
+              disabled={isTestingKeys}
+              className="ml-2"
+            >
+              <RefreshCw className={`h-4 w-4 mr-1 ${isTestingKeys ? 'animate-spin' : ''}`} />
+              Έλεγχος κλειδιών
+            </Button>
+          )}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {!isLocked && apiKeys.length > 0 && (

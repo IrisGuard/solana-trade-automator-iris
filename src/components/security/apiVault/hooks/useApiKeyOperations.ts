@@ -12,7 +12,9 @@ export function useApiKeyOperations(initialApiKeys: ApiKey[] = []) {
     const keyWithDefaults = {
       ...newKey,
       id: newKey.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      createdAt: newKey.createdAt || new Date().toISOString()
+      createdAt: newKey.createdAt || new Date().toISOString(),
+      isWorking: typeof newKey.isWorking === 'boolean' ? newKey.isWorking : true,
+      status: newKey.status || 'active'
     };
     
     setApiKeys(prev => [...prev, keyWithDefaults]);
@@ -25,13 +27,35 @@ export function useApiKeyOperations(initialApiKeys: ApiKey[] = []) {
     toast.success("Το κλειδί διαγράφηκε επιτυχώς");
   };
 
+  // Ενημέρωση κατάστασης κλειδιού
+  const updateKeyStatus = (id: string, isWorking: boolean) => {
+    setApiKeys(prev => prev.map(key => 
+      key.id === id ? { ...key, isWorking } : key
+    ));
+  };
+
+  // Ενημέρωση κλειδιού
+  const updateKey = (updatedKey: ApiKey) => {
+    setApiKeys(prev => prev.map(key => 
+      key.id === updatedKey.id ? { ...key, ...updatedKey } : key
+    ));
+    toast.success("Το κλειδί ενημερώθηκε επιτυχώς");
+  };
+
   // Διαχείριση μαζικής εισαγωγής
   const handleImport = (importedKeys: ApiKey[]) => {
     // Έλεγχος για διπλότυπα συγκρίνοντας τις τιμές των κλειδιών
     const existingKeyValues = new Set(apiKeys.map(key => key.key));
     
     // Φιλτράρισμα κλειδιών που υπάρχουν ήδη
-    const newKeys = importedKeys.filter(key => !existingKeyValues.has(key.key));
+    const newKeys = importedKeys.filter(key => !existingKeyValues.has(key.key))
+      .map(key => ({
+        ...key,
+        id: key.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        createdAt: key.createdAt || new Date().toISOString(),
+        isWorking: typeof key.isWorking === 'boolean' ? key.isWorking : true,
+        status: key.status || 'active'
+      }));
     
     // Προσθήκη νέων κλειδιών
     if (newKeys.length > 0) {
@@ -52,6 +76,8 @@ export function useApiKeyOperations(initialApiKeys: ApiKey[] = []) {
     setApiKeys,
     addNewKey,
     deleteKey,
+    updateKeyStatus,
+    updateKey,
     handleImport
   };
 }

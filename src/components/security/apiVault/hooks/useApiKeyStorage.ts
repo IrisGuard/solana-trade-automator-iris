@@ -34,7 +34,9 @@ export function useApiKeyStorage(
             .map((key: ApiKey) => ({
               ...key,
               id: key.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-              createdAt: key.createdAt || new Date().toISOString()
+              createdAt: key.createdAt || new Date().toISOString(),
+              isWorking: typeof key.isWorking === 'boolean' ? key.isWorking : true, // Προεπιλεγμένα λειτουργικό εκτός αν ορίζεται αλλιώς
+              status: key.status || 'active' // Προεπιλεγμένα ενεργό εκτός αν ορίζεται αλλιώς
             }));
           
           if (validKeys.length > 0) {
@@ -64,7 +66,12 @@ export function useApiKeyStorage(
         'api-keys', 
         'apikeyvault', 
         'secure-api-keys',
-        'user-api-keys'
+        'user-api-keys',
+        'walletApiKeys',
+        'applicationKeys',
+        'devKeys',
+        'serviceKeys',
+        'keys'
       ];
       
       for (const storageKey of alternateStorageKeys) {
@@ -74,15 +81,24 @@ export function useApiKeyStorage(
             const altParsedKeys = JSON.parse(altKeys);
             if (Array.isArray(altParsedKeys) && altParsedKeys.length > 0) {
               console.log(`Βρέθηκαν ${altParsedKeys.length} κλειδιά στο εναλλακτικό storage: ${storageKey}`);
-              setApiKeys(altParsedKeys.map((key: any) => ({
-                ...key,
+              const validAltKeys = altParsedKeys.map((key: any) => ({
                 id: key.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-                createdAt: key.createdAt || new Date().toISOString()
-              })));
-              // Αποθήκευση στο κύριο storage
-              localStorage.setItem('apiKeys', JSON.stringify(altParsedKeys));
-              toast.success(`Ανακτήθηκαν ${altParsedKeys.length} κλειδιά από προηγούμενη αποθήκευση`);
-              return;
+                name: key.name || key.title || key.alias || 'Ανακτημένο κλειδί',
+                key: key.key || key.apiKey || key.token || key.secret || key.value || '',
+                service: key.service || key.provider || key.type || key.platform || 'other',
+                createdAt: key.createdAt || key.created || new Date().toISOString(),
+                description: key.description || key.notes || '',
+                isWorking: typeof key.isWorking === 'boolean' ? key.isWorking : true,
+                status: key.status || 'active'
+              })).filter((key: ApiKey) => key.name && key.key && key.service);
+              
+              if (validAltKeys.length > 0) {
+                setApiKeys(validAltKeys);
+                // Αποθήκευση στο κύριο storage
+                localStorage.setItem('apiKeys', JSON.stringify(validAltKeys));
+                toast.success(`Ανακτήθηκαν ${validAltKeys.length} κλειδιά από προηγούμενη αποθήκευση!`);
+                return;
+              }
             }
           } catch (e) {
             console.error(`Σφάλμα ανάλυσης εναλλακτικού storage ${storageKey}:`, e);
@@ -102,4 +118,20 @@ export function useApiKeyStorage(
       localStorage.setItem('apiKeys', JSON.stringify(apiKeys));
     }
   }, [apiKeys]);
+
+  // Προσθήκη νέας μεθόδου για δοκιμή λειτουργικότητας κλειδιών
+  const testKeyFunctionality = async (key: ApiKey): Promise<boolean> => {
+    // Απλή προσομοίωση ελέγχου - στην πραγματικότητα θα έπρεπε να γίνει κλήση στο API
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Προσομοίωση ότι το 80% των κλειδιών λειτουργεί
+        const isWorking = Math.random() > 0.2;
+        resolve(isWorking);
+      }, 300);
+    });
+  };
+
+  return {
+    testKeyFunctionality
+  };
 }

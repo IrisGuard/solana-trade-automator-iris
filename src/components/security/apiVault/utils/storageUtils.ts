@@ -26,7 +26,7 @@ export const diagnosticScanStorage = () => {
           // Έλεγχος αν είναι πίνακας από αντικείμενα που μπορεί να είναι κλειδιά API
           if (Array.isArray(parsed) && parsed.length > 0 && 
               parsed[0] && typeof parsed[0] === 'object' &&
-              (parsed[0].key || parsed[0].apiKey || parsed[0].token || parsed[0].secret)) {
+              (parsed[0].key || parsed[0].apiKey || parsed[0].token || parsed[0].secret || parsed[0].value)) {
             console.log(`Πιθανά API κλειδιά βρέθηκαν στο localStorage[${key}], αριθμός: ${parsed.length}`);
             apiKeyLikeItems.push({ storageKey: key, count: parsed.length });
             foundApiKeys = true;
@@ -141,7 +141,9 @@ export const loadKeysFromStorage = (
         .map((key: ApiKey) => ({
           ...key,
           id: key.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-          createdAt: key.createdAt || new Date().toISOString()
+          createdAt: key.createdAt || new Date().toISOString(),
+          isWorking: typeof key.isWorking === 'boolean' ? key.isWorking : true,
+          status: key.status || 'active'
         }));
       
       setApiKeys(validKeys);
@@ -181,10 +183,12 @@ export const loadKeysFromStorage = (
             const recoveredKeys = parsedData.map((item: any) => ({
               id: item.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
               name: item.name || item.title || 'Ανακτημένο κλειδί',
-              key: item.key || item.apiKey || item.token || item.secret || '',
+              key: item.key || item.apiKey || item.token || item.secret || item.value || '',
               service: item.service || item.provider || 'other',
               createdAt: item.createdAt || item.created || new Date().toISOString(),
-              description: item.description || ''
+              description: item.description || '',
+              isWorking: typeof item.isWorking === 'boolean' ? item.isWorking : true,
+              status: item.status || 'active'
             })).filter((key: ApiKey) => key.name && key.key && key.service);
             
             if (recoveredKeys.length > 0) {

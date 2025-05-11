@@ -16,6 +16,8 @@ export interface ApiKeyStats {
   active: number;
   expired: number;
   revoked: number;
+  working?: number;
+  notWorking?: number;
 }
 
 export interface ServiceInfo {

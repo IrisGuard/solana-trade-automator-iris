@@ -25,6 +25,8 @@ export function useApiVault() {
     handleImport: keyManagement.handleImport,
     getFilteredKeys: keyManagement.getFilteredKeys,
     getKeysByService: keyManagement.getKeysByService,
+    checkKeysFunctionality: keyManagement.checkKeysFunctionality,
+    isTestingKeys: keyManagement.isTestingKeys,
     
     // Dialog Management
     showDialogApiKey: dialogs.showDialogApiKey,
