@@ -1,11 +1,15 @@
 
 import { Connection, PublicKey } from '@solana/web3.js';
 
-// Χρησιμοποιούμε ένα αξιόπιστο public RPC endpoint
-export const SOLANA_RPC_ENDPOINT = 'https://solana-mainnet.rpc.extrnode.com';
+// Χρησιμοποιούμε το public δημόσιο RPC endpoint της GenesysGo (Mainnet-beta)
+export const SOLANA_RPC_ENDPOINT = 'https://ssc-dao.genesysgo.net';
 
-// Initialize the connection to Solana
-export const connection = new Connection(SOLANA_RPC_ENDPOINT);
+// Initialize the connection with longer timeout και retry
+export const connection = new Connection(SOLANA_RPC_ENDPOINT, {
+  commitment: 'confirmed',
+  confirmTransactionInitialTimeout: 60000, // 60 δευτερόλεπτα
+  disableRetryOnRateLimit: false
+});
 
 // SPL Token program ID
 export const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");

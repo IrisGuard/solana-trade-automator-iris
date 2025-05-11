@@ -25,6 +25,8 @@ export function useSolanaWallet() {
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
   const [isLoadingTokens, setIsLoadingTokens] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
 
   // Φόρτωση υπολοίπου
   const fetchBalance = useCallback(async () => {
@@ -36,17 +38,28 @@ export function useSolanaWallet() {
       const balanceInLamports = await connection.getBalance(publicKey);
       const solBalance = balanceInLamports / LAMPORTS_PER_SOL;
       setBalance(solBalance);
+      setRetryCount(0); // Επιτυχία, μηδενίζουμε τις επαναπροσπάθειες
       return solBalance;
     } catch (error) {
       console.error("Σφάλμα κατά τη φόρτωση του υπολοίπου:", error);
-      const errorMessage = "Δεν ήταν δυνατή η φόρτωση του υπολοίπου";
-      toast.error(errorMessage);
-      setConnectionError(errorMessage);
+      // Αν είναι η πρώτη αποτυχία, δοκιμάζουμε ξανά μετά από λίγο
+      if (retryCount < MAX_RETRIES) {
+        setRetryCount(prev => prev + 1);
+        const errorMessage = "Πρόβλημα σύνδεσης με το δίκτυο Solana. Δοκιμάζουμε ξανά...";
+        setConnectionError(errorMessage);
+        // Δοκιμάζουμε ξανά μετά από 2 δευτερόλεπτα
+        setTimeout(() => fetchBalance(), 2000);
+      } else {
+        // Αν αποτύχουμε MAX_RETRIES φορές, εμφανίζουμε μήνυμα σφάλματος
+        const errorMessage = "Δεν ήταν δυνατή η φόρτωση του υπολοίπου. Προσπαθήστε ξανά αργότερα.";
+        setConnectionError(errorMessage);
+        toast.error(errorMessage);
+      }
       return null;
     } finally {
       setIsLoadingBalance(false);
     }
-  }, [publicKey, connection]);
+  }, [publicKey, connection, retryCount]);
 
   // Φόρτωση tokens
   const fetchTokens = useCallback(async () => {
@@ -55,26 +68,35 @@ export function useSolanaWallet() {
     try {
       setIsLoadingTokens(true);
       setConnectionError(null);
-      toast.loading('Φόρτωση tokens...');
       
       // Χρήση του tokenService για τη φόρτωση των tokens
       const userTokens = await tokenService.getTokenAccounts(publicKey.toString());
       
       setTokens(userTokens);
-      toast.success('Τα tokens φορτώθηκαν επιτυχώς');
+      setRetryCount(0); // Επιτυχία, μηδενίζουμε τις επαναπροσπάθειες
       return userTokens;
     } catch (err) {
       console.error('Σφάλμα φόρτωσης tokens:', err);
-      const errorMessage = 'Σφάλμα κατά τη φόρτωση των tokens';
-      toast.error(errorMessage);
-      setConnectionError(errorMessage);
-      setTokens([]);
+      
+      // Αν είναι η πρώτη αποτυχία, δοκιμάζουμε ξανά μετά από λίγο
+      if (retryCount < MAX_RETRIES) {
+        setRetryCount(prev => prev + 1);
+        const errorMessage = "Πρόβλημα φόρτωσης tokens. Δοκιμάζουμε ξανά...";
+        setConnectionError(errorMessage);
+        // Δοκιμάζουμε ξανά μετά από 2 δευτερόλεπτα
+        setTimeout(() => fetchTokens(), 2000);
+      } else {
+        // Αν αποτύχουμε MAX_RETRIES φορές, εμφανίζουμε μήνυμα σφάλματος
+        const errorMessage = "Δεν ήταν δυνατή η φόρτωση των tokens. Προσπαθήστε ξανά αργότερα.";
+        setConnectionError(errorMessage);
+        toast.error(errorMessage);
+      }
+      
       return [];
     } finally {
       setIsLoadingTokens(false);
-      toast.dismiss();
     }
-  }, [publicKey]);
+  }, [publicKey, retryCount]);
 
   // Connect wallet
   const connectWallet = useCallback(async () => {
@@ -110,6 +132,7 @@ export function useSolanaWallet() {
       setBalance(null);
       setTokens([]);
       setConnectionError(null);
+      setRetryCount(0);
       return true;
     } catch (error) {
       console.error('Σφάλμα αποσύνδεσης πορτοφολιού:', error);

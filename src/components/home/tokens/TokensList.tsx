@@ -1,8 +1,8 @@
 
 import React from "react";
-import { Loader, AlertCircle } from "lucide-react";
 import { Token } from "@/types/wallet";
 import { TokenItem } from "./TokenItem";
+import { Loader, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface TokensListProps {
@@ -10,11 +10,11 @@ interface TokensListProps {
   filteredTokens: Token[];
   selectedToken: string | null;
   tokenPrices?: Record<string, number>;
+  onSelectToken: (address: string) => void;
+  onTradingClick: (address: string) => void;
   isLoadingTokens?: boolean;
   isLoading?: boolean;
   connectionError?: string | null;
-  onSelectToken: (tokenAddress: string) => void;
-  onTradingClick: (tokenAddress: string) => void;
 }
 
 export function TokensList({
@@ -22,59 +22,70 @@ export function TokensList({
   filteredTokens,
   selectedToken,
   tokenPrices,
+  onSelectToken,
+  onTradingClick,
   isLoadingTokens = false,
   isLoading = false,
-  connectionError = null,
-  onSelectToken,
-  onTradingClick
+  connectionError = null
 }: TokensListProps) {
-  if (isLoadingTokens) {
-    return (
-      <div className="py-8 text-center text-muted-foreground">
-        <Loader className="h-6 w-6 animate-spin mx-auto mb-2" />
-        <p>Φόρτωση tokens...</p>
-      </div>
-    );
-  }
-
+  // Error View
   if (connectionError) {
     return (
-      <Alert variant="destructive" className="my-4">
+      <Alert variant="destructive" className="mb-4">
         <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          Αδυναμία φόρτωσης: {connectionError}
+        <AlertDescription className="flex flex-col gap-2">
+          <div>{connectionError}</div>
+          <div className="text-sm">
+            Προσπαθούμε να συνδεθούμε με το δίκτυο Solana. Παρακαλώ περιμένετε ή 
+            προσπαθήστε να συνδεθείτε ξανά με το πορτοφόλι σας.
+          </div>
         </AlertDescription>
       </Alert>
     );
   }
 
-  if (tokens.length === 0) {
+  // Loading View
+  if (isLoadingTokens || isLoading) {
     return (
-      <div className="py-8 text-center text-muted-foreground">
-        <p>Δεν βρέθηκαν tokens στο πορτοφόλι</p>
+      <div className="flex flex-col items-center justify-center py-8 text-center">
+        <Loader className="h-10 w-10 animate-spin mb-4 text-primary" />
+        <div>
+          <p className="text-lg font-medium mb-1">Φόρτωση tokens...</p>
+          <p className="text-sm text-muted-foreground">
+            Παρακαλώ περιμένετε όσο φορτώνουμε τις πληροφορίες του πορτοφολιού σας
+          </p>
+        </div>
       </div>
     );
   }
 
-  if (filteredTokens.length === 0) {
+  // Empty View
+  if (!isLoadingTokens && filteredTokens.length === 0) {
     return (
-      <div className="py-8 text-center text-muted-foreground">
-        <p>Δεν βρέθηκαν tokens που να ταιριάζουν με την αναζήτησή σας</p>
+      <div className="text-center py-8">
+        <p className="text-lg font-medium">Δε βρέθηκαν tokens</p>
+        {tokens.length > 0 ? (
+          <p className="text-sm text-muted-foreground">Δοκιμάστε διαφορετικά κριτήρια αναζήτησης</p>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Το πορτοφόλι σας δεν έχει tokens αυτή τη στιγμή
+          </p>
+        )}
       </div>
     );
   }
 
+  // List View
   return (
-    <div className="space-y-4">
-      {filteredTokens.map((token, index) => (
+    <div className="space-y-2">
+      {filteredTokens.map((token) => (
         <TokenItem
-          key={index}
+          key={token.address}
           token={token}
-          selectedToken={selectedToken}
-          tokenPrice={tokenPrices?.[token.address]}
-          isLoading={isLoading}
-          onSelectToken={onSelectToken}
-          onTradingClick={onTradingClick}
+          price={tokenPrices?.[token.address]}
+          isSelected={selectedToken === token.address}
+          onSelect={() => onSelectToken(token.address)}
+          onTradingClick={() => onTradingClick(token.address)}
         />
       ))}
     </div>
