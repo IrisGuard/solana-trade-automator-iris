@@ -3,6 +3,7 @@ import { PublicKey, PartiallyDecodedInstruction, ParsedTransactionWithMeta, Conn
 import { Transaction } from '@/types/wallet';
 import { connection } from './config';
 import { toast } from 'sonner';
+import { transactionService as dbTransactionService } from '../transactionService';
 
 // Helper type guard
 function hasGetAccountKeysMethod(obj: any): obj is { getAccountKeys(): any } {
@@ -234,10 +235,12 @@ export const transactionService = {
   // Save transaction to Supabase 
   saveTransaction: async (transaction: Transaction, walletAddress: string, userId?: string): Promise<boolean> => {
     try {
-      // For now, just log the transaction
-      // In a future update, we'll integrate with Supabase
-      console.log('Saving transaction to database:', transaction);
-      return true;
+      // Using the database service to save the transaction
+      if (userId) {
+        return await dbTransactionService.saveTransactionToDatabase(transaction, walletAddress, userId);
+      }
+      console.log('Saving transaction to database failed: User ID is undefined');
+      return false;
     } catch (error) {
       console.error('Error saving transaction:', error);
       return false;

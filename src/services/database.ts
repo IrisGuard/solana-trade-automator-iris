@@ -38,7 +38,7 @@ export const walletService = {
       .upsert({ 
         user_id: userId, 
         address, 
-        last_connected: new Date(),
+        last_connected: new Date().toISOString(),
         is_primary: true,
         blockchain: 'solana' // Adding a default value
       });
@@ -160,7 +160,8 @@ export const botsService = {
       .from('bots')
       .insert([{
         user_id: userId,
-        ...botData
+        ...botData,
+        created_at: new Date().toISOString()
       }]);
     
     if (error) throw error;
@@ -180,7 +181,10 @@ export const botsService = {
   async updateBot(botId: string, updates: any) {
     const { data, error } = await dbClient
       .from('bots')
-      .update(updates)
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
       .eq('id', botId);
     
     if (error) throw error;
