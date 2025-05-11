@@ -17,6 +17,7 @@ import Notifications from "./pages/Notifications";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import { SupabaseAuthProvider } from "./providers/SupabaseAuthProvider";
+import { SolanaWalletProvider } from "./providers/SolanaWalletProvider";
 
 const queryClient = new QueryClient();
 
@@ -25,27 +26,29 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <SupabaseAuthProvider>
-        <TooltipProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Layout />}>
-                <Route index element={<Index />} />
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="bot-control" element={<BotControl />} />
-                <Route path="tokens" element={<Tokens />} />
-                <Route path="wallet" element={<Wallet />} />
-                <Route path="transactions" element={<Transactions />} />
-                <Route path="security" element={<Security />} />
-                <Route path="notifications" element={<Notifications />} />
-                <Route path="settings" element={<Settings />} />
-              </Route>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Toaster />
-            <Sonner />
-          </BrowserRouter>
-        </TooltipProvider>
+        <SolanaWalletProvider>
+          <TooltipProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<Index />} />
+                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="bot-control" element={<BotControl />} />
+                  <Route path="tokens" element={<Tokens />} />
+                  <Route path="wallet" element={<Wallet />} />
+                  <Route path="transactions" element={<Transactions />} />
+                  <Route path="security" element={<Security />} />
+                  <Route path="notifications" element={<Notifications />} />
+                  <Route path="settings" element={<Settings />} />
+                </Route>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <Toaster />
+              <Sonner />
+            </BrowserRouter>
+          </TooltipProvider>
+        </SolanaWalletProvider>
       </SupabaseAuthProvider>
     </QueryClientProvider>
   );

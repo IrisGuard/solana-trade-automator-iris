@@ -1,223 +1,152 @@
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ExternalLink, Loader, ArrowDown, ArrowUp, Clock, CheckCircle, XCircle } from "lucide-react";
 import { useTransactions } from "@/hooks/useTransactions";
-import { formatDistanceToNow } from "date-fns";
-import { el } from "date-fns/locale";
-import { Transaction } from "@/types/wallet";
-import { Badge } from "@/components/ui/badge";
+import { ExternalLink, Loader, RefreshCw } from "lucide-react";
 import { formatWalletAddress } from "@/utils/walletUtils";
 
 interface EnhancedTransactionHistoryProps {
-  walletAddress: string;
+  walletAddress: string | null;
   limit?: number;
   showViewAll?: boolean;
+  showTitle?: boolean;
 }
 
-export function EnhancedTransactionHistory({ 
-  walletAddress, 
-  limit = 5,
-  showViewAll = true 
+export function EnhancedTransactionHistory({
+  walletAddress,
+  limit = 10,
+  showViewAll = true,
+  showTitle = true
 }: EnhancedTransactionHistoryProps) {
-  const { transactions, isLoadingTransactions, loadTransactions } = useTransactions(walletAddress);
-  const [isExporting, setIsExporting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { transactions, isLoadingTransactions, refreshTransactions } = useTransactions(walletAddress || "");
 
-  // Format relative time from timestamp
-  const getRelativeTime = (timestamp: number) => {
-    try {
-      return formatDistanceToNow(new Date(timestamp), { 
-        addSuffix: true,
-        locale: el
-      });
-    } catch (error) {
-      return 'Άγνωστη ημερομηνία';
-    }
-  };
-  
-  // Get transaction icon based on type
-  const getTransactionIcon = (tx: Transaction) => {
-    if (tx.type.includes('Receive')) {
-      return <ArrowDown className="h-4 w-4 text-green-500" />;
-    } else if (tx.type.includes('Send')) {
-      return <ArrowUp className="h-4 w-4 text-orange-500" />;
-    } else {
-      return <Clock className="h-4 w-4 text-gray-500" />;
-    }
-  };
-  
-  // Get transaction status icon
-  const getStatusIcon = (status: string) => {
-    if (status === 'Success') {
-      return <CheckCircle className="h-3 w-3 text-green-500" />;
-    } else {
-      return <XCircle className="h-3 w-3 text-red-500" />;
-    }
+  const formatDate = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return date.toLocaleString();
   };
 
-  // View transaction on Solana explorer
-  const viewOnExplorer = (signature: string) => {
-    window.open(`https://solscan.io/tx/${signature}`, '_blank');
+  const handleRefresh = useCallback(async () => {
+    if (!walletAddress) return;
+    
+    setIsRefreshing(true);
+    await refreshTransactions();
+    setIsRefreshing(false);
+  }, [walletAddress, refreshTransactions]);
+
+  const getStatusBadgeClass = (status: string) => {
+    return status === 'Success' 
+      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+      : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
   };
 
-  // Export transactions to CSV
-  const exportToCSV = async () => {
-    try {
-      setIsExporting(true);
-      
-      // Load more transactions for export
-      const exportTransactions = transactions.length >= 20 
-        ? transactions 
-        : await loadTransactions(walletAddress, 20);
-      
-      // Create CSV content
-      const header = ["Ημερομηνία", "Τύπος", "Ποσό", "Κατάσταση", "Από", "Προς", "Signature"];
-      
-      const rows = exportTransactions.map(tx => [
-        new Date(tx.blockTime).toLocaleString(),
-        tx.type,
-        tx.amount || "-",
-        tx.status,
-        tx.from || "-",
-        tx.to || "-", 
-        tx.signature
-      ]);
-      
-      const csvContent = [
-        header.join(","),
-        ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
-      ].join("\n");
-      
-      // Create download link
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      
-      link.setAttribute("href", url);
-      link.setAttribute("download", `transactions-${formatWalletAddress(walletAddress)}-${new Date().toISOString().split('T')[0]}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      
-      // Clean up
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      
-    } catch (error) {
-      console.error("Error exporting transactions:", error);
-    } finally {
-      setIsExporting(false);
-    }
+  const getTypeIcon = (type: string) => {
+    if (type.includes('Send')) return '↑';
+    if (type.includes('Receive')) return '↓';
+    if (type.includes('Swap')) return '↔';
+    return '•';
   };
-
-  // Filtered transactions based on limit
-  const displayedTransactions = transactions.slice(0, limit);
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <div>
-          <CardTitle>Συναλλαγές</CardTitle>
-          <CardDescription>Πρόσφατη δραστηριότητα στο πορτοφόλι σας</CardDescription>
-        </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={exportToCSV} 
-          disabled={isExporting || isLoadingTransactions || transactions.length === 0}
-          className="h-8"
-        >
-          {isExporting ? (
-            <>
-              <Loader className="mr-2 h-3 w-3 animate-spin" />
-              Εξαγωγή...
-            </>
-          ) : "Εξαγωγή CSV"}
-        </Button>
-      </CardHeader>
+      {showTitle && (
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Πρόσφατες Συναλλαγές</CardTitle>
+            <CardDescription>
+              {walletAddress
+                ? `Οι τελευταίες ${limit} συναλλαγές σας`
+                : "Συνδεθείτε για να δείτε το ιστορικό συναλλαγών σας"}
+            </CardDescription>
+          </div>
+          {walletAddress && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleRefresh}
+              disabled={isRefreshing || isLoadingTransactions}
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+            </Button>
+          )}
+        </CardHeader>
+      )}
       <CardContent className="space-y-4">
         {isLoadingTransactions ? (
-          Array(limit).fill(0).map((_, i) => (
-            <div key={i} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
-              <div className="space-y-1">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-3 w-16" />
-              </div>
-              <div className="space-y-1 text-right">
-                <Skeleton className="h-4 w-16" />
-                <Skeleton className="h-3 w-10" />
-              </div>
-            </div>
-          ))
-        ) : transactions.length === 0 ? (
-          <div className="py-8 text-center text-muted-foreground">
-            <p>Δεν βρέθηκαν πρόσφατες συναλλαγές</p>
+          <div className="py-6 text-center text-muted-foreground">
+            <Loader className="h-6 w-6 animate-spin mx-auto mb-2" />
+            <p>Φόρτωση συναλλαγών...</p>
           </div>
-        ) : (
-          displayedTransactions.map((tx, i) => (
-            <div key={i} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0 hover:bg-muted/20 transition-colors p-2 rounded-md">
-              <div>
-                <div className="flex items-center gap-2">
-                  {getTransactionIcon(tx)}
+        ) : !walletAddress ? (
+          <div className="py-6 text-center text-muted-foreground">
+            <p>Δεν έχετε συνδέσει πορτοφόλι</p>
+          </div>
+        ) : transactions.length > 0 ? (
+          <div className="space-y-3">
+            {transactions.slice(0, limit).map((tx, i) => (
+              <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-card border border-border hover:bg-accent/5 transition-colors">
+                <div className="flex items-center gap-3">
+                  <span className={`w-8 h-8 rounded-full flex items-center justify-center 
+                    ${tx.type.includes('Send') ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 
+                      tx.type.includes('Receive') ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 
+                        'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'}`}>
+                    {getTypeIcon(tx.type)}
+                  </span>
                   <div>
-                    <div className="flex items-center gap-1">
-                      <p className="font-medium">{tx.type}</p>
-                      <Badge variant="outline" className="h-5 px-1 flex items-center gap-1">
-                        {getStatusIcon(tx.status)}
-                        <span className="text-xs">{tx.status}</span>
-                      </Badge>
-                    </div>
+                    <p className="font-medium">{tx.type}</p>
                     <p className="text-xs text-muted-foreground">
-                      {getRelativeTime(tx.blockTime)}
+                      {tx.from && tx.to ? (
+                        <>
+                          {tx.type.includes('Send') ? 'Προς:' : 'Από:'}{' '}
+                          {tx.type.includes('Send') 
+                            ? formatWalletAddress(tx.to) 
+                            : formatWalletAddress(tx.from)}
+                        </>
+                      ) : formatDate(tx.blockTime)}
                     </p>
                   </div>
                 </div>
-                <div className="mt-1 text-xs text-muted-foreground">
-                  {tx.from && tx.to ? (
-                    <span title={`Από: ${tx.from}\nΠρος: ${tx.to}`}>
-                      {formatWalletAddress(tx.from)} → {formatWalletAddress(tx.to)}
-                    </span>
-                  ) : null}
-                </div>
-              </div>
-              <div className="text-right flex flex-col items-end gap-1">
-                <div className="flex items-center gap-1">
-                  <p className={`font-medium ${tx.amount?.startsWith('+') ? 'text-green-500' : tx.amount?.startsWith('-') ? 'text-orange-500' : ''}`}>
+                <div className="text-right">
+                  <p className={`font-medium ${tx.amount?.startsWith('+') ? 'text-green-600 dark:text-green-400' : 
+                    tx.amount?.startsWith('-') ? 'text-red-600 dark:text-red-400' : ''}`}>
                     {tx.amount || '-'}
                   </p>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-6 w-6 p-0"
-                    onClick={() => viewOnExplorer(tx.signature)}
-                    title="Προβολή στο Solscan"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                  </Button>
+                  <div className="flex items-center justify-end gap-1">
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${getStatusBadgeClass(tx.status)}`}>
+                      {tx.status}
+                    </span>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6"
+                      onClick={() => window.open(`https://solscan.io/tx/${tx.signature}`, '_blank')}
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground truncate max-w-[120px]" title={tx.signature}>
-                  {formatWalletAddress(tx.signature)}
-                </p>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
+        ) : (
+          <div className="py-6 text-center text-muted-foreground">
+            <p>Δεν βρέθηκαν συναλλαγές</p>
+          </div>
         )}
-        
-        {showViewAll && transactions.length > 0 && (
+      </CardContent>
+      {walletAddress && showViewAll && transactions.length > 0 && (
+        <CardFooter>
           <Button 
             variant="outline" 
             size="sm" 
-            className="w-full mt-2"
-            asChild
+            className="w-full"
+            onClick={() => window.open(`https://solscan.io/account/${walletAddress}?cluster=mainnet`, '_blank')}
           >
-            <a href="/transactions">
-              Προβολή όλων των συναλλαγών 
-              <ExternalLink className="ml-2 h-3 w-3" />
-            </a>
+            Προβολή Όλων των Συναλλαγών <ExternalLink className="ml-2 h-3 w-3" />
           </Button>
-        )}
-      </CardContent>
+        </CardFooter>
+      )}
     </Card>
   );
 }

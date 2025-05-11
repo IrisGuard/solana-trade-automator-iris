@@ -1,44 +1,32 @@
 
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Loader, Wallet, AlertCircle } from "lucide-react";
+import { Wallet, AlertCircle } from "lucide-react";
+import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 interface ConnectWalletCardProps {
-  connectWallet: () => void;
-  isConnecting: boolean;
-  isPhantomInstalled: boolean;
+  isConnecting?: boolean;
+  isPhantomInstalled?: boolean;
 }
 
-export function ConnectWalletCard({ connectWallet, isConnecting, isPhantomInstalled }: ConnectWalletCardProps) {
+export function ConnectWalletCard({ isConnecting = false, isPhantomInstalled = true }: ConnectWalletCardProps) {
   return (
     <Card className="border-dashed border-2 border-primary transition-all hover:shadow-md">
       <CardHeader className="text-center">
-        <CardTitle>Συνδεθείτε με το Phantom Wallet</CardTitle>
+        <CardTitle>Συνδεθείτε με το Wallet σας</CardTitle>
         <CardDescription>Συνδεθείτε για να δείτε τα tokens και το ιστορικό των συναλλαγών σας</CardDescription>
       </CardHeader>
       <CardContent className="py-10 text-center">
         <div className={`mx-auto mb-6 h-20 w-20 rounded-full ${isConnecting ? 'bg-primary/20 animate-pulse' : 'bg-primary/10'} flex items-center justify-center transition-all`}>
           <Wallet className={`${isConnecting ? 'text-primary/80' : 'text-primary'} h-10 w-10 transition-all`} />
         </div>
-        <Button 
-          onClick={connectWallet} 
-          className="flex mx-auto items-center gap-2 text-base px-6 py-5 h-auto transition-all"
-          size="lg"
-          disabled={isConnecting || !isPhantomInstalled}
-        >
-          {isConnecting ? (
-            <>
-              <Loader className="h-5 w-5 animate-spin" />
-              Γίνεται σύνδεση...
-            </>
-          ) : (
-            <>
-              <Wallet className="h-5 w-5" />
-              Σύνδεση με Phantom Wallet
-            </>
-          )}
-        </Button>
+        
+        <div className="flex justify-center">
+          <WalletMultiButton className="bg-primary text-white hover:bg-primary/90 rounded-md flex items-center gap-2 px-4 py-2">
+            Σύνδεση με Wallet
+          </WalletMultiButton>
+        </div>
         
         {!isPhantomInstalled && (
           <div className="mt-6 text-sm p-3 rounded-md bg-muted">
@@ -59,7 +47,7 @@ export function ConnectWalletCard({ connectWallet, isConnecting, isPhantomInstal
         )}
       </CardContent>
       <CardFooter className="pt-0 pb-4 text-center justify-center text-sm text-muted-foreground">
-        <p>Το trading bot χρησιμοποιεί το Phantom για την εκτέλεση συναλλαγών</p>
+        <p>Το trading bot χρησιμοποιεί το Solana Wallet για την εκτέλεση συναλλαγών</p>
       </CardFooter>
     </Card>
   );

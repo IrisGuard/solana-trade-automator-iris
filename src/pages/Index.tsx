@@ -1,6 +1,5 @@
 
 import React from "react";
-import { useWalletConnection } from "@/hooks/useWalletConnection";
 import { HeroSection } from "@/components/home/HeroSection";
 import { WalletConnectedContent } from "@/components/home/WalletConnectedContent";
 import { WalletDisconnectedContent } from "@/components/home/WalletDisconnectedContent";
@@ -8,21 +7,20 @@ import { FaqSection } from "@/components/home/FaqSection";
 import { FooterSection } from "@/components/home/FooterSection";
 import { BotExplanationSection } from "@/components/home/BotExplanationSection";
 import { formatWalletAddress } from "@/utils/walletUtils";
+import { useSolanaWallet } from "@/hooks/useSolanaWallet";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const Index = () => {
   const { 
-    isConnected, 
-    walletAddress, 
-    solBalance, 
-    tokens, 
-    tokenPrices,
-    connectWallet, 
-    isConnecting,
-    error,
-    isPhantomInstalled,
-    selectTokenForTrading,
-    isLoadingTokens
-  } = useWalletConnection();
+    connected,
+    walletAddress,
+    balance,
+    tokens,
+    connecting,
+    isLoadingTokens,
+    isLoadingBalance
+  } = useSolanaWallet();
   
   const displayAddress = walletAddress ? formatWalletAddress(walletAddress) : "";
 
@@ -32,22 +30,17 @@ const Index = () => {
       <HeroSection />
 
       {/* Main Content */}
-      {isConnected ? (
+      {connected && walletAddress ? (
         <WalletConnectedContent 
           walletAddress={walletAddress} 
-          solBalance={solBalance} 
+          solBalance={balance || 0} 
           tokens={tokens} 
           displayAddress={displayAddress}
-          tokenPrices={tokenPrices}
-          isLoadingTokens={isLoadingTokens}
-          selectTokenForTrading={selectTokenForTrading}
+          isLoadingTokens={isLoadingTokens || isLoadingBalance}
         />
       ) : (
         <WalletDisconnectedContent 
-          connectWallet={connectWallet} 
-          isConnecting={isConnecting}
-          error={error}
-          isPhantomInstalled={isPhantomInstalled}
+          isConnecting={connecting}
         />
       )}
       
