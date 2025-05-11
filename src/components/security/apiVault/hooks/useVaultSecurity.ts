@@ -53,9 +53,11 @@ export function useVaultSecurity({ apiKeys, setApiKeys }: VaultSecurityProps) {
     loadKeysFromStorage(isEncryptionEnabled, savedMasterPassword, setApiKeys, setIsLocked);
   }, [isEncryptionEnabled, savedMasterPassword, setApiKeys]);
 
-  // Save keys to localStorage
+  // Save keys to localStorage when they change
   useEffect(() => {
-    saveKeysToStorage(apiKeys, isEncryptionEnabled, savedMasterPassword);
+    if (apiKeys.length > 0) {
+      saveKeysToStorage(apiKeys, isEncryptionEnabled, savedMasterPassword);
+    }
   }, [apiKeys, isEncryptionEnabled, savedMasterPassword]);
 
   // Auto-lock functionality
