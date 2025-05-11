@@ -5,7 +5,6 @@ import { useSolanaWallet } from "@/hooks/useSolanaWallet";
 import { useState } from "react";
 import {
   useWalletModal,
-  WalletConnectButton as BaseWalletConnectButton
 } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { toast } from "sonner";

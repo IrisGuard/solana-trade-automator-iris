@@ -15,7 +15,7 @@ interface SolanaWalletProviderProps {
 
 export const SolanaWalletProvider: React.FC<SolanaWalletProviderProps> = ({ children }) => {
   // Το δίκτυο Solana μπορεί να οριστεί ως 'devnet', 'testnet', ή 'mainnet-beta'
-  const network = WalletAdapterNetwork.MainnetBeta;
+  const network = WalletAdapterNetwork.Mainnet;
 
   // Μπορείτε επίσης να παρέχετε το δικό σας endpoint
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);

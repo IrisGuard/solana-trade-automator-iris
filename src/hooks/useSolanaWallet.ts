@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { Token } from '@/types/wallet';
+import { tokenService } from '@/services/solana/tokenService';
 
 export function useSolanaWallet() {
   const { connection } = useConnection();
@@ -51,10 +52,8 @@ export function useSolanaWallet() {
       setIsLoadingTokens(true);
       toast.loading('Φόρτωση tokens...');
       
-      // Χρήση του solanaService για τη φόρτωση των tokens
-      // Εδώ θα χρησιμοποιήσουμε έτοιμη λειτουργικότητα από την εφαρμογή
-      const { getTokenAccounts } = await import('@/services/solanaService');
-      const userTokens = await getTokenAccounts(publicKey.toString());
+      // Χρήση του tokenService για τη φόρτωση των tokens
+      const userTokens = await tokenService.getTokenAccounts(publicKey.toString());
       
       setTokens(userTokens);
       toast.success('Τα tokens φορτώθηκαν επιτυχώς');
