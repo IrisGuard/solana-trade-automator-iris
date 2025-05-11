@@ -64,26 +64,37 @@ export const saveKeysToStorage = (
   isEncryptionEnabled: boolean,
   savedMasterPassword: string
 ) => {
-  if (apiKeys.length > 0 || localStorage.getItem('apiKeys')) {
-    try {
-      let dataToStore;
-      
-      if (isEncryptionEnabled && savedMasterPassword) {
-        // Encrypt data
-        const encrypted = CryptoJS.AES.encrypt(
-          JSON.stringify(apiKeys),
-          savedMasterPassword
-        ).toString();
-        dataToStore = encrypted;
-      } else {
-        dataToStore = JSON.stringify(apiKeys);
-      }
-      
-      localStorage.setItem('apiKeys', dataToStore);
-      console.log(`Αποθηκεύτηκαν ${apiKeys.length} κλειδιά στο localStorage`);
-    } catch (e) {
-      console.error('Σφάλμα αποθήκευσης κλειδιών:', e);
-      toast.error("Σφάλμα κατά την αποθήκευση των κλειδιών");
+  try {
+    let dataToStore;
+    
+    if (isEncryptionEnabled && savedMasterPassword) {
+      // Encrypt data
+      const encrypted = CryptoJS.AES.encrypt(
+        JSON.stringify(apiKeys),
+        savedMasterPassword
+      ).toString();
+      dataToStore = encrypted;
+    } else {
+      dataToStore = JSON.stringify(apiKeys);
     }
+    
+    localStorage.setItem('apiKeys', dataToStore);
+    console.log(`Αποθηκεύτηκαν ${apiKeys.length} κλειδιά στο localStorage`);
+  } catch (e) {
+    console.error('Σφάλμα αποθήκευσης κλειδιών:', e);
+    toast.error("Σφάλμα κατά την αποθήκευση των κλειδιών");
+  }
+};
+
+// Clear all API keys
+export const clearKeysFromStorage = () => {
+  try {
+    localStorage.removeItem('apiKeys');
+    console.log('Όλα τα κλειδιά διαγράφηκαν από το localStorage');
+    return true;
+  } catch (e) {
+    console.error('Σφάλμα κατά τη διαγραφή των κλειδιών:', e);
+    toast.error('Σφάλμα κατά τη διαγραφή των κλειδιών');
+    return false;
   }
 };

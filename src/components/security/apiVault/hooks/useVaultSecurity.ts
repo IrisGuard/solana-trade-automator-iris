@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { loadKeysFromStorage, saveKeysToStorage } from "../utils";
 import { ApiKey } from "../types";
@@ -55,9 +55,7 @@ export function useVaultSecurity({ apiKeys, setApiKeys }: VaultSecurityProps) {
 
   // Save keys to localStorage when they change
   useEffect(() => {
-    if (apiKeys.length > 0 || localStorage.getItem('apiKeys')) {
-      saveKeysToStorage(apiKeys, isEncryptionEnabled, savedMasterPassword);
-    }
+    saveKeysToStorage(apiKeys, isEncryptionEnabled, savedMasterPassword);
   }, [apiKeys, isEncryptionEnabled, savedMasterPassword]);
 
   // Auto-lock functionality
@@ -70,7 +68,7 @@ export function useVaultSecurity({ apiKeys, setApiKeys }: VaultSecurityProps) {
         lockTimer = null;
       }
       
-      if (isAutoLockEnabled && !isLocked) {
+      if (isAutoLockEnabled && !isLocked && isEncryptionEnabled && savedMasterPassword) {
         lockTimer = window.setTimeout(() => {
           setIsLocked(true);
           toast.info("Η κλειδοθήκη κλειδώθηκε λόγω αδράνειας");
@@ -94,23 +92,51 @@ export function useVaultSecurity({ apiKeys, setApiKeys }: VaultSecurityProps) {
         document.removeEventListener(event, resetTimer, true);
       });
     };
-  }, [isAutoLockEnabled, autoLockTimeout, isLocked]);
+  }, [isAutoLockEnabled, autoLockTimeout, isLocked, isEncryptionEnabled, savedMasterPassword]);
+
+  // Save security settings when they change
+  const saveSecuritySettings = useCallback(() => {
+    localStorage.setItem('encryption-enabled', isEncryptionEnabled.toString());
+    localStorage.setItem('master-password', savedMasterPassword);
+    localStorage.setItem('auto-lock-enabled', isAutoLockEnabled.toString());
+    localStorage.setItem('auto-lock-timeout', autoLockTimeout.toString());
+    
+    // If encryption is disabled, make sure the vault is unlocked
+    if (!isEncryptionEnabled) {
+      setIsLocked(false);
+    }
+    
+    // If encryption is enabled without a password, show a warning
+    if (isEncryptionEnabled && !savedMasterPassword) {
+      toast.warning("Προσοχή: Η κρυπτογράφηση είναι ενεργοποιημένη χωρίς κωδικό!");
+    }
+    
+    // Re-save the API keys with the new encryption setting
+    saveKeysToStorage(apiKeys, isEncryptionEnabled, savedMasterPassword);
+    
+    toast.success("Οι ρυθμίσεις ασφαλείας αποθηκεύτηκαν");
+  }, [isEncryptionEnabled, savedMasterPassword, isAutoLockEnabled, autoLockTimeout, apiKeys]);
 
   // Handle unlock
   const handleUnlock = (password: string) => {
     if (password === savedMasterPassword) {
       setIsLocked(false);
       setIsUnlocking(false);
-      toast.success("Η κλειδοθήκη ξεκλειδώθηκε επιτυχώς");
+      
+      // We don't need to show a toast here as it's handled in the UnlockDialog component
     } else {
-      toast.error("Λάθος κωδικός πρόσβασης");
+      // We don't need to show a toast here as it's handled in the UnlockDialog component
     }
   };
 
   // Handle lock vault
   const handleLock = () => {
-    setIsLocked(true);
-    toast.info("Η κλειδοθήκη κλειδώθηκε");
+    if (isEncryptionEnabled && savedMasterPassword) {
+      setIsLocked(true);
+      toast.info("Η κλειδοθήκη κλειδώθηκε");
+    } else {
+      toast.warning("Δεν μπορείτε να κλειδώσετε την κλειδοθήκη χωρίς κρυπτογράφηση");
+    }
   };
 
   return {
@@ -127,6 +153,7 @@ export function useVaultSecurity({ apiKeys, setApiKeys }: VaultSecurityProps) {
     isUnlocking,
     setIsUnlocking,
     handleUnlock,
-    handleLock
+    handleLock,
+    saveSecuritySettings
   };
 }

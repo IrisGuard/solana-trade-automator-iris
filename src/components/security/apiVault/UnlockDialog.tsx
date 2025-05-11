@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { LoaderCircle } from "lucide-react";
 
 interface UnlockDialogProps {
   open: boolean;
@@ -20,14 +21,36 @@ export const UnlockDialog = ({
   onUnlock
 }: UnlockDialogProps) => {
   const [unlockPassword, setUnlockPassword] = useState("");
+  const [isChecking, setIsChecking] = useState(false);
 
   const handleUnlock = () => {
-    onUnlock(unlockPassword);
-    setUnlockPassword("");
+    if (!unlockPassword.trim()) {
+      toast.error("Παρακαλώ εισάγετε τον κωδικό σας");
+      return;
+    }
+
+    setIsChecking(true);
+    
+    // Add a small delay to simulate checking the password
+    setTimeout(() => {
+      if (unlockPassword === savedMasterPassword) {
+        onUnlock(unlockPassword);
+        setUnlockPassword("");
+        onOpenChange(false);
+        toast.success("Η κλειδοθήκη ξεκλειδώθηκε με επιτυχία");
+      } else {
+        toast.error("Λάθος κωδικός πρόσβασης");
+      }
+      setIsChecking(false);
+    }, 600);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(newOpen) => {
+      if (!isChecking) {
+        onOpenChange(newOpen);
+      }
+    }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Ξεκλείδωμα Κλειδοθήκης</DialogTitle>
@@ -45,10 +68,12 @@ export const UnlockDialog = ({
               value={unlockPassword}
               onChange={(e) => setUnlockPassword(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' && !isChecking) {
                   handleUnlock();
                 }
               }}
+              disabled={isChecking}
+              className="pr-10"
             />
           </div>
         </div>
@@ -56,14 +81,23 @@ export const UnlockDialog = ({
           <Button 
             variant="ghost" 
             onClick={() => onOpenChange(false)}
+            disabled={isChecking}
           >
             Ακύρωση
           </Button>
           <Button 
             onClick={handleUnlock}
             className="sm:ml-auto"
+            disabled={isChecking}
           >
-            Ξεκλείδωμα
+            {isChecking ? (
+              <>
+                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                Έλεγχος...
+              </>
+            ) : (
+              'Ξεκλείδωμα'
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -50,6 +50,7 @@ export function useApiVault() {
     isUnlocking: security.isUnlocking,
     setIsUnlocking: security.setIsUnlocking,
     handleUnlock: security.handleUnlock,
-    handleLock: security.handleLock
+    handleLock: security.handleLock,
+    saveSecuritySettings: security.saveSecuritySettings
   };
 }
