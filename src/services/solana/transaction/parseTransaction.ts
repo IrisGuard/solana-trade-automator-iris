@@ -1,8 +1,8 @@
 
-import { ParsedTransactionWithMeta, PartiallyDecodedInstruction, PublicKey } from '@solana/web3.js';
+import { ParsedTransactionWithMeta, PublicKey } from '@solana/web3.js';
 import { Transaction } from '@/types/wallet';
 import { determineTransactionType, formatSolAmount, hasGetAccountKeysMethod } from './utils';
-import { MessageWithAccountKeys, ParsedInstruction } from './types';
+import { MessageWithAccountKeys, ParsedInstruction, PartiallyDecodedInstruction } from './types';
 
 /**
  * Extract transaction data from a parsed transaction

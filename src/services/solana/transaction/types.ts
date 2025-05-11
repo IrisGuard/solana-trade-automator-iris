@@ -1,4 +1,5 @@
 
+import { PublicKey } from '@solana/web3.js';
 import { Transaction } from '@/types/wallet';
 
 export interface InstructionInfo {
@@ -16,6 +17,12 @@ export interface ParsedInstruction {
     info?: InstructionInfo['info'];
   };
   programId?: string;
+}
+
+export interface PartiallyDecodedInstruction {
+  programId: PublicKey;
+  accounts?: PublicKey[];
+  data?: string;
 }
 
 export interface MessageWithAccountKeys {
