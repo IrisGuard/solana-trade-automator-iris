@@ -3,9 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Wallet, Loader, AlertTriangle } from "lucide-react";
 import { useSolanaWallet } from "@/hooks/useSolanaWallet";
 import { useState } from "react";
-import {
-  useWalletModal,
-} from '@solana/wallet-adapter-react-ui';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { toast } from "sonner";
 

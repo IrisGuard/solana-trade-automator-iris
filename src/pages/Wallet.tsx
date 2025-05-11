@@ -9,6 +9,7 @@ import { TokensTab } from "@/components/wallet/TokensTab";
 import { MakerBotTab } from "@/components/wallet/MakerBotTab";
 import { ApiVaultTab } from "@/components/wallet/ApiVaultTab";
 import { SimulationTab } from "@/components/wallet/SimulationTab";
+import { TradingBotTab } from "@/components/wallet/TradingBotTab";
 
 export default function WalletPage() {
   const {
@@ -53,7 +54,7 @@ export default function WalletPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Wallet & Maker Bot</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Wallet & Trading Bot</h2>
         {isConnected ? (
           <Button variant="outline" onClick={handleDisconnectWallet}>
             Disconnect Wallet
@@ -66,9 +67,10 @@ export default function WalletPage() {
       </div>
 
       <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
+        <TabsList className="grid grid-cols-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="tokens">Tokens</TabsTrigger>
+          <TabsTrigger value="trading-bot">Trading Bot</TabsTrigger>
           <TabsTrigger value="maker-bot">Maker Bot</TabsTrigger>
           <TabsTrigger value="api-vault">API Vault</TabsTrigger>
           <TabsTrigger value="simulation">Simulation</TabsTrigger>
@@ -88,6 +90,8 @@ export default function WalletPage() {
           solBalance={solBalance}
           handleConnectWallet={handleConnectWallet}
         />
+        
+        <TradingBotTab />
 
         <MakerBotTab 
           isConnected={isConnected}

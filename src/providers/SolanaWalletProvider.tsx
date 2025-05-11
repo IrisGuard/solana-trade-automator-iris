@@ -2,7 +2,13 @@
 import React, { useMemo } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { 
+  PhantomWalletAdapter,
+  SolflareWalletAdapter,
+  TorusWalletAdapter,
+  LedgerWalletAdapter,
+  SlopeWalletAdapter
+} from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 
@@ -23,7 +29,10 @@ export const SolanaWalletProvider: React.FC<SolanaWalletProviderProps> = ({ chil
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
-      // Μπορείτε να προσθέσετε κι άλλα wallets εδώ
+      new SolflareWalletAdapter(),
+      new SlopeWalletAdapter(),
+      new TorusWalletAdapter(),
+      new LedgerWalletAdapter(),
     ],
     []
   );
