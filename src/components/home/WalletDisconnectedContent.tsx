@@ -17,7 +17,7 @@ export function WalletDisconnectedContent({
   return (
     <div className="space-y-6">
       {!isPhantomInstalled && (
-        <Alert variant="warning">
+        <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
             Το Phantom Wallet δεν είναι εγκατεστημένο. Παρακαλώ εγκαταστήστε το για να συνδεθείτε.

@@ -20,7 +20,6 @@ const Index = () => {
     connecting,
     isLoadingTokens,
     isLoadingBalance,
-    tokenPrices,
     selectWallet,
     connectWallet
   } = useSolanaWallet();
@@ -41,7 +40,6 @@ const Index = () => {
           tokens={tokens} 
           displayAddress={displayAddress}
           isLoadingTokens={isLoadingTokens || isLoadingBalance}
-          tokenPrices={tokenPrices}
         />
       ) : (
         <WalletDisconnectedContent 
