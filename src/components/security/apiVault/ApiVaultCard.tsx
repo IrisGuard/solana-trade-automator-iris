@@ -133,7 +133,7 @@ export const ApiVaultCard = () => {
         key: key.key,
         service: key.service,
         createdAt: key.createdAt || new Date().toISOString(),
-        status: key.status || 'active'
+        status: 'active'
       }));
       
       setApiKeys(prev => [...prev, ...newKeys]);
