@@ -1,25 +1,13 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Slider } from "@/components/ui/slider";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Shield, Database, Key, ExternalLink } from "lucide-react";
-
-interface ApiKey {
-  name: string;
-  connected: boolean;
-}
-
-interface ApiSettings {
-  rpcUrl: string;
-  customRpc: boolean;
-  fallbackRpc: boolean;
-  rateLimit: number;
-}
+import { Shield } from "lucide-react";
+import { LockedVaultView } from "./api-vault/LockedVaultView";
+import { ApiKeysList } from "./api-vault/ApiKeysList";
+import { RecommendedApis } from "./api-vault/RecommendedApis";
+import { ApiSettingsForm } from "./api-vault/ApiSettingsForm";
+import { VaultActions } from "./api-vault/VaultActions";
 
 interface ApiVaultTabProps {
   apiKeys: any[];
@@ -46,38 +34,26 @@ export function ApiVaultTab({
   setApiSettings,
   handleSaveApiSettings
 }: ApiVaultTabProps) {
-  const [showApiDocs, setShowApiDocs] = useState<number | null>(null);
   
-  // Συνδέσεις με τα έγγραφα API
-  const apiDocs = {
-    helius: "https://www.helius.dev/docs/api-reference/endpoints",
-    quicknode: "https://www.quicknode.com/docs/quicknode-sdk/Solana/Overview",
-    moralis: "https://docs.moralis.com/web3-data-api/solana"
-  };
-  
-  // Προσθήκη των νέων Solana API κλειδιών αν δεν υπάρχουν
-  const recommendedApis = [
+  // Προεπιλεγμένα API keys για Solana
+  const defaultSolanaApis = [
     {
       name: "Helius API",
       description: "Προηγμένα endpoints για Solana blockchain",
-      docLink: apiDocs.helius
+      url: "https://www.helius.dev/docs/api-reference/endpoints"
     },
     {
       name: "QuickNode SDK",
       description: "Αξιόπιστη πρόσβαση στο Solana δίκτυο",
-      docLink: apiDocs.quicknode
+      url: "https://www.quicknode.com/docs/quicknode-sdk/Solana/Overview"
     },
     {
-      name: "Moralis Solana",
-      description: "Προηγμένες λειτουργίες για Solana",
-      docLink: apiDocs.moralis
+      name: "Moralis Solana API",
+      description: "Προηγμένες λειτουργίες για το Solana",
+      url: "https://docs.moralis.com/web3-data-api/solana"
     }
   ];
   
-  const openApiDocs = (url: string) => {
-    window.open(url, '_blank');
-  };
-
   return (
     <TabsContent value="api-vault" className="space-y-4">
       <Card>
@@ -92,85 +68,22 @@ export function ApiVaultTab({
         </CardHeader>
         <CardContent className="space-y-4">
           {!isUnlocked ? (
-            <div className="flex flex-col items-center justify-center py-8">
-              <div className="rounded-full bg-muted p-4 mb-4">
-                <Key className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <h3 className="text-lg font-medium mb-2">API Vault is Locked</h3>
-              <p className="text-sm text-muted-foreground text-center mb-4">
-                Unlock the vault to manage your API keys and secrets
-              </p>
-              <Button onClick={handleUnlockVault}>
-                Unlock Vault
-              </Button>
-            </div>
+            <LockedVaultView handleUnlockVault={handleUnlockVault} />
           ) : (
             <>
-              <div className="flex justify-between items-center">
-                <h3 className="font-medium">Stored API Keys</h3>
-                <Button variant="outline" size="sm" onClick={handleLockVault}>
-                  Lock Vault
-                </Button>
-              </div>
-              <div className="space-y-3">
-                {apiKeys.map((api, index) => (
-                  <div key={index} className="flex items-center justify-between border-b pb-2 last:border-0">
-                    <div className="flex items-center gap-2">
-                      <div className={`rounded-full h-8 w-8 flex items-center justify-center ${
-                        api.connected ? 'bg-green-500/20 text-green-500' : 'bg-muted text-muted-foreground'
-                      }`}>
-                        <Database className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{api.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {api.connected ? 'Active' : 'Not connected'}
-                        </p>
-                      </div>
-                    </div>
-                    <Button 
-                      variant={api.connected ? 'outline' : 'default'} 
-                      size="sm"
-                      onClick={() => handleApiConnect(index)}
-                    >
-                      {api.connected ? 'Disconnect' : 'Connect'}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-              <div className="grid grid-cols-2 gap-2 pt-2">
-                <Button variant="outline" size="sm" onClick={handleExportKeys}>
-                  Export Keys
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleImportKeys}>
-                  Import Keys
-                </Button>
-              </div>
+              <VaultActions 
+                handleLockVault={handleLockVault}
+                handleExportKeys={handleExportKeys}
+                handleImportKeys={handleImportKeys}
+              />
+              
+              <ApiKeysList 
+                apiKeys={apiKeys}
+                handleApiConnect={handleApiConnect}
+              />
               
               {apiKeys.length === 0 && (
-                <div className="mt-4 border-t pt-4">
-                  <h4 className="text-sm font-medium mb-2">Προτεινόμενα API για Solana</h4>
-                  <div className="space-y-2">
-                    {recommendedApis.map((api, index) => (
-                      <div key={index} className="p-3 border rounded-lg bg-muted/30">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h5 className="font-medium">{api.name}</h5>
-                            <p className="text-xs text-muted-foreground">{api.description}</p>
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => openApiDocs(api.docLink)}
-                            title="Άνοιγμα τεκμηρίωσης"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <RecommendedApis apis={defaultSolanaApis} />
               )}
             </>
           )}
@@ -182,49 +95,12 @@ export function ApiVaultTab({
           <CardTitle>API Connection Settings</CardTitle>
           <CardDescription>Configure RPC and API endpoints</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="rpc-url">Solana RPC URL</Label>
-            <Input 
-              id="rpc-url" 
-              value={apiSettings.rpcUrl}
-              onChange={(e) => setApiSettings({...apiSettings, rpcUrl: e.target.value})}
-            />
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Switch 
-              id="custom-rpc"
-              checked={apiSettings.customRpc}
-              onCheckedChange={(checked) => setApiSettings({...apiSettings, customRpc: checked})}
-            />
-            <Label htmlFor="custom-rpc">Use custom RPC endpoint</Label>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Switch 
-              id="fallback-rpc"
-              checked={apiSettings.fallbackRpc}
-              onCheckedChange={(checked) => setApiSettings({...apiSettings, fallbackRpc: checked})}
-            />
-            <Label htmlFor="fallback-rpc">Enable RPC fallback</Label>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="rate-limit">Rate limit (requests/sec): {apiSettings.rateLimit}</Label>
-            <Slider 
-              id="rate-limit"
-              min={1} 
-              max={20} 
-              step={1}
-              value={[apiSettings.rateLimit]}
-              onValueChange={(values) => setApiSettings({...apiSettings, rateLimit: values[0]})}
-            />
-          </div>
-          
-          <Button className="w-full" onClick={handleSaveApiSettings}>
-            Save Settings
-          </Button>
+        <CardContent>
+          <ApiSettingsForm 
+            apiSettings={apiSettings}
+            setApiSettings={setApiSettings}
+            handleSaveApiSettings={handleSaveApiSettings}
+          />
         </CardContent>
       </Card>
     </TabsContent>
