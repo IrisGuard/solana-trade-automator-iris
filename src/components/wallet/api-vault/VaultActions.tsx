@@ -3,12 +3,14 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 
 interface VaultActionsProps {
+  isUnlocked: boolean;
   handleLockVault: () => void;
   handleExportKeys: () => void;
   handleImportKeys: () => void;
+  handleUnlockVault: () => void;
 }
 
-export function VaultActions({ handleLockVault, handleExportKeys, handleImportKeys }: VaultActionsProps) {
+export function VaultActions({ isUnlocked, handleLockVault, handleExportKeys, handleImportKeys, handleUnlockVault }: VaultActionsProps) {
   return (
     <>
       <div className="flex justify-between items-center">

@@ -1,18 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-
-export interface ApiKey {
-  name: string;
-  connected: boolean;
-}
-
-export interface ApiSettings {
-  rpcUrl: string;
-  customRpc: boolean;
-  fallbackRpc: boolean;
-  rateLimit: number;
-}
+import { ApiKey, ApiSettings } from '@/components/wallet/api-vault/types';
+import { DEFAULT_API_SETTINGS, DEFAULT_API_KEYS } from '@/components/wallet/api-vault/defaultApis';
 
 export function useWallet() {
   const [isConnected, setIsConnected] = useState(false);
@@ -25,19 +14,10 @@ export function useWallet() {
   const [botActive, setBotActive] = useState(false);
   const [tokenAmount, setTokenAmount] = useState(100000);
   const [solAmount, setSolAmount] = useState(0.5);
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([
-    { name: "Jupiter API", connected: false },
-    { name: "Solana RPC", connected: true },
-    { name: "Exchange API", connected: false }
-  ]);
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>(DEFAULT_API_KEYS);
   const [botRunningTime, setBotRunningTime] = useState(0);
   const [isUnlocked, setIsUnlocked] = useState(false);
-  const [apiSettings, setApiSettings] = useState<ApiSettings>({
-    rpcUrl: "https://api.mainnet-beta.solana.com",
-    customRpc: false,
-    fallbackRpc: true,
-    rateLimit: 10
-  });
+  const [apiSettings, setApiSettings] = useState<ApiSettings>(DEFAULT_API_SETTINGS);
 
   const walletAddress = "3eDZ...f9Kt";
   const solBalance = 12.45;

@@ -1,5 +1,5 @@
 
-import { ApiKey, RecommendedApi } from "./types";
+import { ApiKey, RecommendedApi, ApiSettings } from "./types";
 
 // Default recommended APIs for Solana
 export const DEFAULT_RECOMMENDED_APIS: RecommendedApi[] = [
@@ -46,12 +46,11 @@ export const DEFAULT_API_KEYS: ApiKey[] = [
 ];
 
 // Default API settings
-export const DEFAULT_API_SETTINGS: {
-  rpcEndpoint: string;
-  apiEndpoint: string;
-  websocketEndpoint: string;
-} = {
+export const DEFAULT_API_SETTINGS: ApiSettings = {
   rpcEndpoint: "https://api.mainnet-beta.solana.com",
   apiEndpoint: "https://api.solana.fm/v1",
-  websocketEndpoint: "wss://api.mainnet-beta.solana.com"
+  websocketEndpoint: "wss://api.mainnet-beta.solana.com",
+  customRpc: false,
+  fallbackRpc: true,
+  rateLimit: 10
 };
