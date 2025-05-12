@@ -8,10 +8,10 @@ export const ApiVaultCard = () => {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Ανάκτηση Κλειδιών API</h2>
+          <h2 className="text-xl font-semibold">Λειτουργικά Κλειδιά API</h2>
         </div>
         <p className="text-muted-foreground text-sm">
-          Ανακτήστε κλειδιά API από το rork.app και άλλες εφαρμογές που δεν λειτουργούν πλέον.
+          Λειτουργικά κλειδιά API που έχουν αποθηκευτεί στη συσκευή σας.
         </p>
       </CardHeader>
       <CardContent>
