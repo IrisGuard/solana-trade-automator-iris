@@ -100,7 +100,7 @@ export const ApiKeysByService = ({
                         <AlertDialogTitle>Διαγραφή Κλειδιού</AlertDialogTitle>
                         <AlertDialogDescription>
                           Είστε βέβαιοι ότι θέλετε να διαγράψετε το κλειδί "{apiKey.name}";<br />
-                          Η ενέργεια αυτή δεν μπορεί να αναιρεθεί.
+                          <strong className="text-red-500">Προσοχή: Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.</strong>
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -109,7 +109,7 @@ export const ApiKeysByService = ({
                           onClick={() => deleteKey(apiKey.id)}
                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
-                          Διαγραφή
+                          Επιβεβαίωση Διαγραφής
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>

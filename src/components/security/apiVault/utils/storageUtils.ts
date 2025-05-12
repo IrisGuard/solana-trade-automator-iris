@@ -3,6 +3,38 @@ import { ApiKey } from "../types";
 import { encryptData, decryptData } from "./encryptionUtils";
 import { diagnosticScanStorage } from "./diagnosticUtils";
 
+// Create a timestamp-based backup key
+const getBackupKey = () => `apiKeys_backup_${new Date().getTime()}`;
+
+// Save a backup copy of keys
+const backupKeys = (keys: ApiKey[]) => {
+  try {
+    const backupKey = getBackupKey();
+    localStorage.setItem(backupKey, JSON.stringify(keys));
+    
+    // Keep only last 5 backups
+    const allKeys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('apiKeys_backup_')) {
+        allKeys.push(key);
+      }
+    }
+    
+    if (allKeys.length > 5) {
+      allKeys.sort();
+      for (let i = 0; i < allKeys.length - 5; i++) {
+        localStorage.removeItem(allKeys[i]);
+      }
+    }
+    
+    return true;
+  } catch (e) {
+    console.error('Error creating backup:', e);
+    return false;
+  }
+};
+
 // Load keys from localStorage
 export const loadKeysFromStorage = (
   isEncryptionEnabled: boolean, 
@@ -81,10 +113,8 @@ export const loadKeysFromStorage = (
             const foundItems = diagnosticScanStorage();
             
             if (foundItems.length > 0) {
-              // Αφαιρέθηκε το toast για να αποτραπεί η εμφάνιση συχνών μηνυμάτων
               console.log(`Found ${foundItems.length} potential key storages but couldn't load them`);
             } else {
-              // Αφαιρέθηκε το toast για να αποτραπεί η εμφάνιση συχνών μηνυμάτων
               console.log("Could not load keys. The stored file may be corrupted.");
             }
             return;
@@ -102,6 +132,9 @@ export const loadKeysFromStorage = (
           status: key.status || 'active'
         }));
       
+      // Create a backup of successfully loaded keys
+      backupKeys(validKeys);
+      
       setApiKeys(validKeys);
       setIsLocked(false);
       
@@ -112,31 +145,32 @@ export const loadKeysFromStorage = (
       console.log(`Loaded ${validKeys.length} keys from localStorage`);
       
       if (validKeys.length === 0) {
-        // Αφαιρέθηκε το toast για να αποτραπεί η εμφάνιση συχνών μηνυμάτων
         console.log("No valid keys found in vault");
         // Run diagnostic scan but don't show notifications
         diagnosticScanStorage();
       }
     } catch (e) {
       console.error('Error loading keys:', e);
-      // Αφαιρέθηκε το toast για να αποτραπεί η εμφάνιση συχνών μηνυμάτων
       // Run diagnostic scan but don't show notifications
       diagnosticScanStorage();
     }
   } else {
     console.log('No saved keys found in localStorage[apiKeys]');
     // Run diagnostic scan but don't show notifications
-    const foundItems = diagnosticScanStorage();
+    diagnosticScanStorage();
   }
 };
 
-// Save keys to localStorage
+// Save keys to localStorage with backup
 export const saveKeysToStorage = (
   apiKeys: ApiKey[], 
   isEncryptionEnabled: boolean, 
   masterPassword: string
 ) => {
   try {
+    // Always create a backup before saving
+    backupKeys(apiKeys);
+    
     let dataToStore;
     
     if (isEncryptionEnabled && masterPassword) {
@@ -148,11 +182,50 @@ export const saveKeysToStorage = (
     }
     
     localStorage.setItem('apiKeys', dataToStore);
+    
+    // Also save a redundant copy
+    localStorage.setItem('apiKeys_redundant', dataToStore);
+    
     return true;
   } catch (e) {
     console.error('Error saving keys:', e);
-    // Αφαιρέθηκε το toast για να αποτραπεί η εμφάνιση συχνών μηνυμάτων
     return false;
+  }
+};
+
+// Check if there is a more recent backup
+export const checkForBackups = (): { found: boolean; backupKey?: string } => {
+  try {
+    const backups = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('apiKeys_backup_')) {
+        backups.push(key);
+      }
+    }
+    
+    if (backups.length > 0) {
+      // Sort by timestamp (newest first)
+      backups.sort().reverse();
+      return { found: true, backupKey: backups[0] };
+    }
+  } catch (e) {
+    console.error('Error checking for backups:', e);
+  }
+  
+  return { found: false };
+};
+
+// Restore from backup
+export const restoreFromBackup = (backupKey: string): ApiKey[] | null => {
+  try {
+    const data = localStorage.getItem(backupKey);
+    if (!data) return null;
+    
+    return JSON.parse(data);
+  } catch (e) {
+    console.error('Error restoring from backup:', e);
+    return null;
   }
 };
 

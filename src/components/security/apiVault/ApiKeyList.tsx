@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { ApiKey } from "./types";
-import { Eye, EyeOff, MoreHorizontal, Edit, Trash2, Copy, ExternalLink, CheckCircle, XCircle, Clock, AlertCircle, Key } from "lucide-react";
+import { Eye, EyeOff, MoreHorizontal, Edit, Trash2, Copy, ExternalLink, CheckCircle, XCircle, Clock, AlertCircle, Key, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,16 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -36,10 +46,30 @@ export const ApiKeyList = ({
   onTestKey
 }: ApiKeyListProps) => {
   const [testingKeys, setTestingKeys] = useState<Record<string, boolean>>({});
+  const [keyToDelete, setKeyToDelete] = useState<ApiKey | null>(null);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   const handleCopyKey = (key: string) => {
     navigator.clipboard.writeText(key);
     toast.success("Το κλειδί αντιγράφηκε στο πρόχειρο");
+  };
+  
+  const handleDeleteRequest = (key: ApiKey) => {
+    setKeyToDelete(key);
+    setConfirmDialogOpen(true);
+  };
+  
+  const confirmDelete = () => {
+    if (keyToDelete) {
+      deleteKey(keyToDelete.id);
+      setConfirmDialogOpen(false);
+      setKeyToDelete(null);
+    }
+  };
+  
+  const cancelDelete = () => {
+    setConfirmDialogOpen(false);
+    setKeyToDelete(null);
   };
 
   const handleTestKey = async (key: ApiKey) => {
@@ -172,7 +202,7 @@ export const ApiKeyList = ({
                         )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem 
-                          onClick={() => deleteKey(apiKey.id)} 
+                          onClick={() => handleDeleteRequest(apiKey)}
                           className="text-red-600 focus:text-red-600 gap-2"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -223,6 +253,40 @@ export const ApiKeyList = ({
           </Card>
         ))}
       </TooltipProvider>
+      
+      {/* Enhanced deletion confirmation dialog */}
+      <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-2 text-red-600">
+              <Shield className="h-5 w-5" />
+              <AlertDialogTitle>Επιβεβαίωση Διαγραφής</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="space-y-2">
+              <p className="font-medium">Είστε σίγουροι ότι θέλετε να διαγράψετε το κλειδί:</p>
+              <p className="font-bold">{keyToDelete?.name}</p>
+              <div className="bg-red-50 p-3 border border-red-200 rounded-md text-red-800 mt-2">
+                <p className="text-sm font-semibold">Προσοχή:</p>
+                <ul className="list-disc list-inside text-sm space-y-1 mt-1">
+                  <li>Αυτή η ενέργεια δεν μπορεί να αναιρεθεί</li>
+                  <li>Το κλειδί θα αφαιρεθεί οριστικά από την κλειδοθήκη σας</li>
+                  <li>Αν το κλειδί είναι συνδεδεμένο με μια υπηρεσία, η σύνδεση θα διακοπεί</li>
+                </ul>
+              </div>
+              <p className="mt-2">Παρακαλώ επιβεβαιώστε τη διαγραφή.</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelDelete}>Άκυρο</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Ναι, διαγραφή κλειδιού
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
