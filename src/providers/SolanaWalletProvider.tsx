@@ -28,7 +28,7 @@ interface Props {
 
 export const SolanaWalletProvider: FC<Props> = ({ children }) => {
   // Το δίκτυο μπορεί να είναι 'devnet', 'testnet', ή 'mainnet-beta'
-  const [network, setNetwork] = useState<WalletAdapterNetwork>(WalletAdapterNetwork.MainnetBeta);
+  const [network, setNetwork] = useState<WalletAdapterNetwork>(WalletAdapterNetwork.Mainnet);
   
   // Μπορείτε να αλλάξετε το δίκτυο με αυτήν τη συνάρτηση
   const changeNetwork = (newNetwork: WalletAdapterNetwork) => {
