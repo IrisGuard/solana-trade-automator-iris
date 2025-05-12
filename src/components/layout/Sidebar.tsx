@@ -11,7 +11,6 @@ import {
   Settings, 
   List,
   FileText,
-  Zap,
   BarChart2,
   Wallet,
   Shield,
@@ -113,35 +112,13 @@ export function Sidebar({ className }: SidebarProps) {
   );
 }
 
-interface CustomNavLinkProps {
+interface CollapsedNavLinkProps {
   to: string;
   icon: React.ElementType;
-  children?: React.ReactNode;
-  collapsed?: boolean;
-  end?: boolean;
 }
 
-const CustomNavLink = ({ to, icon: Icon, children, collapsed, end }: CustomNavLinkProps) => {
-  return (
-    <RouterNavLink
-      to={to}
-      end={end}
-      className={({ isActive }) =>
-        cn(
-          "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
-          isActive ? "active-nav-link" : "text-muted-foreground",
-          collapsed && "justify-center"
-        )
-      }
-    >
-      <Icon className="h-4 w-4" />
-      {!collapsed && <span>{children}</span>}
-    </RouterNavLink>
-  );
-};
-
 // Create a separate component for collapsed nav links to avoid naming conflict
-const CollapsedNavLink = ({ to, icon: Icon }: { to: string; icon: React.ElementType }) => {
+const CollapsedNavLink = ({ to, icon: Icon }: CollapsedNavLinkProps) => {
   return (
     <RouterNavLink
       to={to}
