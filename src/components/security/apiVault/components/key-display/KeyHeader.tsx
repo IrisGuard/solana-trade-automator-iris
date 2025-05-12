@@ -8,19 +8,21 @@ interface KeyHeaderProps {
   service: string;
   status?: string;
   date: string;
+  isWorking?: boolean;
 }
 
 export const KeyHeader: React.FC<KeyHeaderProps> = ({ 
   name, 
   service, 
   status,
-  date
+  date,
+  isWorking
 }) => {
   return (
     <>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <KeyStatusIcon status={status} />
+          <KeyStatusIcon status={status} isWorking={isWorking} />
           <h3 className="font-medium text-sm">{name}</h3>
         </div>
       </div>

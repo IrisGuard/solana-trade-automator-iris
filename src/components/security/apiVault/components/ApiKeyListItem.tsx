@@ -27,9 +27,19 @@ export const ApiKeyListItem: React.FC<ApiKeyListItemProps> = ({
   onTestKey
 }) => {
   const formattedDate = formatRelativeDate(apiKey.createdAt);
+  
+  // Καθορισμός χρώματος περιγράμματος βάσει της λειτουργικής κατάστασης του κλειδιού
+  const getBorderColor = () => {
+    if (apiKey.isWorking === false) {
+      return "border-red-500 bg-red-50";
+    } else if (apiKey.isWorking === true) {
+      return "border-green-500 bg-green-50";
+    }
+    return ""; // Προεπιλεγμένο περίγραμμα αν δεν γνωρίζουμε την κατάσταση
+  };
 
   return (
-    <Card className="overflow-hidden">
+    <Card className={`overflow-hidden border-l-4 ${getBorderColor()}`}>
       <CardContent className="p-4">
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-2">
@@ -38,10 +48,11 @@ export const ApiKeyListItem: React.FC<ApiKeyListItemProps> = ({
               service={apiKey.service}
               status={apiKey.status}
               date={formattedDate}
+              isWorking={apiKey.isWorking}
             />
             
             <div className="flex items-center gap-1">
-              <KeyStatusBadge status={apiKey.status} />
+              <KeyStatusBadge status={apiKey.status} isWorking={apiKey.isWorking} />
               
               <KeyActionsMenu 
                 keyValue={apiKey.key}

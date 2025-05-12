@@ -4,9 +4,26 @@ import { Badge } from "@/components/ui/badge";
 
 interface KeyStatusBadgeProps {
   status?: string;
+  isWorking?: boolean;
 }
 
-export const KeyStatusBadge: React.FC<KeyStatusBadgeProps> = ({ status }) => {
+export const KeyStatusBadge: React.FC<KeyStatusBadgeProps> = ({ status, isWorking }) => {
+  // Εμφάνιση κατάστασης λειτουργίας αν έχει οριστεί
+  if (isWorking === false) {
+    return (
+      <Badge variant="outline" className="text-red-500 border-red-200 bg-red-50">
+        Μη Λειτουργικό
+      </Badge>
+    );
+  } else if (isWorking === true) {
+    return (
+      <Badge variant="outline" className="text-green-500 border-green-200 bg-green-50">
+        Λειτουργικό
+      </Badge>
+    );
+  }
+  
+  // Διαφορετικά, εμφάνιση κατάστασης κλειδιού
   switch (status) {
     case "expired":
       return (
