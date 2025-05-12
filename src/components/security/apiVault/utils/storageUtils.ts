@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { ApiKey } from "../types";
 import { encryptData, decryptData } from "./encryptionUtils";
@@ -65,7 +64,7 @@ export const loadKeysFromStorage = (
               } else {
                 setIsLocked(true);
                 console.error('Failed to decrypt after trial');
-                // Run diagnostic scan but don't show notifications
+                // Run diagnostic scan to find any keys but don't show notifications
                 diagnosticScanStorage();
                 return;
               }

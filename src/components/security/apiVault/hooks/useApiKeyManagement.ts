@@ -10,7 +10,7 @@ import { toast } from "sonner";
 
 export function useApiKeyManagement() {
   const [initialKeys, setInitialKeys] = useState<ApiKey[]>([]);
-  const [useDemoKeysAsFallback, setUseDemoKeysAsFallback] = useState(true); // Άλλαξα σε true για να φορτώνονται πάντα τα demo keys
+  const [useDemoKeysAsFallback, setUseDemoKeysAsFallback] = useState(true);
   const [isTestingKeys, setIsTestingKeys] = useState(false);
   
   // Προσπάθεια ανάκτησης κλειδιών από το localStorage
@@ -116,7 +116,7 @@ export function useApiKeyManagement() {
     }
   }, [useDemoKeysAsFallback, apiKeys.length, setApiKeys]);
 
-  // Προσθέτουμε αυτόματη προσθήκη των 26 κλειδιών επίδειξης κατά την αρχική φόρτωση
+  // Προσθήκη των 26 κλειδιών επίδειξης κατά την αρχική φόρτωση
   useEffect(() => {
     // Εκτελείται μόνο μία φορά κατά την αρχική φόρτωση
     const demoKeysInjected = localStorage.getItem('demoKeysInjected');
