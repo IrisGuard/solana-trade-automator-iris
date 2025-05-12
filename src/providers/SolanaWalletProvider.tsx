@@ -27,8 +27,8 @@ interface Props {
 }
 
 export const SolanaWalletProvider: FC<Props> = ({ children }) => {
-  // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
-  const [network, setNetwork] = useState<WalletAdapterNetwork>(WalletAdapterNetwork.Mainnet);
+  // Το δίκτυο μπορεί να είναι 'devnet', 'testnet', ή 'mainnet-beta'
+  const [network, setNetwork] = useState<WalletAdapterNetwork>(WalletAdapterNetwork.MainnetBeta);
   
   // Μπορείτε να αλλάξετε το δίκτυο με αυτήν τη συνάρτηση
   const changeNetwork = (newNetwork: WalletAdapterNetwork) => {
@@ -43,7 +43,7 @@ export const SolanaWalletProvider: FC<Props> = ({ children }) => {
     if (network === WalletAdapterNetwork.Testnet) {
       return RPC_ENDPOINTS.TESTNET;
     }
-    // Mainnet
+    // Mainnet-beta
     return RPC_ENDPOINTS.PRIMARY;
   }, [network]);
 

@@ -1,9 +1,11 @@
 
 import { fetchRecentTransactions } from './fetchTransactions';
-import { saveTransactionToDatabase } from './databaseService';
+import { parseTransaction } from './parseTransaction';
+import { TransactionSignatureResult } from './types';
 
+// Export all transaction services
 export const transactionService = {
-  // Transaction functionality
   getRecentTransactions: fetchRecentTransactions,
-  saveTransaction: saveTransactionToDatabase
+  parseTransaction,
+  // Επιπλέον μέθοδοι που μπορούν να προστεθούν μελλοντικά
 };

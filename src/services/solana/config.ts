@@ -56,7 +56,12 @@ export const KNOWN_PROGRAMS: Record<string, string> = {
   "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr": "Memo Program",
   "mv3ekLzLbnVPNxjSKvqBpU3ZeZXPQdEC3bp5MDEBG68": "Marginfi",
   "PhoeNiXZ8ByJGLkxNfZRnkUfjvmuYqLR89jjFHGqdXY": "Phoenix DEX",
-  "J2NhFnBxcwbxovE7avBQCXWJ8Rm5RhQhNSbNybbMWHCU": "Atrix Protocol"
+  "J2NhFnBxcwbxovE7avBQCXWJ8Rm5RhQhNSbNybbMWHCU": "Atrix Protocol",
+  "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s": "Metaplex Token Metadata",
+  "Stake11111111111111111111111111111111111111": "Stake Program",
+  "Vote111111111111111111111111111111111111111": "Vote Program",
+  "SearcherDz1LucrwNZSXRrZe27iCbXgdZqYdVqjTkDqL": "MEV Searcher Program",
+  "ComputeBudget111111111111111111111111111111": "Compute Budget"
 };
 
 // Γνωστές διευθύνσεις tokens
@@ -96,6 +101,18 @@ export const KNOWN_TOKEN_ADDRESSES: Record<string, { name: string; symbol: strin
     symbol: "JUP",
     decimals: 6,
     logo: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/JUP6i4ozu5ydDCnLiMogSckDPpfSgD2AVtnwvMJUdLt/logo.png"
+  },
+  "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263": {
+    name: "Bonk",
+    symbol: "BONK",
+    decimals: 5,
+    logo: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263/logo.png"
+  },
+  "RAYv9wav3Q57K6vKXBXBAR9v8RNUWM3V7GNLXt8KmgH": {
+    name: "Raydium",
+    symbol: "RAY",
+    decimals: 6,
+    logo: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/RAYv9wav3Q57K6vKXBXBAR9v8RNUWM3V7GNLXt8KmgH/logo.png"
   }
 };
 
@@ -106,7 +123,9 @@ export const MOCK_PRICES: Record<string, number> = {
   "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB": 1.0, // USDT
   "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So": 62.5, // mSOL
   "7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj": 61.8, // stSOL
-  "JUP6i4ozu5ydDCnLiMogSckDPpfSgD2AVtnwvMJUdLt": 0.85 // JUP
+  "JUP6i4ozu5ydDCnLiMogSckDPpfSgD2AVtnwvMJUdLt": 0.85, // JUP
+  "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263": 0.00000237, // BONK
+  "RAYv9wav3Q57K6vKXBXBAR9v8RNUWM3V7GNLXt8KmgH": 0.34 // RAY
 };
 
 // Helius API Key - παράδειγμα για χρήση με τη βιβλιοθήκη Helius
