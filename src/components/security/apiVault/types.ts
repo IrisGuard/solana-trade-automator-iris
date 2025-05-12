@@ -9,7 +9,7 @@ export interface ApiKey {
   expires?: string;
   status?: 'active' | 'expired' | 'revoked';
   isWorking?: boolean;
-  source?: string; // Προσθήκη ιδιότητας source για την προέλευση του κλειδιού
+  source?: string; // Property for tracking the origin of the key
 }
 
 export interface ApiKeyStats {

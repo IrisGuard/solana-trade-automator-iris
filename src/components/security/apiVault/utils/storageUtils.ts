@@ -1,3 +1,4 @@
+
 import CryptoJS from "crypto-js";
 import { toast } from "sonner";
 import { ApiKey } from "../types";
@@ -143,8 +144,8 @@ export const recoverAllApiKeys = (): {
             isWorking: typeof item.isWorking === 'boolean' ? item.isWorking : undefined,
             status: item.status || 'active',
             expires: item.expires || item.expiry || '',
-            source: storageKey // Προσθήκη πηγής ανάκτησης
-          };
+            source: storageKey
+          } as ApiKey;
         })
         .filter((key): key is ApiKey => key !== null);
       
@@ -192,7 +193,7 @@ export const recoverAllApiKeys = (): {
             status: item.status || 'active',
             expires: item.expires || item.expiry || '',
             source: location.storageKey
-          };
+          } as ApiKey;
         })
         .filter((key): key is ApiKey => key !== null);
       

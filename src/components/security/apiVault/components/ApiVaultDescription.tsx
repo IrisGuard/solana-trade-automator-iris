@@ -1,8 +1,9 @@
 
 import React from "react";
 import { CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Database, AlertCircle } from "lucide-react";
 import { ApiVaultActions } from "./ApiVaultActions";
-import { AlertCircle } from "lucide-react";
 
 interface ApiVaultDescriptionProps {
   isLocked: boolean;
@@ -40,6 +41,3 @@ export const ApiVaultDescription: React.FC<ApiVaultDescriptionProps> = ({
     </CardDescription>
   );
 };
-
-import { Button } from "@/components/ui/button";
-import { Database, AlertCircle } from "lucide-react";
