@@ -1,108 +1,87 @@
 
-import { useApiKeyManagement } from "./useApiKeyManagement";
-import { useVaultSecurity } from "./useVaultSecurity";
-import { useVaultDialogs } from "./useVaultDialogs";
-import { useState } from "react";
-import { ApiKey } from "../types";
-import { recoverAllApiKeys } from "../utils";
-import { toast } from "sonner";
+import { useState, useEffect, useCallback } from 'react';
+import { ApiKey } from '../types';
+import { recoverAllApiKeys, forceScanForKeys } from '../utils';
+import { toast } from 'sonner';
 
-export function useApiVault() {
-  const keyManagement = useApiKeyManagement();
-  const dialogs = useVaultDialogs();
-  const security = useVaultSecurity({ 
-    apiKeys: keyManagement.apiKeys, 
-    setApiKeys: keyManagement.setApiKeys 
-  });
-
-  // Νέες καταστάσεις για τη λειτουργία ανάκτησης
-  const [isRecovering, setIsRecovering] = useState(false);
-  const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
+export const useApiVault = () => {
   const [recoveredKeys, setRecoveredKeys] = useState<ApiKey[]>([]);
   const [recoveryLocations, setRecoveryLocations] = useState<{ storageKey: string, count: number }[]>([]);
-  
-  // Λειτουργία ανάκτησης κλειδιών
-  const recoverKeys = () => {
-    setIsRecovering(true);
-    toast.loading("Αναζήτηση κλειδιών σε εξέλιξη...");
-    
+  const [isRecovering, setIsRecovering] = useState(false);
+  const [recoverySuccess, setRecoverySuccess] = useState(false);
+  const [recoveryError, setRecoveryError] = useState<string | null>(null);
+
+  const handleRecoverKeys = useCallback(async () => {
     try {
-      const result = recoverAllApiKeys();
+      setIsRecovering(true);
+      setRecoverySuccess(false);
+      setRecoveryError(null);
+      
+      const result = await recoverAllApiKeys();
       
       setRecoveredKeys(result.recoveredKeys);
       setRecoveryLocations(result.locations);
       
       if (result.recoveredKeys.length > 0) {
-        setShowRecoveryDialog(true);
-        toast.success(`Βρέθηκαν ${result.recoveredKeys.length} κλειδιά σε ${result.locations.length} τοποθεσίες`);
+        setRecoverySuccess(true);
+        toast.success(`Ανακτήθηκαν ${result.recoveredKeys.length} κλειδιά από ${result.locations.length} τοποθεσίες`);
       } else {
-        toast.warning("Δεν βρέθηκαν επιπλέον κλειδιά");
+        toast.info("Δεν βρέθηκαν κλειδιά API για ανάκτηση");
       }
+      
+      return result;
     } catch (error) {
-      console.error("Σφάλμα κατά την ανάκτηση κλειδιών:", error);
-      toast.error("Σφάλμα κατά την αναζήτηση κλειδιών");
+      console.error("Error during key recovery:", error);
+      setRecoveryError(error instanceof Error ? error.message : "Unknown error during recovery");
+      toast.error("Σφάλμα κατά την ανάκτηση κλειδιών");
+      return {
+        recoveredKeys: [],
+        locations: []
+      };
     } finally {
       setIsRecovering(false);
     }
-  };
-  
-  // Χειρισμός εισαγωγής ανακτημένων κλειδιών
-  const handleRecoveredImport = (keys: ApiKey[]) => {
-    keyManagement.handleImport(keys);
-    setShowRecoveryDialog(false);
-  };
+  }, []);
+
+  const handleForceScan = useCallback(async () => {
+    try {
+      setIsRecovering(true);
+      setRecoverySuccess(false);
+      setRecoveryError(null);
+      
+      const numKeysRecovered = await forceScanForKeys();
+      
+      if (numKeysRecovered > 0) {
+        setRecoverySuccess(true);
+        toast.success(`Προστέθηκαν ${numKeysRecovered} κλειδιά στη βάση δεδομένων`);
+        return numKeysRecovered;
+      } else {
+        toast.info("Δεν βρέθηκαν νέα κλειδιά κατά τη σάρωση");
+        return 0;
+      }
+    } catch (error) {
+      console.error("Error during force scan:", error);
+      setRecoveryError(error instanceof Error ? error.message : "Unknown error during force scan");
+      toast.error("Σφάλμα κατά τη σάρωση κλειδιών");
+      return 0;
+    } finally {
+      setIsRecovering(false);
+    }
+  }, []);
+
+  // Initial recovery on component mount
+  useEffect(() => {
+    // We don't auto-recover on mount to avoid unexpected behavior
+    // User must explicitly click the recover button
+  }, []);
 
   return {
-    // Key Management
-    apiKeys: keyManagement.apiKeys,
-    isKeyVisible: keyManagement.isKeyVisible,
-    searchTerm: keyManagement.searchTerm,
-    setSearchTerm: keyManagement.setSearchTerm,
-    filterService: keyManagement.filterService,
-    setFilterService: keyManagement.setFilterService,
-    addNewKey: keyManagement.addNewKey,
-    deleteKey: keyManagement.deleteKey,
-    toggleKeyVisibility: keyManagement.toggleKeyVisibility,
-    handleImport: keyManagement.handleImport,
-    getFilteredKeys: keyManagement.getFilteredKeys,
-    getKeysByService: keyManagement.getKeysByService,
-    checkKeysFunctionality: keyManagement.checkKeysFunctionality,
-    isTestingKeys: keyManagement.isTestingKeys,
-    
-    // Dialog Management
-    showDialogApiKey: dialogs.showDialogApiKey,
-    setShowDialogApiKey: dialogs.setShowDialogApiKey,
-    showImportDialog: dialogs.showImportDialog,
-    setShowImportDialog: dialogs.setShowImportDialog,
-    showExportSheet: dialogs.showExportSheet,
-    setShowExportSheet: dialogs.setShowExportSheet,
-    showSettingsDialog: dialogs.showSettingsDialog,
-    setShowSettingsDialog: dialogs.setShowSettingsDialog,
-    
-    // Security
-    isEncryptionEnabled: security.isEncryptionEnabled,
-    setIsEncryptionEnabled: security.setIsEncryptionEnabled,
-    savedMasterPassword: security.savedMasterPassword,
-    setSavedMasterPassword: security.setSavedMasterPassword,
-    isLocked: security.isLocked,
-    setIsLocked: security.setIsLocked,
-    isAutoLockEnabled: security.isAutoLockEnabled,
-    setIsAutoLockEnabled: security.setIsAutoLockEnabled,
-    autoLockTimeout: security.autoLockTimeout,
-    setAutoLockTimeout: security.setAutoLockTimeout,
-    isUnlocking: security.isUnlocking,
-    setIsUnlocking: security.setIsUnlocking,
-    handleUnlock: security.handleUnlock,
-    handleLock: security.handleLock,
-    saveSecuritySettings: security.saveSecuritySettings,
-    
-    // Νέες λειτουργίες ανάκτησης κλειδιών
-    recoverKeys,
-    isRecovering,
-    showRecoveryDialog,
-    setShowRecoveryDialog,
     recoveredKeys,
     recoveryLocations,
-    handleRecoveredImport
+    isRecovering,
+    recoverySuccess,
+    recoveryError,
+    handleRecoverKeys,
+    handleForceScan
   };
-}
+};

@@ -1,306 +1,289 @@
 
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Check, Copy, Download, Search } from "lucide-react";
-import { ApiKey } from "./types";
-import { toast } from "sonner";
-import { recoverAllApiKeys } from "./utils";
+import React, { useState } from 'react';
+import { useApiVault } from './hooks/useApiVault';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { Search, Key, Download, Copy, RefreshCw } from 'lucide-react';
+import { ApiKey } from './types';
+import { toast } from 'sonner';
 
-export function KeyRecoveryView() {
-  const [recoveredKeys, setRecoveredKeys] = useState<ApiKey[]>([]);
-  const [locations, setLocations] = useState<{ storageKey: string; count: number }[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showRawDialog, setShowRawDialog] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+export const KeyRecoveryView: React.FC = () => {
+  const { 
+    recoveredKeys, 
+    recoveryLocations,
+    isRecovering, 
+    recoverySuccess,
+    recoveryError,
+    handleRecoverKeys
+  } = useApiVault();
   
-  const handleRecover = async () => {
-    setIsLoading(true);
-    toast.loading("Σάρωση για κλειδιά σε εξέλιξη...");
-    
-    try {
-      const result = await recoverAllApiKeys();
-      setRecoveredKeys(result.recoveredKeys);
-      setLocations(result.locations);
-      
-      if (result.recoveredKeys.length > 0) {
-        toast.success(`Βρέθηκαν ${result.recoveredKeys.length} κλειδιά σε ${result.locations.length} τοποθεσίες`);
-      } else {
-        toast.warning("Δεν βρέθηκαν κλειδιά");
-      }
-    } catch (error) {
-      console.error("Σφάλμα κατά την ανάκτηση:", error);
-      toast.error("Σφάλμα κατά την ανάκτηση κλειδιών");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleImport = () => {
-    if (recoveredKeys.length > 0) {
-      try {
-        const existingKeysStr = localStorage.getItem('apiKeys');
-        let existingKeys: ApiKey[] = [];
-        
-        if (existingKeysStr) {
-          existingKeys = JSON.parse(existingKeysStr);
-        }
-        
-        // Merge keys and remove duplicates
-        const allKeys = [...existingKeys];
-        const existingKeyValues = new Set(existingKeys.map(k => k.key));
-        
-        for (const key of recoveredKeys) {
-          if (!existingKeyValues.has(key.key)) {
-            allKeys.push(key);
-          }
-        }
-        
-        localStorage.setItem('apiKeys', JSON.stringify(allKeys));
-        toast.success(`Εισήχθησαν ${allKeys.length - existingKeys.length} νέα κλειδιά`);
-        
-        // Reload for the changes to take effect
-        window.location.reload();
-      } catch (e) {
-        console.error("Σφάλμα κατά την εισαγωγή:", e);
-        toast.error("Σφάλμα κατά την εισαγωγή κλειδιών");
-      }
-    }
-  };
-
-  const exportAsJson = () => {
-    try {
-      const json = JSON.stringify(recoveredKeys, null, 2);
-      const blob = new Blob([json], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'recovered-keys.json';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      toast.success("Τα κλειδιά εξήχθησαν σε αρχείο JSON");
-    } catch (e) {
-      toast.error("Σφάλμα κατά την εξαγωγή σε JSON");
-    }
-  };
-
-  const copyToClipboard = (text: string) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showPaths, setShowPaths] = useState(false);
+  
+  const filteredKeys = recoveredKeys.filter(key => {
+    const lowerSearch = searchTerm.toLowerCase();
+    return (
+      key.name.toLowerCase().includes(lowerSearch) ||
+      key.service.toLowerCase().includes(lowerSearch) ||
+      key.key.toLowerCase().includes(lowerSearch) ||
+      (key.source && key.source.toLowerCase().includes(lowerSearch))
+    );
+  });
+  
+  const copyToClipboard = (text: string, message: string) => {
     navigator.clipboard.writeText(text)
-      .then(() => {
-        setIsCopied(true);
-        toast.success("Αντιγράφηκε στο πρόχειρο");
-        setTimeout(() => setIsCopied(false), 2000);
-      })
-      .catch(() => {
-        toast.error("Αποτυχία αντιγραφής στο πρόχειρο");
-      });
+      .then(() => toast.success(message))
+      .catch(() => toast.error("Αποτυχία αντιγραφής στο πρόχειρο"));
   };
-
-  const filteredKeys = searchTerm
-    ? recoveredKeys.filter(key => 
-        key.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        key.service.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        key.key.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (key.source && key.source.toLowerCase().includes(searchTerm.toLowerCase()))
-      )
-    : recoveredKeys;
-
-  const getKeysAsText = () => {
-    return filteredKeys.map(key => (
-      `Όνομα: ${key.name}\n` +
-      `Υπηρεσία: ${key.service}\n` +
-      `Κλειδί: ${key.key}\n` +
-      `Πηγή: ${key.source || 'άγνωστη'}\n` +
-      `Δημιουργήθηκε: ${key.createdAt}\n` +
-      `Περιγραφή: ${key.description || '-'}\n` +
-      `-----------------------------------`
-    )).join('\n\n');
-  };
-
-  const getKeysAsRawJson = () => {
-    return JSON.stringify(filteredKeys, null, 2);
+  
+  const exportKeysAsJson = () => {
+    try {
+      const jsonData = JSON.stringify(recoveredKeys, null, 2);
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'recovered-api-keys.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success("Τα κλειδιά εξήχθησαν επιτυχώς");
+    } catch (error) {
+      console.error("Error exporting keys:", error);
+      toast.error("Σφάλμα κατά την εξαγωγή των κλειδιών");
+    }
   };
 
   return (
     <div className="space-y-4">
-      <div className="bg-muted/50 p-4 rounded-lg mb-4">
-        <h2 className="text-lg font-medium mb-2">Ανάκτηση Χαμένων Κλειδιών API</h2>
-        <p className="text-muted-foreground mb-4">
-          Αυτό το εργαλείο θα σαρώσει το localStorage του περιηγητή σας για να βρει όλα τα πιθανά κλειδιά API, 
-          συμπεριλαμβανομένων αυτών από το rork.app ή άλλες εφαρμογές.
-        </p>
-        <Button 
-          onClick={handleRecover}
-          disabled={isLoading}
-          className="mb-2 w-full"
-        >
-          {isLoading ? "Σάρωση..." : "Ανάκτηση Κλειδιών"}
-        </Button>
-      </div>
-
-      {recoveredKeys.length > 0 && (
-        <>
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <h3 className="font-medium">Βρέθηκαν {recoveredKeys.length} κλειδιά</h3>
-              <p className="text-sm text-muted-foreground">
-                Σε {locations.length} τοποθεσίες αποθήκευσης
-              </p>
-            </div>
+      {!recoverySuccess && !isRecovering && (
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <div className="rounded-full bg-muted p-6 mb-4">
+            <Key className="h-8 w-8 text-primary" />
+          </div>
+          <h3 className="text-xl font-medium mb-2">Ανακτήστε τα κλειδιά API σας</h3>
+          <p className="text-muted-foreground max-w-md mb-6">
+            Αυτό το εργαλείο θα σαρώσει όλες τις πιθανές τοποθεσίες αποθήκευσης στον περιηγητή σας,
+            συμπεριλαμβανομένων εφαρμογών που δεν λειτουργούν πλέον (όπως το rork.app).
+          </p>
+          <Button 
+            onClick={handleRecoverKeys} 
+            disabled={isRecovering}
+            className="gap-2"
+          >
+            <Search className="h-4 w-4" />
+            Ανάκτηση Κλειδιών
+          </Button>
+        </div>
+      )}
+      
+      {isRecovering && (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <RefreshCw className="h-12 w-12 text-primary animate-spin mb-4" />
+          <h3 className="text-xl font-medium mb-2">Γίνεται σάρωση για κλειδιά API...</h3>
+          <p className="text-muted-foreground">
+            Αυτή η διαδικασία μπορεί να διαρκέσει λίγα δευτερόλεπτα
+          </p>
+        </div>
+      )}
+      
+      {recoveryError && (
+        <Card className="border-destructive bg-destructive/10">
+          <CardContent className="pt-6">
+            <p className="text-destructive font-medium">Σφάλμα κατά την ανάκτηση: {recoveryError}</p>
+          </CardContent>
+        </Card>
+      )}
+      
+      {recoverySuccess && recoveredKeys.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h3 className="text-lg font-medium">
+              Βρέθηκαν {recoveredKeys.length} κλειδιά σε {recoveryLocations.length} τοποθεσίες
+            </h3>
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowRawDialog(true)}
-                className="gap-1"
-              >
-                <Copy size={16} />
-                Προβολή Όλων
-              </Button>
-              <Button 
+              <Button
                 variant="outline"
-                onClick={exportAsJson}
+                size="sm"
+                onClick={() => setShowPaths(!showPaths)}
+              >
+                {showPaths ? "Απόκρυψη διαδρομών" : "Εμφάνιση διαδρομών"}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportKeysAsJson}
                 className="gap-1"
               >
-                <Download size={16} />
+                <Download className="h-4 w-4" />
                 Εξαγωγή JSON
-              </Button>
-              <Button onClick={handleImport}>
-                Εισαγωγή Όλων
               </Button>
             </div>
           </div>
-
-          <div className="mb-4 relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          
+          <div className="relative">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              className="pl-10"
               placeholder="Αναζήτηση κλειδιών..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8"
             />
           </div>
-
-          <Tabs defaultValue="table">
-            <TabsList className="mb-4">
-              <TabsTrigger value="table">Πίνακας</TabsTrigger>
-              <TabsTrigger value="text">Κείμενο</TabsTrigger>
-            </TabsList>
+          
+          <ScrollArea className="h-[500px] rounded-md border">
+            <div className="p-4 space-y-4">
+              {showPaths && recoveryLocations.length > 0 && (
+                <Card className="bg-muted/50">
+                  <CardContent className="pt-4">
+                    <h4 className="font-medium mb-2">Τοποθεσίες που σαρώθηκαν:</h4>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      {recoveryLocations.map((location, index) => (
+                        <div key={`loc-${index}`} className="flex justify-between">
+                          <span>{location.storageKey}</span>
+                          <span className="font-medium">{location.count} κλειδιά</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             
-            <TabsContent value="table">
-              <div className="border rounded-md overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-muted">
-                    <tr>
-                      <th className="px-4 py-2 text-left">Όνομα</th>
-                      <th className="px-4 py-2 text-left">Υπηρεσία</th>
-                      <th className="px-4 py-2 text-left">Κλειδί</th>
-                      <th className="px-4 py-2 text-left">Πηγή</th>
-                      <th className="px-4 py-2 text-left">Ενέργειες</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {filteredKeys.map((key, index) => (
-                      <tr key={index} className="hover:bg-muted/50">
-                        <td className="px-4 py-2">{key.name}</td>
-                        <td className="px-4 py-2">{key.service}</td>
-                        <td className="px-4 py-2 font-mono text-xs truncate max-w-[200px]">
-                          {key.key}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-muted-foreground">{key.source || 'άγνωστη'}</td>
-                        <td className="px-4 py-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => copyToClipboard(key.key)}
-                          >
-                            <Copy size={14} />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="text">
-              <Card>
-                <CardHeader className="p-4">
-                  <CardTitle className="text-sm">Κλειδιά σε Μορφή Κειμένου</CardTitle>
-                  <CardDescription>
-                    Μπορείτε να αντιγράψετε όλα τα κλειδιά σε μορφή κειμένου
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-4 pt-0">
-                  <Textarea 
-                    className="font-mono text-xs h-[300px]"
-                    value={getKeysAsText()}
-                    readOnly
-                  />
-                  <Button 
-                    variant="outline" 
-                    className="mt-2 w-full"
-                    onClick={() => copyToClipboard(getKeysAsText())}
-                  >
-                    {isCopied ? (
-                      <>
-                        <Check size={16} className="mr-1" />
-                        Αντιγράφηκε
-                      </>
-                    ) : (
-                      <>
-                        <Copy size={16} className="mr-1" />
-                        Αντιγραφή Όλων
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-
-          <Dialog open={showRawDialog} onOpenChange={setShowRawDialog}>
-            <DialogContent className="max-w-4xl max-h-[90vh]">
-              <DialogHeader>
-                <DialogTitle>Προβολή Όλων των Κλειδιών (JSON)</DialogTitle>
-                <DialogDescription>
-                  Αυτά είναι όλα τα ανακτημένα κλειδιά σε μορφή JSON
-                </DialogDescription>
-              </DialogHeader>
-              <div className="relative">
-                <Textarea 
-                  className="font-mono text-xs h-[500px] overflow-auto"
-                  value={getKeysAsRawJson()}
-                  readOnly
-                />
-                <Button 
-                  variant="outline" 
-                  className="mt-2 w-full"
-                  onClick={() => copyToClipboard(getKeysAsRawJson())}
-                >
-                  {isCopied ? (
-                    <>
-                      <Check size={16} className="mr-1" />
-                      Αντιγράφηκε
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={16} className="mr-1" />
-                      Αντιγραφή JSON
-                    </>
-                  )}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </>
+              {filteredKeys.length === 0 ? (
+                <div className="text-center py-4">
+                  <p className="text-muted-foreground">Δεν βρέθηκαν κλειδιά που να ταιριάζουν με την αναζήτηση</p>
+                </div>
+              ) : (
+                filteredKeys.map((key, index) => (
+                  <KeyItem key={`key-${index}`} apiKey={key} />
+                ))
+              )}
+            </div>
+          </ScrollArea>
+          
+          <div className="flex justify-center gap-2">
+            <Button 
+              onClick={handleRecoverKeys}
+              variant="outline" 
+              className="gap-1"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Επανασάρωση
+            </Button>
+            <Button 
+              onClick={() => copyToClipboard(
+                JSON.stringify(recoveredKeys, null, 2),
+                "Όλα τα κλειδιά αντιγράφηκαν στο πρόχειρο!"
+              )}
+              className="gap-1"
+            >
+              <Copy className="h-4 w-4" />
+              Αντιγραφή Όλων
+            </Button>
+          </div>
+        </div>
+      )}
+      
+      {recoverySuccess && recoveredKeys.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <h3 className="text-xl font-medium mb-2">Δεν βρέθηκαν κλειδιά API</h3>
+          <p className="text-muted-foreground max-w-md mb-6">
+            Δεν βρέθηκαν αποθηκευμένα κλειδιά API στον περιηγητή σας.
+          </p>
+          <Button 
+            onClick={handleRecoverKeys} 
+            variant="outline"
+            className="gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Επανασάρωση
+          </Button>
+        </div>
       )}
     </div>
   );
+};
+
+interface KeyItemProps {
+  apiKey: ApiKey;
 }
+
+const KeyItem: React.FC<KeyItemProps> = ({ apiKey }) => {
+  const [revealed, setRevealed] = useState(false);
+  
+  const copyToClipboard = (text: string, message: string) => {
+    navigator.clipboard.writeText(text)
+      .then(() => toast.success(message))
+      .catch(() => toast.error("Αποτυχία αντιγραφής στο πρόχειρο"));
+  };
+  
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex flex-col space-y-2">
+          <div className="flex justify-between items-center">
+            <h4 className="font-medium text-sm">
+              {apiKey.name || 'Χωρίς Όνομα'}
+            </h4>
+            <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full capitalize">
+              {apiKey.service || 'unknown'}
+            </span>
+          </div>
+          
+          <div>
+            <div className="relative flex items-center">
+              <div className="bg-muted p-2 rounded-md text-sm font-mono w-full overflow-x-auto">
+                {revealed ? apiKey.key : '•'.repeat(Math.min(apiKey.key.length, 30))}
+              </div>
+              <div className="absolute right-1 flex gap-1">
+                <Button 
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7"
+                  onClick={() => setRevealed(!revealed)}
+                >
+                  <Key className="h-3.5 w-3.5" />
+                </Button>
+                <Button 
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7"
+                  onClick={() => copyToClipboard(apiKey.key, "Το κλειδί αντιγράφηκε στο πρόχειρο!")}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap justify-between text-xs text-muted-foreground">
+            <div>
+              {apiKey.createdAt && (
+                <span>
+                  Δημιουργήθηκε: {new Date(apiKey.createdAt).toLocaleDateString()}
+                </span>
+              )}
+            </div>
+            {apiKey.source && (
+              <div title={apiKey.source}>
+                Πηγή: {apiKey.source.length > 30 ? apiKey.source.substring(0, 30) + '...' : apiKey.source}
+              </div>
+            )}
+          </div>
+          
+          {apiKey.description && (
+            <div className="text-xs text-muted-foreground mt-1">
+              {apiKey.description}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
