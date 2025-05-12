@@ -75,6 +75,18 @@ export const DEFAULT_RECOMMENDED_APIS: RecommendedApi[] = [
       "Price quotes",
       "Liquidity info"
     ]
+  },
+  {
+    name: "Raydium API",
+    description: "Raydium DEX trading and liquidity API",
+    url: "https://docs.raydium.io/raydium/traders/trade-api",
+    features: [
+      "Token price info",
+      "Liquidity pools",
+      "Swap routes",
+      "Pair information"
+    ],
+    example: "https://api.raydium.io/v2/main/pairs"
   }
 ];
 
@@ -108,5 +120,8 @@ export const DEFAULT_API_SETTINGS: ApiSettings = {
   rpcUrl: "https://api.mainnet-beta.solana.com",
   customRpc: false,
   fallbackRpc: true,
-  rateLimit: 10
+  rateLimit: 10,
+  raydiumEnabled: true,
+  raydiumApiEndpoint: "https://api.raydium.io",
+  raydiumApiVersion: "v2"
 };

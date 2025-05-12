@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 
 // Υπηρεσία για αλληλεπίδραση με το Phantom API
@@ -86,9 +85,62 @@ export const jupiterService = {
   }
 };
 
+// Υπηρεσία για αλληλεπίδραση με το Raydium API
+export const raydiumService = {
+  getPairs: async () => {
+    try {
+      const response = await fetch("https://api.raydium.io/v2/main/pairs");
+      
+      if (!response.ok) {
+        throw new Error(`Raydium API error: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching Raydium pairs:", error);
+      toast.error("Failed to fetch Raydium trading pairs");
+      throw error;
+    }
+  },
+  
+  getTokens: async () => {
+    try {
+      const response = await fetch("https://api.raydium.io/v2/main/token-list");
+      
+      if (!response.ok) {
+        throw new Error(`Raydium API error: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching Raydium tokens:", error);
+      toast.error("Failed to fetch Raydium tokens list");
+      throw error;
+    }
+  },
+  
+  getPrices: async (mints: string[]) => {
+    try {
+      const mintsParam = mints.join(',');
+      const response = await fetch(`https://api.raydium.io/v2/main/price?mints=${mintsParam}`);
+      
+      if (!response.ok) {
+        throw new Error(`Raydium API error: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching Raydium prices:", error);
+      toast.error("Failed to fetch token prices from Raydium");
+      throw error;
+    }
+  }
+};
+
 // Εξάγουμε όλες τις υπηρεσίες
 export const apiServices = {
   phantom: phantomService,
   solscan: solscanService,
-  jupiter: jupiterService
+  jupiter: jupiterService,
+  raydium: raydiumService
 };

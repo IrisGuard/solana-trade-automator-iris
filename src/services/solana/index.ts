@@ -4,6 +4,7 @@ import { walletService } from './walletService';
 import { tokenService } from './tokenService';
 import { transactionService } from './transaction';
 import { apiServices } from './apiServices';
+import { raydiumService } from './raydiumService';
 
 // Combine all services into a single exported object
 export const solanaService = {
@@ -22,6 +23,8 @@ export const solanaService = {
   getRecentTransactions: transactionService.getRecentTransactions,
   
   // API Services
-  apis: apiServices
+  apis: apiServices,
+  
+  // Raydium Services
+  raydium: raydiumService
 };
-

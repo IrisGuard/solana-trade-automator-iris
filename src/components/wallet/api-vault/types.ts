@@ -25,4 +25,7 @@ export interface ApiSettings {
   customRpc: boolean;
   fallbackRpc: boolean;
   rateLimit: number;
+  raydiumEnabled?: boolean;
+  raydiumApiEndpoint?: string;
+  raydiumApiVersion?: string;
 }
