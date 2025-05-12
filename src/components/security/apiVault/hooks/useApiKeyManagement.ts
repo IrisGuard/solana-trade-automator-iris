@@ -4,14 +4,11 @@ import { useApiKeyOperations } from "./useApiKeyOperations";
 import { useApiKeyFilters } from "./useApiKeyFilters";
 import { useApiKeyVisibility } from "./useApiKeyVisibility";
 import { useApiKeyStorage } from "./useApiKeyStorage";
-import { demoKeys } from "../data/demoKeys";
 import { ApiKey } from "../types";
 import { toast } from "sonner";
 
 export function useApiKeyManagement() {
   const [initialKeys, setInitialKeys] = useState<ApiKey[]>([]);
-  const [useDemoKeysAsFallback, setUseDemoKeysAsFallback] = useState(true);
-  const [isTestingKeys, setIsTestingKeys] = useState(false);
   
   // Προσπάθεια ανάκτησης κλειδιών από το localStorage
   useEffect(() => {
@@ -23,20 +20,10 @@ export function useApiKeyManagement() {
         if (Array.isArray(parsedKeys) && parsedKeys.length > 0) {
           setInitialKeys(parsedKeys);
           console.log('Αρχική φόρτωση κλειδιών επιτυχής:', parsedKeys.length);
-        } else {
-          // Ενεργοποίηση demo keys ως fallback αν δεν βρεθούν έγκυρα κλειδιά
-          setUseDemoKeysAsFallback(true);
-          console.log('Μη έγκυρα αποθηκευμένα κλειδιά, χρήση fallback');
         }
       } catch (e) {
-        // Ενεργοποίηση demo keys ως fallback σε περίπτωση σφάλματος
-        setUseDemoKeysAsFallback(true);
         console.error('Σφάλμα αρχικής φόρτωσης κλειδιών:', e);
       }
-    } else {
-      // Ενεργοποίηση demo keys αν δεν υπάρχουν αποθηκευμένα κλειδιά
-      setUseDemoKeysAsFallback(true);
-      console.log('Δεν βρέθηκαν αποθηκευμένα κλειδιά, έτοιμο για fallback');
     }
   }, []);
 
@@ -64,14 +51,13 @@ export function useApiKeyManagement() {
   // Διαχείριση ορατότητας
   const { isKeyVisible, toggleKeyVisibility } = useApiKeyVisibility();
   
-  // Διαχείριση αποθήκευσης κλειδιών - με χρήση demo keys ως fallback μόνο αν είναι απαραίτητο
-  const { testKeyFunctionality } = useApiKeyStorage(apiKeys, setApiKeys, useDemoKeysAsFallback);
+  // Διαχείριση αποθήκευσης κλειδιών
+  const { testKeyFunctionality } = useApiKeyStorage(apiKeys, setApiKeys, false);
   
   // Έλεγχος λειτουργικότητας κλειδιών
   const checkKeysFunctionality = useCallback(async () => {
-    if (apiKeys.length === 0 || isTestingKeys) return;
+    if (apiKeys.length === 0) return;
     
-    setIsTestingKeys(true);
     toast.loading("Έλεγχος λειτουργικότητας κλειδιών...");
     
     try {
@@ -103,58 +89,14 @@ export function useApiKeyManagement() {
     } catch (error) {
       console.error("Σφάλμα κατά τον έλεγχο κλειδιών:", error);
       toast.error("Σφάλμα κατά τον έλεγχο κλειδιών");
-    } finally {
-      setIsTestingKeys(false);
     }
-  }, [apiKeys, isTestingKeys, setApiKeys, testKeyFunctionality]);
-  
-  // Εάν δεν υπάρχουν κλειδιά και έχει ενεργοποιηθεί το fallback, φορτώνουμε τα demo keys
-  useEffect(() => {
-    if (useDemoKeysAsFallback && apiKeys.length === 0) {
-      console.log('Φόρτωση demo κλειδιών ως fallback');
-      setApiKeys(demoKeys);
-    }
-  }, [useDemoKeysAsFallback, apiKeys.length, setApiKeys]);
+  }, [apiKeys, setApiKeys, testKeyFunctionality]);
 
-  // Προσθήκη των 26 κλειδιών επίδειξης κατά την αρχική φόρτωση
+  // Καθαρισμός αποθηκευμένων demo κλειδιών κατά την πρώτη φόρτωση
   useEffect(() => {
-    // Εκτελείται μόνο μία φορά κατά την αρχική φόρτωση
-    const demoKeysInjected = localStorage.getItem('demoKeysInjected');
-    
-    if (!demoKeysInjected) {
-      console.log('Προσθήκη 26 κλειδιών επίδειξης κατά την πρώτη φόρτωση');
-      
-      // Προσθέτουμε 26 παραδείγματα κλειδιών
-      const services = [
-        'binance', 'solana', 'ethereum', 'kraken', 'coinbase', 'metamask', 
-        'phantom', 'wallet', 'rpc', 'explorer', 'api', 'exchange'
-      ];
-      
-      const newKeys: ApiKey[] = [];
-      
-      // Δημιουργούμε ακριβώς 26 κλειδιά
-      for (let i = 0; i < 26; i++) {
-        const service = services[i % services.length];
-        const key = `demo${i+1}_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
-        
-        newKeys.push({
-          id: `demo-${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${i}`,
-          name: `${service.charAt(0).toUpperCase() + service.slice(1)} Demo Key ${i+1}`,
-          key: key,
-          service: service,
-          createdAt: new Date().toISOString(),
-          description: `Demo key for testing - ${service}`,
-          isWorking: Math.random() > 0.2, // 80% chance of working
-          status: Math.random() > 0.8 ? (Math.random() > 0.5 ? 'expired' : 'revoked') : 'active',
-          source: 'demo'
-        });
-      }
-      
-      localStorage.setItem('apiKeys', JSON.stringify(newKeys));
-      localStorage.setItem('demoKeysInjected', 'true');
-      setApiKeys(newKeys);
-    }
-  }, [setApiKeys]);
+    // Αφαίρεση δείκτη των demo κλειδιών
+    localStorage.removeItem('demoKeysInjected');
+  }, []);
   
   return {
     // Κατάσταση των κλειδιών
@@ -177,7 +119,6 @@ export function useApiKeyManagement() {
     updateKey,
     handleImport,
     checkKeysFunctionality,
-    isTestingKeys,
     
     // Βοηθητικές συναρτήσεις
     getFilteredKeys: () => filterKeys(apiKeys),

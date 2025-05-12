@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Database, Download } from "lucide-react";
+import { Download } from "lucide-react";
 
 export const KeyRecoveryView = () => {
   const [apiKeys, setApiKeys] = useState(() => {
@@ -58,13 +58,12 @@ export const KeyRecoveryView = () => {
       <Card>
         <CardContent className="p-6">
           <div className="flex flex-col items-center justify-center text-center space-y-4">
-            <Database className="h-12 w-12 text-primary" />
             <div className="space-y-2">
-              <h3 className="text-lg font-medium">Λειτουργικά Κλειδιά API</h3>
+              <h3 className="text-lg font-medium">Αποθηκευμένα Κλειδιά API</h3>
               <p className="text-muted-foreground">
                 {apiKeys.length > 0 
-                  ? `Βρέθηκαν ${apiKeys.length} λειτουργικά κλειδιά API` 
-                  : "Δεν βρέθηκαν λειτουργικά κλειδιά API"}
+                  ? `Βρέθηκαν ${apiKeys.length} αποθηκευμένα κλειδιά API` 
+                  : "Δεν βρέθηκαν αποθηκευμένα κλειδιά API"}
               </p>
             </div>
             

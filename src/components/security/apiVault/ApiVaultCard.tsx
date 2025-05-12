@@ -8,10 +8,10 @@ export const ApiVaultCard = () => {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Λειτουργικά Κλειδιά API</h2>
+          <h2 className="text-xl font-semibold">Κλειδιά API</h2>
         </div>
         <p className="text-muted-foreground text-sm">
-          Λειτουργικά κλειδιά API που έχουν αποθηκευτεί στη συσκευή σας.
+          Κλειδιά API που έχουν αποθηκευτεί στη συσκευή σας.
         </p>
       </CardHeader>
       <CardContent>

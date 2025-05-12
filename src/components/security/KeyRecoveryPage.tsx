@@ -11,7 +11,7 @@ export default function KeyRecoveryPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Λειτουργικά Κλειδιά API</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Κλειδιά API</h2>
         <Link to="/">
           <Button variant="outline" className="gap-1">
             <Home className="h-4 w-4" />
@@ -22,7 +22,7 @@ export default function KeyRecoveryPage() {
       
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle>Κλειδιά API</CardTitle>
+          <CardTitle>Αποθηκευμένα Κλειδιά</CardTitle>
         </CardHeader>
         <Separator />
         <CardContent className="pt-6">
