@@ -11,6 +11,16 @@ interface VaultActionsProps {
 }
 
 export function VaultActions({ isUnlocked, handleLockVault, handleExportKeys, handleImportKeys, handleUnlockVault }: VaultActionsProps) {
+  if (!isUnlocked) {
+    return (
+      <div className="flex justify-center pt-2">
+        <Button variant="outline" size="sm" onClick={handleUnlockVault}>
+          Unlock Vault
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="flex justify-between items-center">

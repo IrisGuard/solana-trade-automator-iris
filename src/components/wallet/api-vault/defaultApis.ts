@@ -33,7 +33,8 @@ export const DEFAULT_API_KEYS: ApiKey[] = [
     service: "Solana RPC",
     key: "demo-key-solana-mainnet",
     connected: true,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    status: "active"
   },
   {
     id: "2",
@@ -41,7 +42,8 @@ export const DEFAULT_API_KEYS: ApiKey[] = [
     service: "Helius API",
     key: "demo-key-helius",
     connected: false,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    status: "active"
   }
 ];
 
@@ -50,6 +52,7 @@ export const DEFAULT_API_SETTINGS: ApiSettings = {
   rpcEndpoint: "https://api.mainnet-beta.solana.com",
   apiEndpoint: "https://api.solana.fm/v1",
   websocketEndpoint: "wss://api.mainnet-beta.solana.com",
+  rpcUrl: "https://api.mainnet-beta.solana.com",
   customRpc: false,
   fallbackRpc: true,
   rateLimit: 10

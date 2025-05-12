@@ -20,7 +20,7 @@ export interface ApiSettings {
   apiEndpoint: string;
   websocketEndpoint: string;
   rpcUrl?: string;
-  customRpc?: boolean;
-  fallbackRpc?: boolean;
-  rateLimit?: number;
+  customRpc: boolean;
+  fallbackRpc: boolean;
+  rateLimit: number;
 }
