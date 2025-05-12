@@ -9,7 +9,7 @@ export class ApiEndpointManager {
   }
 
   // Προσθέτει το API key στο URL αν χρειάζεται
-  static getUrlWithApiKey(apiName: string, endpoint: string, paramName: string = 'api_key'): string {
+  static getUrlWithApiKey(apiName: keyof typeof API_KEYS, endpoint: string, paramName: string = 'api_key'): string {
     const apiKey = this.getApiKey(apiName);
     if (!apiKey) return endpoint;
     
@@ -19,7 +19,7 @@ export class ApiEndpointManager {
 
   // Επιστρέφει το API key με βάση το όνομα της υπηρεσίας
   static getApiKey(apiName: keyof typeof API_KEYS): string | null {
-    return API_KEYS[apiName as keyof typeof API_KEYS] || null;
+    return API_KEYS[apiName] || null;
   }
 
   // Δημιουργεί ένα πλήρες URL για κλήση API συνδυάζοντας το βασικό endpoint με ένα path
