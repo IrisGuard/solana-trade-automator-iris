@@ -1,9 +1,9 @@
 
 import React from "react";
-import { Accordion, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { TransactionDelaySettings } from "./TransactionDelaySettings";
-import { TransactionNotificationSettings } from "./TransactionNotificationSettings";
-import { GeographicRestrictionSettings } from "./GeographicRestrictionSettings";
+import { Accordion } from "@/components/ui/accordion";
+import { TransactionDelayItem } from "./settings/TransactionDelayItem";
+import { TransactionNotificationItem } from "./settings/TransactionNotificationItem";
+import { GeographicRestrictionItem } from "./settings/GeographicRestrictionItem";
 
 export function AdvancedSecuritySettings() {
   return (
@@ -11,20 +11,9 @@ export function AdvancedSecuritySettings() {
       <h3 className="font-medium">Προηγμένες Ρυθμίσεις Ασφαλείας</h3>
       
       <Accordion type="single" collapsible className="w-full">
-        <AccordionItem value="item-1">
-          <AccordionTrigger>Καθυστέρηση Συναλλαγών</AccordionTrigger>
-          <TransactionDelaySettings />
-        </AccordionItem>
-        
-        <AccordionItem value="item-2">
-          <AccordionTrigger>Ειδοποιήσεις Συναλλαγών</AccordionTrigger>
-          <TransactionNotificationSettings />
-        </AccordionItem>
-        
-        <AccordionItem value="item-3">
-          <AccordionTrigger>Γεωγραφικοί Περιορισμοί</AccordionTrigger>
-          <GeographicRestrictionSettings />
-        </AccordionItem>
+        <TransactionDelayItem />
+        <TransactionNotificationItem />
+        <GeographicRestrictionItem />
       </Accordion>
     </div>
   );

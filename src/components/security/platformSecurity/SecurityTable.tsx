@@ -3,13 +3,10 @@ import React from "react";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SecurityFeatureRow } from "./SecurityFeatureRow";
 import { Button } from "@/components/ui/button";
-
-interface SecuritySetting {
-  [key: string]: boolean;
-}
+import { SecuritySettings } from "./usePlatformSecurity";
 
 interface SecurityTableProps {
-  securitySettings: SecuritySetting;
+  securitySettings: SecuritySettings;
   handleToggle: (setting: string) => void;
   handleEnableAll: () => void;
   handleDisableAll: () => void;
