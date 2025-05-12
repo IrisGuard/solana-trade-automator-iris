@@ -32,17 +32,6 @@ export const COMMON_PASSWORDS = [
   '12345678',
   'letmein',
   '1234',
-  // Ελληνικοί συνήθεις κωδικοί
-  'κωδικός',
-  'κλειδί',
-  'θησαυροφυλάκιο',
-  'ασφαλές',
-  'μυστικό',
-  'γεια123',
-  'ελλάδα',
-  'παρακαλώ',
-  'ευχαριστώ',
-  'μάστερ',
 ];
 
 // Expanded list of potential storage keys to search for API keys
@@ -121,22 +110,6 @@ export const POTENTIAL_STORAGE_KEYS = [
   'preferences',
   'userPreferences',
   'appPreferences',
-  // Extended search keys
-  'walletData',
-  'apiData',
-  'stateSave',
-  'userKeys',
-  'keyBackups',
-  'oldKeys',
-  'keysList',
-  'keyCache',
-  'cachedKeys',
-  'apiKeyHistory',
-  'vaultData',
-  'keyData',
-  'lastKeys',
-  'tempKeys',
-  'storedKeys',
 ];
 
 // Helper function to normalize service names
@@ -171,30 +144,7 @@ export const normalizeServiceName = (service: string): string => {
   return serviceMap[service] || service;
 };
 
-// Αυτόματη ανάκτηση κλειδιών
+// Replace the old initializeAutoRecovery function with a simple no-op version
 export const initializeAutoRecovery = (): void => {
-  // Ελέγχουμε αν έχει γίνει ανάκτηση πρόσφατα για να αποφύγουμε τις συνεχείς επαναφορτώσεις
-  const lastCheckTime = localStorage.getItem('lastKeyRecoveryCheck');
-  const now = Date.now();
-  
-  if (!lastCheckTime || now - parseInt(lastCheckTime) > 86400000) { // 24 ώρες
-    console.log('Εκτέλεση αυτόματης ανάκτησης κλειδιών...');
-    
-    // Προγραμματίζουμε την ανάκτηση με μια μικρή καθυστέρηση
-    setTimeout(async () => {
-      try {
-        const { forceScanForKeys } = await import('./recoveryUtils');
-        const keysFound = await forceScanForKeys();
-        
-        if (keysFound > 0) {
-          console.log(`Βρέθηκαν και αποθηκεύτηκαν ${keysFound} κλειδιά αυτόματα`);
-        }
-        
-        // Καταγραφή του χρόνου τελευταίου ελέγχου
-        localStorage.setItem('lastKeyRecoveryCheck', now.toString());
-      } catch (e) {
-        console.error('Σφάλμα κατά την αυτόματη ανάκτηση:', e);
-      }
-    }, 3000);
-  }
+  console.log('Auto-recovery is disabled to prevent page reloads');
 };

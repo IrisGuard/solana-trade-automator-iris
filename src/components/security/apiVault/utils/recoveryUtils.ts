@@ -1,176 +1,237 @@
 
 import { ApiKey } from "../types";
+import { POTENTIAL_STORAGE_KEYS, COMMON_PASSWORDS, normalizeServiceName } from "./recoveryCore";
+import { tryDecryptWithCommonPasswords } from "./encryptionUtils";
 import { toast } from "sonner";
-import { 
-  POTENTIAL_STORAGE_KEYS, 
-  COMMON_PASSWORDS, 
-  initializeAutoRecovery 
-} from "./recoveryCore";
-import { 
-  searchAllLocalStorage, 
-  processStorageKey 
-} from "./storageScanner";
-import { diagnosticScanStorage, deepScanAllStorage, injectDemoKeys } from "./diagnosticUtils";
+import { searchAllLocalStorage, processStorageKey, forceScanLocalStorage } from "./storageScanner";
 
-// Enhanced function to recover keys from all possible storages
-export const recoverAllApiKeys = async (): Promise<{ 
-  recoveredKeys: ApiKey[], 
-  locations: { storageKey: string, count: number }[] 
-}> => {
-  const allRecoveredKeys: ApiKey[] = [];
-  const recoveryLocations: { storageKey: string, count: number }[] = [];
-  const processedKeys = new Set<string>(); // Track keys we've already processed
+// Function to forcibly scan all storage for API keys
+export function forceScanForKeys(): {
+  keys: ApiKey[]; 
+  locations: { storageKey: string; count: number }[]
+} {
+  const recoveredKeys: ApiKey[] = [];
+  const recoveryLocations: { storageKey: string; count: number }[] = [];
   
-  console.log(`Ξεκίνημα βαθιάς σάρωσης για κλειδιά API σε ${POTENTIAL_STORAGE_KEYS.length} πιθανές τοποθεσίες...`);
-  
-  // First scan all predefined storage locations
-  for (const storageKey of POTENTIAL_STORAGE_KEYS) {
-    const { keys, success } = processStorageKey(storageKey, processedKeys);
-    
-    if (success && keys.length > 0) {
-      console.log(`Ανακτήθηκαν ${keys.length} κλειδιά από ${storageKey}`);
-      allRecoveredKeys.push(...keys);
-      recoveryLocations.push({ storageKey, count: keys.length });
-    }
-  }
-  
-  // Look for other potential keys in unknown locations
-  const additionalLocations = diagnosticScanStorage();
-  
-  for (const location of additionalLocations) {
-    // Skip locations we've already checked
-    if (POTENTIAL_STORAGE_KEYS.includes(location.storageKey)) continue;
-    
-    const { keys, success } = processStorageKey(location.storageKey, processedKeys);
-    
-    if (success && keys.length > 0) {
-      console.log(`Ανακτήθηκαν ${keys.length} κλειδιά από ${location.storageKey}`);
-      allRecoveredKeys.push(...keys);
-      recoveryLocations.push({ storageKey: location.storageKey, count: keys.length });
-    }
-  }
-  
-  // Also try the brute force extraction of API key-like strings
-  const extractedKeys = searchAllLocalStorage();
-  if (extractedKeys.length > 0) {
-    console.log(`Βρέθηκαν ${extractedKeys.length} πιθανά κλειδιά API μέσω αναγνώρισης προτύπων`);
-    
-    // Filter out keys we've already processed
-    const uniqueExtractedKeys = extractedKeys.filter(key => !processedKeys.has(key.key));
-    
-    if (uniqueExtractedKeys.length > 0) {
-      allRecoveredKeys.push(...uniqueExtractedKeys);
-      recoveryLocations.push({ storageKey: 'pattern-extracted', count: uniqueExtractedKeys.length });
-    }
-  }
-  
-  // Try the deep scan method
   try {
-    const deepScanKeys = await deepScanAllStorage();
-    const uniqueDeepScanKeys = deepScanKeys.filter(key => !processedKeys.has(key.key));
+    // First try the direct method to recover stored keys
+    const allStorageKeys = searchAllLocalStorage();
     
-    if (uniqueDeepScanKeys.length > 0) {
-      console.log(`Βρέθηκαν ${uniqueDeepScanKeys.length} επιπλέον κλειδιά με βαθιά σάρωση`);
-      allRecoveredKeys.push(...uniqueDeepScanKeys);
-      recoveryLocations.push({ storageKey: 'deep-scan', count: uniqueDeepScanKeys.length });
+    // First check the dedicated API keys storage
+    if (allStorageKeys.includes('apiKeys')) {
+      const storedData = localStorage.getItem('apiKeys');
+      if (storedData) {
+        try {
+          // Try to parse as JSON
+          const parsed = JSON.parse(storedData);
+          if (Array.isArray(parsed)) {
+            recoveredKeys.push(...parsed);
+            recoveryLocations.push({ storageKey: 'apiKeys', count: parsed.length });
+            console.log(`Recovered ${parsed.length} keys directly from apiKeys storage`);
+          }
+        } catch (e) {
+          console.error('Error parsing apiKeys storage:', e);
+          
+          // Try to decrypt if parsing fails
+          const decrypted = tryDecryptWithCommonPasswords(storedData);
+          if (decrypted && Array.isArray(decrypted)) {
+            recoveredKeys.push(...decrypted);
+            recoveryLocations.push({ storageKey: 'apiKeys (encrypted)', count: decrypted.length });
+            console.log(`Recovered ${decrypted.length} keys from encrypted apiKeys storage`);
+          }
+        }
+      }
+    }
+    
+    // Scan all potential storage keys
+    for (const storageKey of POTENTIAL_STORAGE_KEYS) {
+      const storedData = localStorage.getItem(storageKey);
+      if (storedData) {
+        const extractedKeys = processStorageItem(storageKey, storedData);
+        if (extractedKeys.length > 0) {
+          recoveredKeys.push(...extractedKeys);
+          recoveryLocations.push({ storageKey, count: extractedKeys.length });
+        }
+      }
+    }
+    
+    // Scan all localStorage keys
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && !POTENTIAL_STORAGE_KEYS.includes(key) && key !== 'apiKeys') {
+        const data = localStorage.getItem(key);
+        if (data) {
+          const extractedKeys = processStorageItem(key, data);
+          if (extractedKeys.length > 0) {
+            recoveredKeys.push(...extractedKeys);
+            recoveryLocations.push({ storageKey: key, count: extractedKeys.length });
+          }
+        }
+      }
+    }
+    
+    // Deduplicate recovered keys
+    const uniqueKeys = deduplicateKeys(recoveredKeys);
+    
+    console.log(`Total recovered: ${uniqueKeys.length} unique keys from ${recoveryLocations.length} locations`);
+    
+    return {
+      keys: uniqueKeys,
+      locations: recoveryLocations
+    };
+  } catch (e) {
+    console.error('Error during force scan:', e);
+    return { keys: [], locations: [] };
+  }
+}
+
+// Function to recover all API keys from storage
+export function recoverAllApiKeys(): {
+  keys: ApiKey[]; 
+  locations: { storageKey: string; count: number }[]
+} {
+  const result = forceScanForKeys();
+  
+  if (result.keys.length > 0) {
+    toast.success(`Recovered ${result.keys.length} API keys from ${result.locations.length} locations`);
+  } else {
+    toast.info('No API keys found in storage');
+  }
+  
+  return result;
+}
+
+// Helper function to process a storage item
+function processStorageItem(storageKey: string, data: string): ApiKey[] {
+  const extractedKeys: ApiKey[] = [];
+  
+  try {
+    // First try to parse as JSON
+    try {
+      const parsed = JSON.parse(data);
+      const keys = extractKeysFromData(parsed, storageKey);
+      if (keys.length > 0) {
+        extractedKeys.push(...keys);
+      }
+    } catch (e) {
+      // Try to decrypt with common passwords if parsing fails
+      const decrypted = tryDecryptWithCommonPasswords(data);
+      if (decrypted) {
+        const keys = extractKeysFromData(decrypted, storageKey);
+        if (keys.length > 0) {
+          extractedKeys.push(...keys);
+        }
+      }
     }
   } catch (e) {
-    console.error('Σφάλμα κατά τη βαθιά σάρωση:', e);
+    console.error(`Error processing storage item ${storageKey}:`, e);
   }
   
-  // Remove duplicate keys (based on the key value)
-  const uniqueKeys: ApiKey[] = [];
-  const seenKeys = new Set<string>();
+  return extractedKeys;
+}
+
+// Helper function to extract API keys from parsed data
+function extractKeysFromData(data: any, source: string): ApiKey[] {
+  const extractedKeys: ApiKey[] = [];
   
-  for (const apiKey of allRecoveredKeys) {
-    if (!seenKeys.has(apiKey.key)) {
-      seenKeys.add(apiKey.key);
-      uniqueKeys.push(apiKey);
+  // Handle array of items
+  if (Array.isArray(data)) {
+    data.forEach(item => {
+      if (isValidApiKey(item)) {
+        extractedKeys.push(normalizeApiKey(item, source));
+      } else if (item && typeof item === 'object') {
+        // Check if there are nested keys in this object
+        const nestedKeys = extractKeysFromData(item, source);
+        extractedKeys.push(...nestedKeys);
+      }
+    });
+  }
+  // Handle object with key/value pairs
+  else if (data && typeof data === 'object') {
+    // Check if the object itself is an API key
+    if (isValidApiKey(data)) {
+      extractedKeys.push(normalizeApiKey(data, source));
+    }
+    // Check object properties for nested API keys
+    else {
+      for (const key in data) {
+        const value = data[key];
+        
+        if (Array.isArray(value)) {
+          // Recursive extraction from array
+          const nestedKeys = extractKeysFromData(value, source);
+          extractedKeys.push(...nestedKeys);
+        }
+        else if (value && typeof value === 'object') {
+          // Check if nested object is an API key
+          if (isValidApiKey(value)) {
+            extractedKeys.push(normalizeApiKey(value, source));
+          } else {
+            // Recursive extraction from nested object
+            const nestedKeys = extractKeysFromData(value, source);
+            extractedKeys.push(...nestedKeys);
+          }
+        }
+      }
     }
   }
   
-  console.log(`Συνολικά ανακτήθηκαν ${uniqueKeys.length} μοναδικά κλειδιά από ${recoveryLocations.length} τοποθεσίες`);
+  return extractedKeys;
+}
+
+// Check if an object is a valid API key
+function isValidApiKey(item: any): boolean {
+  if (!item || typeof item !== 'object') return false;
+  
+  // Standard format
+  if (item.name && item.key && item.service) return true;
+  
+  // Alternative formats
+  if (item.name && (item.apiKey || item.token || item.secret) && 
+     (item.service || item.provider || item.type)) return true;
+     
+  // Minimal format with name and some kind of key
+  if (item.name && (
+    item.key || item.apiKey || item.token || item.secret || 
+    item.accessToken || item.access_token
+  )) return true;
+  
+  return false;
+}
+
+// Normalize an API key to standard format
+function normalizeApiKey(item: any, source: string): ApiKey {
+  const key = item.key || item.apiKey || item.token || item.secret || 
+              item.accessToken || item.access_token;
+  const service = item.service || item.provider || item.type || 'unknown';
   
   return {
-    recoveredKeys: uniqueKeys,
-    locations: recoveryLocations
+    id: item.id || `recovery-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+    name: item.name,
+    key: key,
+    service: normalizeServiceName(service),
+    createdAt: item.createdAt || item.created_at || new Date().toISOString(),
+    connected: !!item.connected,
+    status: item.status || 'active',
+    source: source,
+    description: item.description
   };
-};
+}
 
-// Function to scan the contents of localStorage to recover API keys
-export const forceScanForKeys = async (): Promise<number> => {
-  const result = await recoverAllApiKeys();
+// Function to deduplicate API keys
+function deduplicateKeys(keys: ApiKey[]): ApiKey[] {
+  const uniqueKeys: ApiKey[] = [];
+  const keySet = new Set<string>();
   
-  if (result.recoveredKeys.length > 0) {
-    // Store recovered keys directly to localStorage to ensure they're found on next load
-    try {
-      const existingKeysStr = localStorage.getItem('apiKeys');
-      let existingKeys: ApiKey[] = [];
-      
-      if (existingKeysStr) {
-        try {
-          existingKeys = JSON.parse(existingKeysStr);
-        } catch (e) {
-          console.error('Σφάλμα ανάλυσης υπαρχόντων κλειδιών', e);
-        }
-      }
-      
-      const allKeys = [...existingKeys, ...result.recoveredKeys];
-      
-      // Remove duplicates
-      const uniqueKeys: ApiKey[] = [];
-      const seenKeys = new Set<string>();
-      
-      for (const key of allKeys) {
-        if (!seenKeys.has(key.key)) {
-          seenKeys.add(key.key);
-          uniqueKeys.push(key);
-        }
-      }
-      
-      localStorage.setItem('apiKeys', JSON.stringify(uniqueKeys));
-      console.log(`Αποθηκεύτηκαν ${uniqueKeys.length} κλειδιά στο localStorage`);
-      
-      return result.recoveredKeys.length;
-    } catch (e) {
-      console.error('Σφάλμα αποθήκευσης ανακτημένων κλειδιών', e);
+  for (const key of keys) {
+    // Create a unique signature for the key - just using the key itself is usually enough
+    const signature = key.key;
+    
+    if (!keySet.has(signature)) {
+      keySet.add(signature);
+      uniqueKeys.push(key);
     }
   }
   
-  return 0;
-};
-
-// Export for compatibility with existing code
-export { POTENTIAL_STORAGE_KEYS, COMMON_PASSWORDS, initializeAutoRecovery };
-
-// Βοηθητική συνάρτηση για μαζική επαναφορά δοκιμαστικών κλειδιών
-export const restoreDemoKeys = async () => {
-  try {
-    const demoKeys = injectDemoKeys(26);
-    console.log(`Επαναφέρθηκαν ${demoKeys.length} δοκιμαστικά κλειδιά`);
-    return demoKeys;
-  } catch (e) {
-    console.error('Σφάλμα επαναφοράς δοκιμαστικών κλειδιών:', e);
-    return [];
-  }
-};
-
-// Αυτόματη επαναφορά σε περίπτωση που δεν βρεθούν κλειδιά
-export const autoRestoreIfEmpty = async () => {
-  try {
-    const savedKeys = localStorage.getItem('apiKeys');
-    if (!savedKeys || JSON.parse(savedKeys).length === 0) {
-      console.log('Η κλειδοθήκη είναι κενή, προσπάθεια αυτόματης αποκατάστασης...');
-      const result = await recoverAllApiKeys();
-      
-      if (result.recoveredKeys.length > 0) {
-        localStorage.setItem('apiKeys', JSON.stringify(result.recoveredKeys));
-        console.log(`Αυτόματη αποκατάσταση ολοκληρώθηκε: ${result.recoveredKeys.length} κλειδιά`);
-      } else {
-        console.log('Δεν βρέθηκαν κλειδιά για αυτόματη αποκατάσταση');
-      }
-    }
-  } catch (e) {
-    console.error('Σφάλμα στην αυτόματη αποκατάσταση:', e);
-  }
-};
+  return uniqueKeys;
+}

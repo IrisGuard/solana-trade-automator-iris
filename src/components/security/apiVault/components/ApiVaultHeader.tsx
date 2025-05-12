@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Download, Upload, Plus, Key } from "lucide-react";
+import { Download, Upload, Plus, Key, Settings, Lock, Unlock } from "lucide-react";
 import { toast } from "sonner";
 
 interface ApiVaultHeaderProps {
@@ -9,13 +9,21 @@ interface ApiVaultHeaderProps {
   onImport: () => void;
   onExport: () => void;
   apiKeysCount: number;
+  onSettings?: () => void;
+  isLocked?: boolean;
+  onUnlock?: () => void;
+  onLock?: () => void;
 }
 
 export const ApiVaultHeader: React.FC<ApiVaultHeaderProps> = ({
   onAddKey,
   onImport,
   onExport,
-  apiKeysCount
+  apiKeysCount,
+  onSettings,
+  isLocked = false,
+  onUnlock,
+  onLock
 }) => {
   const handleExport = () => {
     if (apiKeysCount === 0) {
@@ -23,7 +31,6 @@ export const ApiVaultHeader: React.FC<ApiVaultHeaderProps> = ({
       return;
     }
     onExport();
-    toast.success("Τα κλειδιά εξήχθησαν επιτυχώς");
   };
 
   return (
@@ -33,30 +40,63 @@ export const ApiVaultHeader: React.FC<ApiVaultHeaderProps> = ({
         <h2 className="text-xl font-semibold">Κλειδιά API</h2>
       </div>
       <div className="flex gap-2">
-        <Button 
-          variant="outline" 
-          onClick={onImport}
-          className="gap-2"
-        >
-          <Upload className="h-4 w-4" />
-          Εισαγωγή
-        </Button>
-        <Button 
-          variant="outline" 
-          onClick={handleExport}
-          className="gap-2" 
-          disabled={apiKeysCount === 0}
-        >
-          <Download className="h-4 w-4" />
-          Εξαγωγή
-        </Button>
-        <Button 
-          onClick={onAddKey}
-          className="gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          Προσθήκη Κλειδιού
-        </Button>
+        {isLocked ? (
+          <Button 
+            variant="outline" 
+            onClick={onUnlock}
+            className="gap-2"
+          >
+            <Unlock className="h-4 w-4" />
+            Ξεκλείδωμα
+          </Button>
+        ) : (
+          <>
+            <Button 
+              variant="outline" 
+              onClick={onImport}
+              className="gap-2"
+            >
+              <Upload className="h-4 w-4" />
+              Εισαγωγή
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleExport}
+              className="gap-2" 
+              disabled={apiKeysCount === 0}
+            >
+              <Download className="h-4 w-4" />
+              Εξαγωγή
+            </Button>
+            {onSettings && (
+              <Button 
+                variant="outline" 
+                onClick={onSettings}
+                className="gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                Ρυθμίσεις
+              </Button>
+            )}
+            {onLock && (
+              <Button 
+                variant="outline" 
+                onClick={onLock}
+                className="gap-2"
+              >
+                <Lock className="h-4 w-4" />
+                Κλείδωμα
+              </Button>
+            )}
+            <Button 
+              onClick={onAddKey}
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Προσθήκη Κλειδιού
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );

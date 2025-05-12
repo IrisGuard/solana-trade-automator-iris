@@ -1,128 +1,95 @@
 
-import React, { useState } from "react";
-import { ApiKeyStatsPanel } from "./ApiKeyStatsPanel";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle, RefreshCw, Key } from "lucide-react";
-import { toast } from "sonner";
-import { recoverAllApiKeys, forceScanForKeys, restoreDemoKeys } from "../utils";
+import React from "react";
+import { Progress } from "@/components/ui/progress";
+import { ApiKeyStats as ApiKeyStatsType, ServiceInfo } from "../types";
+import { Card, CardContent } from "@/components/ui/card";
 
-interface StatsProps {
-  stats: {
-    total: number;
-    active: number;
-    expired: number;
-    revoked: number;
-    working?: number;
-    notWorking?: number;
-  };
-  services?: {
-    name: string;
-    count: number;
-  }[];
+interface ApiKeyStatsProps {
+  stats: ApiKeyStatsType;
+  services?: ServiceInfo[];
 }
 
-export const ApiKeyStats: React.FC<StatsProps> = ({ stats, services = [] }) => {
-  const [isRecovering, setIsRecovering] = useState(false);
-  
-  // Λειτουργία έκτακτης ανάκτησης κλειδιών
-  const handleEmergencyRecover = async () => {
-    try {
-      setIsRecovering(true);
-      toast.loading("Εκτελείται βαθιά σάρωση για την ανάκτηση χαμένων κλειδιών...");
-      
-      // Πρώτα δοκιμάζουμε την πιο προηγμένη μέθοδο ανάκτησης
-      const result = await recoverAllApiKeys();
-      
-      if (result.recoveredKeys.length > 0) {
-        // Αν βρήκαμε κλειδιά, τα αποθηκεύουμε στο localStorage
-        localStorage.setItem('apiKeys', JSON.stringify(result.recoveredKeys));
-        toast.success(`Ανακτήθηκαν ${result.recoveredKeys.length} κλειδιά! Κάντε επαναφόρτωση της σελίδας για να τα δείτε.`);
-      } else {
-        // Αν δεν βρήκαμε κλειδιά, δοκιμάζουμε μια πιο επιθετική μέθοδο
-        const numFound = await forceScanForKeys();
-        
-        if (numFound > 0) {
-          toast.success(`Ανακτήθηκαν ${numFound} κλειδιά με τη βαθιά σάρωση! Κάντε επαναφόρτωση της σελίδας.`);
-        } else {
-          toast.error("Δεν βρέθηκαν κλειδιά σε καμία τοποθεσία αποθήκευσης.");
-          
-          // Προσθέτουμε άμεση επιλογή για επαναφορά δοκιμαστικών κλειδιών
-          if (confirm("Θέλετε να προστεθούν 26 δοκιμαστικά κλειδιά για να συνεχίσετε;")) {
-            // Εισαγωγή δοκιμαστικών κλειδιών
-            const demoKeys = await restoreDemoKeys();
-            toast.success(`Προστέθηκαν ${demoKeys.length} δοκιμαστικά κλειδιά επιτυχώς.`);
-          }
-        }
-      }
-      
-      // Ανανεώνουμε τη σελίδα για να φορτωθούν τα ανακτημένα κλειδιά
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-      
-    } catch (error) {
-      console.error("Σφάλμα στην ανάκτηση:", error);
-      toast.error("Προέκυψε σφάλμα κατά την ανάκτηση κλειδιών.");
-      
-      // Εμφάνιση επιλογών αποκατάστασης σε περίπτωση σφάλματος
-      if (confirm("Επικοινωνία με την τεχνική υποστήριξη ή προσθήκη δοκιμαστικών κλειδιών;")) {
-        const demoKeys = await restoreDemoKeys();
-        toast.success(`Προστέθηκαν ${demoKeys.length} δοκιμαστικά κλειδιά.`);
-        setTimeout(() => window.location.reload(), 2000);
-      }
-    } finally {
-      setIsRecovering(false);
-      toast.dismiss();
-    }
-  };
+export const ApiKeyStats: React.FC<ApiKeyStatsProps> = ({ stats, services }) => {
+  const totalKeys = stats.total;
+  const activePercent = totalKeys > 0 ? (stats.active / totalKeys) * 100 : 0;
+  const expiredPercent = totalKeys > 0 ? (stats.expired / totalKeys) * 100 : 0;
+  const revokedPercent = totalKeys > 0 ? (stats.revoked / totalKeys) * 100 : 0;
 
   return (
-    <div className="space-y-4">
-      {stats.total === 0 && (
-        <div className="p-4 border border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-900 rounded-md flex gap-2">
-          <AlertTriangle className="h-5 w-5 text-yellow-500" />
-          <div className="text-sm">
-            <p className="font-medium">Δεν βρέθηκαν κλειδιά API</p>
-            <p className="text-muted-foreground mt-1">Τα κλειδιά σας μπορεί να έχουν χαθεί. Δοκιμάστε την έκτακτη ανάκτηση.</p>
-            <div className="flex gap-2 mt-2">
-              <Button 
-                size="sm" 
-                className="mt-2" 
-                variant="outline"
-                disabled={isRecovering}
-                onClick={handleEmergencyRecover}
-              >
-                {isRecovering ? (
-                  <>
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                    Ανάκτηση...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Έκτακτη Ανάκτηση Κλειδιών
-                  </>
-                )}
-              </Button>
-              <Button
-                size="sm"
-                className="mt-2"
-                variant="default"
-                onClick={async () => {
-                  const demoKeys = await restoreDemoKeys();
-                  toast.success(`Προστέθηκαν ${demoKeys.length} δοκιμαστικά κλειδιά.`);
-                  setTimeout(() => window.location.reload(), 1500);
-                }}
-              >
-                <Key className="mr-2 h-4 w-4" />
-                Προσθήκη 26 Δοκιμαστικών Κλειδιών
-              </Button>
+    <Card>
+      <CardContent className="p-6">
+        <h3 className="text-lg font-medium mb-4">Στατιστικά κλειδιών API</h3>
+        
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Συνολικά κλειδιά</span>
+              <span className="font-medium">{totalKeys}</span>
             </div>
           </div>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+                  Ενεργά
+                </span>
+                <span className="font-medium">{stats.active} ({activePercent.toFixed(0)}%)</span>
+              </div>
+              <Progress 
+                value={activePercent} 
+                className="h-2 bg-muted" 
+                indicatorColor="bg-green-500"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 mr-2"></span>
+                  Ληγμένα
+                </span>
+                <span className="font-medium">{stats.expired} ({expiredPercent.toFixed(0)}%)</span>
+              </div>
+              <Progress 
+                value={expiredPercent} 
+                className="h-2 bg-muted" 
+                indicatorColor="bg-amber-500"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-red-500 mr-2"></span>
+                  Ανακλημένα
+                </span>
+                <span className="font-medium">{stats.revoked} ({revokedPercent.toFixed(0)}%)</span>
+              </div>
+              <Progress 
+                value={revokedPercent} 
+                className="h-2 bg-muted" 
+                indicatorColor="bg-red-500"
+              />
+            </div>
+          </div>
+          
+          {services && services.length > 0 && (
+            <div className="pt-4 border-t">
+              <h4 className="text-sm font-medium mb-3">Κατανομή υπηρεσιών</h4>
+              <div className="space-y-2">
+                {services.map((service, index) => (
+                  <div key={index} className="flex justify-between text-sm">
+                    <span>{service.name}</span>
+                    <span className="font-medium">{service.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      )}
-
-      <ApiKeyStatsPanel stats={stats} services={services} />
-    </div>
+      </CardContent>
+    </Card>
   );
 };
