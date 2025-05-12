@@ -1,8 +1,8 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ShieldAlert, FilePlus2, Database, KeyRound } from "lucide-react";
-import { injectDemoKeys } from "./utils";
+import { Plus, Search, Download } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface EmptyVaultStateProps {
   onAddKeyClick: () => void;
@@ -11,42 +11,37 @@ interface EmptyVaultStateProps {
 
 export const EmptyVaultState: React.FC<EmptyVaultStateProps> = ({ 
   onAddKeyClick,
-  onRecoverClick
+  onRecoverClick 
 }) => {
-  // Άμεση ανάκτηση των 26 κλειδιών επίδειξης
-  const handleRestoreDemoKeys = () => {
-    injectDemoKeys(26);
-  };
-
   return (
-    <div className="flex flex-col items-center justify-center p-8 text-center">
-      <div className="flex items-center justify-center w-16 h-16 mb-4 rounded-full bg-muted">
-        <ShieldAlert className="w-8 h-8 text-muted-foreground" />
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="rounded-full bg-primary/10 p-6 mb-4">
+        <Plus className="h-8 w-8 text-primary" />
       </div>
-      
-      <h3 className="text-lg font-semibold mb-2">Το Vault είναι Άδειο</h3>
-      
+      <h3 className="text-xl font-medium mb-2">Η κλειδοθήκη API είναι άδεια</h3>
       <p className="text-muted-foreground max-w-md mb-6">
-        Προσθέστε τα κλειδιά API σας για να τα αποθηκεύσετε με ασφάλεια και να έχετε εύκολη πρόσβαση σε αυτά.
+        Δεν έχετε αποθηκευμένα κλειδιά API. Προσθέστε το πρώτο σας κλειδί για να ξεκινήσετε 
+        ή ανακτήστε κλειδιά από προηγούμενες αποθηκεύσεις.
       </p>
-      
-      <div className="flex flex-col gap-3 sm:flex-row">
+      <div className="flex flex-wrap gap-3 justify-center">
         <Button onClick={onAddKeyClick} className="gap-2">
-          <FilePlus2 className="w-4 h-4" />
-          <span>Προσθήκη Νέου Κλειδιού</span>
-        </Button>
-        
-        <Button onClick={handleRestoreDemoKeys} variant="secondary" className="gap-2">
-          <KeyRound className="w-4 h-4" />
-          <span>Επαναφορά 26 Κλειδιών Επίδειξης</span>
+          <Plus className="h-4 w-4" />
+          Προσθήκη Κλειδιού
         </Button>
         
         {onRecoverClick && (
-          <Button onClick={onRecoverClick} variant="outline" className="gap-2">
-            <Database className="w-4 h-4" />
-            <span>Ανάκτηση Κλειδιών</span>
+          <Button variant="outline" onClick={onRecoverClick} className="gap-2">
+            <Search className="h-4 w-4" />
+            Ανάκτηση Κλειδιών
           </Button>
         )}
+        
+        <Button variant="outline" className="gap-2" asChild>
+          <Link to="/key-recovery">
+            <Download className="h-4 w-4" />
+            Προχωρημένη Ανάκτηση
+          </Link>
+        </Button>
       </div>
     </div>
   );
