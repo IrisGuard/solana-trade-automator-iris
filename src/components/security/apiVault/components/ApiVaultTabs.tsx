@@ -6,21 +6,14 @@ import { RefreshCw } from "lucide-react";
 import { ApiKeyStats } from "./ApiKeyStats";
 import { ServiceStats } from "./ServiceStats";
 import { ApiVaultContent } from "../ApiVaultContent";
-import { ServiceInfo } from "../types";
+import { ApiKey, ApiKeyStats as ApiKeyStatsType, ServiceInfo } from "../types";
 
 interface ApiVaultTabsProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  apiKeys: any[];
+  apiKeys: ApiKey[];
   isLocked: boolean;
-  keyStats: {
-    total: number;
-    active: number;
-    expired: number;
-    revoked: number;
-    working?: number;
-    notWorking?: number;
-  };
+  keyStats: ApiKeyStatsType;
   services: ServiceInfo[];
   isTestingKeys: boolean;
   handleRefreshKeys: () => void;
@@ -31,8 +24,8 @@ interface ApiVaultTabsProps {
   isKeyVisible: Record<string, boolean>;
   toggleKeyVisibility: (id: string) => void;
   deleteKey: (id: string) => void;
-  getFilteredKeys: () => any[];
-  getKeysByService: () => Record<string, any[]>;
+  getFilteredKeys: () => ApiKey[];
+  getKeysByService: () => Record<string, ApiKey[]>;
   onAddKeyClick: () => void;
   onUnlockClick: () => void;
   handleRecoverClick: () => void;

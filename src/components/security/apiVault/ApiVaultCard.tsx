@@ -127,13 +127,13 @@ export const ApiVaultCard = () => {
       }
       
       // Add missing properties
-      const newKeys = validKeys.map((key: any) => ({
+      const newKeys: ApiKey[] = validKeys.map((key: any) => ({
         id: key.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         name: key.name,
         key: key.key,
         service: key.service,
         createdAt: key.createdAt || new Date().toISOString(),
-        status: 'active'
+        status: 'active' as 'active' | 'expired' | 'revoked'
       }));
       
       setApiKeys(prev => [...prev, ...newKeys]);

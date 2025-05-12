@@ -34,7 +34,6 @@ export function useApiKeyManagement() {
     addNewKey, 
     deleteKey, 
     handleImport, 
-    updateKeyStatus,
     updateKey 
   } = useApiKeyOperations(initialKeys);
   
@@ -54,44 +53,6 @@ export function useApiKeyManagement() {
   // Διαχείριση αποθήκευσης κλειδιών
   const { testKeyFunctionality } = useApiKeyStorage(apiKeys, setApiKeys, false);
   
-  // Έλεγχος λειτουργικότητας κλειδιών
-  const checkKeysFunctionality = useCallback(async () => {
-    if (apiKeys.length === 0) return;
-    
-    toast.loading("Έλεγχος λειτουργικότητας κλειδιών...");
-    
-    try {
-      const updatedKeys = [...apiKeys];
-      let workingCount = 0;
-      let nonWorkingCount = 0;
-      
-      for (let i = 0; i < updatedKeys.length; i++) {
-        const key = updatedKeys[i];
-        const isWorking = await testKeyFunctionality(key);
-        
-        if (key.isWorking !== isWorking) {
-          updatedKeys[i] = { ...key, isWorking };
-          if (isWorking) {
-            workingCount++;
-          } else {
-            nonWorkingCount++;
-          }
-        }
-      }
-      
-      setApiKeys(updatedKeys);
-      
-      if (workingCount > 0 || nonWorkingCount > 0) {
-        toast.success(`Έλεγχος ολοκληρώθηκε: ${workingCount} λειτουργικά, ${nonWorkingCount} μη λειτουργικά κλειδιά`);
-      } else {
-        toast.success("Έλεγχος κλειδιών ολοκληρώθηκε");
-      }
-    } catch (error) {
-      console.error("Σφάλμα κατά τον έλεγχο κλειδιών:", error);
-      toast.error("Σφάλμα κατά τον έλεγχο κλειδιών");
-    }
-  }, [apiKeys, setApiKeys, testKeyFunctionality]);
-
   // Καθαρισμός αποθηκευμένων demo κλειδιών κατά την πρώτη φόρτωση
   useEffect(() => {
     // Αφαίρεση δείκτη των demo κλειδιών
@@ -118,7 +79,6 @@ export function useApiKeyManagement() {
     deleteKey,
     updateKey,
     handleImport,
-    checkKeysFunctionality,
     
     // Βοηθητικές συναρτήσεις
     getFilteredKeys: () => filterKeys(apiKeys),

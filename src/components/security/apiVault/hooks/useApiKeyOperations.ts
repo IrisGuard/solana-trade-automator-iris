@@ -13,7 +13,6 @@ export function useApiKeyOperations(initialApiKeys: ApiKey[] = []) {
       ...newKey,
       id: newKey.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       createdAt: newKey.createdAt || new Date().toISOString(),
-      isWorking: typeof newKey.isWorking === 'boolean' ? newKey.isWorking : true,
       status: newKey.status || 'active'
     };
     
@@ -25,13 +24,6 @@ export function useApiKeyOperations(initialApiKeys: ApiKey[] = []) {
   const deleteKey = (id: string) => {
     setApiKeys(prev => prev.filter(key => key.id !== id));
     toast.success("Το κλειδί διαγράφηκε επιτυχώς");
-  };
-
-  // Ενημέρωση κατάστασης κλειδιού
-  const updateKeyStatus = (id: string, isWorking: boolean) => {
-    setApiKeys(prev => prev.map(key => 
-      key.id === id ? { ...key, isWorking } : key
-    ));
   };
 
   // Ενημέρωση κλειδιού
@@ -53,7 +45,6 @@ export function useApiKeyOperations(initialApiKeys: ApiKey[] = []) {
         ...key,
         id: key.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         createdAt: key.createdAt || new Date().toISOString(),
-        isWorking: typeof key.isWorking === 'boolean' ? key.isWorking : true,
         status: key.status || 'active'
       }));
     
@@ -76,7 +67,6 @@ export function useApiKeyOperations(initialApiKeys: ApiKey[] = []) {
     setApiKeys,
     addNewKey,
     deleteKey,
-    updateKeyStatus,
     updateKey,
     handleImport
   };

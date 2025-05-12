@@ -8,4 +8,21 @@ export interface ApiKey {
   description?: string;
   expires?: string;
   status?: 'active' | 'expired' | 'revoked';
+  isWorking?: boolean;
+  source?: string;
+}
+
+export interface ApiKeyStats {
+  total: number;
+  active: number;
+  expired: number;
+  revoked: number;
+  working?: number;
+  notWorking?: number;
+}
+
+export interface ServiceInfo {
+  name: string;
+  count: number;
+  workingCount: number;
 }

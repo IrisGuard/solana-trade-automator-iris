@@ -34,7 +34,6 @@ export function useApiKeyStorage(
               ...key,
               id: key.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
               createdAt: key.createdAt || new Date().toISOString(),
-              isWorking: typeof key.isWorking === 'boolean' ? key.isWorking : true,
               status: key.status || 'active'
             }));
           
@@ -69,9 +68,7 @@ export function useApiKeyStorage(
     // Απλή προσομοίωση ελέγχου - στην πραγματικότητα θα έπρεπε να γίνει κλήση στο API
     return new Promise((resolve) => {
       setTimeout(() => {
-        // Θεωρούμε τα κλειδιά λειτουργικά εκτός αν έχουν ήδη οριστεί ως μη λειτουργικά
-        const isWorking = key.isWorking !== false;
-        resolve(isWorking);
+        resolve(true); // Όλα τα κλειδιά θεωρούνται λειτουργικά
       }, 300);
     });
   };

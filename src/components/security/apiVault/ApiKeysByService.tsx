@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, 
   AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Copy, Eye, EyeOff, Trash, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { Copy, Eye, EyeOff, Trash } from "lucide-react";
 import { copyToClipboard, getServiceIcon, maskKey } from "./utils";
 
 interface ApiKeysByServiceProps {
@@ -55,21 +55,6 @@ export const ApiKeysByService = ({
                     {apiKey.status === "revoked" && (
                       <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
                         Ανακληθέν
-                      </Badge>
-                    )}
-                    {apiKey.isWorking === false && (
-                      <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300 flex items-center gap-1">
-                        <XCircle className="h-3 w-3" /> Μη λειτουργικό
-                      </Badge>
-                    )}
-                    {apiKey.isWorking === true && (
-                      <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 flex items-center gap-1">
-                        <CheckCircle2 className="h-3 w-3" /> Λειτουργικό
-                      </Badge>
-                    )}
-                    {apiKey.isWorking === undefined && (
-                      <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-300 flex items-center gap-1">
-                        <AlertCircle className="h-3 w-3" /> Άγνωστη κατάσταση
                       </Badge>
                     )}
                   </div>
