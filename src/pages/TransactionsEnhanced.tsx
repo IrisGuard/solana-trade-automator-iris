@@ -34,13 +34,13 @@ export default function TransactionsEnhanced() {
     // Date filtering
     let withinDateRange = true;
     if (startDate) {
-      const txDate = new Date(tx.date);
+      const txDate = new Date(tx.timestamp); // Changed from tx.date to tx.timestamp
       const start = new Date(startDate);
       start.setHours(0, 0, 0, 0);
       withinDateRange = withinDateRange && txDate >= start;
     }
     if (endDate) {
-      const txDate = new Date(tx.date);
+      const txDate = new Date(tx.timestamp); // Changed from tx.date to tx.timestamp
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
       withinDateRange = withinDateRange && txDate <= end;
