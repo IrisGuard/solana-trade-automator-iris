@@ -1,19 +1,11 @@
+
 import React, { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useApiVault } from "./hooks/useApiVault";
 import { ApiVaultHeader } from "./ApiVaultHeader";
-import { ApiVaultContent } from "./ApiVaultContent";
-import { NewApiKeyDialog } from "./NewApiKeyDialog";
-import { ImportDialog } from "./ImportDialog";
-import { ExportSheet } from "./ExportSheet";
-import { SecuritySettingsDialog } from "./SecuritySettingsDialog";
-import { UnlockDialog } from "./UnlockDialog";
-import { RecoveryDialog } from "./RecoveryDialog";
-import { ApiKeyStats } from "./components/ApiKeyStats";
-import { ServiceStats } from "./components/ServiceStats";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { AlertCircle, Database, RefreshCw } from "lucide-react";
+import { ApiVaultDescription } from "./components/ApiVaultDescription";
+import { ApiVaultTabs } from "./components/ApiVaultTabs";
+import { ApiVaultDialogs } from "./components/ApiVaultDialogs";
 import { toast } from "sonner";
 
 export const ApiVaultCard = () => {
@@ -119,136 +111,66 @@ export const ApiVaultCard = () => {
           onAddKey={() => setShowDialogApiKey(true)}
           onUnlock={() => setIsUnlocking(true)}
         />
-        <CardDescription className="flex justify-between items-center flex-wrap gap-2">
-          <span>Διαχειριστείτε τα κλειδιά API σας με ασφάλεια</span>
-          <div className="flex gap-2 flex-wrap">
-            {!isLocked && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleRecoverClick}
-                disabled={isRecovering}
-                className="flex items-center gap-1"
-              >
-                <Database className={`h-4 w-4 ${isRecovering ? 'animate-pulse' : ''}`} />
-                <span>Ανάκτηση κλειδιών</span>
-                <AlertCircle className="h-3 w-3 text-amber-500" />
-              </Button>
-            )}
-            {!isLocked && apiKeys.length > 0 && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleRefreshKeys}
-                disabled={isTestingKeys}
-              >
-                <RefreshCw className={`h-4 w-4 mr-1 ${isTestingKeys ? 'animate-spin' : ''}`} />
-                Έλεγχος κλειδιών
-              </Button>
-            )}
-          </div>
-        </CardDescription>
+        <ApiVaultDescription 
+          isLocked={isLocked}
+          apiKeys={apiKeys}
+          isRecovering={isRecovering}
+          isTestingKeys={isTestingKeys}
+          handleRecoverClick={handleRecoverClick}
+        />
       </CardHeader>
       <CardContent>
-        {!isLocked && apiKeys.length > 0 && (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-            <TabsList className="grid grid-cols-3 mb-2">
-              <TabsTrigger value="keys">Κλειδιά API</TabsTrigger>
-              <TabsTrigger value="stats">Στατιστικά</TabsTrigger>
-              <TabsTrigger value="services">Υπηρεσίες</TabsTrigger>
-            </TabsList>
-            <TabsContent value="keys" className="space-y-4">
-              <ApiVaultContent 
-                isLocked={isLocked}
-                apiKeys={apiKeys}
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                filterService={filterService}
-                setFilterService={setFilterService}
-                isKeyVisible={isKeyVisible}
-                toggleKeyVisibility={toggleKeyVisibility}
-                deleteKey={deleteKey}
-                getFilteredKeys={getFilteredKeys}
-                getKeysByService={getKeysByService}
-                onAddKeyClick={() => setShowDialogApiKey(true)}
-                onUnlockClick={() => setIsUnlocking(true)}
-                onRecoverClick={handleRecoverClick}
-              />
-            </TabsContent>
-            <TabsContent value="stats">
-              <ApiKeyStats stats={keyStats} />
-            </TabsContent>
-            <TabsContent value="services">
-              <ServiceStats services={Object.values(services)} />
-            </TabsContent>
-          </Tabs>
-        )}
-        
-        {(isLocked || apiKeys.length === 0) && (
-          <ApiVaultContent 
-            isLocked={isLocked}
-            apiKeys={apiKeys}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            filterService={filterService}
-            setFilterService={setFilterService}
-            isKeyVisible={isKeyVisible}
-            toggleKeyVisibility={toggleKeyVisibility}
-            deleteKey={deleteKey}
-            getFilteredKeys={getFilteredKeys}
-            getKeysByService={getKeysByService}
-            onAddKeyClick={() => setShowDialogApiKey(true)}
-            onUnlockClick={() => setIsUnlocking(true)}
-            onRecoverClick={handleRecoverClick}
-          />
-        )}
-
-        {/* Dialogs and Sheets */}
-        <NewApiKeyDialog 
-          open={showDialogApiKey}
-          onOpenChange={setShowDialogApiKey}
-          addKey={addNewKey}
-        />
-
-        <ImportDialog 
-          open={showImportDialog}
-          onOpenChange={setShowImportDialog}
-          onImport={handleImport}
-        />
-
-        <ExportSheet 
-          open={showExportSheet}
-          onOpenChange={setShowExportSheet}
+        <ApiVaultTabs 
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
           apiKeys={apiKeys}
+          isLocked={isLocked}
+          keyStats={keyStats}
+          services={Object.values(services)}
+          isTestingKeys={isTestingKeys}
+          handleRefreshKeys={handleRefreshKeys}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          filterService={filterService}
+          setFilterService={setFilterService}
+          isKeyVisible={isKeyVisible}
+          toggleKeyVisibility={toggleKeyVisibility}
+          deleteKey={deleteKey}
+          getFilteredKeys={getFilteredKeys}
+          getKeysByService={getKeysByService}
+          onAddKeyClick={() => setShowDialogApiKey(true)}
+          onUnlockClick={() => setIsUnlocking(true)}
+          handleRecoverClick={handleRecoverClick}
         />
 
-        <SecuritySettingsDialog 
-          open={showSettingsDialog}
-          onOpenChange={setShowSettingsDialog}
+        <ApiVaultDialogs 
+          showDialogApiKey={showDialogApiKey}
+          setShowDialogApiKey={setShowDialogApiKey}
+          showImportDialog={showImportDialog}
+          setShowImportDialog={setShowImportDialog}
+          showExportSheet={showExportSheet}
+          setShowExportSheet={setShowExportSheet}
+          showSettingsDialog={showSettingsDialog}
+          setShowSettingsDialog={setShowSettingsDialog}
+          showRecoveryDialog={showRecoveryDialog}
+          setShowRecoveryDialog={setShowRecoveryDialog}
+          isUnlocking={isUnlocking}
+          setIsUnlocking={setIsUnlocking}
+          apiKeys={apiKeys}
+          addNewKey={addNewKey}
+          handleImport={handleImport}
+          handleUnlock={handleUnlock}
+          savedMasterPassword={savedMasterPassword}
           isEncryptionEnabled={isEncryptionEnabled}
           setIsEncryptionEnabled={setIsEncryptionEnabled}
-          savedMasterPassword={savedMasterPassword}
-          setSavedMasterPassword={setSavedMasterPassword}
           isAutoLockEnabled={isAutoLockEnabled}
           setIsAutoLockEnabled={setIsAutoLockEnabled}
           autoLockTimeout={autoLockTimeout}
           setAutoLockTimeout={setAutoLockTimeout}
-        />
-
-        <UnlockDialog 
-          open={isUnlocking}
-          onOpenChange={setIsUnlocking}
-          savedMasterPassword={savedMasterPassword}
-          onUnlock={handleUnlock}
-        />
-
-        <RecoveryDialog
-          open={showRecoveryDialog}
-          onOpenChange={setShowRecoveryDialog}
+          setSavedMasterPassword={setSavedMasterPassword}
           recoveredKeys={recoveredKeys}
-          locations={recoveryLocations}
-          onImport={handleRecoveredImport}
-          onClose={() => setShowRecoveryDialog(false)}
+          recoveryLocations={recoveryLocations}
+          handleRecoveredImport={handleRecoveredImport}
         />
       </CardContent>
     </Card>

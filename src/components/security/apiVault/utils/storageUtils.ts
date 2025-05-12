@@ -1,4 +1,3 @@
-
 import CryptoJS from "crypto-js";
 import { toast } from "sonner";
 import { ApiKey } from "../types";
@@ -275,7 +274,7 @@ export const loadKeysFromStorage = (
           parsedKeys = JSON.parse(savedKeys);
           console.log('Επιτυχής φόρτωση μη κρυπτογραφημένων κλειδιών');
         } catch (e) {
-          // Σε περίπτωση που το αποθηκευμένο είναι κρυπτογραφημένο αλλά δεν έχει ενεργοποιηθεί η κρυπτογράφηση
+          // Σε περίπτωση που το αποθηκευμένο είναι κρυπτογραφημένο αλ��ά δεν έχει ενεργοποιηθεί η κρυπτογράφηση
           console.log('Δοκιμή αποκρυπτογράφησης καθώς απέτυχε η φόρτωση ως μη κρυπτογραφημένα');
           if (savedMasterPassword) {
             try {
