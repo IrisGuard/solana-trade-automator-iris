@@ -21,6 +21,7 @@ interface ApiVaultContentProps {
   getKeysByService: () => Record<string, any[]>;
   onAddKeyClick: () => void;
   onUnlockClick: () => void;
+  onRecoverClick?: () => void;
 }
 
 export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
@@ -36,14 +37,15 @@ export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
   getFilteredKeys,
   getKeysByService,
   onAddKeyClick,
-  onUnlockClick
+  onUnlockClick,
+  onRecoverClick
 }) => {
   if (isLocked) {
     return <LockedVaultState onUnlockClick={onUnlockClick} />;
   }
 
   if (apiKeys.length === 0) {
-    return <EmptyVaultState onAddKeyClick={onAddKeyClick} />;
+    return <EmptyVaultState onAddKeyClick={onAddKeyClick} onRecoverClick={onRecoverClick} />;
   }
 
   return (

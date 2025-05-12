@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { useApiVault } from "./hooks/useApiVault";
@@ -9,11 +8,12 @@ import { ImportDialog } from "./ImportDialog";
 import { ExportSheet } from "./ExportSheet";
 import { SecuritySettingsDialog } from "./SecuritySettingsDialog";
 import { UnlockDialog } from "./UnlockDialog";
+import { RecoveryDialog } from "./RecoveryDialog";
 import { ApiKeyStats } from "./components/ApiKeyStats";
 import { ServiceStats } from "./components/ServiceStats";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { AlertCircle, Database, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export const ApiVaultCard = () => {
@@ -27,6 +27,8 @@ export const ApiVaultCard = () => {
     setShowExportSheet,
     showSettingsDialog,
     setShowSettingsDialog,
+    showRecoveryDialog,
+    setShowRecoveryDialog,
     isUnlocking,
     setIsUnlocking,
     isKeyVisible,
@@ -52,7 +54,12 @@ export const ApiVaultCard = () => {
     handleUnlock,
     handleLock,
     checkKeysFunctionality,
-    isTestingKeys
+    isTestingKeys,
+    recoverKeys,
+    isRecovering,
+    recoveredKeys,
+    recoveryLocations,
+    handleRecoveredImport
   } = useApiVault();
   
   const [activeTab, setActiveTab] = useState<string>("keys");
@@ -91,6 +98,14 @@ export const ApiVaultCard = () => {
     checkKeysFunctionality();
   };
 
+  const handleRecoverClick = () => {
+    if (isRecovering) {
+      toast.info("Ανάκτηση κλειδιών σε εξέλιξη, παρακαλώ περιμένετε...");
+      return;
+    }
+    recoverKeys();
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -104,20 +119,34 @@ export const ApiVaultCard = () => {
           onAddKey={() => setShowDialogApiKey(true)}
           onUnlock={() => setIsUnlocking(true)}
         />
-        <CardDescription className="flex justify-between items-center">
+        <CardDescription className="flex justify-between items-center flex-wrap gap-2">
           <span>Διαχειριστείτε τα κλειδιά API σας με ασφάλεια</span>
-          {!isLocked && apiKeys.length > 0 && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleRefreshKeys}
-              disabled={isTestingKeys}
-              className="ml-2"
-            >
-              <RefreshCw className={`h-4 w-4 mr-1 ${isTestingKeys ? 'animate-spin' : ''}`} />
-              Έλεγχος κλειδιών
-            </Button>
-          )}
+          <div className="flex gap-2 flex-wrap">
+            {!isLocked && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleRecoverClick}
+                disabled={isRecovering}
+                className="flex items-center gap-1"
+              >
+                <Database className={`h-4 w-4 ${isRecovering ? 'animate-pulse' : ''}`} />
+                <span>Ανάκτηση κλειδιών</span>
+                <AlertCircle className="h-3 w-3 text-amber-500" />
+              </Button>
+            )}
+            {!isLocked && apiKeys.length > 0 && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleRefreshKeys}
+                disabled={isTestingKeys}
+              >
+                <RefreshCw className={`h-4 w-4 mr-1 ${isTestingKeys ? 'animate-spin' : ''}`} />
+                Έλεγχος κλειδιών
+              </Button>
+            )}
+          </div>
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -143,6 +172,7 @@ export const ApiVaultCard = () => {
                 getKeysByService={getKeysByService}
                 onAddKeyClick={() => setShowDialogApiKey(true)}
                 onUnlockClick={() => setIsUnlocking(true)}
+                onRecoverClick={handleRecoverClick}
               />
             </TabsContent>
             <TabsContent value="stats">
@@ -169,6 +199,7 @@ export const ApiVaultCard = () => {
             getKeysByService={getKeysByService}
             onAddKeyClick={() => setShowDialogApiKey(true)}
             onUnlockClick={() => setIsUnlocking(true)}
+            onRecoverClick={handleRecoverClick}
           />
         )}
 
@@ -209,6 +240,15 @@ export const ApiVaultCard = () => {
           onOpenChange={setIsUnlocking}
           savedMasterPassword={savedMasterPassword}
           onUnlock={handleUnlock}
+        />
+
+        <RecoveryDialog
+          open={showRecoveryDialog}
+          onOpenChange={setShowRecoveryDialog}
+          recoveredKeys={recoveredKeys}
+          locations={recoveryLocations}
+          onImport={handleRecoveredImport}
+          onClose={() => setShowRecoveryDialog(false)}
         />
       </CardContent>
     </Card>

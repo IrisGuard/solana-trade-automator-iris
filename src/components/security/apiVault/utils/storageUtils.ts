@@ -28,7 +28,11 @@ export const diagnosticScanStorage = () => {
               parsed[0] && typeof parsed[0] === 'object' &&
               (parsed[0].key || parsed[0].apiKey || parsed[0].token || parsed[0].secret || parsed[0].value)) {
             console.log(`Πιθανά API κλειδιά βρέθηκαν στο localStorage[${key}], αριθμός: ${parsed.length}`);
-            apiKeyLikeItems.push({ storageKey: key, count: parsed.length });
+            apiKeyLikeItems.push({ 
+              storageKey: key, 
+              count: parsed.length,
+              sample: parsed.slice(0, 3),
+            });
             foundApiKeys = true;
           }
         } catch (e) {
@@ -47,6 +51,179 @@ export const diagnosticScanStorage = () => {
     console.log('Δεν βρέθηκαν πιθανά κλειδιά API στο localStorage');
     return [];
   }
+};
+
+// Νέα λειτουργία για ανάκτηση κλειδιών από όλες τις πιθανές αποθηκεύσεις
+export const recoverAllApiKeys = (): { 
+  recoveredKeys: ApiKey[], 
+  locations: { storageKey: string, count: number }[] 
+} => {
+  const allRecoveredKeys: ApiKey[] = [];
+  const recoveryLocations: { storageKey: string, count: number }[] = [];
+  
+  // Όλα τα πιθανά ονόματα κλειδιών αποθήκευσης
+  const potentialStorageKeys = [
+    'apiKeys',
+    'api-keys', 
+    'apikeyvault', 
+    'secure-api-keys',
+    'user-api-keys',
+    'walletApiKeys',
+    'applicationKeys',
+    'devKeys',
+    'serviceKeys',
+    'keys',
+    'apiTokens',
+    'credentials',
+    'secretKeys',
+    'serviceTokens',
+    'developerKeys',
+    'api_keys',
+    'externalKeys',
+    'platformIntegrations',
+    'integrationKeys',
+    'thirdPartyTokens'
+  ];
+
+  // Σάρωση όλων των αποθηκευτικών χώρων
+  for (const storageKey of potentialStorageKeys) {
+    const storedData = localStorage.getItem(storageKey);
+    if (!storedData) continue;
+    
+    try {
+      // Προσπάθεια ανάλυσης ως απλό JSON
+      let parsedData;
+      try {
+        parsedData = JSON.parse(storedData);
+      } catch (e) {
+        // Προσπάθεια αποκρυπτογράφησης με γνωστά κλειδιά και μετά ανάλυση
+        const commonPasswords = ['password', '123456', 'admin', 'master', 'apikey'];
+        let decryptedData = null;
+        
+        for (const pass of commonPasswords) {
+          try {
+            const decrypted = CryptoJS.AES.decrypt(storedData, pass).toString(CryptoJS.enc.Utf8);
+            if (decrypted && (decrypted.startsWith('[') || decrypted.startsWith('{'))) {
+              parsedData = JSON.parse(decrypted);
+              console.log(`Επιτυχής αποκρυπτογράφηση του ${storageKey} με κλειδί "${pass}"`);
+              break;
+            }
+          } catch (decryptError) {
+            // Απλά συνεχίζουμε στο επόμενο password
+          }
+        }
+        
+        if (!parsedData) {
+          console.log(`Αποτυχία ανάλυσης/αποκρυπτογράφησης του ${storageKey}`);
+          continue;
+        }
+      }
+      
+      if (!Array.isArray(parsedData)) {
+        console.log(`Το ${storageKey} δεν περιέχει πίνακα`);
+        continue;
+      }
+      
+      // Φιλτράρισμα και μετατροπή σε τυποποιημένη μορφή ApiKey
+      const validKeys = parsedData
+        .filter(item => item && typeof item === 'object')
+        .map(item => {
+          const keyValue = item.key || item.apiKey || item.token || item.secret || item.value || '';
+          const keyName = item.name || item.title || item.label || item.description || 'Ανακτημένο κλειδί';
+          const keyService = item.service || item.provider || item.platform || item.type || 'other';
+          
+          if (!keyValue || !keyName) return null;
+          
+          return {
+            id: item.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            name: keyName,
+            key: keyValue,
+            service: keyService,
+            createdAt: item.createdAt || item.created || new Date().toISOString(),
+            description: item.description || item.notes || '',
+            isWorking: typeof item.isWorking === 'boolean' ? item.isWorking : undefined,
+            status: item.status || 'active',
+            expires: item.expires || item.expiry || '',
+            source: storageKey // Προσθήκη πηγής ανάκτησης
+          };
+        })
+        .filter((key): key is ApiKey => key !== null);
+      
+      if (validKeys.length > 0) {
+        console.log(`Ανακτήθηκαν ${validKeys.length} κλειδιά από το ${storageKey}`);
+        allRecoveredKeys.push(...validKeys);
+        recoveryLocations.push({ storageKey, count: validKeys.length });
+      }
+    } catch (e) {
+      console.error(`Σφάλμα επεξεργασίας του ${storageKey}:`, e);
+    }
+  }
+  
+  // Αναζήτηση και για άλλα πιθανά κλειδιά σε άγνωστες τοποθεσίες
+  const additionalLocations = diagnosticScanStorage();
+  
+  for (const location of additionalLocations) {
+    // Προσπερνάμε τοποθεσίες που ήδη έχουμε ελέγξει
+    if (potentialStorageKeys.includes(location.storageKey)) continue;
+    
+    const storedData = localStorage.getItem(location.storageKey);
+    if (!storedData) continue;
+    
+    try {
+      const parsedData = JSON.parse(storedData);
+      if (!Array.isArray(parsedData)) continue;
+      
+      const validKeys = parsedData
+        .filter(item => item && typeof item === 'object')
+        .map(item => {
+          const keyValue = item.key || item.apiKey || item.token || item.secret || item.value || '';
+          const keyName = item.name || item.title || item.label || item.description || 'Ανακτημένο κλειδί';
+          const keyService = item.service || item.provider || item.platform || item.type || 'other';
+          
+          if (!keyValue || !keyName) return null;
+          
+          return {
+            id: item.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            name: keyName,
+            key: keyValue,
+            service: keyService,
+            createdAt: item.createdAt || item.created || new Date().toISOString(),
+            description: item.description || item.notes || '',
+            isWorking: typeof item.isWorking === 'boolean' ? item.isWorking : undefined,
+            status: item.status || 'active',
+            expires: item.expires || item.expiry || '',
+            source: location.storageKey
+          };
+        })
+        .filter((key): key is ApiKey => key !== null);
+      
+      if (validKeys.length > 0) {
+        console.log(`Ανακτήθηκαν ${validKeys.length} κλειδιά από το ${location.storageKey}`);
+        allRecoveredKeys.push(...validKeys);
+        recoveryLocations.push({ storageKey: location.storageKey, count: validKeys.length });
+      }
+    } catch (e) {
+      console.error(`Σφάλμα επεξεργασίας του ${location.storageKey}:`, e);
+    }
+  }
+  
+  // Αφαίρεση διπλότυπων κλειδιών (με βάση το key)
+  const uniqueKeys: ApiKey[] = [];
+  const seenKeys = new Set<string>();
+  
+  for (const apiKey of allRecoveredKeys) {
+    if (!seenKeys.has(apiKey.key)) {
+      seenKeys.add(apiKey.key);
+      uniqueKeys.push(apiKey);
+    }
+  }
+  
+  console.log(`Συνολικά ανακτήθηκαν ${uniqueKeys.length} μοναδικά κλειδιά από ${recoveryLocations.length} τοποθεσίες`);
+  
+  return {
+    recoveredKeys: uniqueKeys,
+    locations: recoveryLocations
+  };
 };
 
 // Load keys from localStorage
