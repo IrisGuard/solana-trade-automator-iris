@@ -19,7 +19,7 @@ export function PlatformGuide() {
       <section>
         <h3 className="text-lg font-semibold mb-2">Επισκόπηση Solana Trade Automator</h3>
         <p className="text-muted-foreground">
-          Το Solana Trade Automator είναι μια πλατφόρμα αυτοματοποίησης συναλλαγών στο δίκτυο Solana.
+          Το Solana Trade Automator είναι μια προηγμένη πλατφόρμα αυτοματοποίησης συναλλαγών στο δίκτυο Solana.
           Σας επιτρέπει να δημιουργείτε, να διαχειρίζεστε και να παρακολουθείτε αυτοματοποιημένα bots
           συναλλαγών, διατηρώντας παράλληλα ασφαλή τα API κλειδιά και τα κρυπτονομίσματά σας.
         </p>
@@ -161,19 +161,62 @@ export function PlatformGuide() {
       <Separator />
 
       <section>
-        <h3 className="text-lg font-semibold mb-2">API Vault</h3>
-        <p className="mb-4">
-          Το API Vault είναι ένα βασικό χαρακτηριστικό ασφαλείας που σας επιτρέπει να αποθηκεύετε με ασφάλεια και να διαχειρίζεστε κλειδιά API για διάφορες υπηρεσίες. 
+        <h3 className="text-lg font-semibold mb-2">Αναλυτική Λειτουργία Trading Bot</h3>
+        <p className="mb-4 text-sm">
+          Το κύριο Trading Bot της πλατφόρμας παρέχει προηγμένες δυνατότητες αυτοματοποιημένων συναλλαγών στο Solana blockchain.
         </p>
-        <div className="space-y-2">
-          <p className="text-sm"><strong>Κύρια χαρακτηριστικά:</strong></p>
+
+        <div className="space-y-4">
+          <div className="border rounded-lg p-4">
+            <h4 className="font-medium mb-2">Βασικές Λειτουργίες</h4>
+            <ul className="list-disc pl-5 text-sm space-y-1">
+              <li><span className="font-medium">Επιλογή Token:</span> Επιλέξτε από τα διαθέσιμα tokens για αυτοματοποιημένες συναλλαγές.</li>
+              <li><span className="font-medium">Ρύθμιση Ποσού Συναλλαγής:</span> Ορίστε το ποσό που θα χρησιμοποιεί το bot για κάθε συναλλαγή.</li>
+              <li><span className="font-medium">Stop Loss:</span> Αυτόματη πώληση όταν η τιμή πέσει κάτω από ένα καθορισμένο όριο.</li>
+              <li><span className="font-medium">Take Profit:</span> Αυτόματη πώληση όταν η τιμή φτάσει ένα καθορισμένο στόχο κέρδους.</li>
+              <li><span className="font-medium">Μέγιστος Αριθμός Συναλλαγών:</span> Ρυθμίστε ένα ανώτατο όριο συναλλαγών για το bot.</li>
+            </ul>
+          </div>
+
+          <div className="border rounded-lg p-4">
+            <h4 className="font-medium mb-2">Διαχείριση Bot</h4>
+            <ul className="list-disc pl-5 text-sm space-y-1">
+              <li><span className="font-medium">Εκκίνηση Bot:</span> Ενεργοποιεί το bot που θα παρακολουθεί τις τιμές και θα εκτελεί συναλλαγές.</li>
+              <li><span className="font-medium">Διακοπή Bot:</span> Απενεργοποιεί το bot και ακυρώνει όλες τις εκκρεμείς εντολές.</li>
+              <li><span className="font-medium">Παρακολούθηση Κατάστασης:</span> Προβολή της τρέχουσας κατάστασης του bot, των ενεργών εντολών, και των τιμών.</li>
+              <li><span className="font-medium">Ιστορικό Συναλλαγών Bot:</span> Παρακολούθηση όλων των συναλλαγών που έχει εκτελέσει το bot.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section>
+        <h3 className="text-lg font-semibold mb-2">Λειτουργία Maker Bot</h3>
+        <p className="mb-4 text-sm">
+          Το Maker Bot είναι ένα εξειδικευμένο bot που δημιουργεί και διαχειρίζεται εντολές στην αγορά για να παρέχει ρευστότητα και να επωφεληθεί από τα spreads.
+        </p>
+
+        <div className="border rounded-lg p-4 mb-4">
+          <h4 className="font-medium mb-2">Ρυθμίσεις Maker Bot</h4>
           <ul className="list-disc pl-5 text-sm space-y-1">
-            <li>Κρυπτογράφηση κλειδιών με βάση κωδικό πρόσβασης</li>
-            <li>Αυτόματη ανίχνευση ληγμένων ή άκυρων κλειδιών</li>
-            <li>Οργάνωση κλειδιών ανά υπηρεσία</li>
-            <li>Στατιστικά και αναφορές για τα αποθηκευμένα κλειδιά</li>
-            <li>Δυνατότητες εισαγωγής και εξαγωγής</li>
-            <li>Επαναφορά κλειδιών από διάφορες πηγές</li>
+            <li><span className="font-medium">Προσομοίωση:</span> Δοκιμάστε το bot σε περιβάλλον προσομοίωσης χωρίς πραγματικά κεφάλαια.</li>
+            <li><span className="font-medium">Αριθμός Makers:</span> Ορίστε πόσους makers θα χρησιμοποιεί το bot ταυτόχρονα.</li>
+            <li><span className="font-medium">Καθυστέρηση:</span> Ρυθμίστε την ελάχιστη και μέγιστη καθυστέρηση μεταξύ των συναλλαγών.</li>
+            <li><span className="font-medium">Ποσά Συναλλαγών:</span> Καθορίστε τα ποσά tokens και SOL που θα χρησιμοποιούνται σε κάθε συναλλαγή.</li>
+            <li><span className="font-medium">Επιλογή DEX:</span> Επιλέξτε το αποκεντρωμένο χρηματιστήριο για τις συναλλαγές.</li>
+          </ul>
+        </div>
+
+        <div className="border rounded-lg p-4">
+          <h4 className="font-medium mb-2">Price Boost</h4>
+          <p className="text-sm mb-2">
+            Η λειτουργία Price Boost επιτρέπει στοχευμένες αγορές για να αυξηθεί η τιμή του token.
+          </p>
+          <ul className="list-disc pl-5 text-sm space-y-1">
+            <li><span className="font-medium">Ποσοστό Αύξησης:</span> Ορίστε το επιθυμητό ποσοστό αύξησης της τιμής.</li>
+            <li><span className="font-medium">Εκτέλεση Boost:</span> Ενεργοποιήστε την αύξηση της τιμής με το πάτημα ενός κουμπιού.</li>
           </ul>
         </div>
       </section>
@@ -181,19 +224,19 @@ export function PlatformGuide() {
       <Separator />
 
       <section>
-        <h3 className="text-lg font-semibold mb-2">Trading Bot</h3>
-        <p className="mb-4">
-          Το trading bot σας επιτρέπει να αυτοματοποιήσετε τις στρατηγικές συναλλαγών σας στο Solana blockchain.
+        <h3 className="text-lg font-semibold mb-2">API Vault</h3>
+        <p className="mb-4 text-sm">
+          Το API Vault είναι ένα βασικό χαρακτηριστικό ασφαλείας που σας επιτρέπει να αποθηκεύετε με ασφάλεια και να διαχειρίζεστε κλειδιά API για διάφορες υπηρεσίες. 
         </p>
         <div className="space-y-2">
-          <p className="text-sm"><strong>Δυνατότητες:</strong></p>
+          <h4 className="font-medium text-sm">Κύρια χαρακτηριστικά:</h4>
           <ul className="list-disc pl-5 text-sm space-y-1">
-            <li>Προσαρμόσιμες στρατηγικές συναλλαγών</li>
-            <li>Ρύθμιση παραμέτρων όπως ποσά συναλλαγών και ζεύγη νομισμάτων</li>
-            <li>Προσομοίωση για δοκιμή στρατηγικών</li>
-            <li>Αναλύσεις απόδοσης και αναφορές</li>
-            <li>Προγραμματισμένες συναλλαγές</li>
-            <li>Πολλαπλά bots με διαφορετικές στρατηγικές</li>
+            <li><span className="font-medium">Κρυπτογράφηση:</span> Τα κλειδιά κρυπτογραφούνται με βάση τον κύριο κωδικό πρόσβασης για μέγιστη ασφάλεια.</li>
+            <li><span className="font-medium">Αυτόματο Κλείδωμα:</span> Το vault κλειδώνεται αυτόματα μετά από περίοδο αδράνειας.</li>
+            <li><span className="font-medium">Διαχείριση Κλειδιών:</span> Προσθήκη, επεξεργασία, διαγραφή και οργάνωση κλειδιών.</li>
+            <li><span className="font-medium">Σύνδεση API:</span> Σύνδεση και αποσύνδεση κλειδιών για χρήση στην πλατφόρμα.</li>
+            <li><span className="font-medium">Εισαγωγή/Εξαγωγή:</span> Δυνατότητες εισαγωγής και εξαγωγής κλειδιών με ασφάλεια.</li>
+            <li><span className="font-medium">Ρυθμίσεις Σύνδεσης:</span> Προσαρμογή των ρυθμίσεων RPC και API endpoints.</li>
           </ul>
         </div>
       </section>

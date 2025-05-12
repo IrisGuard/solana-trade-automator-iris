@@ -24,35 +24,72 @@ export function HelpSearch() {
 
     // Προσομοίωση καθυστέρησης αναζήτησης
     setTimeout(() => {
-      // Προσομοιώνουμε κάποια αποτελέσματα αναζήτησης
+      // Προσομοιώνουμε αναλυτικά αποτελέσματα αναζήτησης βάσει της πλατφόρμας
       const dummyResults: SearchResult[] = [
         {
           title: "Σύνδεση πορτοφολιού Phantom",
-          description: "Οδηγίες για τη σύνδεση του πορτοφολιού Phantom στην πλατφόρμα.",
+          description: "Οδηγίες για τη σύνδεση του πορτοφολιού Phantom στην πλατφόρμα Solana Trade Automator.",
           category: "Wallet",
           relevance: 0.95
         },
         {
-          title: "Προσθήκη API κλειδιού",
-          description: "Διαδικασία προσθήκης νέου API κλειδιού στο API Vault.",
+          title: "Ρύθμιση Trading Bot",
+          description: "Αναλυτικές οδηγίες για τη ρύθμιση και παραμετροποίηση του αυτόματου trading bot.",
+          category: "Trading Bot",
+          relevance: 0.9
+        },
+        {
+          title: "Ρύθμιση Stop Loss και Take Profit",
+          description: "Πώς να ρυθμίσετε αυτόματα stop loss και take profit στο Solana Trade Automator.",
+          category: "Trading Bot",
+          relevance: 0.88
+        },
+        {
+          title: "API Vault Κρυπτογράφηση",
+          description: "Πληροφορίες για την κρυπτογράφηση και την ασφάλεια των κλειδιών API στο API Vault.",
           category: "Ασφάλεια",
           relevance: 0.85
         },
         {
-          title: "Ρύθμιση παραμέτρων του bot",
-          description: "Οδηγίες για τη ρύθμιση των παραμέτρων του trading bot.",
-          category: "Trading Bot",
+          title: "Προσομοίωση Maker Bot",
+          description: "Οδηγίες για τη χρήση της λειτουργίας προσομοίωσης του Maker Bot χωρίς πραγματικά κεφάλαια.",
+          category: "Maker Bot",
+          relevance: 0.82
+        },
+        {
+          title: "Price Boost Λειτουργία",
+          description: "Πώς να χρησιμοποιήσετε τη λειτουργία Price Boost για αύξηση της τιμής του token.",
+          category: "Maker Bot",
           relevance: 0.80
         },
         {
           title: "Προβολή ιστορικού συναλλαγών",
-          description: "Πώς να προβάλετε και να φιλτράρετε το ιστορικό συναλλαγών σας.",
+          description: "Πώς να προβάλετε, να φιλτράρετε και να αναλύσετε το ιστορικό συναλλαγών σας.",
           category: "Συναλλαγές",
           relevance: 0.75
+        },
+        {
+          title: "Two-Factor Authentication",
+          description: "Οδηγίες για την ενεργοποίηση και διαχείριση του Two-Factor Authentication για ασφάλεια λογαριασμού.",
+          category: "Ασφάλεια",
+          relevance: 0.73
+        },
+        {
+          title: "Διαχείριση Tokens",
+          description: "Πώς να προβάλετε και να διαχειριστείτε τα tokens στο πορτοφόλι σας.",
+          category: "Tokens",
+          relevance: 0.70
+        },
+        {
+          title: "Εξαγωγή και Εισαγωγή API Κλειδιών",
+          description: "Αναλυτικές οδηγίες για την ασφαλή εξαγωγή και εισαγωγή API κλειδιών στο API Vault.",
+          category: "Ασφάλεια",
+          relevance: 0.68
         }
       ].filter(item => 
         item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        item.description.toLowerCase().includes(searchQuery.toLowerCase())
+        item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.category.toLowerCase().includes(searchQuery.toLowerCase())
       );
 
       setResults(dummyResults);
