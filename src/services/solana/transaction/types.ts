@@ -1,15 +1,15 @@
 
-import { ParsedInstruction, PartiallyDecodedInstruction, PublicKey } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 
-// Interfact για το transaction message με account keys
+// Διεπαφή για το transaction message με account keys
 export interface MessageWithAccountKeys {
-  accountKeys?: PublicKey[];
+  accountKeys?: Array<PublicKey | { pubkey: PublicKey; signer: boolean; writable: boolean; }>;
   getAccountKeys?: () => any;
-  instructions: (ParsedInstruction | PartiallyDecodedInstruction)[];
+  instructions: Array<ParsedInstructionType | PartiallyDecodedInstructionType>;
 }
 
 // Τύπος για parsed instruction
-export interface ParsedInstruction {
+export interface ParsedInstructionType {
   programId: PublicKey;
   program?: string;
   parsed: {
@@ -27,7 +27,7 @@ export interface ParsedInstruction {
 }
 
 // Τύπος για partially decoded instruction
-export interface PartiallyDecodedInstruction {
+export interface PartiallyDecodedInstructionType {
   programId: PublicKey;
   accounts: PublicKey[];
   data: string;

@@ -2,7 +2,7 @@
 import { ParsedTransactionWithMeta, PublicKey } from '@solana/web3.js';
 import { Transaction } from '@/types/wallet';
 import { determineTransactionType, formatSolAmount, hasGetAccountKeysMethod } from './utils';
-import { MessageWithAccountKeys, ParsedInstruction, PartiallyDecodedInstruction } from './types';
+import { MessageWithAccountKeys, ParsedInstructionType, PartiallyDecodedInstructionType } from './types';
 
 /**
  * Extract transaction data from a parsed transaction
@@ -22,13 +22,13 @@ export function parseTransaction(
   
   // Check if transaction has message and instructions
   if (tx.transaction?.message) {
-    const message: MessageWithAccountKeys = tx.transaction.message;
+    const message: any = tx.transaction.message;
     
     // Try to determine transaction type from instructions
     if (message.instructions && message.instructions.length > 0) {
       const mainInstruction = message.instructions[0];
       if ('programId' in mainInstruction) {
-        const programId = (mainInstruction as PartiallyDecodedInstruction).programId.toString();
+        const programId = (mainInstruction as PartiallyDecodedInstructionType).programId.toString();
         type = determineTransactionType(programId);
       }
     }
@@ -71,9 +71,19 @@ export function parseTransaction(
       }
     } else {
       // For legacy transactions
-      if (Array.isArray(message.accountKeys) && accountIndex < message.accountKeys.length) {
+      if (message.accountKeys && Array.isArray(message.accountKeys) && accountIndex < message.accountKeys.length) {
         try {
-          accountKey = message.accountKeys[accountIndex].toString();
+          // Handling both PublicKey objects and ParsedMessageAccount objects
+          const key = message.accountKeys[accountIndex];
+          if (typeof key === 'object') {
+            if ('pubkey' in key) {
+              // It's a ParsedMessageAccount
+              accountKey = key.pubkey.toString();
+            } else if (typeof key.toString === 'function') {
+              // It's a PublicKey
+              accountKey = key.toString();
+            }
+          }
         } catch (err) {
           console.error('Error accessing account key from legacy transaction:', err);
         }

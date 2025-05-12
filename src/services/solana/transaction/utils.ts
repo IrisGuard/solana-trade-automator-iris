@@ -27,8 +27,8 @@ export function formatSolAmount(lamports: number): string {
 /**
  * Έλεγχος αν το αντικείμενο message έχει μέθοδο getAccountKeys
  */
-export function hasGetAccountKeysMethod(message: MessageWithAccountKeys): message is { getAccountKeys: () => any } {
-  return message && typeof (message as any).getAccountKeys === 'function';
+export function hasGetAccountKeysMethod(message: any): message is { getAccountKeys: () => any } {
+  return message && typeof message.getAccountKeys === 'function';
 }
 
 /**
