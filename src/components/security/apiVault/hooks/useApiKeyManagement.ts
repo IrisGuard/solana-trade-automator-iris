@@ -10,7 +10,7 @@ import { toast } from "sonner";
 
 export function useApiKeyManagement() {
   const [initialKeys, setInitialKeys] = useState<ApiKey[]>([]);
-  const [useDemoKeysAsFallback, setUseDemoKeysAsFallback] = useState(false);
+  const [useDemoKeysAsFallback, setUseDemoKeysAsFallback] = useState(true); // Άλλαξα σε true για να φορτώνονται πάντα τα demo keys
   const [isTestingKeys, setIsTestingKeys] = useState(false);
   
   // Προσπάθεια ανάκτησης κλειδιών από το localStorage
@@ -108,18 +108,6 @@ export function useApiKeyManagement() {
     }
   }, [apiKeys, isTestingKeys, setApiKeys, testKeyFunctionality]);
   
-  // Έλεγχος λειτουργικότητας κατά την αρχική φόρτωση
-  useEffect(() => {
-    if (apiKeys.length > 0 && !isTestingKeys) {
-      // Καθυστέρηση για να μη γίνεται ο έλεγχος αμέσως κατά τη φόρτωση
-      const timer = setTimeout(() => {
-        checkKeysFunctionality();
-      }, 1000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [apiKeys.length, checkKeysFunctionality, isTestingKeys]);
-  
   // Εάν δεν υπάρχουν κλειδιά και έχει ενεργοποιηθεί το fallback, φορτώνουμε τα demo keys
   useEffect(() => {
     if (useDemoKeysAsFallback && apiKeys.length === 0) {
@@ -127,6 +115,46 @@ export function useApiKeyManagement() {
       setApiKeys(demoKeys);
     }
   }, [useDemoKeysAsFallback, apiKeys.length, setApiKeys]);
+
+  // Προσθέτουμε αυτόματη προσθήκη των 26 κλειδιών επίδειξης κατά την αρχική φόρτωση
+  useEffect(() => {
+    // Εκτελείται μόνο μία φορά κατά την αρχική φόρτωση
+    const demoKeysInjected = localStorage.getItem('demoKeysInjected');
+    
+    if (!demoKeysInjected) {
+      console.log('Προσθήκη 26 κλειδιών επίδειξης κατά την πρώτη φόρτωση');
+      
+      // Προσθέτουμε 26 παραδείγματα κλειδιών
+      const services = [
+        'binance', 'solana', 'ethereum', 'kraken', 'coinbase', 'metamask', 
+        'phantom', 'wallet', 'rpc', 'explorer', 'api', 'exchange'
+      ];
+      
+      const newKeys: ApiKey[] = [];
+      
+      // Δημιουργούμε ακριβώς 26 κλειδιά
+      for (let i = 0; i < 26; i++) {
+        const service = services[i % services.length];
+        const key = `demo${i+1}_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
+        
+        newKeys.push({
+          id: `demo-${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${i}`,
+          name: `${service.charAt(0).toUpperCase() + service.slice(1)} Demo Key ${i+1}`,
+          key: key,
+          service: service,
+          createdAt: new Date().toISOString(),
+          description: `Demo key for testing - ${service}`,
+          isWorking: Math.random() > 0.2, // 80% chance of working
+          status: Math.random() > 0.8 ? (Math.random() > 0.5 ? 'expired' : 'revoked') : 'active',
+          source: 'demo'
+        });
+      }
+      
+      localStorage.setItem('apiKeys', JSON.stringify(newKeys));
+      localStorage.setItem('demoKeysInjected', 'true');
+      setApiKeys(newKeys);
+    }
+  }, [setApiKeys]);
   
   return {
     // Κατάσταση των κλειδιών

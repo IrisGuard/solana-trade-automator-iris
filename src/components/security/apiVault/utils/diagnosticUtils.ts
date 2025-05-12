@@ -177,10 +177,8 @@ export const injectDemoKeys = (count: number = 26): void => {
     toast.success(`Προστέθηκαν ${count} δοκιμαστικά κλειδιά για επίδειξη`);
     console.log(`Injected ${count} demo keys into localStorage`);
     
-    // Force reload to show the new keys
-    setTimeout(() => {
-      window.location.reload();
-    }, 1500);
+    // Reload the page to show the new keys
+    window.location.reload();
   } catch (e) {
     console.error('Error injecting demo keys', e);
     toast.error('Σφάλμα κατά την προσθήκη δοκιμαστικών κλειδιών');
