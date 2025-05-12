@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -19,21 +18,14 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import { ApiKeyStats, ServiceInfo } from "../types";
 
 interface StatsProps {
-  stats: {
-    total: number;
-    active: number;
-    expired: number;
-    revoked: number;
-  };
-  services: {
-    name: string;
-    count: number;
-  }[];
+  stats: ApiKeyStats;
+  services?: ServiceInfo[];
 }
 
-export const ApiKeyStatsPanel: React.FC<StatsProps> = ({ stats, services }) => {
+export const ApiKeyStatsPanel: React.FC<StatsProps> = ({ stats, services = [] }) => {
   // Sort services by count in descending order
   const sortedServices = [...services].sort((a, b) => b.count - a.count);
   

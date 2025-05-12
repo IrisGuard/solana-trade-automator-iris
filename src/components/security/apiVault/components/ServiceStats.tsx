@@ -3,12 +3,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getServiceIcon } from "../utils";
 import { Progress } from "@/components/ui/progress";
-
-interface ServiceInfo {
-  name: string;
-  count: number;
-  workingCount: number;
-}
+import { ServiceInfo } from "../types";
 
 interface ServiceStatsProps {
   services: ServiceInfo[];
@@ -17,7 +12,7 @@ interface ServiceStatsProps {
 export const ServiceStats: React.FC<ServiceStatsProps> = ({ services }) => {
   // Υπολογισμός συνολικών κλειδιών και λειτουργικών
   const totalKeys = services.reduce((sum, service) => sum + service.count, 0);
-  const totalWorkingKeys = services.reduce((sum, service) => sum + service.workingCount, 0);
+  const totalWorkingKeys = services.reduce((sum, service) => sum + (service.workingCount || 0), 0);
   
   // Ταξινόμηση υπηρεσιών με βάση τον αριθμό των κλειδιών
   const sortedServices = [...services].sort((a, b) => b.count - a.count);
@@ -49,7 +44,7 @@ export const ServiceStats: React.FC<ServiceStatsProps> = ({ services }) => {
       <div className="space-y-4">
         {sortedServices.map(service => {
           const workingPercentage = service.count > 0 
-            ? Math.round((service.workingCount / service.count) * 100) 
+            ? Math.round(((service.workingCount || 0) / service.count) * 100) 
             : 0;
             
           return (
@@ -68,7 +63,7 @@ export const ServiceStats: React.FC<ServiceStatsProps> = ({ services }) => {
                   <div>
                     <div className="text-sm text-muted-foreground">Λειτουργικά</div>
                     <div className="text-xl font-bold">
-                      {service.workingCount}
+                      {service.workingCount || 0}
                       <span className="text-sm font-normal ml-1">
                         ({workingPercentage}%)
                       </span>
