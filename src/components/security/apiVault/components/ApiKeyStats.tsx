@@ -1,14 +1,15 @@
 
 import React from "react";
 import { Progress } from "@/components/ui/progress";
-import { ApiKeyStats as ApiKeyStatsType } from "../types";
+import { ApiKeyStats as ApiKeyStatsType, ServiceInfo } from "../types";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface ApiKeyStatsProps {
   stats: ApiKeyStatsType;
+  services?: ServiceInfo[];
 }
 
-export const ApiKeyStats: React.FC<ApiKeyStatsProps> = ({ stats }) => {
+export const ApiKeyStats: React.FC<ApiKeyStatsProps> = ({ stats, services }) => {
   const totalKeys = stats.total;
   const activePercent = totalKeys > 0 ? (stats.active / totalKeys) * 100 : 0;
   const expiredPercent = totalKeys > 0 ? (stats.expired / totalKeys) * 100 : 0;
@@ -73,6 +74,20 @@ export const ApiKeyStats: React.FC<ApiKeyStatsProps> = ({ stats }) => {
               />
             </div>
           </div>
+          
+          {services && services.length > 0 && (
+            <div className="pt-4 border-t">
+              <h4 className="text-sm font-medium mb-3">Κατανομή υπηρεσιών</h4>
+              <div className="space-y-2">
+                {services.map((service, index) => (
+                  <div key={index} className="flex justify-between text-sm">
+                    <span>{service.name}</span>
+                    <span className="font-medium">{service.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
