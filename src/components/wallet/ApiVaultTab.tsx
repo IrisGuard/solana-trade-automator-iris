@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useState } from "react";
 import { TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Shield, Database, Key } from "lucide-react";
+import { Shield, Database, Key, ExternalLink } from "lucide-react";
 
 interface ApiKey {
   name: string;
@@ -45,6 +46,38 @@ export function ApiVaultTab({
   setApiSettings,
   handleSaveApiSettings
 }: ApiVaultTabProps) {
+  const [showApiDocs, setShowApiDocs] = useState<number | null>(null);
+  
+  // Συνδέσεις με τα έγγραφα API
+  const apiDocs = {
+    helius: "https://www.helius.dev/docs/api-reference/endpoints",
+    quicknode: "https://www.quicknode.com/docs/quicknode-sdk/Solana/Overview",
+    moralis: "https://docs.moralis.com/web3-data-api/solana"
+  };
+  
+  // Προσθήκη των νέων Solana API κλειδιών αν δεν υπάρχουν
+  const recommendedApis = [
+    {
+      name: "Helius API",
+      description: "Προηγμένα endpoints για Solana blockchain",
+      docLink: apiDocs.helius
+    },
+    {
+      name: "QuickNode SDK",
+      description: "Αξιόπιστη πρόσβαση στο Solana δίκτυο",
+      docLink: apiDocs.quicknode
+    },
+    {
+      name: "Moralis Solana",
+      description: "Προηγμένες λειτουργίες για Solana",
+      docLink: apiDocs.moralis
+    }
+  ];
+  
+  const openApiDocs = (url: string) => {
+    window.open(url, '_blank');
+  };
+
   return (
     <TabsContent value="api-vault" className="space-y-4">
       <Card>
@@ -113,6 +146,32 @@ export function ApiVaultTab({
                   Import Keys
                 </Button>
               </div>
+              
+              {apiKeys.length === 0 && (
+                <div className="mt-4 border-t pt-4">
+                  <h4 className="text-sm font-medium mb-2">Προτεινόμενα API για Solana</h4>
+                  <div className="space-y-2">
+                    {recommendedApis.map((api, index) => (
+                      <div key={index} className="p-3 border rounded-lg bg-muted/30">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h5 className="font-medium">{api.name}</h5>
+                            <p className="text-xs text-muted-foreground">{api.description}</p>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => openApiDocs(api.docLink)}
+                            title="Άνοιγμα τεκμηρίωσης"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </>
           )}
         </CardContent>
