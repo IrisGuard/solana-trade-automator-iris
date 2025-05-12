@@ -1,24 +1,38 @@
 
-import { transactionService } from '@/services/transactionService';
 import { Transaction } from '@/types/wallet';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Save transaction to Supabase 
+ * Αποθήκευση συναλλαγής στη βάση δεδομένων
  */
 export async function saveTransactionToDatabase(
   transaction: Transaction, 
   walletAddress: string, 
-  userId?: string
+  userId: string
 ): Promise<boolean> {
   try {
-    // Using the transaction service to save the transaction
-    if (userId) {
-      return await transactionService.saveTransactionToDatabase(transaction, walletAddress, userId);
+    const { error } = await supabase
+      .from('transactions')
+      .insert({
+        signature: transaction.signature,
+        wallet_address: walletAddress,
+        user_id: userId,
+        type: transaction.type,
+        status: transaction.status,
+        amount: transaction.amount || '',
+        source: transaction.from,
+        destination: transaction.to,
+        block_time: transaction.blockTime ? new Date(transaction.blockTime).toISOString() : new Date().toISOString()
+      });
+      
+    if (error) {
+      console.error('Error saving transaction to database:', error);
+      return false;
     }
-    console.log('Saving transaction to database failed: User ID is undefined');
-    return false;
-  } catch (error) {
-    console.error('Error saving transaction:', error);
+    
+    return true;
+  } catch (err) {
+    console.error('Exception when saving transaction:', err);
     return false;
   }
 }

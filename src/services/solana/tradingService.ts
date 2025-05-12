@@ -1,243 +1,197 @@
 
-import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { toast } from 'sonner';
 import { priceService } from './priceService';
-import { connection } from './config';
+import { MOCK_PRICES } from './config';
 
-// Interfaces for order types
-export interface OrderParams {
+export interface StopLossParams {
   tokenAddress: string;
-  amount: number;
-  walletAddress: string;
-}
-
-export interface StopLossParams extends OrderParams {
   triggerPrice: number;
+  amount: number;
+  walletAddress?: string;
 }
 
-export interface TakeProfitParams extends OrderParams {
+export interface TakeProfitParams {
+  tokenAddress: string;
   targetPrice: number;
+  amount: number;
+  walletAddress?: string;
 }
 
-// Map to store active orders
-const activeOrders: Record<string, {
-  id: string;
-  type: 'stop-loss' | 'take-profit';
+export interface OrderParams {
   tokenAddress: string;
   price: number;
   amount: number;
-  walletAddress: string;
-  intervalId: number;
-}> = {};
+  type: 'buy' | 'sell' | 'limit';
+  walletAddress?: string;
+}
 
-export const tradingService = {
-  /**
-   * Create a buy order for a token
-   */
-  createBuyOrder: async (params: OrderParams): Promise<string | null> => {
-    try {
-      // In a real implementation, this would interact with a DEX like Jupiter API
-      // For now, we'll just simulate a successful transaction
-      
-      toast.loading('Δημιουργία εντολής αγοράς...');
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const orderId = `buy-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      
-      toast.success(`Επιτυχής δημιουργία εντολής αγοράς ${params.amount} tokens`);
-      return orderId;
-    } catch (error) {
-      console.error('Error creating buy order:', error);
-      toast.error('Αποτυχία δημιουργίας εντολής αγοράς');
-      return null;
-    } finally {
-      toast.dismiss();
-    }
-  },
-  
-  /**
-   * Create a sell order for a token
-   */
-  createSellOrder: async (params: OrderParams): Promise<string | null> => {
-    try {
-      // In a real implementation, this would interact with a DEX like Jupiter API
-      // For now, we'll just simulate a successful transaction
-      
-      toast.loading('Δημιουργία εντολής πώλησης...');
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const orderId = `sell-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      
-      toast.success(`Επιτυχής δημιουργία εντολής πώλησης ${params.amount} tokens`);
-      return orderId;
-    } catch (error) {
-      console.error('Error creating sell order:', error);
-      toast.error('Αποτυχία δημιουργίας εντολής πώλησης');
-      return null;
-    } finally {
-      toast.dismiss();
-    }
-  },
-  
-  /**
-   * Set a stop-loss order for a token
-   * This will monitor the price and sell when it drops below the trigger price
-   */
-  setStopLoss: async (params: StopLossParams): Promise<string | null> => {
-    try {
-      const { tokenAddress, triggerPrice, amount, walletAddress } = params;
-      
-      // Create a unique ID for this stop-loss
-      const stopLossId = `sl-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      
-      // Set up price monitoring interval
-      const intervalId = window.setInterval(async () => {
-        try {
-          // Get current price
-          const priceData = await priceService.getTokenPrice(tokenAddress);
-          
-          // Check if price is below trigger
-          if (priceData.price <= triggerPrice) {
-            // Execute sell order
-            await tradingService.createSellOrder({
-              tokenAddress,
-              amount,
-              walletAddress
-            });
-            
-            // Clean up the stop-loss
-            tradingService.cancelOrder(stopLossId);
-            
-            toast.success(`Stop-loss ενεργοποιήθηκε στην τιμή ${priceData.price}`);
-          }
-        } catch (error) {
-          console.error('Error monitoring stop-loss:', error);
-        }
-      }, 10000); // Check every 10 seconds
-      
-      // Store the stop-loss in our active orders
-      activeOrders[stopLossId] = {
-        id: stopLossId,
-        type: 'stop-loss',
-        tokenAddress,
-        price: triggerPrice,
-        amount,
-        walletAddress,
-        intervalId
-      };
-      
-      toast.success(`Stop-loss ορίστηκε στην τιμή ${triggerPrice}`);
-      return stopLossId;
-    } catch (error) {
-      console.error('Error setting stop-loss:', error);
-      toast.error('Αποτυχία ορισμού stop-loss');
-      return null;
-    }
-  },
-  
-  /**
-   * Set a take-profit order for a token
-   * This will monitor the price and sell when it reaches the target price
-   */
-  setTakeProfit: async (params: TakeProfitParams): Promise<string | null> => {
-    try {
-      const { tokenAddress, targetPrice, amount, walletAddress } = params;
-      
-      // Create a unique ID for this take-profit
-      const takeProfitId = `tp-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      
-      // Set up price monitoring interval
-      const intervalId = window.setInterval(async () => {
-        try {
-          // Get current price
-          const priceData = await priceService.getTokenPrice(tokenAddress);
-          
-          // Check if price is above target
-          if (priceData.price >= targetPrice) {
-            // Execute sell order
-            await tradingService.createSellOrder({
-              tokenAddress,
-              amount,
-              walletAddress
-            });
-            
-            // Clean up the take-profit
-            tradingService.cancelOrder(takeProfitId);
-            
-            toast.success(`Take-profit ενεργοποιήθηκε στην τιμή ${priceData.price}`);
-          }
-        } catch (error) {
-          console.error('Error monitoring take-profit:', error);
-        }
-      }, 10000); // Check every 10 seconds
-      
-      // Store the take-profit in our active orders
-      activeOrders[takeProfitId] = {
-        id: takeProfitId,
-        type: 'take-profit',
-        tokenAddress,
-        price: targetPrice,
-        amount,
-        walletAddress,
-        intervalId
-      };
-      
-      toast.success(`Take-profit ορίστηκε στην τιμή ${targetPrice}`);
-      return takeProfitId;
-    } catch (error) {
-      console.error('Error setting take-profit:', error);
-      toast.error('Αποτυχία ορισμού take-profit');
-      return null;
-    }
-  },
-  
-  /**
-   * Cancel an active order (stop-loss or take-profit)
-   */
-  cancelOrder: (orderId: string): boolean => {
-    try {
-      const order = activeOrders[orderId];
-      
-      if (!order) {
-        console.error(`Order ${orderId} not found`);
-        return false;
-      }
-      
-      // Clear the interval
-      clearInterval(order.intervalId);
-      
-      // Remove from active orders
-      delete activeOrders[orderId];
-      
-      toast.success(`Η εντολή ακυρώθηκε με επιτυχία`);
-      return true;
-    } catch (error) {
-      console.error('Error canceling order:', error);
-      toast.error('Αποτυχία ακύρωσης εντολής');
-      return false;
-    }
-  },
-  
-  /**
-   * Get all active orders
-   */
-  getActiveOrders: (): Array<{
+// Απλοποιημένη έκδοση υπηρεσίας trading για demo
+class TradingService {
+  private orders: Array<{
     id: string;
-    type: 'stop-loss' | 'take-profit';
     tokenAddress: string;
     price: number;
     amount: number;
-  }> => {
-    return Object.values(activeOrders).map(order => ({
-      id: order.id,
-      type: order.type,
-      tokenAddress: order.tokenAddress,
-      price: order.price,
-      amount: order.amount
-    }));
+    type: 'buy' | 'sell' | 'stop_loss' | 'take_profit';
+    status: 'active' | 'filled' | 'cancelled';
+    created: string;
+    walletAddress?: string;
+  }> = [];
+  
+  private priceCheckInterval: number | null = null;
+  
+  constructor() {
+    // Έναρξη ελέγχου τιμών
+    this.startPriceChecking();
   }
-};
+
+  // Ορισμός stop loss
+  async setStopLoss(params: StopLossParams): Promise<string | null> {
+    try {
+      console.log(`Setting stop loss for ${params.tokenAddress} at ${params.triggerPrice}`);
+      
+      const orderId = `sl-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      
+      this.orders.push({
+        id: orderId,
+        tokenAddress: params.tokenAddress,
+        price: params.triggerPrice,
+        amount: params.amount,
+        type: 'stop_loss',
+        status: 'active',
+        created: new Date().toISOString(),
+        walletAddress: params.walletAddress
+      });
+      
+      toast.success('Stop loss ορίστηκε επιτυχώς');
+      return orderId;
+    } catch (error) {
+      console.error('Error setting stop loss:', error);
+      toast.error('Αποτυχία ορισμού stop loss');
+      return null;
+    }
+  }
+
+  // Ορισμός take profit
+  async setTakeProfit(params: TakeProfitParams): Promise<string | null> {
+    try {
+      console.log(`Setting take profit for ${params.tokenAddress} at ${params.targetPrice}`);
+      
+      const orderId = `tp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      
+      this.orders.push({
+        id: orderId,
+        tokenAddress: params.tokenAddress,
+        price: params.targetPrice,
+        amount: params.amount,
+        type: 'take_profit',
+        status: 'active',
+        created: new Date().toISOString(),
+        walletAddress: params.walletAddress
+      });
+      
+      toast.success('Take profit ορίστηκε επιτυχώς');
+      return orderId;
+    } catch (error) {
+      console.error('Error setting take profit:', error);
+      toast.error('Αποτυχία ορισμού take profit');
+      return null;
+    }
+  }
+
+  // Δημιουργία εντολής αγοράς/πώλησης
+  async createOrder(params: OrderParams): Promise<string | null> {
+    try {
+      console.log(`Creating ${params.type} order for ${params.tokenAddress} at ${params.price}`);
+      
+      const orderId = `order-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      
+      this.orders.push({
+        id: orderId,
+        tokenAddress: params.tokenAddress,
+        price: params.price,
+        amount: params.amount,
+        type: params.type === 'limit' ? 'sell' : params.type,
+        status: 'active',
+        created: new Date().toISOString(),
+        walletAddress: params.walletAddress
+      });
+      
+      toast.success(`${params.type === 'buy' ? 'Αγορά' : 'Πώληση'} δημιουργήθηκε επιτυχώς`);
+      return orderId;
+    } catch (error) {
+      console.error('Error creating order:', error);
+      toast.error('Αποτυχία δημιουργίας εντολής');
+      return null;
+    }
+  }
+
+  // Ακύρωση εντολής
+  async cancelOrder(orderId: string): Promise<boolean> {
+    try {
+      const orderIndex = this.orders.findIndex(order => order.id === orderId);
+      
+      if (orderIndex !== -1) {
+        this.orders[orderIndex].status = 'cancelled';
+        toast.success('Η εντολή ακυρώθηκε επιτυχώς');
+        return true;
+      }
+      
+      toast.error('Η εντολή δεν βρέθηκε');
+      return false;
+    } catch (error) {
+      console.error('Error cancelling order:', error);
+      toast.error('Αποτυχία ακύρωσης εντολής');
+      return false;
+    }
+  }
+
+  // Λήψη ενεργών εντολών
+  getActiveOrders(): Array<any> {
+    return this.orders.filter(order => order.status === 'active');
+  }
+
+  // Έλεγχος τιμών για εκτέλεση stop loss/take profit
+  private startPriceChecking(): void {
+    if (!this.priceCheckInterval) {
+      this.priceCheckInterval = window.setInterval(() => this.checkOrdersForExecution(), 10000);
+    }
+  }
+
+  // Διακοπή ελέγχου τιμών
+  private stopPriceChecking(): void {
+    if (this.priceCheckInterval) {
+      clearInterval(this.priceCheckInterval);
+      this.priceCheckInterval = null;
+    }
+  }
+
+  // Έλεγχος εντολών για εκτέλεση
+  private async checkOrdersForExecution(): Promise<void> {
+    const activeOrders = this.orders.filter(order => order.status === 'active');
+    
+    for (const order of activeOrders) {
+      try {
+        const currentPrice = await priceService.getTokenPrice(order.tokenAddress);
+        
+        // Έλεγχος stop loss
+        if (order.type === 'stop_loss' && currentPrice.price <= order.price) {
+          console.log(`Executing stop loss for ${order.tokenAddress} at ${currentPrice.price}`);
+          order.status = 'filled';
+          toast.info(`Stop loss εκτελέστηκε για ${order.tokenAddress} στην τιμή $${currentPrice.price.toFixed(4)}`);
+        }
+        
+        // Έλεγχος take profit
+        else if (order.type === 'take_profit' && currentPrice.price >= order.price) {
+          console.log(`Executing take profit for ${order.tokenAddress} at ${currentPrice.price}`);
+          order.status = 'filled';
+          toast.success(`Take profit εκτελέστηκε για ${order.tokenAddress} στην τιμή $${currentPrice.price.toFixed(4)}`);
+        }
+      } catch (error) {
+        console.error('Error checking order execution:', error);
+      }
+    }
+  }
+}
+
+export const tradingService = new TradingService();

@@ -8,9 +8,17 @@ import {
   CoinbaseWalletAdapter,
   TorusWalletAdapter,
   LedgerWalletAdapter,
+  BackpackWalletAdapter,
+  BraveWalletAdapter,
+  CloverWalletAdapter,
+  Coin98WalletAdapter,
+  ExodusWalletAdapter,
+  SlopeWalletAdapter,
+  TrustWalletAdapter,
+  NightlyWalletAdapter
 } from '@solana/wallet-adapter-wallets';
-import { clusterApiUrl } from '@solana/web3.js';
-import React, { FC, ReactNode, useMemo } from 'react';
+import { RPC_ENDPOINTS, CONNECTION_CONFIG } from '@/services/solana/config';
+import React, { FC, ReactNode, useMemo, useState } from 'react';
 import { SolanaProviderFallback } from '@/components/wallet/SolanaProviderFallback';
 
 // Import the CSS as an ES module
@@ -22,10 +30,24 @@ interface Props {
 
 export const SolanaWalletProvider: FC<Props> = ({ children }) => {
   // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
-  const network = WalletAdapterNetwork.Mainnet;
+  const [network, setNetwork] = useState<WalletAdapterNetwork>(WalletAdapterNetwork.MainnetBeta);
+  
+  // Μπορείτε να αλλάξετε το δίκτυο με αυτήν τη συνάρτηση
+  const changeNetwork = (newNetwork: WalletAdapterNetwork) => {
+    setNetwork(newNetwork);
+  };
 
-  // You can also provide a custom RPC endpoint.
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  // Endpoint με βάση το επιλεγμένο δίκτυο
+  const endpoint = useMemo(() => {
+    if (network === WalletAdapterNetwork.Devnet) {
+      return RPC_ENDPOINTS.DEVNET;
+    }
+    if (network === WalletAdapterNetwork.Testnet) {
+      return RPC_ENDPOINTS.TESTNET;
+    }
+    // Mainnet-Beta
+    return RPC_ENDPOINTS.PRIMARY;
+  }, [network]);
 
   // @solana/wallet-adapter-wallets includes all the adapters but supports tree shaking and lazy loading --
   // Only the wallets you configure here will be compiled into your application, and only the dependencies
@@ -37,12 +59,20 @@ export const SolanaWalletProvider: FC<Props> = ({ children }) => {
       new CoinbaseWalletAdapter(),
       new LedgerWalletAdapter(),
       new TorusWalletAdapter(),
+      new BackpackWalletAdapter(),
+      new BraveWalletAdapter(),
+      new CloverWalletAdapter(),
+      new Coin98WalletAdapter(),
+      new ExodusWalletAdapter(),
+      new SlopeWalletAdapter(),
+      new TrustWalletAdapter(),
+      new NightlyWalletAdapter()
     ],
     []
   );
 
   return (
-    <ConnectionProvider endpoint={endpoint}>
+    <ConnectionProvider endpoint={endpoint} config={CONNECTION_CONFIG}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
           <ErrorBoundary>

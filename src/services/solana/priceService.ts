@@ -1,105 +1,149 @@
 
-import { Connection, PublicKey } from '@solana/web3.js';
 import { toast } from 'sonner';
-import { connection } from './config';
+import { MOCK_PRICES } from './config';
 
-// Interface for price data
 export interface TokenPriceData {
   price: number;
   priceChange24h: number;
-  volume24h: number;
-  marketCap: number;
-  lastUpdated: Date;
+  lastUpdated: string;
 }
 
-// Cache for token prices to reduce API calls
-const priceCache: Record<string, { data: TokenPriceData, timestamp: number }> = {};
-const CACHE_DURATION = 60 * 1000; // 60 seconds cache
+type PriceCallback = (price: TokenPriceData) => void;
+type Unsubscribe = () => void;
 
-export const priceService = {
-  /**
-   * Get real-time price data for a token
-   */
-  getTokenPrice: async (tokenAddress: string): Promise<TokenPriceData> => {
-    try {
-      // Check cache first
-      const now = Date.now();
-      if (priceCache[tokenAddress] && now - priceCache[tokenAddress].timestamp < CACHE_DURATION) {
-        return priceCache[tokenAddress].data;
-      }
-      
-      // For well-known tokens, we can fetch from API
-      // In a production app, this would connect to Birdeye, Pyth or Jupiter API
-      const knownPrices: Record<string, number> = {
-        'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v': 1.0, // USDC
-        'So11111111111111111111111111111111111111112': 80.45, // Wrapped SOL
-        'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So': 85.25, // mSOL
-        '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R': 0.65, // RAY
-      };
-      
-      // Simulate API call with some randomization
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const basePrice = knownPrices[tokenAddress] || Math.random() * 10;
-      const priceChange = (Math.random() * 10) - 5; // Between -5% and +5%
-      
-      // Create price data
-      const priceData: TokenPriceData = {
-        price: basePrice,
-        priceChange24h: priceChange,
-        volume24h: basePrice * 1000000 * (Math.random() * 5 + 0.5),
-        marketCap: basePrice * 10000000 * (Math.random() * 5 + 0.5),
-        lastUpdated: new Date()
-      };
-      
-      // Cache the result
-      priceCache[tokenAddress] = {
-        data: priceData,
-        timestamp: now
-      };
-      
-      return priceData;
-    } catch (error) {
-      console.error('Error fetching token price:', error);
-      throw new Error('Failed to fetch token price');
+// Για παραγωγικό περιβάλλον θα χρησιμοποιούσαμε μια πραγματική υπηρεσία τιμών
+class PriceService {
+  private subscriptions: Map<string, Set<PriceCallback>> = new Map();
+  private priceData: Map<string, TokenPriceData> = new Map();
+  private updateInterval: number | null = null;
+
+  constructor() {
+    // Αρχικοποιήστε τις τιμές από το mock
+    Object.entries(MOCK_PRICES).forEach(([tokenAddress, price]) => {
+      this.priceData.set(tokenAddress, {
+        price,
+        priceChange24h: this.getRandomPriceChange(),
+        lastUpdated: new Date().toISOString()
+      });
+    });
+  }
+
+  // Λήψη τιμής για ένα token
+  async getTokenPrice(tokenAddress: string): Promise<TokenPriceData> {
+    // Έλεγχος αν έχουμε ήδη τιμή
+    if (this.priceData.has(tokenAddress)) {
+      return this.priceData.get(tokenAddress)!;
     }
-  },
-  
-  /**
-   * Set up a price subscription for real-time updates
-   * Returns a function to unsubscribe
-   */
-  subscribeToPriceUpdates: (tokenAddress: string, callback: (price: TokenPriceData) => void): (() => void) => {
-    // In a production app, this would use WebSockets or polling with Birdeye/Jupiter
-    const intervalId = setInterval(async () => {
-      try {
-        const price = await priceService.getTokenPrice(tokenAddress);
-        callback(price);
-      } catch (error) {
-        console.error('Price subscription error:', error);
-      }
-    }, 15000); // Update every 15 seconds
+
+    // Αν δεν έχουμε τιμή, δημιουργούμε μια τυχαία τιμή
+    const newPrice = {
+      price: Math.random() * 10,
+      priceChange24h: this.getRandomPriceChange(),
+      lastUpdated: new Date().toISOString()
+    };
+
+    this.priceData.set(tokenAddress, newPrice);
+    return newPrice;
+  }
+
+  // Εγγραφή για ενημερώσεις τιμών
+  subscribeToPriceUpdates(tokenAddress: string, callback: PriceCallback): Unsubscribe {
+    // Δημιουργία εγγραφής
+    if (!this.subscriptions.has(tokenAddress)) {
+      this.subscriptions.set(tokenAddress, new Set());
+    }
     
-    // Return unsubscribe function
-    return () => clearInterval(intervalId);
-  },
-  
-  /**
-   * Get prices for multiple tokens at once
-   */
-  getBulkTokenPrices: async (tokenAddresses: string[]): Promise<Record<string, TokenPriceData>> => {
-    try {
-      const results: Record<string, TokenPriceData> = {};
+    this.subscriptions.get(tokenAddress)!.add(callback);
+
+    // Εκκίνηση ενημερώσεων αν δεν έχουν ξεκινήσει ήδη
+    this.startUpdates();
+
+    // Επιστροφή συνάρτησης για κατάργηση εγγραφής
+    return () => {
+      this.unsubscribe(tokenAddress, callback);
+    };
+  }
+
+  // Κατάργηση εγγραφής από ενημερώσεις τιμών
+  private unsubscribe(tokenAddress: string, callback: PriceCallback): void {
+    const callbacks = this.subscriptions.get(tokenAddress);
+    
+    if (callbacks) {
+      callbacks.delete(callback);
       
-      // For better performance, this would be a single API call in production
-      await Promise.all(tokenAddresses.map(async (address) => {
-        results[address] = await priceService.getTokenPrice(address);
-      }));
+      // Αν δεν υπάρχουν άλλες εγγραφές για αυτό το token
+      if (callbacks.size === 0) {
+        this.subscriptions.delete(tokenAddress);
+      }
       
-      return results;
-    } catch (error) {
-      console.error('Error fetching bulk token prices:', error);
-      throw new Error('Failed to fetch bulk token prices');
+      // Αν δεν υπάρχουν εγγραφές καθόλου, σταματάμε τις ενημερώσεις
+      if (this.subscriptions.size === 0) {
+        this.stopUpdates();
+      }
     }
   }
-};
+
+  // Έναρξη περιοδικών ενημερώσεων
+  private startUpdates(): void {
+    if (!this.updateInterval) {
+      this.updateInterval = window.setInterval(() => this.updatePrices(), 15000);
+    }
+  }
+
+  // Διακοπή περιοδικών ενημερώσεων
+  private stopUpdates(): void {
+    if (this.updateInterval) {
+      clearInterval(this.updateInterval);
+      this.updateInterval = null;
+    }
+  }
+
+  // Ενημέρωση τιμών
+  private updatePrices(): void {
+    for (const [tokenAddress, callbacks] of this.subscriptions.entries()) {
+      // Λήψη τρέχουσας τιμής
+      const currentPriceData = this.priceData.get(tokenAddress) || {
+        price: 1,
+        priceChange24h: 0,
+        lastUpdated: new Date().toISOString()
+      };
+
+      // Δημιουργία νέας τιμής (με μικρή διακύμανση)
+      const newPrice = currentPriceData.price * (1 + (Math.random() * 0.06 - 0.03));
+      
+      // Ενημέρωση τιμής
+      const updatedPriceData = {
+        price: newPrice,
+        priceChange24h: this.calculateNewPriceChange(currentPriceData.priceChange24h),
+        lastUpdated: new Date().toISOString()
+      };
+      
+      this.priceData.set(tokenAddress, updatedPriceData);
+      
+      // Ενημέρωση συνδρομητών
+      callbacks.forEach(callback => {
+        try {
+          callback(updatedPriceData);
+        } catch (error) {
+          console.error('Error in price update callback:', error);
+        }
+      });
+    }
+  }
+
+  // Δημιουργία τυχαίας μεταβολής τιμής
+  private getRandomPriceChange(): number {
+    return (Math.random() * 10) - 5; // -5% έως +5% 
+  }
+
+  // Υπολογισμός νέας μεταβολής τιμής
+  private calculateNewPriceChange(currentChange: number): number {
+    // Προσθέτουμε μικρή τυχαία μεταβολή
+    const newChange = currentChange + (Math.random() - 0.5);
+    
+    // Περιορισμός εντός εύλογων ορίων
+    return Math.max(-15, Math.min(15, newChange));
+  }
+}
+
+export const priceService = new PriceService();
