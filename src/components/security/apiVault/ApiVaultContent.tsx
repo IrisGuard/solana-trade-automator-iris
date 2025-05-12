@@ -4,12 +4,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApiKeyFilters } from "./ApiKeyFilters";
 import { ApiKeyList } from "./ApiKeyList";
 import { ApiKeysByService } from "./ApiKeysByService";
-import { EmptyVaultState } from "./EmptyVaultState";
-import { LockedVaultState } from "./LockedVaultState";
+import { EmptyApiVault } from "./components/EmptyApiVault";
+import { ApiKey } from "./types";
 
 interface ApiVaultContentProps {
-  isLocked: boolean;
-  apiKeys: any[];
+  apiKeys: ApiKey[];
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   filterService: string;
@@ -17,15 +16,12 @@ interface ApiVaultContentProps {
   isKeyVisible: Record<string, boolean>;
   toggleKeyVisibility: (id: string) => void;
   deleteKey: (id: string) => void;
-  getFilteredKeys: () => any[];
-  getKeysByService: () => Record<string, any[]>;
+  getFilteredKeys: () => ApiKey[];
+  getKeysByService: () => Record<string, ApiKey[]>;
   onAddKeyClick: () => void;
-  onUnlockClick: () => void;
-  onRecoverClick?: () => void;
 }
 
 export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
-  isLocked,
   apiKeys,
   searchTerm,
   setSearchTerm,
@@ -36,16 +32,10 @@ export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
   deleteKey,
   getFilteredKeys,
   getKeysByService,
-  onAddKeyClick,
-  onUnlockClick,
-  onRecoverClick
+  onAddKeyClick
 }) => {
-  if (isLocked) {
-    return <LockedVaultState onUnlockClick={onUnlockClick} />;
-  }
-
   if (apiKeys.length === 0) {
-    return <EmptyVaultState onAddKeyClick={onAddKeyClick} onRecoverClick={onRecoverClick} />;
+    return <EmptyApiVault onAddKeyClick={onAddKeyClick} />;
   }
 
   return (
