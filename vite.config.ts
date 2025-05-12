@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     // Polyfills for Node.js built-ins
-    global: {},
+    global: 'globalThis',
     'process.env': {},
   },
   optimizeDeps: {
