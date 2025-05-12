@@ -3,7 +3,6 @@ import { toast } from "sonner";
 import { ApiKey } from "../types";
 import { encryptData, decryptData } from "./encryptionUtils";
 import { diagnosticScanStorage } from "./diagnosticUtils";
-import { recoverAllApiKeys } from "./recoveryUtils";
 
 // Load keys from localStorage
 export const loadKeysFromStorage = (
@@ -29,7 +28,7 @@ export const loadKeysFromStorage = (
           } else {
             setIsLocked(true);
             console.log('Failed to decrypt, vault locked');
-            // Run diagnostic scan to find any keys
+            // Run diagnostic scan to find any keys but don't show notifications
             diagnosticScanStorage();
             return;
           }
@@ -43,7 +42,7 @@ export const loadKeysFromStorage = (
           } catch (parseError) {
             console.error('Failed to parse as JSON:', parseError);
             setIsLocked(true);
-            // Run diagnostic scan to find any keys
+            // Run diagnostic scan to find any keys but don't show notifications
             diagnosticScanStorage();
             return;
           }
@@ -66,26 +65,28 @@ export const loadKeysFromStorage = (
               } else {
                 setIsLocked(true);
                 console.error('Failed to decrypt after trial');
-                // Run diagnostic scan to find any keys
+                // Run diagnostic scan but don't show notifications
                 diagnosticScanStorage();
                 return;
               }
             } catch (e) {
               console.error('Final failure loading keys:', e);
-              // Run diagnostic scan to find any keys
+              // Run diagnostic scan but don't show notifications
               diagnosticScanStorage();
               setIsLocked(false);
               return;
             }
           } else {
             console.error('Failed to load keys and no master password available:', e);
-            // Run diagnostic scan to find any keys
+            // Run diagnostic scan but don't show notifications
             const foundItems = diagnosticScanStorage();
             
             if (foundItems.length > 0) {
-              toast.warning(`Found ${foundItems.length} potential key storages but couldn't load them`);
+              // Αφαιρέθηκε το toast για να αποτραπεί η εμφάνιση συχνών μηνυμάτων
+              console.log(`Found ${foundItems.length} potential key storages but couldn't load them`);
             } else {
-              toast.error("Could not load keys. The stored file may be corrupted.");
+              // Αφαιρέθηκε το toast για να αποτραπεί η εμφάνιση συχνών μηνυμάτων
+              console.log("Could not load keys. The stored file may be corrupted.");
             }
             return;
           }
@@ -112,19 +113,20 @@ export const loadKeysFromStorage = (
       console.log(`Loaded ${validKeys.length} keys from localStorage`);
       
       if (validKeys.length === 0) {
-        toast.warning("No valid keys found in vault");
-        // Run diagnostic scan to find any keys
+        // Αφαιρέθηκε το toast για να αποτραπεί η εμφάνιση συχνών μηνυμάτων
+        console.log("No valid keys found in vault");
+        // Run diagnostic scan but don't show notifications
         diagnosticScanStorage();
       }
     } catch (e) {
       console.error('Error loading keys:', e);
-      toast.error("Error loading keys");
-      // Run diagnostic scan to find any keys
+      // Αφαιρέθηκε το toast για να αποτραπεί η εμφάνιση συχνών μηνυμάτων
+      // Run diagnostic scan but don't show notifications
       diagnosticScanStorage();
     }
   } else {
     console.log('No saved keys found in localStorage[apiKeys]');
-    // Run diagnostic scan to find any keys
+    // Run diagnostic scan but don't show notifications
     const foundItems = diagnosticScanStorage();
   }
 };
@@ -150,10 +152,10 @@ export const saveKeysToStorage = (
     return true;
   } catch (e) {
     console.error('Error saving keys:', e);
-    toast.error("Error saving keys");
+    // Αφαιρέθηκε το toast για να αποτραπεί η εμφάνιση συχνών μηνυμάτων
     return false;
   }
 };
 
 // Export for compatibility with existing code
-export { recoverAllApiKeys };
+export { recoverAllApiKeys } from './recoveryUtils';

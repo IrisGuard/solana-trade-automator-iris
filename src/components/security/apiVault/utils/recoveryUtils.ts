@@ -430,17 +430,12 @@ export const forceScanForKeys = (): number => {
   return 0;
 };
 
-// Immediately export recovered keys (auto-recovery)
+// Αντικαθιστούμε τη λειτουργία αυτόματης ανάκτησης με μια απλή συνάρτηση που δεν κάνει επαναφορτώσεις
 export const initializeAutoRecovery = (): void => {
-  setTimeout(() => {
-    const recoveredCount = forceScanForKeys();
-    if (recoveredCount > 0) {
-      console.log(`Auto-recovery found ${recoveredCount} keys`);
-      toast.success(`Βρέθηκαν και αποκαταστάθηκαν αυτόματα ${recoveredCount} κλειδιά`);
-      // Force reload the page to show recovered keys
-      window.location.reload();
-    }
-  }, 2000);
+  // Απλώς καταγράφουμε στην κονσόλα ότι η αυτόματη ανάκτηση έχει απενεργοποιηθεί
+  console.log('Auto-recovery is disabled to prevent page reloads');
+  
+  // Δεν εκτελούμε καμία αυτόματη ανάκτηση ή επαναφόρτωση
 };
 
 // Export for compatibility with existing code

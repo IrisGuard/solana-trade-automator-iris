@@ -14,7 +14,6 @@ import { encryptData, decryptData, tryDecryptWithCommonPasswords } from './encry
 import { 
   recoverAllApiKeys, 
   forceScanForKeys, 
-  initializeAutoRecovery,
   POTENTIAL_STORAGE_KEYS,
   COMMON_PASSWORDS
 } from './recoveryUtils';
@@ -29,10 +28,8 @@ export {
   tryDecryptWithCommonPasswords,
   recoverAllApiKeys,
   forceScanForKeys,
-  initializeAutoRecovery,
   POTENTIAL_STORAGE_KEYS,
   COMMON_PASSWORDS
 };
 
-// Auto-trigger recovery on import to ensure all keys are found
-initializeAutoRecovery();
+// Αφαιρέθηκε η αυτόματη εκτέλεση του initializeAutoRecovery για να σταματήσει η συνεχής επαναφόρτωση
