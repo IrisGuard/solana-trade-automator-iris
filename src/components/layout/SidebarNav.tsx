@@ -11,7 +11,6 @@ import {
   Wallet,
   Shield,
   Bell,
-  Database,
 } from "lucide-react";
 
 // Create a Bot icon component since it's not available directly in lucide-react
@@ -84,9 +83,6 @@ export function SidebarNav() {
       </NavItem>
       <NavItem to="/security" icon={Shield}>
         Security
-      </NavItem>
-      <NavItem to="/key-recovery" icon={Database}>
-        Ανάκτηση Κλειδιών API
       </NavItem>
       <NavItem to="/notifications" icon={Bell}>
         Notifications

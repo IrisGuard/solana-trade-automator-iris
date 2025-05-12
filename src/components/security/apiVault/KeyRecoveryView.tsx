@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Download } from "lucide-react";
+import { ApiKey } from "./types";
 
 export const KeyRecoveryView = () => {
-  const [apiKeys, setApiKeys] = useState(() => {
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>(() => {
     try {
       const savedKeys = localStorage.getItem('apiKeys');
       if (savedKeys) {
