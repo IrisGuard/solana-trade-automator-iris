@@ -169,7 +169,7 @@ export const ApiKeyFilters = ({
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="old" id="filter-date-old" />
-                    <Label htmlFor="filter-date-old">Παλαιότερα (>30 ημέρες)</Label>
+                    <Label htmlFor="filter-date-old">Παλαιότερα ({">"} 30 ημέρες)</Label>
                   </div>
                 </RadioGroup>
               </div>
