@@ -19,4 +19,4 @@ export const ApiVaultCard = () => {
       </CardContent>
     </Card>
   );
-};
+}

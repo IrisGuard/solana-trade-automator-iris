@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toaster";
 
 const pageTitles: Record<string, string> = {
-  "/": "Dashboard",
+  "/": "Αρχική",
   "/dashboard": "Dashboard",
   "/bot-control": "Bot Control",
   "/tokens": "Tokens",
