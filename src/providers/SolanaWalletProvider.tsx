@@ -13,8 +13,8 @@ import { clusterApiUrl } from '@solana/web3.js';
 import React, { FC, ReactNode, useMemo } from 'react';
 import { SolanaProviderFallback } from '@/components/wallet/SolanaProviderFallback';
 
-// Default styles that can be overridden by your app
-require('@solana/wallet-adapter-react-ui/styles.css');
+// Import the CSS directly instead of using require
+import '@solana/wallet-adapter-react-ui/styles.css';
 
 interface Props {
   children: ReactNode;
