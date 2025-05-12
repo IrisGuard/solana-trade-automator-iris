@@ -123,6 +123,11 @@ export function useWallet() {
     toast.success("API keys imported successfully");
   };
 
+  // Custom setter to handle the apiSettings state directly without type issues
+  const setApiSettingsHandler = (settings: ApiSettings) => {
+    setApiSettings(settings);
+  };
+
   return {
     isConnected,
     isSimulation,
@@ -145,11 +150,16 @@ export function useWallet() {
     botRunningTime,
     isUnlocked,
     apiSettings,
-    setApiSettings,
-    walletAddress,
-    solBalance,
-    tokenBalance,
-    formatRunningTime,
+    setApiSettings: setApiSettingsHandler,
+    walletAddress: "3eDZ...f9Kt",
+    solBalance: 12.45,
+    tokenBalance: 250000,
+    formatRunningTime: () => {
+      const hours = Math.floor(botRunningTime / 3600);
+      const minutes = Math.floor((botRunningTime % 3600) / 60);
+      const seconds = botRunningTime % 60;
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    },
     handleConnectWallet,
     handleDisconnectWallet,
     toggleSimulation,

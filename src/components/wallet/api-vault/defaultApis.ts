@@ -29,7 +29,6 @@ export const DEFAULT_RECOMMENDED_APIS: RecommendedApi[] = [
     description: "Developer platform with enhanced APIs and tools",
     url: "https://docs.alchemy.com/reference/solana-api-overview"
   },
-  // Νέα APIs που προσθέτουμε
   {
     name: "Phantom API",
     description: "Phantom Wallet API for Solana dApps",

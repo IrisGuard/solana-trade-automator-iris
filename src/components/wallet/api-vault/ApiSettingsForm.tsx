@@ -46,7 +46,7 @@ export function ApiSettingsForm({ apiSettings, setApiSettings, handleSaveApiSett
       <div className="flex items-center space-x-2">
         <Switch 
           id="custom-rpc"
-          checked={apiSettings.customRpc || false}
+          checked={apiSettings.customRpc}
           onCheckedChange={(checked) => setApiSettings({...apiSettings, customRpc: checked})}
         />
         <Label htmlFor="custom-rpc">Use custom RPC endpoint</Label>
@@ -55,20 +55,20 @@ export function ApiSettingsForm({ apiSettings, setApiSettings, handleSaveApiSett
       <div className="flex items-center space-x-2">
         <Switch 
           id="fallback-rpc"
-          checked={apiSettings.fallbackRpc || false}
+          checked={apiSettings.fallbackRpc}
           onCheckedChange={(checked) => setApiSettings({...apiSettings, fallbackRpc: checked})}
         />
         <Label htmlFor="fallback-rpc">Enable RPC fallback</Label>
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="rate-limit">Rate limit (requests/sec): {apiSettings.rateLimit || 10}</Label>
+        <Label htmlFor="rate-limit">Rate limit (requests/sec): {apiSettings.rateLimit}</Label>
         <Slider 
           id="rate-limit"
           min={1} 
           max={20} 
           step={1}
-          value={[apiSettings.rateLimit || 10]}
+          value={[apiSettings.rateLimit]}
           onValueChange={(values) => setApiSettings({...apiSettings, rateLimit: values[0]})}
         />
       </div>
