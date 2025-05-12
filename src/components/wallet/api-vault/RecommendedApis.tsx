@@ -15,7 +15,7 @@ export function RecommendedApis({ apis }: RecommendedApisProps) {
 
   return (
     <div className="mt-4 border-t pt-4">
-      <h4 className="text-sm font-medium mb-2">Προτεινόμενα API για Solana</h4>
+      <h4 className="text-sm font-medium mb-2">Recommended Solana APIs</h4>
       <div className="space-y-2">
         {apis.map((api, index) => (
           <div key={index} className="p-3 border rounded-lg bg-muted/30">
@@ -28,7 +28,7 @@ export function RecommendedApis({ apis }: RecommendedApisProps) {
                 variant="ghost" 
                 size="icon"
                 onClick={() => openApiDocs(api.url)}
-                title="Άνοιγμα τεκμηρίωσης"
+                title="Open documentation"
               >
                 <ExternalLink className="h-4 w-4" />
               </Button>

@@ -4,6 +4,7 @@ import { TabsContent } from "@/components/ui/tabs";
 import { ApiVaultCard } from "./api-vault/ApiVaultCard";
 import { ApiSettingsCard } from "./api-vault/ApiSettingsCard";
 import { ApiKey, ApiSettings } from "./api-vault/types";
+import { DEFAULT_RECOMMENDED_APIS } from "./api-vault/defaultApis";
 
 interface ApiVaultTabProps {
   apiKeys: ApiKey[];
@@ -41,6 +42,7 @@ export function ApiVaultTab({
         handleApiConnect={handleApiConnect}
         handleExportKeys={handleExportKeys}
         handleImportKeys={handleImportKeys}
+        recommendedApis={DEFAULT_RECOMMENDED_APIS}
       />
 
       <ApiSettingsCard

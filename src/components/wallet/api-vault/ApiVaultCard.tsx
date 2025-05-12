@@ -1,21 +1,22 @@
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Shield } from "lucide-react";
-import { LockedVaultView } from "./LockedVaultView";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ApiKeysList } from "./ApiKeysList";
-import { RecommendedApis } from "./RecommendedApis";
+import { LockedVaultView } from "./LockedVaultView";
 import { VaultActions } from "./VaultActions";
-import { RecommendedApi } from "./types";
+import { RecommendedApis } from "./RecommendedApis";
+import { ApiKey, RecommendedApi } from "./types";
+import { DEFAULT_RECOMMENDED_APIS } from "./defaultApis";
 
 interface ApiVaultCardProps {
-  apiKeys: any[];
+  apiKeys: ApiKey[];
   isUnlocked: boolean;
   handleUnlockVault: () => void;
   handleLockVault: () => void;
   handleApiConnect: (index: number) => void;
   handleExportKeys: () => void;
   handleImportKeys: () => void;
+  recommendedApis?: RecommendedApi[];
 }
 
 export function ApiVaultCard({
@@ -25,58 +26,37 @@ export function ApiVaultCard({
   handleLockVault,
   handleApiConnect,
   handleExportKeys,
-  handleImportKeys
+  handleImportKeys,
+  recommendedApis = DEFAULT_RECOMMENDED_APIS
 }: ApiVaultCardProps) {
-  // Default Solana APIs
-  const defaultSolanaApis: RecommendedApi[] = [
-    {
-      name: "Helius API",
-      description: "Προηγμένα endpoints για Solana blockchain",
-      url: "https://www.helius.dev/docs/api-reference/endpoints"
-    },
-    {
-      name: "QuickNode SDK",
-      description: "Αξιόπιστη πρόσβαση στο Solana δίκτυο",
-      url: "https://www.quicknode.com/docs/quicknode-sdk/Solana/Overview"
-    },
-    {
-      name: "Moralis Solana API",
-      description: "Προηγμένες λειτουργίες για το Solana",
-      url: "https://docs.moralis.com/web3-data-api/solana"
-    }
-  ];
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Shield className="h-5 w-5" />
-          API Key Vault
-        </CardTitle>
+        <CardTitle>API Key Vault</CardTitle>
         <CardDescription>
-          Securely store and manage your API keys
+          Securely manage your API keys and connections
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!isUnlocked ? (
-          <LockedVaultView handleUnlockVault={handleUnlockVault} />
-        ) : (
+        {isUnlocked ? (
           <>
-            <VaultActions 
-              handleLockVault={handleLockVault}
-              handleExportKeys={handleExportKeys}
-              handleImportKeys={handleImportKeys}
-            />
-            
             <ApiKeysList 
               apiKeys={apiKeys}
               handleApiConnect={handleApiConnect}
             />
             
-            {apiKeys.length === 0 && (
-              <RecommendedApis apis={defaultSolanaApis} />
-            )}
+            <VaultActions 
+              isUnlocked={isUnlocked}
+              handleUnlockVault={handleUnlockVault}
+              handleLockVault={handleLockVault}
+              handleExportKeys={handleExportKeys}
+              handleImportKeys={handleImportKeys}
+            />
+            
+            <RecommendedApis apis={recommendedApis} />
           </>
+        ) : (
+          <LockedVaultView handleUnlockVault={handleUnlockVault} />
         )}
       </CardContent>
     </Card>

@@ -1,0 +1,57 @@
+
+import { ApiKey, RecommendedApi } from "./types";
+
+// Default recommended APIs for Solana
+export const DEFAULT_RECOMMENDED_APIS: RecommendedApi[] = [
+  {
+    name: "Solana RPC API",
+    description: "Official Solana RPC API for blockchain interaction",
+    url: "https://docs.solana.com/api"
+  },
+  {
+    name: "Helius",
+    description: "Enhanced Solana RPC with additional functionality",
+    url: "https://docs.helius.dev/"
+  },
+  {
+    name: "QuickNode",
+    description: "Fast and reliable Solana node infrastructure",
+    url: "https://www.quicknode.com/docs/solana"
+  },
+  {
+    name: "Alchemy",
+    description: "Developer platform with enhanced APIs and tools",
+    url: "https://docs.alchemy.com/reference/solana-api-overview"
+  }
+];
+
+// Default API keys for demonstration
+export const DEFAULT_API_KEYS: ApiKey[] = [
+  {
+    id: "1",
+    name: "Solana Mainnet",
+    service: "Solana RPC",
+    key: "demo-key-solana-mainnet",
+    connected: true,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: "2",
+    name: "Helius Development",
+    service: "Helius API",
+    key: "demo-key-helius",
+    connected: false,
+    createdAt: new Date().toISOString()
+  }
+];
+
+// Default API settings
+export const DEFAULT_API_SETTINGS: {
+  rpcEndpoint: string;
+  apiEndpoint: string;
+  websocketEndpoint: string;
+} = {
+  rpcEndpoint: "https://api.mainnet-beta.solana.com",
+  apiEndpoint: "https://api.solana.fm/v1",
+  websocketEndpoint: "wss://api.mainnet-beta.solana.com"
+};
