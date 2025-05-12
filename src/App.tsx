@@ -10,14 +10,40 @@ import KeyRecoveryPage from "./components/security/KeyRecoveryPage";
 function App() {
   return (
     <BrowserRouter>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/wallet" element={<Wallet />} />
-          <Route path="/security" element={<Security />} />
-          <Route path="/key-recovery" element={<KeyRecoveryPage />} />
-        </Routes>
-      </Layout>
+      <Routes>
+        <Route 
+          path="/" 
+          element={
+            <Layout>
+              <Index />
+            </Layout>
+          } 
+        />
+        <Route 
+          path="/wallet" 
+          element={
+            <Layout>
+              <Wallet />
+            </Layout>
+          } 
+        />
+        <Route 
+          path="/security" 
+          element={
+            <Layout>
+              <Security />
+            </Layout>
+          } 
+        />
+        <Route 
+          path="/key-recovery" 
+          element={
+            <Layout>
+              <KeyRecoveryPage />
+            </Layout>
+          } 
+        />
+      </Routes>
     </BrowserRouter>
   );
 }

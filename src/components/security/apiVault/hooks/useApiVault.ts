@@ -69,11 +69,11 @@ export const useApiVault = () => {
     }
   }, []);
 
-  // Initial recovery on component mount
+  // Run initial recovery when the component mounts
   useEffect(() => {
-    // We don't auto-recover on mount to avoid unexpected behavior
-    // User must explicitly click the recover button
-  }, []);
+    // We now run recovery on mount to help users get their keys immediately
+    handleRecoverKeys();
+  }, [handleRecoverKeys]);
 
   return {
     recoveredKeys,
