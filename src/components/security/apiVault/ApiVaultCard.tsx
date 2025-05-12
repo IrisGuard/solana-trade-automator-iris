@@ -1,31 +1,45 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { ApiKey } from "./types";
 import { ApiVaultHeader } from "./components/ApiVaultHeader";
-import { ApiVaultContent } from "./ApiVaultContent";
-import { useApiKeyManagement } from "./hooks/useApiKeyManagement";
-import { useApiKeyVisibility } from "./hooks/useApiKeyVisibility";
-import { useVaultSecurity } from "./hooks/useVaultSecurity";
-import { recoverAllApiKeys, forceScanForKeys } from "./utils";
-import { toast } from "sonner";
 import { ApiVaultDialogs } from "./components/ApiVaultDialogs";
 import { ApiVaultTabs } from "./components/ApiVaultTabs";
 import { ApiVaultActions } from "./components/ApiVaultActions";
+import { useApiKeyManagement } from "./hooks/useApiKeyManagement";
+import { useApiKeyVisibility } from "./hooks/useApiKeyVisibility";
+import { useVaultSecurity } from "./hooks/useVaultSecurity";
+import { useVaultState } from "./hooks/useVaultState";
+import { useVaultRecovery } from "./hooks/useVaultRecovery";
+import { useKeyOperations } from "./hooks/useKeyOperations";
+import { useKeyTesting } from "./hooks/useKeyTesting";
 
 export const ApiVaultCard = () => {
-  const [showDialogApiKey, setShowDialogApiKey] = useState(false);
-  const [showImportDialog, setShowImportDialog] = useState(false);
-  const [showExportSheet, setShowExportSheet] = useState(false);
-  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
-  const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
-  const [activeTab, setActiveTab] = useState("keys");
-  const [isRecovering, setIsRecovering] = useState(false);
-  const [isTestingKeys, setIsTestingKeys] = useState(false);
-  const [recoveredKeys, setRecoveredKeys] = useState<ApiKey[]>([]);
-  const [recoveryLocations, setRecoveryLocations] = useState<{ storageKey: string; count: number }[]>([]);
+  // Get UI state from hooks
+  const {
+    dialogState,
+    tabState,
+    recoveryState,
+  } = useVaultState();
 
-  // API Key Management hooks
+  // Destructure states from hooks
+  const {
+    showDialogApiKey, setShowDialogApiKey,
+    showImportDialog, setShowImportDialog,
+    showExportSheet, setShowExportSheet,
+    showSettingsDialog, setShowSettingsDialog,
+    showRecoveryDialog, setShowRecoveryDialog,
+  } = dialogState;
+
+  const { activeTab, setActiveTab } = tabState;
+  
+  const {
+    isRecovering, setIsRecovering,
+    recoveredKeys, setRecoveredKeys,
+    recoveryLocations, setRecoveryLocations,
+    isTestingKeys, setIsTestingKeys,
+  } = recoveryState;
+
+  // Key management hooks
   const {
     apiKeys,
     setApiKeys,
@@ -40,6 +54,9 @@ export const ApiVaultCard = () => {
     getFilteredKeys,
     getKeysByService
   } = useApiKeyManagement();
+
+  // Key testing hooks
+  const { handleRefreshKeys } = useKeyTesting();
 
   // API Key Visibility hook
   const { isKeyVisible, toggleKeyVisibility } = useApiKeyVisibility();
@@ -63,72 +80,29 @@ export const ApiVaultCard = () => {
     saveSecuritySettings
   } = useVaultSecurity({ apiKeys, setApiKeys });
 
-  // Calculate statistics for keys
-  const keyStats = {
-    total: apiKeys.length,
-    active: apiKeys.filter(key => key.status === "active" || !key.status).length,
-    expired: apiKeys.filter(key => key.status === "expired").length,
-    revoked: apiKeys.filter(key => key.status === "revoked").length,
-  };
+  // Recovery hooks
+  const { handleRecoverClick } = useVaultRecovery({
+    apiKeys,
+    isRecovering,
+    setIsRecovering,
+    setRecoveredKeys,
+    setRecoveryLocations,
+    setShowRecoveryDialog
+  });
+
+  // Key operations hooks
+  const { handleRecoveredImport, keyStats } = useKeyOperations({
+    apiKeys,
+    handleImport,
+    recoveredKeys,
+    setShowRecoveryDialog
+  });
 
   // Get unique services and their counts
   const serviceStats = Object.entries(getKeysByService()).map(([name, keys]) => ({
     name,
     count: keys.length,
   }));
-
-  // Attempt automatic recovery when the component mounts and no keys are found
-  useEffect(() => {
-    // If no keys in localStorage, run recovery to find them
-    if (apiKeys.length === 0) {
-      console.log('No keys found, attempting automatic recovery...');
-      setTimeout(() => {
-        handleRecoverClick();
-      }, 1000);
-    }
-  }, []);
-
-  // Handle recovery scan
-  const handleRecoverClick = () => {
-    setIsRecovering(true);
-    setTimeout(() => {
-      try {
-        const result = recoverAllApiKeys();
-        setRecoveredKeys(result.keys);
-        setRecoveryLocations(result.locations);
-        
-        if (result.keys.length > 0) {
-          setShowRecoveryDialog(true);
-          toast.success(`Βρέθηκαν ${result.keys.length} κλειδιά σε ${result.locations.length} τοποθεσίες`);
-        } else {
-          toast.info('Δεν βρέθηκαν επιπλέον κλειδιά API');
-        }
-      } catch (e) {
-        console.error('Recovery error:', e);
-        toast.error('Σφάλμα κατά την ανάκτηση κλειδιών');
-      } finally {
-        setIsRecovering(false);
-      }
-    }, 1000);
-  };
-
-  // Handle the import of recovered keys
-  const handleRecoveredImport = (keys: ApiKey[]) => {
-    handleImport(keys);
-    setShowRecoveryDialog(false);
-    toast.success(`Εισήχθησαν ${keys.length} κλειδιά επιτυχώς`);
-  };
-
-  // Test all keys for validity/functionality
-  const handleRefreshKeys = () => {
-    setIsTestingKeys(true);
-    
-    // Simulate testing process
-    setTimeout(() => {
-      setIsTestingKeys(false);
-      toast.success('Ο έλεγχος κλειδιών ολοκληρώθηκε');
-    }, 2000);
-  };
 
   return (
     <Card>
@@ -140,6 +114,7 @@ export const ApiVaultCard = () => {
           apiKeysCount={apiKeys.length}
           onSettings={() => setShowSettingsDialog(true)}
           isLocked={isLocked}
+          isEncryptionEnabled={isEncryptionEnabled}
           onUnlock={() => setIsUnlocking(true)}
           onLock={handleLock}
         />

@@ -1,6 +1,6 @@
 
 import { ApiKey } from "../types";
-import { POTENTIAL_STORAGE_KEYS, getAllStorageKeys, detectServiceFromKey } from "./recoveryCore";
+import { POTENTIAL_STORAGE_KEYS } from "./recoveryCore";
 import { saveKeysToStorage } from "./storageUtils";
 
 // Recovery function to find all API keys in localStorage
@@ -46,7 +46,9 @@ export const recoverAllApiKeys = () => {
               key: item.key || item.apiKey || item.token || item.secret,
               connected: false,
               createdAt: item.createdAt || item.created || new Date().toISOString(),
-              status: 'active'
+              status: item.status === 'expired' ? 'expired' : 
+                     item.status === 'revoked' ? 'revoked' : 
+                     'active' as 'active' | 'expired' | 'revoked'
             }));
             
             // Add to recovered keys, avoid duplicates
@@ -95,4 +97,31 @@ export const forceScanForKeys = (): ApiKey[] => {
   console.log("Performing forced scan for API keys...");
   const { keys } = recoverAllApiKeys();
   return keys;
+};
+
+// Helper functions
+
+// Get a list of all localStorage keys
+export const getAllStorageKeys = (): string[] => {
+  const keys: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key) keys.push(key);
+  }
+  return keys;
+};
+
+// Check if a key belongs to a known service based on its format
+export const detectServiceFromKey = (key: string): string | null => {
+  if (!key) return null;
+  
+  // Common key patterns
+  if (key.startsWith('sk-')) return 'openai';
+  if (key.startsWith('pk_') || key.startsWith('sk_')) return 'stripe';
+  if (key.startsWith('key-')) return 'sendgrid';
+  if (key.startsWith('AKIA')) return 'aws';
+  if (key.startsWith('ghp_')) return 'github';
+  if (key.length >= 40 && /^[A-Za-z0-9]+$/.test(key)) return 'helius';
+  
+  return null;
 };
