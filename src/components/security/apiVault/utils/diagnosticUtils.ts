@@ -41,6 +41,23 @@ export const diagnosticScanStorage = () => {
     }
   }
   
+  // Προσθέτουμε επίσης έλεγχο για το sessionStorage
+  try {
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+      if (!key) continue;
+      
+      const value = sessionStorage.getItem(key);
+      if (!value) continue;
+      
+      if (value.startsWith('{') || value.startsWith('[')) {
+        potentialStorageLocations.push({ storageKey: `session:${key}`, isJson: true });
+      }
+    }
+  } catch (e) {
+    console.error('Σφάλμα κατά τη σάρωση του sessionStorage:', e);
+  }
+  
   return potentialStorageLocations;
 };
 
@@ -54,7 +71,16 @@ export const extractAllKeysFromStorage = () => {
   
   storageList.forEach(storage => {
     const { storageKey } = storage;
-    const value = localStorage.getItem(storageKey);
+    
+    // Ελέγχουμε αν είναι από το session storage
+    let value;
+    if (storageKey.startsWith('session:')) {
+      const actualKey = storageKey.substring(8);
+      value = sessionStorage.getItem(actualKey);
+    } else {
+      value = localStorage.getItem(storageKey);
+    }
+    
     if (!value) return;
     
     try {
@@ -126,7 +152,7 @@ export const injectDemoKeys = (count: number = 26) => {
       'stripe', 'github', 'aws', 'firebase', 'vercel', 'netlify', 'heroku'
     ];
     
-    const prefixes = {
+    const prefixes: Record<string, string> = {
       'binance': 'binance_',
       'solana': 'sol_',
       'ethereum': 'eth_',
@@ -147,7 +173,7 @@ export const injectDemoKeys = (count: number = 26) => {
     // Δημιουργία του ζητούμενου αριθμού κλειδιών
     for (let i = 0; i < count; i++) {
       const service = services[i % services.length];
-      const prefix = prefixes[service as keyof typeof prefixes] || '';
+      const prefix = prefixes[service] || '';
       const randomKey = `${prefix}${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
       
       newKeys.push({
@@ -167,14 +193,82 @@ export const injectDemoKeys = (count: number = 26) => {
     localStorage.setItem('apiKeys', JSON.stringify(newKeys));
     localStorage.setItem('demoKeysInjected', 'true');
     
-    // Ειδοποίηση στον χρήστη
-    toast.success(`Προστέθηκαν ${count} δοκιμαστικά κλειδιά API`);
-    window.location.reload(); // Επαναφόρτωση για εμφάνιση των νέων κλειδιών
-    
+    // Επιστροφή των κλειδιών χωρίς επαναφόρτωση σελίδας
     return newKeys;
   } catch (error) {
     console.error('Σφάλμα κατά την προσθήκη δοκιμαστικών κλειδιών:', error);
     toast.error('Σφάλμα κατά την προσθήκη δοκιμαστικών κλειδιών');
     return [];
   }
+};
+
+/**
+ * Βελτιωμένη ανάκτηση από όλες τις δυνατές πηγές
+ */
+export const deepScanAllStorage = async (): Promise<ApiKey[]> => {
+  const allKeys: ApiKey[] = [];
+  const uniqueKeysMap = new Map<string, ApiKey>();
+  
+  // 1. Σάρωση του localStorage
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key) continue;
+    
+    try {
+      const value = localStorage.getItem(key);
+      if (!value) continue;
+      
+      // Αν είναι JSON, δοκιμάζουμε να το αναλύσουμε και να εξάγουμε κλειδιά
+      if (value.startsWith('{') || value.startsWith('[')) {
+        try {
+          const parsed = JSON.parse(value);
+          
+          if (Array.isArray(parsed)) {
+            // Αν είναι πίνακας, ελέγχουμε αν περιέχει κλειδιά API
+            parsed.forEach(item => {
+              if (item && typeof item === 'object' && item.key && (item.name || item.service)) {
+                const apiKey: ApiKey = {
+                  id: item.id || `deep-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                  name: item.name || `Κλειδί από ${key}`,
+                  key: item.key,
+                  service: item.service || 'unknown',
+                  createdAt: item.createdAt || new Date().toISOString(),
+                  description: item.description || `Ανακτήθηκε από ${key}`,
+                  status: item.status || 'active',
+                  source: `localStorage:${key}`
+                };
+                
+                // Προσθήκη στον χάρτη μοναδικών κλειδιών
+                if (!uniqueKeysMap.has(item.key)) {
+                  uniqueKeysMap.set(item.key, apiKey);
+                  allKeys.push(apiKey);
+                }
+              }
+            });
+          }
+        } catch (e) {
+          console.error(`Σφάλμα ανάλυσης JSON από το κλειδί ${key}:`, e);
+        }
+      }
+    } catch (e) {
+      console.error(`Σφάλμα ανάγνωσης του κλειδιού ${key}:`, e);
+    }
+  }
+  
+  // 2. Προσπάθεια εξαγωγής με την πιο εξελιγμένη μέθοδο
+  try {
+    const { searchAllLocalStorage } = await import('./storageScanner');
+    const extractedKeys = searchAllLocalStorage();
+    
+    extractedKeys.forEach(key => {
+      if (!uniqueKeysMap.has(key.key)) {
+        uniqueKeysMap.set(key.key, key);
+        allKeys.push(key);
+      }
+    });
+  } catch (e) {
+    console.error('Σφάλμα κατά τη χρήση της προηγμένης μεθόδου εξαγωγής:', e);
+  }
+  
+  return allKeys;
 };

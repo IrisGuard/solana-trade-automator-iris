@@ -16,8 +16,19 @@ export const searchAllLocalStorage = (): ApiKey[] => {
     /SB[a-zA-Z0-9]{20,}/g, // Supabase anon keys
     /ey[a-zA-Z0-9_-]{20,}\.[a-zA-Z0-9_-]{20,}\.[a-zA-Z0-9_-]{20,}/g, // JWT tokens
     /[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}/g, // UUID format keys
+    // Επιπλέον πρότυπα αναζήτησης
+    /[A-Za-z0-9+/]{40,}/g, // Base64 encoded keys
+    /pk_live_[a-zA-Z0-9]{24,}/g, // Stripe-like public keys
+    /sk_live_[a-zA-Z0-9]{24,}/g, // Stripe-like secret keys
+    /api[_-]key[=:]["']?([a-zA-Z0-9_-]{16,})["']?/g, // API key patterns
+    /access[_-]token[=:]["']?([a-zA-Z0-9_-]{16,})["']?/g, // Access token patterns
+    /secret[_-]key[=:]["']?([a-zA-Z0-9_-]{16,})["']?/g, // Secret key patterns
+    /AKIA[A-Z0-9]{16}/g, // AWS access keys
+    /ghp_[a-zA-Z0-9]{36}/g, // GitHub personal access tokens
+    /AIza[0-9A-Za-z-_]{35}/g, // Google API keys
   ];
   
+  // Βαθιά σάρωση όλων των καταχωρήσεων στο localStorage
   for (let i = 0; i < localStorage.length; i++) {
     const storageKey = localStorage.key(i);
     if (!storageKey) continue;
@@ -26,17 +37,17 @@ export const searchAllLocalStorage = (): ApiKey[] => {
       const storedData = localStorage.getItem(storageKey);
       if (!storedData) continue;
       
-      // Search using multiple patterns
+      // Δοκιμή αναζήτησης με όλα τα πρότυπα
       for (const pattern of keyPatterns) {
         const foundKeys = storedData.match(pattern);
         
         if (foundKeys && foundKeys.length > 0) {
           for (const keyValue of foundKeys) {
-            // Skip if already processed or too long to be reasonable
+            // Παράλειψη αν έχει ήδη επεξεργαστεί ή είναι πολύ μεγάλο για να είναι λογικό
             if (processedKeys.has(keyValue) || keyValue.length > 500) continue;
             processedKeys.add(keyValue);
             
-            // Try to guess the service from the storage key or key format
+            // Προσπάθεια να μαντέψουμε την υπηρεσία από το storage key ή τη μορφή του κλειδιού
             let guessedService = 'unknown';
             if (storageKey.toLowerCase().includes('binance')) guessedService = 'binance';
             else if (storageKey.toLowerCase().includes('solana')) guessedService = 'solana';
@@ -49,14 +60,22 @@ export const searchAllLocalStorage = (): ApiKey[] => {
             // Format-based guessing
             if (keyValue.startsWith('sk-')) guessedService = 'openai';
             else if (keyValue.startsWith('SB')) guessedService = 'supabase';
+            else if (keyValue.startsWith('ghp_')) guessedService = 'github';
+            else if (keyValue.startsWith('AKIA')) guessedService = 'aws';
+            else if (keyValue.startsWith('AIza')) guessedService = 'google';
+            else if (keyValue.startsWith('pk_live_') || keyValue.startsWith('sk_live_')) guessedService = 'stripe';
+            
+            // Δημιουργία εγγραφής κλειδιού API
+            const keyId = `recovered-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+            const keyName = `Ανακτημένο από ${storageKey} (${guessedService})`;
             
             potentialKeys.push({
-              id: `recovered-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-              name: `Recovered from ${storageKey}`,
+              id: keyId,
+              name: keyName,
               key: keyValue,
               service: guessedService,
               createdAt: new Date().toISOString(),
-              description: `Automatically recovered from localStorage key: ${storageKey}`,
+              description: `Αυτόματα ανακτήθηκε από το localStorage: ${storageKey}`,
               isWorking: undefined,
               status: 'active',
               source: storageKey
@@ -64,11 +83,98 @@ export const searchAllLocalStorage = (): ApiKey[] => {
           }
         }
       }
+      
+      // Επιπρόσθετη προσπάθεια αποκρυπτογράφησης εάν μοιάζει με κρυπτογραφημένο JSON
+      if (storedData.includes('==') && 
+          (storedData.startsWith('U2F') || storedData.startsWith('eyJ'))) {
+        try {
+          // Δοκιμή αποκρυπτογράφησης με κοινούς κωδικούς
+          for (const password of COMMON_PASSWORDS) {
+            try {
+              const decrypted = CryptoJS.AES.decrypt(storedData, password).toString(CryptoJS.enc.Utf8);
+              if (decrypted && (decrypted.startsWith('[') || decrypted.startsWith('{'))) {
+                console.log(`Επιτυχής αποκρυπτογράφηση με κωδικό "${password}"`);
+                const parsedData = JSON.parse(decrypted);
+                
+                // Εξαγωγή κλειδιών από τα αποκρυπτογραφημένα δεδομένα
+                if (Array.isArray(parsedData)) {
+                  for (const item of parsedData) {
+                    if (item && typeof item === 'object' && item.key && item.name) {
+                      if (processedKeys.has(item.key)) continue;
+                      processedKeys.add(item.key);
+                      
+                      potentialKeys.push({
+                        id: item.id || `decrypted-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                        name: item.name,
+                        key: item.key,
+                        service: item.service || 'unknown',
+                        createdAt: item.createdAt || new Date().toISOString(),
+                        description: `Αποκρυπτογραφήθηκε από ${storageKey}`,
+                        isWorking: item.isWorking,
+                        status: item.status || 'active',
+                        source: `encrypted:${storageKey}`
+                      });
+                    }
+                  }
+                }
+                
+                break; // Σταματάμε μετά από επιτυχή αποκρυπτογράφηση
+              }
+            } catch (decryptError) {
+              // Συνεχίζουμε με τον επόμενο κωδικό
+            }
+          }
+        } catch (e) {
+          // Αγνοούμε σφάλματα κατά την αποκρυπτογράφηση
+        }
+      }
     } catch (e) {
       console.error(`Error scanning localStorage entry ${storageKey}:`, e);
     }
   }
   
+  // Εξαγωγή δεδομένων από το session storage επίσης
+  try {
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const storageKey = sessionStorage.key(i);
+      if (!storageKey) continue;
+      
+      const storedData = sessionStorage.getItem(storageKey);
+      if (!storedData) continue;
+      
+      // Αναζήτηση με τα ίδια πρότυπα
+      for (const pattern of keyPatterns) {
+        const foundKeys = storedData.match(pattern);
+        
+        if (foundKeys && foundKeys.length > 0) {
+          for (const keyValue of foundKeys) {
+            if (processedKeys.has(keyValue) || keyValue.length > 500) continue;
+            processedKeys.add(keyValue);
+            
+            let guessedService = 'unknown';
+            if (keyValue.startsWith('sk-')) guessedService = 'openai';
+            else if (keyValue.startsWith('ghp_')) guessedService = 'github';
+            
+            potentialKeys.push({
+              id: `session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+              name: `Ανακτημένο από sessionStorage: ${storageKey}`,
+              key: keyValue,
+              service: guessedService,
+              createdAt: new Date().toISOString(),
+              description: `Αυτόματα ανακτήθηκε από το sessionStorage`,
+              isWorking: undefined,
+              status: 'active',
+              source: `sessionStorage:${storageKey}`
+            });
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Σφάλμα κατά τη σάρωση του sessionStorage:', e);
+  }
+  
+  // Επιστροφή όλων των πιθανών κλειδιών που βρέθηκαν
   return potentialKeys;
 };
 

@@ -10,7 +10,7 @@ import {
   searchAllLocalStorage, 
   processStorageKey 
 } from "./storageScanner";
-import { diagnosticScanStorage } from "./diagnosticUtils";
+import { diagnosticScanStorage, deepScanAllStorage } from "./diagnosticUtils";
 
 // Enhanced function to recover keys from all possible storages
 export const recoverAllApiKeys = async (): Promise<{ 
@@ -21,14 +21,14 @@ export const recoverAllApiKeys = async (): Promise<{
   const recoveryLocations: { storageKey: string, count: number }[] = [];
   const processedKeys = new Set<string>(); // Track keys we've already processed
   
-  console.log(`Starting deep scan for API keys in ${POTENTIAL_STORAGE_KEYS.length} potential locations...`);
+  console.log(`Ξεκίνημα βαθιάς σάρωσης για κλειδιά API σε ${POTENTIAL_STORAGE_KEYS.length} πιθανές τοποθεσίες...`);
   
   // First scan all predefined storage locations
   for (const storageKey of POTENTIAL_STORAGE_KEYS) {
     const { keys, success } = processStorageKey(storageKey, processedKeys);
     
     if (success && keys.length > 0) {
-      console.log(`Recovered ${keys.length} keys from ${storageKey}`);
+      console.log(`Ανακτήθηκαν ${keys.length} κλειδιά από ${storageKey}`);
       allRecoveredKeys.push(...keys);
       recoveryLocations.push({ storageKey, count: keys.length });
     }
@@ -44,7 +44,7 @@ export const recoverAllApiKeys = async (): Promise<{
     const { keys, success } = processStorageKey(location.storageKey, processedKeys);
     
     if (success && keys.length > 0) {
-      console.log(`Recovered ${keys.length} keys from ${location.storageKey}`);
+      console.log(`Ανακτήθηκαν ${keys.length} κλειδιά από ${location.storageKey}`);
       allRecoveredKeys.push(...keys);
       recoveryLocations.push({ storageKey: location.storageKey, count: keys.length });
     }
@@ -53,7 +53,7 @@ export const recoverAllApiKeys = async (): Promise<{
   // Also try the brute force extraction of API key-like strings
   const extractedKeys = searchAllLocalStorage();
   if (extractedKeys.length > 0) {
-    console.log(`Found ${extractedKeys.length} potential API keys via pattern matching`);
+    console.log(`Βρέθηκαν ${extractedKeys.length} πιθανά κλειδιά API μέσω αναγνώρισης προτύπων`);
     
     // Filter out keys we've already processed
     const uniqueExtractedKeys = extractedKeys.filter(key => !processedKeys.has(key.key));
@@ -62,6 +62,20 @@ export const recoverAllApiKeys = async (): Promise<{
       allRecoveredKeys.push(...uniqueExtractedKeys);
       recoveryLocations.push({ storageKey: 'pattern-extracted', count: uniqueExtractedKeys.length });
     }
+  }
+  
+  // Try the deep scan method
+  try {
+    const deepScanKeys = await deepScanAllStorage();
+    const uniqueDeepScanKeys = deepScanKeys.filter(key => !processedKeys.has(key.key));
+    
+    if (uniqueDeepScanKeys.length > 0) {
+      console.log(`Βρέθηκαν ${uniqueDeepScanKeys.length} επιπλέον κλειδιά με βαθιά σάρωση`);
+      allRecoveredKeys.push(...uniqueDeepScanKeys);
+      recoveryLocations.push({ storageKey: 'deep-scan', count: uniqueDeepScanKeys.length });
+    }
+  } catch (e) {
+    console.error('Σφάλμα κατά τη βαθιά σάρωση:', e);
   }
   
   // Remove duplicate keys (based on the key value)
@@ -75,7 +89,7 @@ export const recoverAllApiKeys = async (): Promise<{
     }
   }
   
-  console.log(`Total recovered ${uniqueKeys.length} unique keys from ${recoveryLocations.length} locations`);
+  console.log(`Συνολικά ανακτήθηκαν ${uniqueKeys.length} μοναδικά κλειδιά από ${recoveryLocations.length} τοποθεσίες`);
   
   return {
     recoveredKeys: uniqueKeys,
@@ -97,7 +111,7 @@ export const forceScanForKeys = async (): Promise<number> => {
         try {
           existingKeys = JSON.parse(existingKeysStr);
         } catch (e) {
-          console.error('Error parsing existing keys', e);
+          console.error('Σφάλμα ανάλυσης υπαρχόντων κλειδιών', e);
         }
       }
       
@@ -115,11 +129,11 @@ export const forceScanForKeys = async (): Promise<number> => {
       }
       
       localStorage.setItem('apiKeys', JSON.stringify(uniqueKeys));
-      console.log(`Saved ${uniqueKeys.length} keys to localStorage`);
+      console.log(`Αποθηκεύτηκαν ${uniqueKeys.length} κλειδιά στο localStorage`);
       
       return result.recoveredKeys.length;
     } catch (e) {
-      console.error('Error saving recovered keys', e);
+      console.error('Σφάλμα αποθήκευσης ανακτημένων κλειδιών', e);
     }
   }
   
@@ -128,3 +142,16 @@ export const forceScanForKeys = async (): Promise<number> => {
 
 // Export for compatibility with existing code
 export { POTENTIAL_STORAGE_KEYS, COMMON_PASSWORDS, initializeAutoRecovery };
+
+// Βοηθητική συνάρτηση για μαζική επαναφορά δοκιμαστικών κλειδιών
+export const restoreDemoKeys = async () => {
+  try {
+    const { injectDemoKeys } = await import('./diagnosticUtils');
+    const demoKeys = injectDemoKeys(26);
+    console.log(`Επαναφέρθηκαν ${demoKeys.length} δοκιμαστικά κλειδιά`);
+    return demoKeys;
+  } catch (e) {
+    console.error('Σφάλμα επαναφοράς δοκιμαστικών κλειδιών:', e);
+    return [];
+  }
+};
