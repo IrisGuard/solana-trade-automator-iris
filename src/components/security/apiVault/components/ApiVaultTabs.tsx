@@ -29,6 +29,7 @@ interface ApiVaultTabsProps {
   onAddKeyClick: () => void;
   onUnlockClick: () => void;
   handleRecoverClick: () => void;
+  setApiKeys: React.Dispatch<React.SetStateAction<ApiKey[]>>;
 }
 
 export const ApiVaultTabs: React.FC<ApiVaultTabsProps> = ({
@@ -51,7 +52,8 @@ export const ApiVaultTabs: React.FC<ApiVaultTabsProps> = ({
   getKeysByService,
   onAddKeyClick,
   onUnlockClick,
-  handleRecoverClick
+  handleRecoverClick,
+  setApiKeys
 }) => {
   return (
     <>
@@ -75,6 +77,7 @@ export const ApiVaultTabs: React.FC<ApiVaultTabsProps> = ({
               getFilteredKeys={getFilteredKeys}
               getKeysByService={getKeysByService}
               onAddKeyClick={onAddKeyClick}
+              setApiKeys={setApiKeys}
             />
           </TabsContent>
           <TabsContent value="stats">
@@ -99,6 +102,7 @@ export const ApiVaultTabs: React.FC<ApiVaultTabsProps> = ({
           getFilteredKeys={getFilteredKeys}
           getKeysByService={getKeysByService}
           onAddKeyClick={onAddKeyClick}
+          setApiKeys={setApiKeys}
         />
       )}
 

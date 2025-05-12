@@ -20,6 +20,7 @@ interface ApiVaultContentProps {
   getFilteredKeys: () => ApiKey[];
   getKeysByService: () => Record<string, ApiKey[]>;
   onAddKeyClick: () => void;
+  setApiKeys: React.Dispatch<React.SetStateAction<ApiKey[]>>;
 }
 
 export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
@@ -33,7 +34,8 @@ export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
   deleteKey,
   getFilteredKeys,
   getKeysByService,
-  onAddKeyClick
+  onAddKeyClick,
+  setApiKeys
 }) => {
   if (apiKeys.length === 0) {
     return <EmptyApiVault onAddKeyClick={onAddKeyClick} />;
@@ -75,6 +77,7 @@ export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
             isKeyVisible={isKeyVisible}
             toggleKeyVisibility={toggleKeyVisibility}
             deleteKey={deleteKey}
+            setApiKeys={setApiKeys}
           />
         </TabsContent>
         
@@ -84,6 +87,7 @@ export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
             isKeyVisible={isKeyVisible}
             toggleKeyVisibility={toggleKeyVisibility}
             deleteKey={deleteKey}
+            setApiKeys={setApiKeys}
           />
         </TabsContent>
 

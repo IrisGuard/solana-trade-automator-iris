@@ -56,7 +56,16 @@ export const ApiVaultCard = () => {
   } = useApiKeyManagement();
 
   // Key testing hooks
-  const { handleRefreshKeys } = useKeyTesting();
+  const { testSingleKey, testAllKeys } = useKeyTesting();
+
+  // Handle refreshing all keys - Wrapper function to avoid type errors
+  const handleRefreshKeys = () => {
+    setIsTestingKeys(true);
+    testAllKeys(apiKeys, setApiKeys)
+      .finally(() => {
+        setIsTestingKeys(false);
+      });
+  };
 
   // API Key Visibility hook
   const { isKeyVisible, toggleKeyVisibility } = useApiKeyVisibility();
@@ -143,6 +152,7 @@ export const ApiVaultCard = () => {
             onAddKeyClick={() => setShowDialogApiKey(true)}
             onUnlockClick={() => setIsUnlocking(true)}
             handleRecoverClick={handleRecoverClick}
+            setApiKeys={setApiKeys}
           />
           
           {/* Additional actions */}
