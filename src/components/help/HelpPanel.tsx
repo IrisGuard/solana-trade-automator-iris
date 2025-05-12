@@ -12,12 +12,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Search, Plus, BookOpen, ListChecks, Info } from "lucide-react";
+import { X, Search, Plus, BookOpen, ListChecks, Info, FileText } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { CommandList } from "./CommandList";
 import { PlatformGuide } from "./PlatformGuide";
 import { HelpSearch } from "./HelpSearch";
+import { SolanaDocumentation } from "./SolanaDocumentation";
 
 interface HelpPanelProps {
   isOpen: boolean;
@@ -66,6 +67,10 @@ export function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
                 <TabsTrigger value="guide" className="flex items-center gap-2">
                   <BookOpen className="h-4 w-4" />
                   Οδηγός Πλατφόρμας
+                </TabsTrigger>
+                <TabsTrigger value="documentation" className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Τεκμηρίωση Solana
                 </TabsTrigger>
                 <TabsTrigger value="search" className="flex items-center gap-2">
                   <Search className="h-4 w-4" />
@@ -132,6 +137,10 @@ export function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
 
               <TabsContent value="guide" className="p-0">
                 <PlatformGuide />
+              </TabsContent>
+
+              <TabsContent value="documentation" className="p-0">
+                <SolanaDocumentation />
               </TabsContent>
 
               <TabsContent value="search" className="p-0">
