@@ -1,5 +1,5 @@
 
-import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
+import { Commitment, Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
 
 // Λίστα με αξιόπιστα δημόσια RPC endpoints (για failover)
 export const RPC_ENDPOINTS = {
@@ -7,14 +7,14 @@ export const RPC_ENDPOINTS = {
   BACKUP_1: 'https://solana-mainnet.g.alchemy.com/v2/demo',
   BACKUP_2: 'https://rpc.ankr.com/solana',
   BACKUP_3: 'https://ssc-dao.genesysgo.net',
-  BACKUP_4: clusterApiUrl('mainnet-beta'),
+  BACKUP_4: clusterApiUrl('mainnet-beta'), // Διορθώθηκε από 'mainnet' σε 'mainnet-beta'
   DEVNET: clusterApiUrl('devnet'),
   TESTNET: clusterApiUrl('testnet')
 };
 
 // Επιλογές σύνδεσης με ρυθμίσεις αξιοπιστίας
 export const CONNECTION_CONFIG = {
-  commitment: 'confirmed',
+  commitment: 'confirmed' as Commitment,
   confirmTransactionInitialTimeout: 60000, // 60 δευτερόλεπτα
   disableRetryOnRateLimit: false
 };

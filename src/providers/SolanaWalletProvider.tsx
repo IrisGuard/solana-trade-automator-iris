@@ -8,12 +8,10 @@ import {
   CoinbaseWalletAdapter,
   TorusWalletAdapter,
   LedgerWalletAdapter,
-  BackpackWalletAdapter,
-  BraveWalletAdapter,
+  AlphaWalletAdapter,
+  AvanaWalletAdapter,
   CloverWalletAdapter,
   Coin98WalletAdapter,
-  ExodusWalletAdapter,
-  SlopeWalletAdapter,
   TrustWalletAdapter,
   NightlyWalletAdapter
 } from '@solana/wallet-adapter-wallets';
@@ -30,7 +28,7 @@ interface Props {
 
 export const SolanaWalletProvider: FC<Props> = ({ children }) => {
   // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
-  const [network, setNetwork] = useState<WalletAdapterNetwork>(WalletAdapterNetwork.MainnetBeta);
+  const [network, setNetwork] = useState<WalletAdapterNetwork>(WalletAdapterNetwork.Mainnet);
   
   // Μπορείτε να αλλάξετε το δίκτυο με αυτήν τη συνάρτηση
   const changeNetwork = (newNetwork: WalletAdapterNetwork) => {
@@ -45,7 +43,7 @@ export const SolanaWalletProvider: FC<Props> = ({ children }) => {
     if (network === WalletAdapterNetwork.Testnet) {
       return RPC_ENDPOINTS.TESTNET;
     }
-    // Mainnet-Beta
+    // Mainnet
     return RPC_ENDPOINTS.PRIMARY;
   }, [network]);
 
@@ -59,12 +57,10 @@ export const SolanaWalletProvider: FC<Props> = ({ children }) => {
       new CoinbaseWalletAdapter(),
       new LedgerWalletAdapter(),
       new TorusWalletAdapter(),
-      new BackpackWalletAdapter(),
-      new BraveWalletAdapter(),
+      new AlphaWalletAdapter(),
+      new AvanaWalletAdapter(),
       new CloverWalletAdapter(),
       new Coin98WalletAdapter(),
-      new ExodusWalletAdapter(),
-      new SlopeWalletAdapter(),
       new TrustWalletAdapter(),
       new NightlyWalletAdapter()
     ],
