@@ -11,6 +11,7 @@ interface ApiVaultHeaderProps {
   apiKeysCount: number;
   onSettings?: () => void;
   isLocked?: boolean;
+  isEncryptionEnabled?: boolean;
   onUnlock?: () => void;
   onLock?: () => void;
 }
@@ -22,6 +23,7 @@ export const ApiVaultHeader: React.FC<ApiVaultHeaderProps> = ({
   apiKeysCount,
   onSettings,
   isLocked = false,
+  isEncryptionEnabled = false,
   onUnlock,
   onLock
 }) => {
@@ -78,7 +80,7 @@ export const ApiVaultHeader: React.FC<ApiVaultHeaderProps> = ({
                 Ρυθμίσεις
               </Button>
             )}
-            {onLock && (
+            {onLock && isEncryptionEnabled && (
               <Button 
                 variant="outline" 
                 onClick={onLock}
