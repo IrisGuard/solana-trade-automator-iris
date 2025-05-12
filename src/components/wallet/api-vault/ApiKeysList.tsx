@@ -2,11 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Database } from "lucide-react";
-
-interface ApiKey {
-  name: string;
-  connected: boolean;
-}
+import { ApiKey } from "./types";
 
 interface ApiKeysListProps {
   apiKeys: ApiKey[];

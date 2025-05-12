@@ -2,12 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
-
-interface RecommendedApi {
-  name: string;
-  description: string;
-  url: string;
-}
+import { RecommendedApi } from "./types";
 
 interface RecommendedApisProps {
   apis: RecommendedApi[];

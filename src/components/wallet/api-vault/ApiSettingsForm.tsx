@@ -5,13 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-
-interface ApiSettings {
-  rpcUrl: string;
-  customRpc: boolean;
-  fallbackRpc: boolean;
-  rateLimit: number;
-}
+import { ApiSettings } from "./types";
 
 interface ApiSettingsFormProps {
   apiSettings: ApiSettings;
