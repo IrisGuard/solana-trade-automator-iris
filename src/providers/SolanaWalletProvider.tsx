@@ -13,7 +13,7 @@ import { clusterApiUrl } from '@solana/web3.js';
 import React, { FC, ReactNode, useMemo } from 'react';
 import { SolanaProviderFallback } from '@/components/wallet/SolanaProviderFallback';
 
-// Import the CSS directly as an ES module instead of using require
+// Import the CSS as an ES module
 import '@solana/wallet-adapter-react-ui/styles.css';
 
 interface Props {
