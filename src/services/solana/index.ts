@@ -5,6 +5,7 @@ import { tokenService } from './tokenService';
 import { transactionService } from './transaction';
 import { apiServices } from './apiServices';
 import { raydiumService } from './raydiumService';
+import { ApiEndpointManager, SolanaApis } from './apiConfig';
 
 // Combine all services into a single exported object
 export const solanaService = {
@@ -26,5 +27,11 @@ export const solanaService = {
   apis: apiServices,
   
   // Raydium Services
-  raydium: raydiumService
+  raydium: raydiumService,
+  
+  // API Configuration
+  apiConfig: {
+    endpointManager: ApiEndpointManager,
+    endpoints: SolanaApis
+  }
 };

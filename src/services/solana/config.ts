@@ -1,15 +1,37 @@
-
 import { Commitment, Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
 
 // Λίστα με αξιόπιστα δημόσια RPC endpoints (για failover)
 export const RPC_ENDPOINTS = {
   PRIMARY: 'https://api.mainnet-beta.solana.com',
   BACKUP_1: 'https://solana-mainnet.g.alchemy.com/v2/demo',
-  BACKUP_2: 'https://rpc.ankr.com/solana',
-  BACKUP_3: 'https://ssc-dao.genesysgo.net',
-  BACKUP_4: clusterApiUrl('mainnet-beta'), // Διορθώθηκε από 'mainnet' σε 'mainnet-beta'
+  BACKUP_2: 'https://solana-rpc.publicnode.com',
+  BACKUP_3: 'https://api.blockeden.xyz/solana/67nCBdZQSH9z3YqDDjdm',
+  BACKUP_4: 'https://go.getblock.io/4136d34f90a6488b84214ae26f0ed5f4',
+  BACKUP_5: 'https://solana.drpc.org/',
+  BACKUP_6: 'https://endpoints.omniatech.io/v1/sol/mainnet/public',
+  BACKUP_7: 'https://solana.api.onfinality.io/public',
   DEVNET: clusterApiUrl('devnet'),
   TESTNET: clusterApiUrl('testnet')
+};
+
+// APIs και third-party υπηρεσίες
+export const API_ENDPOINTS = {
+  SOLSCAN: 'https://public-api.solscan.io',
+  SOLANA_FM: 'https://api.solana.fm/v0',
+  COINCAP: 'https://api.coincap.io/v2',
+  COINPAPRIKA: 'https://api.coinpaprika.com/v1',
+  CRYPTOCOMPARE: 'https://min-api.cryptocompare.com/data',
+  COINLIB: 'https://coinlib.io/api/v1',
+  JUPITER: 'https://lite-api.jup.ag',
+  RAYDIUM: 'https://api.raydium.io',
+  ORCA: 'https://api.orca.so/v1',
+  SOLFLARE: 'https://public-api.solflare.com',
+  COINGECKO: 'https://api.coingecko.com/api/v3'
+};
+
+// API keys για third-party υπηρεσίες (μόνο για public keys)
+export const API_KEYS = {
+  COINGECKO: 'CG-2KBnBnmkjfr2zoCQA51GsWBj'
 };
 
 // Επιλογές σύνδεσης με ρυθμίσεις αξιοπιστίας
@@ -25,7 +47,13 @@ export const connection = new Connection(RPC_ENDPOINTS.PRIMARY, CONNECTION_CONFI
 // Δημιουργία fallback σύνδεσης αν η κύρια αποτύχει
 export const createFallbackConnection = () => {
   // Δοκιμάζει τα backups με τη σειρά
-  for (const endpoint of [RPC_ENDPOINTS.BACKUP_1, RPC_ENDPOINTS.BACKUP_2, RPC_ENDPOINTS.BACKUP_3]) {
+  for (const endpoint of [
+    RPC_ENDPOINTS.BACKUP_1, 
+    RPC_ENDPOINTS.BACKUP_2, 
+    RPC_ENDPOINTS.BACKUP_3,
+    RPC_ENDPOINTS.BACKUP_4,
+    RPC_ENDPOINTS.BACKUP_5
+  ]) {
     try {
       return new Connection(endpoint, CONNECTION_CONFIG);
     } catch (err) {
@@ -33,7 +61,7 @@ export const createFallbackConnection = () => {
     }
   }
   // Αν όλα αποτύχουν, επιστρέφει τη σύνδεση με το τελευταίο backup
-  return new Connection(RPC_ENDPOINTS.BACKUP_4, CONNECTION_CONFIG);
+  return new Connection(RPC_ENDPOINTS.BACKUP_6, CONNECTION_CONFIG);
 };
 
 // SPL Token program ID
@@ -127,9 +155,6 @@ export const MOCK_PRICES: Record<string, number> = {
   "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263": 0.00000237, // BONK
   "RAYv9wav3Q57K6vKXBXBAR9v8RNUWM3V7GNLXt8KmgH": 0.34 // RAY
 };
-
-// Helius API Key - παράδειγμα για χρήση με τη βιβλιοθήκη Helius
-export const HELIUS_API_KEY = ""; // Θα πρέπει να ορισθεί από την API Vault
 
 // Explorer URL για links συναλλαγών
 export const EXPLORER_URL = "https://explorer.solana.com";
