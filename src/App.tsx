@@ -11,38 +11,12 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route 
-          path="/" 
-          element={
-            <Layout>
-              <Index />
-            </Layout>
-          } 
-        />
-        <Route 
-          path="/wallet" 
-          element={
-            <Layout>
-              <Wallet />
-            </Layout>
-          } 
-        />
-        <Route 
-          path="/security" 
-          element={
-            <Layout>
-              <Security />
-            </Layout>
-          } 
-        />
-        <Route 
-          path="/key-recovery" 
-          element={
-            <Layout>
-              <KeyRecoveryPage />
-            </Layout>
-          } 
-        />
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Index />} />
+          <Route path="/wallet" element={<Wallet />} />
+          <Route path="/security" element={<Security />} />
+          <Route path="/key-recovery" element={<KeyRecoveryPage />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );
