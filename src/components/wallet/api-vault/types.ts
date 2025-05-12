@@ -13,13 +13,15 @@ export interface RecommendedApi {
   name: string;
   description: string;
   url: string;
+  features?: string[];
+  example?: string;
 }
 
 export interface ApiSettings {
   rpcEndpoint: string;
   apiEndpoint: string;
   websocketEndpoint: string;
-  rpcUrl?: string;
+  rpcUrl: string;
   customRpc: boolean;
   fallbackRpc: boolean;
   rateLimit: number;
