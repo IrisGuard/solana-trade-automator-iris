@@ -64,7 +64,6 @@ export const ApiVaultTabs: React.FC<ApiVaultTabsProps> = ({
           </TabsList>
           <TabsContent value="keys" className="space-y-4">
             <ApiVaultContent 
-              isLocked={isLocked}
               apiKeys={apiKeys}
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
@@ -76,8 +75,6 @@ export const ApiVaultTabs: React.FC<ApiVaultTabsProps> = ({
               getFilteredKeys={getFilteredKeys}
               getKeysByService={getKeysByService}
               onAddKeyClick={onAddKeyClick}
-              onUnlockClick={onUnlockClick}
-              onRecoverClick={handleRecoverClick}
             />
           </TabsContent>
           <TabsContent value="stats">
@@ -91,7 +88,6 @@ export const ApiVaultTabs: React.FC<ApiVaultTabsProps> = ({
       
       {(isLocked || apiKeys.length === 0) && (
         <ApiVaultContent 
-          isLocked={isLocked}
           apiKeys={apiKeys}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -103,8 +99,6 @@ export const ApiVaultTabs: React.FC<ApiVaultTabsProps> = ({
           getFilteredKeys={getFilteredKeys}
           getKeysByService={getKeysByService}
           onAddKeyClick={onAddKeyClick}
-          onUnlockClick={onUnlockClick}
-          onRecoverClick={handleRecoverClick}
         />
       )}
 

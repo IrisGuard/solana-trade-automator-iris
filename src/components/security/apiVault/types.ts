@@ -24,5 +24,5 @@ export interface ApiKeyStats {
 export interface ServiceInfo {
   name: string;
   count: number;
-  workingCount: number;
+  workingCount?: number;
 }

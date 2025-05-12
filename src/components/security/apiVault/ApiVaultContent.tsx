@@ -5,6 +5,7 @@ import { ApiKeyFilters } from "./ApiKeyFilters";
 import { ApiKeyList } from "./ApiKeyList";
 import { ApiKeysByService } from "./ApiKeysByService";
 import { EmptyApiVault } from "./components/EmptyApiVault";
+import { ApiKeyStats } from "./components/ApiKeyStats";
 import { ApiKey } from "./types";
 
 interface ApiVaultContentProps {
@@ -38,6 +39,20 @@ export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
     return <EmptyApiVault onAddKeyClick={onAddKeyClick} />;
   }
 
+  // Calculate statistics for keys
+  const keyStats = {
+    total: apiKeys.length,
+    active: apiKeys.filter(key => key.status === "active" || !key.status).length,
+    expired: apiKeys.filter(key => key.status === "expired").length,
+    revoked: apiKeys.filter(key => key.status === "revoked").length,
+  };
+
+  // Get unique services and their counts
+  const serviceStats = Object.entries(getKeysByService()).map(([name, keys]) => ({
+    name,
+    count: keys.length,
+  }));
+
   return (
     <div className="space-y-4">
       <ApiKeyFilters 
@@ -48,9 +63,10 @@ export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
       />
       
       <Tabs defaultValue="list" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-4">
+        <TabsList className="grid w-full grid-cols-3 mb-4">
           <TabsTrigger value="list">Λίστα</TabsTrigger>
           <TabsTrigger value="groups">Ανά Υπηρεσία</TabsTrigger>
+          <TabsTrigger value="stats">Στατιστικά</TabsTrigger>
         </TabsList>
         
         <TabsContent value="list" className="space-y-4">
@@ -69,6 +85,10 @@ export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
             toggleKeyVisibility={toggleKeyVisibility}
             deleteKey={deleteKey}
           />
+        </TabsContent>
+
+        <TabsContent value="stats" className="space-y-4">
+          <ApiKeyStats stats={keyStats} services={serviceStats} />
         </TabsContent>
       </Tabs>
     </div>

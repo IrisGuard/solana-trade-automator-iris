@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, 
   AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Copy, Eye, EyeOff, Trash, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { Copy, Eye, EyeOff, Trash } from "lucide-react";
 import { copyToClipboard, getServiceIcon, maskKey } from "./utils";
 
 interface ApiKeyListProps {
