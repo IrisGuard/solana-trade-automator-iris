@@ -5,6 +5,7 @@ import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toaster";
+import { HelpButton } from "@/components/help/HelpButton";
 
 const pageTitles: Record<string, string> = {
   "/": "Αρχική",
@@ -13,7 +14,6 @@ const pageTitles: Record<string, string> = {
   "/tokens": "Tokens",
   "/wallet": "Wallet",
   "/transactions": "Transactions",
-  "/settings": "Settings",
   "/security": "Security",
   "/notifications": "Notifications",
 };
@@ -32,6 +32,9 @@ export function Layout() {
         </main>
         <Toaster />
       </div>
+      
+      {/* Προσθήκη του κουμπιού βοήθειας */}
+      <HelpButton />
     </div>
   );
 }
