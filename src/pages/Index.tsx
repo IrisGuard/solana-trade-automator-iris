@@ -8,6 +8,7 @@ import { FooterSection } from "@/components/home/FooterSection";
 import { BotExplanationSection } from "@/components/home/BotExplanationSection";
 import { formatWalletAddress } from "@/utils/walletUtils";
 import { useSolanaWallet } from "@/hooks/useSolanaWallet";
+import { ApiVaultCard } from "@/components/security/apiVault/ApiVaultCard";
 
 const Index = () => {
   const { 
@@ -30,6 +31,12 @@ const Index = () => {
     <div className="container mx-auto space-y-8 pb-8">
       {/* Hero Section */}
       <HeroSection />
+
+      {/* API Vault Card */}
+      <div className="my-8">
+        <h2 className="text-2xl font-bold mb-4">Κλειδοθήκη API</h2>
+        <ApiVaultCard />
+      </div>
 
       {/* Main Content */}
       {connected && walletAddress ? (
