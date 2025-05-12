@@ -7,7 +7,7 @@ import { ApiVaultContent } from "./ApiVaultContent";
 import { useApiKeyManagement } from "./hooks/useApiKeyManagement";
 import { useApiKeyVisibility } from "./hooks/useApiKeyVisibility";
 import { useVaultSecurity } from "./hooks/useVaultSecurity";
-import { recoverAllApiKeys } from "./utils";
+import { recoverAllApiKeys, forceScanForKeys } from "./utils";
 import { toast } from "sonner";
 import { ApiVaultDialogs } from "./components/ApiVaultDialogs";
 import { ApiVaultTabs } from "./components/ApiVaultTabs";
@@ -77,6 +77,17 @@ export const ApiVaultCard = () => {
     count: keys.length,
   }));
 
+  // Attempt automatic recovery when the component mounts and no keys are found
+  useEffect(() => {
+    // If no keys in localStorage, run recovery to find them
+    if (apiKeys.length === 0) {
+      console.log('No keys found, attempting automatic recovery...');
+      setTimeout(() => {
+        handleRecoverClick();
+      }, 1000);
+    }
+  }, []);
+
   // Handle recovery scan
   const handleRecoverClick = () => {
     setIsRecovering(true);
@@ -88,6 +99,7 @@ export const ApiVaultCard = () => {
         
         if (result.keys.length > 0) {
           setShowRecoveryDialog(true);
+          toast.success(`Βρέθηκαν ${result.keys.length} κλειδιά σε ${result.locations.length} τοποθεσίες`);
         } else {
           toast.info('Δεν βρέθηκαν επιπλέον κλειδιά API');
         }

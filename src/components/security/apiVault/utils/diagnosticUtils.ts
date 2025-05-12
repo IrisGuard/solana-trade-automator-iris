@@ -124,4 +124,3 @@ export function injectDemoKeys(count: number = 3): void {
     toast.error('Failed to inject demo keys');
   }
 }
-

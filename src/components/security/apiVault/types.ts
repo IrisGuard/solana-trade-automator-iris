@@ -10,6 +10,7 @@ export interface ApiKey {
   status?: 'active' | 'expired' | 'revoked';
   isWorking?: boolean;
   source?: string;
+  connected?: boolean;
 }
 
 export interface ApiKeyStats {
