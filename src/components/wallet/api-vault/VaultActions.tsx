@@ -3,24 +3,12 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 
 interface VaultActionsProps {
-  isUnlocked: boolean;
   handleLockVault: () => void;
   handleExportKeys: () => void;
   handleImportKeys: () => void;
-  handleUnlockVault: () => void;
 }
 
-export function VaultActions({ isUnlocked, handleLockVault, handleExportKeys, handleImportKeys, handleUnlockVault }: VaultActionsProps) {
-  if (!isUnlocked) {
-    return (
-      <div className="flex justify-center pt-2">
-        <Button variant="outline" size="sm" onClick={handleUnlockVault}>
-          Unlock Vault
-        </Button>
-      </div>
-    );
-  }
-
+export function VaultActions({ handleLockVault, handleExportKeys, handleImportKeys }: VaultActionsProps) {
   return (
     <>
       <div className="flex justify-between items-center">

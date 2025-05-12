@@ -6,7 +6,7 @@ import { ApiKeyList } from "./ApiKeyList";
 import { ApiKeysByService } from "./ApiKeysByService";
 import { EmptyApiVault } from "./components/EmptyApiVault";
 import { ApiKeyStats } from "./components/ApiKeyStats";
-import { ApiKey, ServiceInfo } from "./types";
+import { ApiKey } from "./types";
 
 interface ApiVaultContentProps {
   apiKeys: ApiKey[];
@@ -48,7 +48,7 @@ export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
   };
 
   // Get unique services and their counts
-  const serviceStats: ServiceInfo[] = Object.entries(getKeysByService()).map(([name, keys]) => ({
+  const serviceStats = Object.entries(getKeysByService()).map(([name, keys]) => ({
     name,
     count: keys.length,
   }));

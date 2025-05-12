@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { ApiKey } from '../types';
-import { recoverAllApiKeys } from '../utils';
+import { recoverAllApiKeys, forceScanForKeys } from '../utils';
 import { toast } from 'sonner';
 
 export const useApiVault = () => {
@@ -19,12 +19,12 @@ export const useApiVault = () => {
       
       const result = await recoverAllApiKeys();
       
-      setRecoveredKeys(result.keys);
+      setRecoveredKeys(result.recoveredKeys);
       setRecoveryLocations(result.locations);
       
-      if (result.keys.length > 0) {
+      if (result.recoveredKeys.length > 0) {
         setRecoverySuccess(true);
-        toast.success(`Ανακτήθηκαν ${result.keys.length} κλειδιά από ${result.locations.length} τοποθεσίες`);
+        toast.success(`Ανακτήθηκαν ${result.recoveredKeys.length} κλειδιά από ${result.locations.length} τοποθεσίες`);
       } else {
         toast.info("Δεν βρέθηκαν κλειδιά API για ανάκτηση");
       }
@@ -35,7 +35,7 @@ export const useApiVault = () => {
       setRecoveryError(error instanceof Error ? error.message : "Unknown error during recovery");
       toast.error("Σφάλμα κατά την ανάκτηση κλειδιών");
       return {
-        keys: [],
+        recoveredKeys: [],
         locations: []
       };
     } finally {
@@ -49,8 +49,7 @@ export const useApiVault = () => {
       setRecoverySuccess(false);
       setRecoveryError(null);
       
-      const result = await forceScanForKeys();
-      const numKeysRecovered = result.keys.length;
+      const numKeysRecovered = await forceScanForKeys();
       
       if (numKeysRecovered > 0) {
         setRecoverySuccess(true);
@@ -68,13 +67,6 @@ export const useApiVault = () => {
     } finally {
       setIsRecovering(false);
     }
-  }, []);
-
-  // Import necessary function for forceScan
-  const forceScanForKeys = useCallback(async () => {
-    // This is a placeholder that would call the actual forceScanForKeys function
-    const result = await recoverAllApiKeys();
-    return result;
   }, []);
 
   // Run initial recovery when the component mounts

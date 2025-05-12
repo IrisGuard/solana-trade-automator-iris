@@ -1,246 +1,207 @@
 
 import { ApiKey } from "../types";
+import CryptoJS from "crypto-js";
+import { COMMON_PASSWORDS, normalizeServiceName } from "./recoveryCore";
+import { diagnosticScanStorage } from "./diagnosticUtils";
 
-// Function to search all of localStorage for keys
-export function searchAllLocalStorage(): string[] {
-  const foundItems: string[] = [];
+// Advanced function to search through all localStorage entries with improved heuristics
+export const searchAllLocalStorage = (): ApiKey[] => {
+  const potentialKeys: ApiKey[] = [];
+  const processedKeys = new Set<string>(); // Track keys we've already processed
   
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key) {
-        foundItems.push(key);
-      }
-    }
-  } catch (e) {
-    console.error('Error scanning localStorage:', e);
-  }
+  // Deeper search patterns for common API key formats
+  const keyPatterns = [
+    /[a-zA-Z0-9_-]{20,}/g, // Basic long alphanumeric pattern
+    /sk-[a-zA-Z0-9]{20,}/g, // OpenAI-style secret keys
+    /SB[a-zA-Z0-9]{20,}/g, // Supabase anon keys
+    /ey[a-zA-Z0-9_-]{20,}\.[a-zA-Z0-9_-]{20,}\.[a-zA-Z0-9_-]{20,}/g, // JWT tokens
+    /[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}/g, // UUID format keys
+  ];
   
-  return foundItems;
-}
-
-// Process a specific storage key to find API keys
-export function processStorageKey(storageKey: string): ApiKey[] {
-  try {
-    const storedData = localStorage.getItem(storageKey);
-    if (!storedData) return [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const storageKey = localStorage.key(i);
+    if (!storageKey) continue;
     
     try {
-      const parsed = JSON.parse(storedData);
-      return extractApiKeysFromData(parsed, storageKey);
-    } catch (e) {
-      // Not valid JSON
-      return [];
-    }
-  } catch (e) {
-    console.error(`Error processing storage key ${storageKey}:`, e);
-    return [];
-  }
-}
-
-// Extract API keys from JSON data - enhanced for better recovery
-export function extractApiKeysFromData(data: any, source: string): ApiKey[] {
-  const apiKeys: ApiKey[] = [];
-  
-  // Handle the case where data is an array of API keys directly
-  if (Array.isArray(data)) {
-    data.forEach(item => {
-      if (item && typeof item === 'object') {
-        // If it looks like an API key, normalize it
-        if (isApiKeyLike(item)) {
-          apiKeys.push(normalizeApiKey(item, source));
-        }
-        // Also check nested objects inside arrays
-        else if (typeof item === 'object' && item !== null) {
-          const nestedKeys = extractApiKeysFromData(item, source);
-          apiKeys.push(...nestedKeys);
-        }
-      }
-    });
-  } else if (data && typeof data === 'object') {
-    // Handle single object cases
-
-    // First check if this object itself is an API key
-    if (isApiKeyLike(data)) {
-      apiKeys.push(normalizeApiKey(data, source));
-    }
-    
-    // Now recursively check all properties
-    for (const key in data) {
-      // If the property is an object, scan it
-      if (typeof data[key] === 'object' && data[key] !== null) {
-        // If the property might be a collection of API keys
-        if (isCollectionProperty(key)) {
-          const collection = data[key];
-          if (Array.isArray(collection)) {
-            collection.forEach(item => {
-              if (item && typeof item === 'object' && isApiKeyLike(item)) {
-                apiKeys.push(normalizeApiKey(item, source));
-              }
+      const storedData = localStorage.getItem(storageKey);
+      if (!storedData) continue;
+      
+      // Search using multiple patterns
+      for (const pattern of keyPatterns) {
+        const foundKeys = storedData.match(pattern);
+        
+        if (foundKeys && foundKeys.length > 0) {
+          for (const keyValue of foundKeys) {
+            // Skip if already processed or too long to be reasonable
+            if (processedKeys.has(keyValue) || keyValue.length > 500) continue;
+            processedKeys.add(keyValue);
+            
+            // Try to guess the service from the storage key or key format
+            let guessedService = 'unknown';
+            if (storageKey.toLowerCase().includes('binance')) guessedService = 'binance';
+            else if (storageKey.toLowerCase().includes('solana')) guessedService = 'solana';
+            else if (storageKey.toLowerCase().includes('ethereum') || storageKey.toLowerCase().includes('eth')) guessedService = 'ethereum';
+            else if (storageKey.toLowerCase().includes('openai')) guessedService = 'openai';
+            else if (storageKey.toLowerCase().includes('kraken')) guessedService = 'kraken';
+            else if (storageKey.toLowerCase().includes('coinbase')) guessedService = 'coinbase';
+            else if (storageKey.toLowerCase().includes('rork')) guessedService = 'rork';
+            
+            // Format-based guessing
+            if (keyValue.startsWith('sk-')) guessedService = 'openai';
+            else if (keyValue.startsWith('SB')) guessedService = 'supabase';
+            
+            potentialKeys.push({
+              id: `recovered-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+              name: `Recovered from ${storageKey}`,
+              key: keyValue,
+              service: guessedService,
+              createdAt: new Date().toISOString(),
+              description: `Automatically recovered from localStorage key: ${storageKey}`,
+              isWorking: undefined,
+              status: 'active',
+              source: storageKey
             });
           }
         }
-      
-        // Recursively check this property
-        const nestedKeys = extractApiKeysFromData(data[key], `${source}.${key}`);
-        apiKeys.push(...nestedKeys);
-      }
-    }
-  }
-  
-  return apiKeys;
-}
-
-// Check if the property name suggests it might contain API keys
-function isCollectionProperty(name: string): boolean {
-  const keyRelatedNames = ['keys', 'apiKeys', 'tokens', 'credentials', 'auth'];
-  return keyRelatedNames.some(term => name.toLowerCase().includes(term.toLowerCase()));
-}
-
-// Check if an object looks like an API key - enhanced detection
-function isApiKeyLike(item: any): boolean {
-  // Basic check: must have identifier and a key/token value
-  const hasIdentifier = item && (
-    item.name || 
-    item.id || 
-    item.service || 
-    item.provider ||
-    item.apiName
-  );
-  
-  const hasKeyValue = item && (
-    item.key || 
-    item.token || 
-    item.apiKey || 
-    item.api_key ||
-    item.secret ||
-    item.accessToken ||
-    item.access_token ||
-    (typeof item.value === 'string' && item.value.length > 10)
-  );
-  
-  if (hasIdentifier && hasKeyValue) {
-    return true;
-  }
-
-  // Additional check for key-like strings
-  const keyPatterns = [
-    /^[A-Za-z0-9]{20,}$/, // Long alphanumeric strings
-    /^[A-Za-z0-9_-]{20,}$/, // Base64-like strings
-    /^sk-[A-Za-z0-9]{20,}$/, // OpenAI-like keys
-    /^pk_[A-Za-z0-9]{10,}$/, // Stripe-like keys
-    /^[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}$/ // UUIDs
-  ];
-  
-  // Check if any property matches a key pattern
-  for (const prop in item) {
-    if (typeof item[prop] === 'string' && item[prop].length >= 20) {
-      for (const pattern of keyPatterns) {
-        if (pattern.test(item[prop])) {
-          return true;
-        }
-      }
-    }
-  }
-  
-  return false;
-}
-
-// Convert different formats to our standard API key format
-function normalizeApiKey(item: any, source: string): ApiKey {
-  // Extract the key value
-  const key = 
-    item.key || 
-    item.token || 
-    item.apiKey || 
-    item.api_key || 
-    item.secret ||
-    item.accessToken ||
-    item.access_token ||
-    (typeof item.value === 'string' ? item.value : null);
-    
-  // Extract or generate a name
-  let name = item.name || item.id || `API Key`;
-  if (item.service || item.provider) {
-    name = item.name || `${item.service || item.provider} API Key`;
-  } else if (source) {
-    name = item.name || `API Key from ${source}`;
-  }
-  
-  // Extract or infer the service
-  const service = 
-    item.service || 
-    item.provider || 
-    item.type || 
-    inferServiceFromKey(key) || 
-    'unknown';
-  
-  // Create the normalized API key
-  return {
-    id: item.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-    name: name,
-    key: key,
-    service: service,
-    createdAt: item.createdAt || item.created_at || new Date().toISOString(),
-    connected: !!item.connected,
-    status: item.status || 'active',
-    source: source,
-    description: item.description
-  };
-}
-
-// Attempt to infer the service from the key format
-function inferServiceFromKey(key: string): string | null {
-  if (!key) return null;
-  
-  if (key.startsWith('sk-')) return 'openai';
-  if (key.startsWith('pk_') || key.startsWith('sk_')) return 'stripe';
-  if (key.startsWith('key-')) return 'sendgrid';
-  if (key.startsWith('AKIA')) return 'aws';
-  if (key.startsWith('ghp_')) return 'github';
-  if (key.length >= 40 && /^[A-Za-z0-9]+$/.test(key)) return 'helius';
-  
-  return null;
-}
-
-// Force scan of localStorage for API keys
-export function forceScanLocalStorage(): ApiKey[] {
-  const allKeys: ApiKey[] = [];
-  const storageKeys = searchAllLocalStorage();
-  
-  for (const storageKey of storageKeys) {
-    const foundKeys = processStorageKey(storageKey);
-    allKeys.push(...foundKeys);
-  }
-  
-  // Attempt direct recovery of apiKeys from localStorage
-  const apiKeysData = localStorage.getItem('apiKeys');
-  if (apiKeysData) {
-    try {
-      const parsed = JSON.parse(apiKeysData);
-      if (Array.isArray(parsed)) {
-        allKeys.push(...parsed);
       }
     } catch (e) {
-      console.error('Error parsing apiKeys:', e);
+      console.error(`Error scanning localStorage entry ${storageKey}:`, e);
     }
   }
   
-  // Remove duplicates
-  const uniqueKeys = removeDuplicateKeys(allKeys);
-  return uniqueKeys;
-}
+  return potentialKeys;
+};
 
-// Remove duplicate keys
-function removeDuplicateKeys(keys: ApiKey[]): ApiKey[] {
-  const uniqueMap = new Map<string, ApiKey>();
-  
-  keys.forEach(key => {
-    const signature = `${key.key}-${key.service}`;
-    if (!uniqueMap.has(signature)) {
-      uniqueMap.set(signature, key);
+// Function to attempt decoding encrypted data with common passwords
+export const tryDecryptWithCommonPasswords = (storedData: string): any | null => {
+  // First try as plain JSON
+  try {
+    return JSON.parse(storedData);
+  } catch (e) {
+    // Not JSON, try decrypting with known passwords
+    for (const pass of COMMON_PASSWORDS) {
+      try {
+        const decrypted = CryptoJS.AES.decrypt(storedData, pass).toString(CryptoJS.enc.Utf8);
+        if (decrypted && (decrypted.startsWith('[') || decrypted.startsWith('{'))) {
+          console.log(`Successfully decrypted with key "${pass}"`);
+          return JSON.parse(decrypted);
+        }
+      } catch (decryptError) {
+        // Just continue to next password
+      }
     }
-  });
+  }
+  return null;
+};
+
+// Process parsed data to extract API keys
+export const extractApiKeysFromData = (
+  parsedData: any, 
+  processedKeys: Set<string>, 
+  storageKey: string
+): ApiKey[] => {
+  // Handle both array and object formats
+  let itemsToProcess = [];
+  if (Array.isArray(parsedData)) {
+    itemsToProcess = parsedData;
+  } else if (typeof parsedData === 'object' && parsedData !== null) {
+    // If it's an object, try to find arrays of objects or individual key objects
+    for (const key in parsedData) {
+      if (Array.isArray(parsedData[key])) {
+        itemsToProcess = itemsToProcess.concat(parsedData[key]);
+      } else if (typeof parsedData[key] === 'object' && parsedData[key] !== null) {
+        itemsToProcess.push(parsedData[key]);
+      }
+    }
+    
+    // If no arrays found, treat the root object as a potential key
+    if (itemsToProcess.length === 0) {
+      itemsToProcess = [parsedData];
+    }
+  }
   
-  return Array.from(uniqueMap.values());
-}
+  // Filter and convert to standardized ApiKey format
+  return itemsToProcess
+    .filter(item => item && typeof item === 'object')
+    .map(item => {
+      // Find potential key fields
+      const keyValue = 
+        item.key || 
+        item.apiKey || 
+        item.token || 
+        item.secret || 
+        item.value || 
+        item.access_key || 
+        item.api_key || 
+        item.access_token || 
+        item.accessToken || 
+        item.apiToken || 
+        '';
+      
+      // Skip if we've already processed this key or if the key is empty
+      if (!keyValue || processedKeys.has(keyValue)) return null;
+      processedKeys.add(keyValue);
+      
+      // Find potential name fields
+      const keyName = 
+        item.name || 
+        item.title || 
+        item.label || 
+        item.description || 
+        item.service || 
+        item.provider || 
+        item.platform || 
+        'Recovered key';
+      
+      // Find potential service fields
+      let keyService = 
+        item.service || 
+        item.provider || 
+        item.platform || 
+        item.type || 
+        item.source || 
+        item.app || 
+        item.application || 
+        'other';
+      
+      // Normalize service name
+      keyService = normalizeServiceName(keyService);
+      
+      return {
+        id: item.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        name: keyName,
+        key: keyValue,
+        service: keyService,
+        createdAt: item.createdAt || item.created || item.timestamp || item.date || new Date().toISOString(),
+        description: item.description || item.notes || item.comment || '',
+        isWorking: typeof item.isWorking === 'boolean' ? item.isWorking : undefined,
+        status: item.status || item.state || 'active',
+        expires: item.expires || item.expiry || item.expiresAt || '',
+        source: storageKey
+      } as ApiKey;
+    })
+    .filter((key): key is ApiKey => key !== null);
+};
+
+// Process an individual storage key to extract API keys
+export const processStorageKey = (
+  storageKey: string, 
+  processedKeys: Set<string>
+): { keys: ApiKey[], success: boolean } => {
+  const storedData = localStorage.getItem(storageKey);
+  if (!storedData) return { keys: [], success: false };
+  
+  try {
+    const parsedData = tryDecryptWithCommonPasswords(storedData);
+    if (!parsedData) return { keys: [], success: false };
+    
+    const extractedKeys = extractApiKeysFromData(parsedData, processedKeys, storageKey);
+    return { 
+      keys: extractedKeys, 
+      success: extractedKeys.length > 0 
+    };
+  } catch (e) {
+    console.error(`Error processing ${storageKey}:`, e);
+    return { keys: [], success: false };
+  }
+};

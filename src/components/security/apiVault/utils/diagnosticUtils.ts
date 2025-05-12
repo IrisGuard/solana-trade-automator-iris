@@ -1,126 +1,180 @@
 
 import { ApiKey } from "../types";
 import { toast } from "sonner";
-import { DEFAULT_API_KEYS } from "@/components/wallet/api-vault/defaultApis";
+import { normalizeServiceName } from "./recoveryCore";
 
-// Function to scan all localStorage for potential API keys
-export function diagnosticScanStorage(): string[] {
-  const foundItems: string[] = [];
+/**
+ * Διενεργεί διαγνωστική σάρωση της localStorage για πιθανά κλειδιά API
+ * Επιστρέφει έναν πίνακα από τοποθεσίες αποθήκευσης που περιέχουν πιθανά κλειδιά
+ */
+export const diagnosticScanStorage = () => {
+  const potentialStorageLocations = [];
   
-  try {
-    // Scan all localStorage keys
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key) {
-        const value = localStorage.getItem(key);
-        if (value && (value.includes('"key":') || value.includes('apiKey') || value.includes('token'))) {
-          foundItems.push(key);
-        }
-      }
-    }
-  } catch (e) {
-    console.error('Error during storage scan:', e);
-  }
-  
-  return foundItems;
-}
-
-// Function to extract all API keys from localStorage
-export function extractAllKeysFromStorage(): ApiKey[] {
-  const allKeys: ApiKey[] = [];
-  const keyLocations = diagnosticScanStorage();
-  
-  keyLocations.forEach(location => {
+  // Σάρωση όλων των κλειδιών στο localStorage
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key) continue;
+    
     try {
-      const data = localStorage.getItem(location);
-      if (data) {
-        // Try to parse as JSON
-        try {
-          const parsed = JSON.parse(data);
-          
-          // Check if it's an array of API keys
-          if (Array.isArray(parsed)) {
-            const validKeys = parsed.filter(item => 
-              item && typeof item === 'object' && item.name && item.key && item.service
-            );
-            allKeys.push(...validKeys);
-          }
-          // Check if it's a single API key
-          else if (parsed && typeof parsed === 'object' && parsed.name && parsed.key && parsed.service) {
-            allKeys.push(parsed);
-          }
-        } catch (e) {
-          // Not valid JSON, ignore
-        }
+      // Εξαιρούμε τα γνωστά κλειδιά του ίδιου του συστήματος
+      if (key === 'apiKeys' || 
+          key === 'demoKeysInjected' || 
+          key === 'theme' || 
+          key === 'lastKeyRecoveryCheck') {
+        continue;
+      }
+      
+      const value = localStorage.getItem(key);
+      if (!value) continue;
+      
+      // Έλεγχος αν η τιμή μοιάζει με JSON
+      if (value.startsWith('{') || value.startsWith('[')) {
+        potentialStorageLocations.push({ storageKey: key, isJson: true });
+      }
+      // Έλεγχος για πιθανά κλειδιά API (απλές συμβολοσειρές που περιέχουν συγκεκριμένα πρότυπα)
+      else if (value.includes('key') || value.includes('token') || value.includes('secret') || 
+               value.includes('api') || value.includes('access')) {
+        potentialStorageLocations.push({ storageKey: key, isJson: false });
       }
     } catch (e) {
-      console.error(`Error extracting keys from ${location}:`, e);
+      console.error(`Σφάλμα κατά την εξέταση του κλειδιού ${key}:`, e);
+    }
+  }
+  
+  return potentialStorageLocations;
+};
+
+/**
+ * Εξάγει όλα τα πιθανά κλειδιά API από μια δομή δεδομένων JSON
+ * Επιστρέφει έναν πίνακα από αντικείμενα ApiKey
+ */
+export const extractAllKeysFromStorage = () => {
+  const allKeys: ApiKey[] = [];
+  const storageList = diagnosticScanStorage();
+  
+  storageList.forEach(storage => {
+    const { storageKey } = storage;
+    const value = localStorage.getItem(storageKey);
+    if (!value) return;
+    
+    try {
+      // Επεξεργασία JSON δεδομένων
+      if (storage.isJson) {
+        const parsedValue = JSON.parse(value);
+        
+        // Αναδρομική λειτουργία για την εξαγωγή κλειδιών από οποιοδήποτε επίπεδο του JSON
+        const extractKeys = (obj: any, path: string) => {
+          if (!obj) return;
+          
+          if (typeof obj === 'object' && obj !== null) {
+            // Διάσχιση αντικειμένου για εύρεση πιθανών κλειδιών API
+            Object.entries(obj).forEach(([key, val]) => {
+              const currentPath = path ? `${path}.${key}` : key;
+              
+              // Αν βρούμε έναν πίνακα, τον επεξεργαζόμαστε αναδρομικά
+              if (Array.isArray(val)) {
+                val.forEach((item, index) => {
+                  extractKeys(item, `${currentPath}[${index}]`);
+                });
+              } 
+              // Αν βρούμε ένα αντικείμενο, το επεξεργαζόμαστε αναδρομικά
+              else if (typeof val === 'object' && val !== null) {
+                extractKeys(val, currentPath);
+              }
+              // Έλεγχος για κλειδιά API
+              else if (
+                (typeof val === 'string' && 
+                 (key.includes('key') || key.includes('token') || key.includes('secret') || key.includes('api')) &&
+                 val.length > 10)
+              ) {
+                const name = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
+                const service = normalizeServiceName(storageKey);
+                
+                allKeys.push({
+                  id: `extracted-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                  name: name,
+                  key: val,
+                  service: service,
+                  description: `Ανακτήθηκε από ${storageKey} (${currentPath})`,
+                  createdAt: new Date().toISOString(),
+                  source: storageKey
+                });
+              }
+            });
+          }
+        };
+        
+        extractKeys(parsedValue, '');
+      }
+    } catch (e) {
+      console.error(`Σφάλμα κατά την εξαγωγή κλειδιών από ${storageKey}:`, e);
     }
   });
   
   return allKeys;
-}
+};
 
-// Function to inject demo API keys for testing
-export function injectDemoKeys(count: number = 3): void {
+/**
+ * Προσθέτει δοκιμαστικά κλειδιά για επίδειξη
+ * Τα κλειδιά αποθηκεύονται απευθείας στο localStorage
+ */
+export const injectDemoKeys = (count: number = 26) => {
   try {
-    if (localStorage.getItem('demoKeysInjected') === 'true') {
-      toast.warning('Demo keys were already injected');
-      return;
-    }
+    const services = [
+      'binance', 'solana', 'ethereum', 'kraken', 'coinbase', 'metamask', 
+      'phantom', 'wallet', 'rpc', 'explorer', 'api', 'exchange', 'openai',
+      'stripe', 'github', 'aws', 'firebase', 'vercel', 'netlify', 'heroku'
+    ];
     
-    const now = new Date().toISOString();
-    const randomServices = ['solana', 'phantom', 'helius', 'quicknode', 'jupiter', 'solscan', 'vercel', 'supabase', 'openai', 'github'];
-    const randomStatuses = ['active', 'expired', 'revoked', 'active', 'active'];
+    const prefixes = {
+      'binance': 'binance_',
+      'solana': 'sol_',
+      'ethereum': 'eth_',
+      'kraken': 'kraken_',
+      'coinbase': 'cb_',
+      'openai': 'sk-',
+      'stripe': 'sk_test_',
+      'github': 'ghp_',
+      'aws': 'AKIA',
+      'firebase': 'AIza',
+      'vercel': 'vercel_',
+      'netlify': 'netlify_',
+      'heroku': 'heroku_'
+    };
     
-    const demoKeys: ApiKey[] = [];
+    const newKeys = [];
     
-    // Add some predefined demo keys
-    demoKeys.push(...DEFAULT_API_KEYS);
-    
-    // Generate additional random keys
-    for (let i = 0; i < count - DEFAULT_API_KEYS.length; i++) {
-      const serviceIndex = Math.floor(Math.random() * randomServices.length);
-      const statusIndex = Math.floor(Math.random() * randomStatuses.length);
+    // Δημιουργία του ζητούμενου αριθμού κλειδιών
+    for (let i = 0; i < count; i++) {
+      const service = services[i % services.length];
+      const prefix = prefixes[service as keyof typeof prefixes] || '';
+      const randomKey = `${prefix}${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
       
-      const service = randomServices[serviceIndex];
-      
-      demoKeys.push({
-        id: `demo-${Date.now()}-${i}`,
-        name: `${service.charAt(0).toUpperCase() + service.slice(1)} Demo Key ${i + 1}`,
+      newKeys.push({
+        id: `demo-${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${i}`,
+        name: `${service.charAt(0).toUpperCase() + service.slice(1)} Demo Key ${i+1}`,
+        key: randomKey,
         service: service,
-        key: `demo-key-${service}-${Math.random().toString(36).substring(2, 10)}`,
-        connected: Math.random() > 0.5,
-        createdAt: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
-        status: randomStatuses[statusIndex] as 'active' | 'expired' | 'revoked'
+        createdAt: new Date().toISOString(),
+        description: `Δοκιμαστικό κλειδί για επίδειξη - ${service}`,
+        isWorking: Math.random() > 0.2, // 80% πιθανότητα να λειτουργεί
+        status: Math.random() > 0.8 ? (Math.random() > 0.5 ? 'expired' : 'revoked') : 'active',
+        source: 'demo'
       });
     }
     
-    // Save current keys
-    const existingKeysStr = localStorage.getItem('apiKeys');
-    let existingKeys: ApiKey[] = [];
-    
-    if (existingKeysStr) {
-      try {
-        existingKeys = JSON.parse(existingKeysStr);
-      } catch (e) {
-        console.error('Error parsing existing keys:', e);
-      }
-    }
-    
-    // Merge keys
-    const allKeys = [...existingKeys, ...demoKeys];
-    localStorage.setItem('apiKeys', JSON.stringify(allKeys));
+    // Αποθήκευση των κλειδιών στο localStorage
+    localStorage.setItem('apiKeys', JSON.stringify(newKeys));
     localStorage.setItem('demoKeysInjected', 'true');
     
-    toast.success(`Added ${demoKeys.length} demo keys successfully`);
+    // Ειδοποίηση στον χρήστη
+    toast.success(`Προστέθηκαν ${count} δοκιμαστικά κλειδιά API`);
+    window.location.reload(); // Επαναφόρτωση για εμφάνιση των νέων κλειδιών
     
-    // Force a page reload to see the changes
-    setTimeout(() => {
-      window.location.reload();
-    }, 1500);
-  } catch (e) {
-    console.error('Error injecting demo keys:', e);
-    toast.error('Failed to inject demo keys');
+    return newKeys;
+  } catch (error) {
+    console.error('Σφάλμα κατά την προσθήκη δοκιμαστικών κλειδιών:', error);
+    toast.error('Σφάλμα κατά την προσθήκη δοκιμαστικών κλειδιών');
+    return [];
   }
-}
+};

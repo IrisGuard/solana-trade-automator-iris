@@ -78,7 +78,7 @@ export const ApiVaultTabs: React.FC<ApiVaultTabsProps> = ({
             />
           </TabsContent>
           <TabsContent value="stats">
-            <ApiKeyStats stats={keyStats} services={services} />
+            <ApiKeyStats stats={keyStats} />
           </TabsContent>
           <TabsContent value="services">
             <ServiceStats services={services} />

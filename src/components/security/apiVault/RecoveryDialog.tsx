@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+
+import React from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ApiKey } from "./types";
-import { Separator } from "@/components/ui/separator";
-import { Eye, EyeOff, Database, AlertCircle, CheckCircle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Check, Database, AlertCircle } from "lucide-react";
+import { ApiKey } from "./types";
+import { Badge } from "@/components/ui/badge";
+import { maskKey } from "./utils";
 
 interface RecoveryDialogProps {
   open: boolean;
@@ -17,113 +18,87 @@ interface RecoveryDialogProps {
   onClose: () => void;
 }
 
-export const RecoveryDialog = ({ 
-  open, 
-  onOpenChange, 
-  recoveredKeys, 
+export const RecoveryDialog = ({
+  open,
+  onOpenChange,
+  recoveredKeys,
   locations,
-  onImport, 
-  onClose 
+  onImport,
+  onClose
 }: RecoveryDialogProps) => {
-  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
-  const [viewableKeys, setViewableKeys] = useState<Set<string>>(new Set());
-  
-  // Toggle selection of a key
-  const toggleKeySelection = (keyId: string) => {
+  const [selectedKeys, setSelectedKeys] = React.useState<Set<string>>(
+    new Set(recoveredKeys.map(key => key.id))
+  );
+
+  const toggleKeySelection = (id: string) => {
     const newSelection = new Set(selectedKeys);
-    if (newSelection.has(keyId)) {
-      newSelection.delete(keyId);
+    if (newSelection.has(id)) {
+      newSelection.delete(id);
     } else {
-      newSelection.add(keyId);
+      newSelection.add(id);
     }
     setSelectedKeys(newSelection);
   };
-  
-  // Toggle visibility of a key
-  const toggleKeyVisibility = (keyId: string) => {
-    const newViewable = new Set(viewableKeys);
-    if (newViewable.has(keyId)) {
-      newViewable.delete(keyId);
-    } else {
-      newViewable.add(keyId);
-    }
-    setViewableKeys(newViewable);
-  };
-  
-  // Select or deselect all keys
-  const toggleSelectAll = () => {
+
+  const toggleAllKeys = () => {
     if (selectedKeys.size === recoveredKeys.length) {
-      // If all are selected, deselect all
       setSelectedKeys(new Set());
     } else {
-      // Otherwise, select all
       setSelectedKeys(new Set(recoveredKeys.map(key => key.id)));
     }
   };
-  
-  // Import selected keys
-  const handleImport = () => {
+
+  const handleImportSelected = () => {
     const keysToImport = recoveredKeys.filter(key => selectedKeys.has(key.id));
-    onImport(keysToImport);
-    onOpenChange(false);
+    if (keysToImport.length > 0) {
+      onImport(keysToImport);
+      onClose();
+    }
   };
+
+  const totalKeys = recoveredKeys.length;
+  const locationsList = locations.length > 0 
+    ? locations.map(loc => `${loc.storageKey} (${loc.count})`).join(", ")
+    : "Καμία";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Database className="h-5 w-5" />
-            Ανακτημένα Κλειδιά API
+            <Database className="h-5 w-5 text-primary" />
+            Ανάκτηση Κλειδιών API
           </DialogTitle>
           <DialogDescription>
-            Βρέθηκαν {recoveredKeys.length} κλειδιά API σε {locations.length} τοποθεσίες αποθήκευσης.
-            Επιλέξτε τα κλειδιά που θέλετε να εισάγετε στην κλειδοθήκη σας.
+            Βρέθηκαν {totalKeys} κλειδιά σε {locations.length} τοποθεσίες: {locationsList}
           </DialogDescription>
         </DialogHeader>
-        
-        <div className="space-y-4 py-2">
-          {/* Recovery locations */}
-          {locations.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Τοποθεσίες ανάκτησης:</h4>
-              <div className="flex flex-wrap gap-2">
-                {locations.map((loc, index) => (
-                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                    <Database className="h-3 w-3" />
-                    {loc.storageKey} ({loc.count})
-                  </Badge>
-                ))}
+
+        {recoveredKeys.length > 0 ? (
+          <>
+            <div className="flex justify-between items-center my-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="select-all"
+                  checked={selectedKeys.size === recoveredKeys.length && recoveredKeys.length > 0}
+                  onChange={toggleAllKeys}
+                  className="rounded border-gray-300"
+                />
+                <label htmlFor="select-all" className="text-sm font-medium">
+                  Επιλογή όλων ({selectedKeys.size}/{recoveredKeys.length})
+                </label>
               </div>
-              <Separator className="my-2" />
+              <Badge variant="outline">
+                {selectedKeys.size} επιλεγμένα
+              </Badge>
             </div>
-          )}
-          
-          {/* Recovery warning */}
-          {recoveredKeys.length > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-sm flex items-start gap-2">
-              <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-              <div className="text-amber-800">
-                Προσοχή: Τα ανακτημένα κλειδιά μπορεί να περιέχουν ευαίσθητες πληροφορίες. 
-                Βεβαιωθείτε ότι εισάγετε μόνο τα κλειδιά που αναγνωρίζετε και χρειάζεστε.
-              </div>
-            </div>
-          )}
-          
-          {/* Recovered keys table */}
-          {recoveredKeys.length > 0 ? (
-            <ScrollArea className="h-64 border rounded-md">
+
+            <ScrollArea className="h-[50vh] border rounded-md">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-10">
-                      <input 
-                        type="checkbox" 
-                        className="h-4 w-4 rounded border-gray-300" 
-                        checked={selectedKeys.size === recoveredKeys.length}
-                        onChange={toggleSelectAll}
-                      />
-                    </TableHead>
+                    <TableHead className="w-[50px]"></TableHead>
                     <TableHead>Όνομα</TableHead>
                     <TableHead>Υπηρεσία</TableHead>
                     <TableHead>Κλειδί</TableHead>
@@ -132,58 +107,51 @@ export const RecoveryDialog = ({
                 </TableHeader>
                 <TableBody>
                   {recoveredKeys.map((key) => (
-                    <TableRow key={key.id} className="hover:bg-muted/50">
+                    <TableRow key={key.id}>
                       <TableCell>
-                        <input 
-                          type="checkbox" 
-                          className="h-4 w-4 rounded border-gray-300" 
+                        <input
+                          type="checkbox"
                           checked={selectedKeys.has(key.id)}
                           onChange={() => toggleKeySelection(key.id)}
+                          className="rounded border-gray-300"
                         />
                       </TableCell>
                       <TableCell>{key.name}</TableCell>
+                      <TableCell>{key.service}</TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {maskKey(key.key)}
+                      </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{key.service}</Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {key.source || "άγνωστο"}
+                        </Badge>
                       </TableCell>
-                      <TableCell className="font-mono text-xs max-w-[200px] truncate">
-                        <div className="flex items-center gap-2">
-                          {viewableKeys.has(key.id) ? key.key : '••••••••••••••••••'}
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-4 w-4 text-muted-foreground hover:text-foreground"
-                            onClick={() => toggleKeyVisibility(key.id)}
-                          >
-                            {viewableKeys.has(key.id) ? (
-                              <EyeOff className="h-3 w-3" />
-                            ) : (
-                              <Eye className="h-3 w-3" />
-                            )}
-                          </Button>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{key.source}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </ScrollArea>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
-              <CheckCircle className="h-12 w-12 mb-2 text-green-500 opacity-70" />
-              <p>Δεν βρέθηκαν επιπλέον κλειδιά API στην αποθήκευση</p>
-            </div>
-          )}
-        </div>
-        
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium">Δεν βρέθηκαν κλειδιά</h3>
+            <p className="text-muted-foreground max-w-md mt-2">
+              Δεν ήταν δυνατή η ανάκτηση κλειδιών από τη συσκευή σας. Δοκιμάστε να εισαγάγετε νέα κλειδιά.
+            </p>
+          </div>
+        )}
+
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Ακύρωση</Button>
+          <Button variant="outline" onClick={onClose}>
+            Άκυρο
+          </Button>
           <Button 
-            onClick={handleImport} 
+            onClick={handleImportSelected} 
             disabled={selectedKeys.size === 0}
-            className="gap-1"
+            className="gap-2"
           >
-            <Database className="h-4 w-4" />
+            <Check className="h-4 w-4" />
             Εισαγωγή {selectedKeys.size} κλειδιών
           </Button>
         </DialogFooter>

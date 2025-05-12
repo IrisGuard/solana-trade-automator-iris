@@ -17,36 +17,18 @@ export function ApiSettingsForm({ apiSettings, setApiSettings, handleSaveApiSett
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="rpc-endpoint">Solana RPC URL</Label>
+        <Label htmlFor="rpc-url">Solana RPC URL</Label>
         <Input 
-          id="rpc-endpoint" 
-          value={apiSettings.rpcEndpoint}
-          onChange={(e) => setApiSettings({...apiSettings, rpcEndpoint: e.target.value})}
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="api-endpoint">API Endpoint</Label>
-        <Input 
-          id="api-endpoint" 
-          value={apiSettings.apiEndpoint}
-          onChange={(e) => setApiSettings({...apiSettings, apiEndpoint: e.target.value})}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="websocket-endpoint">WebSocket Endpoint</Label>
-        <Input 
-          id="websocket-endpoint" 
-          value={apiSettings.websocketEndpoint}
-          onChange={(e) => setApiSettings({...apiSettings, websocketEndpoint: e.target.value})}
+          id="rpc-url" 
+          value={apiSettings.rpcUrl}
+          onChange={(e) => setApiSettings({...apiSettings, rpcUrl: e.target.value})}
         />
       </div>
       
       <div className="flex items-center space-x-2">
         <Switch 
           id="custom-rpc"
-          checked={apiSettings.customRpc || false}
+          checked={apiSettings.customRpc}
           onCheckedChange={(checked) => setApiSettings({...apiSettings, customRpc: checked})}
         />
         <Label htmlFor="custom-rpc">Use custom RPC endpoint</Label>
@@ -55,20 +37,20 @@ export function ApiSettingsForm({ apiSettings, setApiSettings, handleSaveApiSett
       <div className="flex items-center space-x-2">
         <Switch 
           id="fallback-rpc"
-          checked={apiSettings.fallbackRpc || false}
+          checked={apiSettings.fallbackRpc}
           onCheckedChange={(checked) => setApiSettings({...apiSettings, fallbackRpc: checked})}
         />
         <Label htmlFor="fallback-rpc">Enable RPC fallback</Label>
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="rate-limit">Rate limit (requests/sec): {apiSettings.rateLimit || 10}</Label>
+        <Label htmlFor="rate-limit">Rate limit (requests/sec): {apiSettings.rateLimit}</Label>
         <Slider 
           id="rate-limit"
           min={1} 
           max={20} 
           step={1}
-          value={[apiSettings.rateLimit || 10]}
+          value={[apiSettings.rateLimit]}
           onValueChange={(values) => setApiSettings({...apiSettings, rateLimit: values[0]})}
         />
       </div>
