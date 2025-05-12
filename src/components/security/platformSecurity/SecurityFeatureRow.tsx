@@ -10,20 +10,16 @@ interface SecurityFeatureRowProps {
   onToggle: () => void;
 }
 
-export function SecurityFeatureRow({
-  name,
-  description,
-  isEnabled,
-  onToggle
-}: SecurityFeatureRowProps) {
+export function SecurityFeatureRow({ name, description, isEnabled, onToggle }: SecurityFeatureRowProps) {
   return (
     <TableRow>
       <TableCell className="font-medium">{name}</TableCell>
       <TableCell>{description}</TableCell>
-      <TableCell>
-        <Switch 
+      <TableCell className="text-right">
+        <Switch
           checked={isEnabled}
           onCheckedChange={onToggle}
+          aria-label={`${name} toggle`}
         />
       </TableCell>
     </TableRow>

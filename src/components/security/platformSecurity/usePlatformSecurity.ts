@@ -3,7 +3,6 @@ import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
 export interface SecuritySettings {
-  [key: string]: boolean;
   rowLevelSecurity: boolean;
   apiKeyEncryption: boolean;
   twoFactorAuth: boolean;
@@ -14,6 +13,7 @@ export interface SecuritySettings {
   biometricAuth: boolean;
   socialAuth: boolean;
   transactionDelays: boolean;
+  [key: string]: boolean; // Add index signature to allow string indexing
 }
 
 export function usePlatformSecurity() {
@@ -43,20 +43,24 @@ export function usePlatformSecurity() {
   }, []);
 
   const handleEnableAll = useCallback(() => {
+    // Create new object with all settings set to true
     const allEnabled = Object.keys(securitySettings).reduce((acc, key) => {
       return { ...acc, [key]: true };
-    }, {} as SecuritySettings);
+    }, {} as { [key: string]: boolean });
     
-    setSecuritySettings(allEnabled);
+    // Type assertion to SecuritySettings
+    setSecuritySettings(allEnabled as SecuritySettings);
     toast.info("Όλες οι λειτουργίες ασφαλείας ενεργοποιήθηκαν");
   }, [securitySettings]);
 
   const handleDisableAll = useCallback(() => {
+    // Create new object with all settings set to false
     const allDisabled = Object.keys(securitySettings).reduce((acc, key) => {
       return { ...acc, [key]: false };
-    }, {} as SecuritySettings);
+    }, {} as { [key: string]: boolean });
     
-    setSecuritySettings(allDisabled);
+    // Type assertion to SecuritySettings
+    setSecuritySettings(allDisabled as SecuritySettings);
     toast.info("Όλες οι λειτουργίες ασφαλείας απενεργοποιήθηκαν");
   }, [securitySettings]);
 
