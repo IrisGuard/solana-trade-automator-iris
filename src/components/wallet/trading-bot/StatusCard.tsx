@@ -5,7 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Check } from "lucide-react";
 
 interface StatusCardProps {
-  botStatus: 'running' | 'stopped';
+  botStatus: 'running' | 'idle' | 'paused';
   selectedTokenDetails: { amount: number; symbol: string } | null;
   selectedTokenPrice: { price: number; priceChange24h: number } | null;
   activeOrders: any[];
