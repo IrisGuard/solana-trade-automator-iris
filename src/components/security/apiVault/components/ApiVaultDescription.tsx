@@ -1,8 +1,5 @@
 
 import React from "react";
-import { CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Database, AlertCircle } from "lucide-react";
 import { ApiVaultActions } from "./ApiVaultActions";
 
 interface ApiVaultDescriptionProps {
@@ -21,23 +18,22 @@ export const ApiVaultDescription: React.FC<ApiVaultDescriptionProps> = ({
   handleRecoverClick
 }) => {
   return (
-    <CardDescription className="flex justify-between items-center flex-wrap gap-2">
-      <span>Διαχειριστείτε τα κλειδιά API σας με ασφάλεια</span>
-      <div className="flex gap-2 flex-wrap">
-        {!isLocked && (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleRecoverClick}
-            disabled={isRecovering}
-            className="flex items-center gap-1"
-          >
-            <Database className={`h-4 w-4 ${isRecovering ? 'animate-pulse' : ''}`} />
-            <span>Ανάκτηση κλειδιών</span>
-            <AlertCircle className="h-3 w-3 text-amber-500" />
-          </Button>
-        )}
-      </div>
-    </CardDescription>
+    <div className="flex flex-col gap-2">
+      <p className="text-muted-foreground text-sm">
+        {isLocked
+          ? "Η κλειδοθήκη API είναι κλειδωμένη. Ξεκλειδώστε την για να διαχειριστείτε τα κλειδιά σας με ασφάλεια."
+          : apiKeys.length > 0
+          ? `Διαχειριστείτε με ασφάλεια τα ${apiKeys.length} κλειδιά API σας σε μία τοποθεσία.`
+          : "Προσθέστε κλειδιά API για να τα διαχειριστείτε με ασφάλεια σε μία τοποθεσία."}
+      </p>
+      
+      <ApiVaultActions
+        isLocked={isLocked}
+        apiKeys={apiKeys}
+        isRecovering={isRecovering}
+        isTestingKeys={isTestingKeys}
+        handleRecoverClick={handleRecoverClick}
+      />
+    </div>
   );
 };

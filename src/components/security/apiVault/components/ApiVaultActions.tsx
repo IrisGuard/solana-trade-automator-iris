@@ -1,7 +1,8 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Database, RefreshCw } from "lucide-react";
+import { Database, RefreshCw, KeyRound, PlusCircle } from "lucide-react";
+import { injectDemoKeys } from "../utils";
 
 interface ApiVaultActionsProps {
   isLocked: boolean;
@@ -21,16 +22,30 @@ export const ApiVaultActions: React.FC<ApiVaultActionsProps> = ({
   return (
     <div className="flex gap-2 flex-wrap">
       {!isLocked && (
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handleRecoverClick}
-          disabled={isRecovering}
-          className="flex items-center gap-1"
-        >
-          <Database className={`h-4 w-4 ${isRecovering ? 'animate-pulse' : ''}`} />
-          <span>Ανάκτηση κλειδιών</span>
-        </Button>
+        <>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRecoverClick}
+            disabled={isRecovering}
+            className="flex items-center gap-1"
+          >
+            <Database className={`h-4 w-4 ${isRecovering ? 'animate-pulse' : ''}`} />
+            <span>Ανάκτηση κλειδιών</span>
+          </Button>
+          
+          {apiKeys.length < 20 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => injectDemoKeys(26)}
+              className="flex items-center gap-1"
+            >
+              <PlusCircle className="h-4 w-4" />
+              <span>Προσθήκη 26 κλειδιών επίδειξης</span>
+            </Button>
+          )}
+        </>
       )}
     </div>
   );
