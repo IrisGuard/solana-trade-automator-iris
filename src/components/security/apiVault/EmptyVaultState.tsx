@@ -1,7 +1,8 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ShieldAlert, FilePlus2, Database } from "lucide-react";
+import { ShieldAlert, FilePlus2, Database, KeyRound } from "lucide-react";
+import { injectDemoKeys } from "./utils";
 
 interface EmptyVaultStateProps {
   onAddKeyClick: () => void;
@@ -12,6 +13,11 @@ export const EmptyVaultState: React.FC<EmptyVaultStateProps> = ({
   onAddKeyClick,
   onRecoverClick
 }) => {
+  // Άμεση ανάκτηση των 26 κλειδιών επίδειξης
+  const handleRestoreDemoKeys = () => {
+    injectDemoKeys(26);
+  };
+
   return (
     <div className="flex flex-col items-center justify-center p-8 text-center">
       <div className="flex items-center justify-center w-16 h-16 mb-4 rounded-full bg-muted">
@@ -28,6 +34,11 @@ export const EmptyVaultState: React.FC<EmptyVaultStateProps> = ({
         <Button onClick={onAddKeyClick} className="gap-2">
           <FilePlus2 className="w-4 h-4" />
           <span>Προσθήκη Νέου Κλειδιού</span>
+        </Button>
+        
+        <Button onClick={handleRestoreDemoKeys} variant="secondary" className="gap-2">
+          <KeyRound className="w-4 h-4" />
+          <span>Επαναφορά 26 Κλειδιών Επίδειξης</span>
         </Button>
         
         {onRecoverClick && (
