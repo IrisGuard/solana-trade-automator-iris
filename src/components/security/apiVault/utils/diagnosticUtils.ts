@@ -134,7 +134,7 @@ export const extractAllKeysFromStorage = (): ApiKey[] => {
 };
 
 // Function to manually inject test/demo keys for development and testing
-export const injectDemoKeys = (count: number = 26): void => {
+export const injectDemoKeys = (count: number = 5): void => {
   try {
     const existingKeysStr = localStorage.getItem('apiKeys');
     let existingKeys: ApiKey[] = [];
@@ -149,7 +149,7 @@ export const injectDemoKeys = (count: number = 26): void => {
     
     const services = [
       'binance', 'solana', 'ethereum', 'kraken', 'coinbase', 'metamask', 
-      'phantom', 'wallet', 'rpc', 'explorer', 'api', 'exchange'
+      'phantom', 'wallet', 'rork', 'explorer', 'api', 'exchange'
     ];
     
     const newKeys: ApiKey[] = [];
@@ -159,7 +159,7 @@ export const injectDemoKeys = (count: number = 26): void => {
       const key = `demo${i+1}_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
       
       newKeys.push({
-        id: `demo-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        id: `demo-${Date.now()}-${i}`,
         name: `${service.charAt(0).toUpperCase() + service.slice(1)} Demo Key ${i+1}`,
         key: key,
         service: service,
@@ -178,7 +178,7 @@ export const injectDemoKeys = (count: number = 26): void => {
     console.log(`Injected ${count} demo keys into localStorage`);
     
     // Reload the page to show the new keys
-    window.location.reload();
+    setTimeout(() => window.location.reload(), 1000);
   } catch (e) {
     console.error('Error injecting demo keys', e);
     toast.error('Σφάλμα κατά την προσθήκη δοκιμαστικών κλειδιών');

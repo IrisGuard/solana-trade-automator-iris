@@ -4,12 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { KeyRecoveryView } from "./apiVault/KeyRecoveryView";
 import { Database } from "lucide-react";
+import { Button } from "../ui/button";
+import { Link } from "react-router-dom";
 
 export default function KeyRecoveryPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Ανάκτηση Κλειδιών API</h2>
+        <Link to="/">
+          <Button variant="outline">
+            Επιστροφή στην Αρχική
+          </Button>
+        </Link>
       </div>
       
       <Card>

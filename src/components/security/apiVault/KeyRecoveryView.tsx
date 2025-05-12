@@ -7,6 +7,8 @@ import { RecoveryLocations } from "./recovery/RecoveryLocations";
 import { RecoveredKeysList } from "./recovery/RecoveredKeysList";
 import { NoKeysFound } from "./recovery/NoKeysFound";
 import { ScanningAnimation } from "./recovery/ScanningAnimation";
+import { Button } from "@/components/ui/button";
+import { injectDemoKeys } from "./utils/diagnosticUtils";
 import { toast } from "sonner";
 
 export const KeyRecoveryView = () => {
@@ -22,6 +24,7 @@ export const KeyRecoveryView = () => {
   
   const [activeTab, setActiveTab] = useState<string>("status");
   const [forceScanStarted, setForceScanStarted] = useState<boolean>(false);
+  const [isAddingDemoKeys, setIsAddingDemoKeys] = useState<boolean>(false);
 
   const handleRecoverClick = () => {
     if (isRecovering) {
@@ -49,6 +52,17 @@ export const KeyRecoveryView = () => {
     }
   };
 
+  const handleAddDemoKeys = () => {
+    setIsAddingDemoKeys(true);
+    try {
+      injectDemoKeys(5);
+    } catch (error) {
+      console.error("Error adding demo keys:", error);
+    } finally {
+      setTimeout(() => setIsAddingDemoKeys(false), 1000);
+    }
+  };
+
   // Show loading state while recovering
   if (isRecovering) {
     return <ScanningAnimation />;
@@ -59,10 +73,21 @@ export const KeyRecoveryView = () => {
     <div className="space-y-6">
       {/* If no keys found yet, show the empty state */}
       {recoveredKeys.length === 0 && !isRecovering ? (
-        <NoKeysFound 
-          onForceScan={handleForceScanClick} 
-          isLoading={forceScanStarted}
-        />
+        <div className="space-y-4">
+          <NoKeysFound 
+            onForceScan={handleForceScanClick} 
+            isLoading={forceScanStarted}
+          />
+          <div className="flex justify-center mt-4 pt-4 border-t">
+            <Button 
+              variant="outline" 
+              onClick={handleAddDemoKeys}
+              disabled={isAddingDemoKeys}
+            >
+              {isAddingDemoKeys ? "Προσθήκη..." : "Προσθήκη Δοκιμαστικών Κλειδιών"}
+            </Button>
+          </div>
+        </div>
       ) : (
         <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid grid-cols-3 mb-4">
