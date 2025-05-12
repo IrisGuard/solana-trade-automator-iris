@@ -1,10 +1,11 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { ApiKey } from "./types";
-import { ApiKeyListItem } from "./components/ApiKeyListItem";
-import { DeleteKeyDialog } from "./components/DeleteKeyDialog";
 import { EmptyKeyList } from "./components/EmptyKeyList";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ApiKeyListContent } from "./components/ApiKeyListContent";
+import { ConfirmDeleteDialog } from "./components/ConfirmDeleteDialog";
+import { useKeyDeletion } from "./hooks/useKeyDeletion";
 
 interface ApiKeyListProps {
   apiKeys: ApiKey[];
@@ -23,52 +24,38 @@ export const ApiKeyList = ({
   onEditKey,
   onTestKey
 }: ApiKeyListProps) => {
-  const [keyToDelete, setKeyToDelete] = useState<ApiKey | null>(null);
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  
-  const handleDeleteRequest = (key: ApiKey) => {
-    setKeyToDelete(key);
-    setConfirmDialogOpen(true);
-  };
-  
-  const confirmDelete = () => {
-    if (keyToDelete) {
-      deleteKey(keyToDelete.id);
-      setConfirmDialogOpen(false);
-      setKeyToDelete(null);
-    }
-  };
-  
-  const cancelDelete = () => {
-    setConfirmDialogOpen(false);
-    setKeyToDelete(null);
-  };
+  // Use the extracted deletion hook
+  const {
+    keyToDelete,
+    confirmDialogOpen,
+    setConfirmDialogOpen,
+    handleDeleteRequest,
+    confirmDelete,
+    cancelDelete
+  } = useKeyDeletion(deleteKey);
 
+  // If there are no keys, show the empty state
   if (apiKeys.length === 0) {
     return <EmptyKeyList />;
   }
 
   return (
     <TooltipProvider>
-      <div className="space-y-3">
-        {apiKeys.map((apiKey) => (
-          <ApiKeyListItem
-            key={apiKey.id}
-            apiKey={apiKey}
-            isVisible={!!isKeyVisible[apiKey.id]}
-            onToggleVisibility={() => toggleKeyVisibility(apiKey.id)}
-            onDeleteRequest={() => handleDeleteRequest(apiKey)}
-            onEditKey={onEditKey ? () => onEditKey(apiKey) : undefined}
-            onTestKey={onTestKey ? () => onTestKey(apiKey) : undefined}
-          />
-        ))}
-      </div>
+      {/* Render the list of API keys */}
+      <ApiKeyListContent 
+        apiKeys={apiKeys}
+        isKeyVisible={isKeyVisible}
+        toggleKeyVisibility={toggleKeyVisibility}
+        onDeleteRequest={handleDeleteRequest}
+        onEditKey={onEditKey}
+        onTestKey={onTestKey}
+      />
       
       {/* Delete confirmation dialog */}
-      <DeleteKeyDialog
-        open={confirmDialogOpen}
-        onOpenChange={setConfirmDialogOpen}
+      <ConfirmDeleteDialog
         keyToDelete={keyToDelete}
+        confirmDialogOpen={confirmDialogOpen}
+        setConfirmDialogOpen={setConfirmDialogOpen}
         onConfirmDelete={confirmDelete}
         onCancelDelete={cancelDelete}
       />
