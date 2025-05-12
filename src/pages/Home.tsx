@@ -6,7 +6,17 @@ import { WalletDisconnectedContent } from "@/components/home/WalletDisconnectedC
 import { useWalletConnection } from "@/hooks/useWalletConnection";
 
 export default function Home() {
-  const { isConnected, walletAddress } = useWalletConnection();
+  const { 
+    isConnected, 
+    walletAddress, 
+    solBalance, 
+    tokens, 
+    isConnecting, 
+    tokenPrices, 
+    isLoadingTokens, 
+    error: connectionError,
+    selectTokenForTrading
+  } = useWalletConnection();
   
   const displayAddress = walletAddress ? 
     `${walletAddress.substring(0, 4)}...${walletAddress.substring(walletAddress.length - 4)}` : 
@@ -23,9 +33,21 @@ export default function Home() {
         </CardHeader>
         <CardContent>
           {isConnected ? (
-            <WalletConnectedContent walletAddress={walletAddress} displayAddress={displayAddress} />
+            <WalletConnectedContent 
+              walletAddress={walletAddress} 
+              displayAddress={displayAddress}
+              solBalance={solBalance}
+              tokens={tokens}
+              tokenPrices={tokenPrices}
+              isLoadingTokens={isLoadingTokens}
+              connectionError={connectionError}
+              selectTokenForTrading={selectTokenForTrading}
+            />
           ) : (
-            <WalletDisconnectedContent />
+            <WalletDisconnectedContent 
+              isConnecting={isConnecting}
+              isPhantomInstalled={true}
+            />
           )}
         </CardContent>
       </Card>

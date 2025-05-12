@@ -5,10 +5,13 @@ import { EmptyBotState } from "@/components/bot/EmptyBotState";
 import { BotCard } from "@/components/bot/BotCard";
 import { CreateBotCard } from "@/components/bot/CreateBotCard";
 import { BotTemplateCard } from "@/components/bot/BotTemplateCard";
+import { useBotControl } from "@/hooks/useBotControl";
 
 export default function Bots() {
-  // We'll use a simple flag here. In a real app, you would fetch data from a backend
-  const hasBots = false;
+  const { bots, templates } = useBotControl();
+  
+  // We'll use the bot data from useBotControl
+  const hasBots = bots.length > 0;
 
   return (
     <div className="space-y-6">
@@ -19,9 +22,26 @@ export default function Bots() {
         <CardContent>
           {hasBots ? (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <BotCard />
+              {bots.map((bot, index) => (
+                <BotCard 
+                  key={`bot-${index}`}
+                  botName={bot.botName}
+                  isActive={bot.isActive}
+                  tokens={bot.tokens}
+                  profit={bot.profit}
+                  timeRunning={bot.timeRunning}
+                  index={index}
+                />
+              ))}
               <CreateBotCard />
-              <BotTemplateCard />
+              {templates.map((template, index) => (
+                <BotTemplateCard 
+                  key={`template-${index}`}
+                  title={template.title}
+                  description={template.description}
+                  features={template.features}
+                />
+              ))}
             </div>
           ) : (
             <EmptyBotState />
