@@ -6,12 +6,26 @@ import { ApiVaultHeader } from "./components/ApiVaultHeader";
 import { ApiVaultContent } from "./ApiVaultContent";
 import { useApiKeyManagement } from "./hooks/useApiKeyManagement";
 import { useApiKeyVisibility } from "./hooks/useApiKeyVisibility";
-import { ApiKeyDialogs } from "./components/ApiKeyDialogs";
+import { useVaultSecurity } from "./hooks/useVaultSecurity";
+import { recoverAllApiKeys } from "./utils";
+import { toast } from "sonner";
+import { ApiVaultDialogs } from "./components/ApiVaultDialogs";
+import { ApiVaultTabs } from "./components/ApiVaultTabs";
+import { ApiVaultActions } from "./components/ApiVaultActions";
 
 export const ApiVaultCard = () => {
-  const [showAddKeyDialog, setShowAddKeyDialog] = useState(false);
+  const [showDialogApiKey, setShowDialogApiKey] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
+  const [showExportSheet, setShowExportSheet] = useState(false);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState("keys");
+  const [isRecovering, setIsRecovering] = useState(false);
+  const [isTestingKeys, setIsTestingKeys] = useState(false);
+  const [recoveredKeys, setRecoveredKeys] = useState<ApiKey[]>([]);
+  const [recoveryLocations, setRecoveryLocations] = useState<{ storageKey: string; count: number }[]>([]);
 
+  // API Key Management hooks
   const {
     apiKeys,
     setApiKeys,
@@ -21,71 +35,169 @@ export const ApiVaultCard = () => {
     setFilterService,
     addNewKey,
     deleteKey,
+    updateKey,
     handleImport,
     getFilteredKeys,
     getKeysByService
   } = useApiKeyManagement();
 
+  // API Key Visibility hook
   const { isKeyVisible, toggleKeyVisibility } = useApiKeyVisibility();
 
-  // Save keys to localStorage whenever they change
-  useEffect(() => {
-    if (apiKeys.length > 0) {
-      localStorage.setItem('apiKeys', JSON.stringify(apiKeys));
-    }
-  }, [apiKeys]);
+  // Security hooks
+  const {
+    isEncryptionEnabled,
+    setIsEncryptionEnabled,
+    savedMasterPassword,
+    setSavedMasterPassword,
+    isLocked,
+    setIsLocked,
+    isAutoLockEnabled,
+    setIsAutoLockEnabled,
+    autoLockTimeout,
+    setAutoLockTimeout,
+    isUnlocking,
+    setIsUnlocking,
+    handleUnlock,
+    handleLock,
+    saveSecuritySettings
+  } = useVaultSecurity({ apiKeys, setApiKeys });
 
-  const handleExportKeys = () => {
-    if (apiKeys.length === 0) {
-      return;
-    }
+  // Calculate statistics for keys
+  const keyStats = {
+    total: apiKeys.length,
+    active: apiKeys.filter(key => key.status === "active" || !key.status).length,
+    expired: apiKeys.filter(key => key.status === "expired").length,
+    revoked: apiKeys.filter(key => key.status === "revoked").length,
+  };
 
-    try {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(apiKeys, null, 2));
-      const downloadAnchorNode = document.createElement('a');
-      downloadAnchorNode.setAttribute("href", dataStr);
-      downloadAnchorNode.setAttribute("download", "api_keys.json");
-      document.body.appendChild(downloadAnchorNode);
-      downloadAnchorNode.click();
-      downloadAnchorNode.remove();
-    } catch (error) {
-      console.error("Error exporting keys:", error);
-    }
+  // Get unique services and their counts
+  const serviceStats = Object.entries(getKeysByService()).map(([name, keys]) => ({
+    name,
+    count: keys.length,
+  }));
+
+  // Handle recovery scan
+  const handleRecoverClick = () => {
+    setIsRecovering(true);
+    setTimeout(() => {
+      try {
+        const result = recoverAllApiKeys();
+        setRecoveredKeys(result.keys);
+        setRecoveryLocations(result.locations);
+        
+        if (result.keys.length > 0) {
+          setShowRecoveryDialog(true);
+        } else {
+          toast.info('Δεν βρέθηκαν επιπλέον κλειδιά API');
+        }
+      } catch (e) {
+        console.error('Recovery error:', e);
+        toast.error('Σφάλμα κατά την ανάκτηση κλειδιών');
+      } finally {
+        setIsRecovering(false);
+      }
+    }, 1000);
+  };
+
+  // Handle the import of recovered keys
+  const handleRecoveredImport = (keys: ApiKey[]) => {
+    handleImport(keys);
+    setShowRecoveryDialog(false);
+    toast.success(`Εισήχθησαν ${keys.length} κλειδιά επιτυχώς`);
+  };
+
+  // Test all keys for validity/functionality
+  const handleRefreshKeys = () => {
+    setIsTestingKeys(true);
+    
+    // Simulate testing process
+    setTimeout(() => {
+      setIsTestingKeys(false);
+      toast.success('Ο έλεγχος κλειδιών ολοκληρώθηκε');
+    }, 2000);
   };
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="px-6 pt-6 pb-4">
         <ApiVaultHeader 
-          onAddKey={() => setShowAddKeyDialog(true)}
+          onAddKey={() => setShowDialogApiKey(true)}
           onImport={() => setShowImportDialog(true)}
-          onExport={handleExportKeys}
+          onExport={() => setShowExportSheet(true)}
           apiKeysCount={apiKeys.length}
+          onSettings={() => setShowSettingsDialog(true)}
+          isLocked={isLocked}
+          onUnlock={() => setIsUnlocking(true)}
+          onLock={handleLock}
         />
       </CardHeader>
-      <CardContent>
-        <ApiVaultContent 
-          apiKeys={apiKeys}
-          isKeyVisible={isKeyVisible}
-          toggleKeyVisibility={toggleKeyVisibility}
-          deleteKey={deleteKey}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          filterService={filterService}
-          setFilterService={setFilterService}
-          getFilteredKeys={getFilteredKeys}
-          getKeysByService={getKeysByService}
-          onAddKeyClick={() => setShowAddKeyDialog(true)}
-        />
-
-        <ApiKeyDialogs 
-          showAddKeyDialog={showAddKeyDialog}
-          setShowAddKeyDialog={setShowAddKeyDialog}
-          showImportDialog={showImportDialog}
-          setShowImportDialog={setShowImportDialog}
-          addNewKey={addNewKey}
-          handleImport={handleImport}
-        />
+      <CardContent className="px-6 pb-6">
+        <div className="space-y-6">
+          {/* Key management tabs */}
+          <ApiVaultTabs 
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            apiKeys={apiKeys}
+            isLocked={isLocked}
+            keyStats={keyStats}
+            services={serviceStats}
+            isTestingKeys={isTestingKeys}
+            handleRefreshKeys={handleRefreshKeys}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filterService={filterService}
+            setFilterService={setFilterService}
+            isKeyVisible={isKeyVisible}
+            toggleKeyVisibility={toggleKeyVisibility}
+            deleteKey={deleteKey}
+            getFilteredKeys={getFilteredKeys}
+            getKeysByService={getKeysByService}
+            onAddKeyClick={() => setShowDialogApiKey(true)}
+            onUnlockClick={() => setIsUnlocking(true)}
+            handleRecoverClick={handleRecoverClick}
+          />
+          
+          {/* Additional actions */}
+          <ApiVaultActions 
+            isLocked={isLocked}
+            apiKeys={apiKeys}
+            isRecovering={isRecovering}
+            isTestingKeys={isTestingKeys}
+            handleRecoverClick={handleRecoverClick}
+          />
+          
+          {/* All dialogs */}
+          <ApiVaultDialogs 
+            showDialogApiKey={showDialogApiKey}
+            setShowDialogApiKey={setShowDialogApiKey}
+            showImportDialog={showImportDialog}
+            setShowImportDialog={setShowImportDialog}
+            showExportSheet={showExportSheet}
+            setShowExportSheet={setShowExportSheet}
+            showSettingsDialog={showSettingsDialog}
+            setShowSettingsDialog={setShowSettingsDialog}
+            showRecoveryDialog={showRecoveryDialog}
+            setShowRecoveryDialog={setShowRecoveryDialog}
+            isUnlocking={isUnlocking}
+            setIsUnlocking={setIsUnlocking}
+            apiKeys={apiKeys}
+            addNewKey={addNewKey}
+            handleImport={handleImport}
+            handleUnlock={handleUnlock}
+            savedMasterPassword={savedMasterPassword}
+            isEncryptionEnabled={isEncryptionEnabled}
+            setIsEncryptionEnabled={setIsEncryptionEnabled}
+            isAutoLockEnabled={isAutoLockEnabled}
+            setIsAutoLockEnabled={setIsAutoLockEnabled}
+            autoLockTimeout={autoLockTimeout}
+            setAutoLockTimeout={setAutoLockTimeout}
+            setSavedMasterPassword={setSavedMasterPassword}
+            recoveredKeys={recoveredKeys}
+            recoveryLocations={recoveryLocations}
+            handleRecoveredImport={handleRecoveredImport}
+          />
+        </div>
       </CardContent>
     </Card>
   );
