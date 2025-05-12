@@ -2,7 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { RefreshCcw, AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
+import { RefreshCcw, AlertTriangle, CheckCircle, Loader2, Database, Plus } from "lucide-react";
 
 interface RecoveryStatusProps {
   isRecovering: boolean;
@@ -10,6 +10,7 @@ interface RecoveryStatusProps {
   recoveryError: string | null;
   recoveredCount: number;
   onRecoverClick: () => void;
+  onAddDemoKeys?: () => void;
 }
 
 export const RecoveryStatus: React.FC<RecoveryStatusProps> = ({
@@ -17,7 +18,8 @@ export const RecoveryStatus: React.FC<RecoveryStatusProps> = ({
   recoverySuccess,
   recoveryError,
   recoveredCount,
-  onRecoverClick
+  onRecoverClick,
+  onAddDemoKeys
 }) => {
   return (
     <div className="space-y-4">
@@ -28,19 +30,32 @@ export const RecoveryStatus: React.FC<RecoveryStatusProps> = ({
             Αποτελέσματα από την τελευταία προσπάθεια ανάκτησης
           </p>
         </div>
-        <Button 
-          variant="outline" 
-          className="flex items-center gap-1"
-          disabled={isRecovering}
-          onClick={onRecoverClick}
-        >
-          {isRecovering ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <RefreshCcw className="h-4 w-4" />
+        <div className="flex items-center gap-2">
+          {onAddDemoKeys && (
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-1"
+              onClick={onAddDemoKeys}
+            >
+              <Plus className="h-4 w-4" />
+              <span>Προσθήκη Κλειδιών</span>
+            </Button>
           )}
-          <span>Ανάκτηση</span>
-        </Button>
+          
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-1"
+            disabled={isRecovering}
+            onClick={onRecoverClick}
+          >
+            {isRecovering ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCcw className="h-4 w-4" />
+            )}
+            <span>Ανάκτηση</span>
+          </Button>
+        </div>
       </div>
 
       {isRecovering ? (
@@ -64,7 +79,12 @@ export const RecoveryStatus: React.FC<RecoveryStatusProps> = ({
             <p className="text-sm text-green-600">Ανακτήθηκαν {recoveredCount} API κλειδιά</p>
           </div>
         </Card>
-      ) : null}
+      ) : (
+        <Card className="p-4 flex items-center gap-3">
+          <Database className="h-5 w-5 text-primary" />
+          <p>Έτοιμο για ανάκτηση κλειδιών API από τη συσκευή σας</p>
+        </Card>
+      )}
     </div>
   );
 };
