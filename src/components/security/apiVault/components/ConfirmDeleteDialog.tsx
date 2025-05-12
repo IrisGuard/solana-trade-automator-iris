@@ -9,6 +9,9 @@ interface ConfirmDeleteDialogProps {
   setConfirmDialogOpen: (open: boolean) => void;
   onConfirmDelete: () => void;
   onCancelDelete: () => void;
+  confirmationText?: string;
+  setConfirmationText?: (text: string) => void;
+  confirmationRequired?: boolean;
 }
 
 export const ConfirmDeleteDialog: React.FC<ConfirmDeleteDialogProps> = ({
@@ -16,7 +19,10 @@ export const ConfirmDeleteDialog: React.FC<ConfirmDeleteDialogProps> = ({
   confirmDialogOpen,
   setConfirmDialogOpen,
   onConfirmDelete,
-  onCancelDelete
+  onCancelDelete,
+  confirmationText,
+  setConfirmationText,
+  confirmationRequired
 }) => {
   return (
     <DeleteKeyDialog
@@ -25,6 +31,9 @@ export const ConfirmDeleteDialog: React.FC<ConfirmDeleteDialogProps> = ({
       keyToDelete={keyToDelete}
       onConfirmDelete={onConfirmDelete}
       onCancelDelete={onCancelDelete}
+      confirmationText={confirmationText}
+      setConfirmationText={setConfirmationText}
+      confirmationRequired={confirmationRequired}
     />
   );
 };

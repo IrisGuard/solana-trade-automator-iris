@@ -31,7 +31,10 @@ export const ApiKeyList = ({
     setConfirmDialogOpen,
     handleDeleteRequest,
     confirmDelete,
-    cancelDelete
+    cancelDelete,
+    confirmationText,
+    setConfirmationText,
+    confirmationRequired
   } = useKeyDeletion(deleteKey);
 
   // If there are no keys, show the empty state
@@ -51,13 +54,16 @@ export const ApiKeyList = ({
         onTestKey={onTestKey}
       />
       
-      {/* Delete confirmation dialog */}
+      {/* Διάλογος επιβεβαίωσης διαγραφής με αυξημένη ασφάλεια */}
       <ConfirmDeleteDialog
         keyToDelete={keyToDelete}
         confirmDialogOpen={confirmDialogOpen}
         setConfirmDialogOpen={setConfirmDialogOpen}
         onConfirmDelete={confirmDelete}
         onCancelDelete={cancelDelete}
+        confirmationText={confirmationText}
+        setConfirmationText={setConfirmationText}
+        confirmationRequired={confirmationRequired}
       />
     </TooltipProvider>
   );
