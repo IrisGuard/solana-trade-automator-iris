@@ -17,11 +17,14 @@ export default function Security() {
         </p>
       </div>
       
-      {/* Νέα κάρτα ρυθμίσεων ασφαλείας πλατφόρμας */}
-      <PlatformSecurityCard />
-      
       {/* API Key Vault */}
-      <ApiVaultCard />
+      <div className="mt-4 mb-6">
+        <h3 className="text-xl font-semibold mb-2">Κλειδοθήκη API</h3>
+        <ApiVaultCard />
+      </div>
+      
+      {/* Ρυθμίσεις ασφαλείας πλατφόρμας */}
+      <PlatformSecurityCard />
       
       {/* Υπάρχουσες κάρτες ασφαλείας */}
       <div className="grid gap-6 md:grid-cols-2">
