@@ -7,10 +7,12 @@ import { ApiVaultContent } from "./ApiVaultContent";
 import { useApiKeyManagement } from "./hooks/useApiKeyManagement";
 import { useApiKeyVisibility } from "./hooks/useApiKeyVisibility";
 import { ApiKeyDialogs } from "./components/ApiKeyDialogs";
+import { autoRestoreIfEmpty, forceScanForKeys } from "./utils";
 
 export const ApiVaultCard = () => {
   const [showAddKeyDialog, setShowAddKeyDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
+  const [hasRecoveryCheck, setHasRecoveryCheck] = useState(false);
 
   const {
     apiKeys,
@@ -34,6 +36,30 @@ export const ApiVaultCard = () => {
       localStorage.setItem('apiKeys', JSON.stringify(apiKeys));
     }
   }, [apiKeys]);
+  
+  // Automatic recovery check when component mounts
+  useEffect(() => {
+    if (!hasRecoveryCheck) {
+      // Run automatic check and recovery on first load
+      const checkForLostKeys = async () => {
+        try {
+          await autoRestoreIfEmpty();
+          setHasRecoveryCheck(true);
+          
+          // If still no keys, try more aggressive recovery
+          const savedKeys = localStorage.getItem('apiKeys');
+          if (!savedKeys || JSON.parse(savedKeys).length === 0) {
+            console.log('Δεν βρέθηκαν κλειδιά, εκτέλεση βαθιάς σάρωσης...');
+            await forceScanForKeys();
+          }
+        } catch (error) {
+          console.error('Σφάλμα κατά τον έλεγχο ανάκτησης:', error);
+        }
+      };
+      
+      checkForLostKeys();
+    }
+  }, [hasRecoveryCheck, apiKeys]);
 
   const handleExportKeys = () => {
     if (apiKeys.length === 0) {

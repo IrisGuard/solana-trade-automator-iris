@@ -10,7 +10,7 @@ import {
   searchAllLocalStorage, 
   processStorageKey 
 } from "./storageScanner";
-import { diagnosticScanStorage, deepScanAllStorage } from "./diagnosticUtils";
+import { diagnosticScanStorage, deepScanAllStorage, injectDemoKeys } from "./diagnosticUtils";
 
 // Enhanced function to recover keys from all possible storages
 export const recoverAllApiKeys = async (): Promise<{ 
@@ -146,12 +146,31 @@ export { POTENTIAL_STORAGE_KEYS, COMMON_PASSWORDS, initializeAutoRecovery };
 // Βοηθητική συνάρτηση για μαζική επαναφορά δοκιμαστικών κλειδιών
 export const restoreDemoKeys = async () => {
   try {
-    const { injectDemoKeys } = await import('./diagnosticUtils');
     const demoKeys = injectDemoKeys(26);
     console.log(`Επαναφέρθηκαν ${demoKeys.length} δοκιμαστικά κλειδιά`);
     return demoKeys;
   } catch (e) {
     console.error('Σφάλμα επαναφοράς δοκιμαστικών κλειδιών:', e);
     return [];
+  }
+};
+
+// Αυτόματη επαναφορά σε περίπτωση που δεν βρεθούν κλειδιά
+export const autoRestoreIfEmpty = async () => {
+  try {
+    const savedKeys = localStorage.getItem('apiKeys');
+    if (!savedKeys || JSON.parse(savedKeys).length === 0) {
+      console.log('Η κλειδοθήκη είναι κενή, προσπάθεια αυτόματης αποκατάστασης...');
+      const result = await recoverAllApiKeys();
+      
+      if (result.recoveredKeys.length > 0) {
+        localStorage.setItem('apiKeys', JSON.stringify(result.recoveredKeys));
+        console.log(`Αυτόματη αποκατάσταση ολοκληρώθηκε: ${result.recoveredKeys.length} κλειδιά`);
+      } else {
+        console.log('Δεν βρέθηκαν κλειδιά για αυτόματη αποκατάσταση');
+      }
+    }
+  } catch (e) {
+    console.error('Σφάλμα στην αυτόματη αποκατάσταση:', e);
   }
 };

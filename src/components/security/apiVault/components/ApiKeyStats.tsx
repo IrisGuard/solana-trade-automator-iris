@@ -2,9 +2,9 @@
 import React, { useState } from "react";
 import { ApiKeyStatsPanel } from "./ApiKeyStatsPanel";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { AlertTriangle, RefreshCw, Key } from "lucide-react";
 import { toast } from "sonner";
-import { recoverAllApiKeys, forceScanForKeys } from "../utils";
+import { recoverAllApiKeys, forceScanForKeys, restoreDemoKeys } from "../utils";
 
 interface StatsProps {
   stats: {
@@ -46,12 +46,11 @@ export const ApiKeyStats: React.FC<StatsProps> = ({ stats, services = [] }) => {
         } else {
           toast.error("Δεν βρέθηκαν κλειδιά σε καμία τοποθεσία αποθήκευσης.");
           
-          // Δοκιμαστικά κλειδιά σε περίπτωση που τίποτα άλλο δε λειτουργεί
-          if (confirm("Να προστεθούν 20 δοκιμαστικά κλειδιά για επίδειξη;")) {
+          // Προσθέτουμε άμεση επιλογή για επαναφορά δοκιμαστικών κλειδιών
+          if (confirm("Θέλετε να προστεθούν 26 δοκιμαστικά κλειδιά για να συνεχίσετε;")) {
             // Εισαγωγή δοκιμαστικών κλειδιών
-            const { injectDemoKeys } = await import("../utils/diagnosticUtils");
-            const demoKeys = injectDemoKeys(20);
-            toast.success(`Προστέθηκαν ${demoKeys.length} δοκιμαστικά κλειδιά για επίδειξη.`);
+            const demoKeys = await restoreDemoKeys();
+            toast.success(`Προστέθηκαν ${demoKeys.length} δοκιμαστικά κλειδιά επιτυχώς.`);
           }
         }
       }
@@ -64,6 +63,13 @@ export const ApiKeyStats: React.FC<StatsProps> = ({ stats, services = [] }) => {
     } catch (error) {
       console.error("Σφάλμα στην ανάκτηση:", error);
       toast.error("Προέκυψε σφάλμα κατά την ανάκτηση κλειδιών.");
+      
+      // Εμφάνιση επιλογών αποκατάστασης σε περίπτωση σφάλματος
+      if (confirm("Επικοινωνία με την τεχνική υποστήριξη ή προσθήκη δοκιμαστικών κλειδιών;")) {
+        const demoKeys = await restoreDemoKeys();
+        toast.success(`Προστέθηκαν ${demoKeys.length} δοκιμαστικά κλειδιά.`);
+        setTimeout(() => window.location.reload(), 2000);
+      }
     } finally {
       setIsRecovering(false);
       toast.dismiss();
@@ -78,25 +84,40 @@ export const ApiKeyStats: React.FC<StatsProps> = ({ stats, services = [] }) => {
           <div className="text-sm">
             <p className="font-medium">Δεν βρέθηκαν κλειδιά API</p>
             <p className="text-muted-foreground mt-1">Τα κλειδιά σας μπορεί να έχουν χαθεί. Δοκιμάστε την έκτακτη ανάκτηση.</p>
-            <Button 
-              size="sm" 
-              className="mt-2" 
-              variant="outline"
-              disabled={isRecovering}
-              onClick={handleEmergencyRecover}
-            >
-              {isRecovering ? (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  Ανάκτηση...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Έκτακτη Ανάκτηση Κλειδιών
-                </>
-              )}
-            </Button>
+            <div className="flex gap-2 mt-2">
+              <Button 
+                size="sm" 
+                className="mt-2" 
+                variant="outline"
+                disabled={isRecovering}
+                onClick={handleEmergencyRecover}
+              >
+                {isRecovering ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Ανάκτηση...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Έκτακτη Ανάκτηση Κλειδιών
+                  </>
+                )}
+              </Button>
+              <Button
+                size="sm"
+                className="mt-2"
+                variant="default"
+                onClick={async () => {
+                  const demoKeys = await restoreDemoKeys();
+                  toast.success(`Προστέθηκαν ${demoKeys.length} δοκιμαστικά κλειδιά.`);
+                  setTimeout(() => window.location.reload(), 1500);
+                }}
+              >
+                <Key className="mr-2 h-4 w-4" />
+                Προσθήκη 26 Δοκιμαστικών Κλειδιών
+              </Button>
+            </div>
           </div>
         </div>
       )}
