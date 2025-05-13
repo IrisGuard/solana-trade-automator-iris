@@ -20,17 +20,17 @@ export const AccountAccessCard = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="card-highlight">
+      <CardHeader className="pb-4">
         <div className="flex items-center gap-2">
           <Key className="h-5 w-5 text-primary" />
-          <CardTitle>Πρόσβαση Λογαριασμού</CardTitle>
+          <CardTitle className="text-xl">Πρόσβαση Λογαριασμού</CardTitle>
         </div>
         <CardDescription>Διαχείριση των μεθόδων πρόσβασης στο λογαριασμό σας</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="current-password">Τρέχων Κωδικός Πρόσβασης</Label>
+          <Label htmlFor="current-password" className="text-foreground">Τρέχων Κωδικός Πρόσβασης</Label>
           <div className="relative">
             <Input
               id="current-password"
@@ -38,7 +38,7 @@ export const AccountAccessCard = () => {
               value={password}
               onChange={handlePasswordChange}
               placeholder="Εισάγετε τον τρέχοντα κωδικό σας"
-              className="pr-10"
+              className="pr-10 bg-background/60"
             />
             <Button
               type="button"
@@ -61,26 +61,26 @@ export const AccountAccessCard = () => {
         
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-base">Πρόσβαση με Κωδικό</CardTitle>
-            <CardDescription className="text-sm">Ενεργοποιήστε ή απενεργοποιήστε την πρόσβαση με κωδικό</CardDescription>
+            <p className="font-medium text-foreground">Πρόσβαση με Κωδικό</p>
+            <p className="text-sm text-muted-foreground">Ενεργοποιήστε ή απενεργοποιήστε την πρόσβαση με κωδικό</p>
           </div>
-          <Switch id="password-access" />
+          <Switch id="password-access" className="data-[state=checked]:bg-primary" />
         </div>
         
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-base">Βιομετρική Πρόσβαση</CardTitle>
-            <CardDescription className="text-sm">Ενεργοποιήστε ή απενεργοποιήστε τη βιομετρική πρόσβαση</CardDescription>
+            <p className="font-medium text-foreground">Βιομετρική Πρόσβαση</p>
+            <p className="text-sm text-muted-foreground">Ενεργοποιήστε ή απενεργοποιήστε τη βιομετρική πρόσβαση</p>
           </div>
-          <Switch id="biometric-access" />
+          <Switch id="biometric-access" className="data-[state=checked]:bg-primary" />
         </div>
         
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-base">Κοινωνική Πρόσβαση</CardTitle>
-            <CardDescription className="text-sm">Ενεργοποιήστε ή απενεργοποιήστε την πρόσβαση μέσω κοινωνικών λογαριασμών</CardDescription>
+            <p className="font-medium text-foreground">Κοινωνική Πρόσβαση</p>
+            <p className="text-sm text-muted-foreground">Ενεργοποιήστε ή απενεργοποιήστε την πρόσβαση μέσω κοινωνικών λογαριασμών</p>
           </div>
-          <Switch id="social-access" />
+          <Switch id="social-access" className="data-[state=checked]:bg-primary" />
         </div>
       </CardContent>
     </Card>

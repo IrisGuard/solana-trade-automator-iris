@@ -36,6 +36,7 @@ export const ApiVaultDescription: React.FC<ApiVaultDescriptionProps> = ({
             size="sm"
             onClick={handleRecoverClick}
             disabled={isRecovering || isTestingKeys}
+            className="text-foreground hover:bg-primary/10"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isRecovering ? 'animate-spin' : ''}`} />
             {isRecovering ? 'Σάρωση...' : 'Ανάκτηση Κλειδιών'}

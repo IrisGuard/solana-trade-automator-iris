@@ -25,7 +25,7 @@ export function WalletConnectButton({
       <Button
         variant={variant}
         size={size}
-        className={className}
+        className={`button-glow ${className}`}
         disabled
       >
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -35,7 +35,7 @@ export function WalletConnectButton({
   }
 
   return (
-    <WalletMultiButton className={`bg-primary text-white hover:bg-primary/90 rounded-md flex items-center gap-2 px-4 py-2 ${className}`}>
+    <WalletMultiButton className={`bg-primary text-white hover:bg-primary/90 rounded-md flex items-center gap-2 px-4 py-2 button-glow ${className}`}>
       <Wallet className="h-4 w-4" />
       {connected ? "Συνδεδεμένο Wallet" : "Σύνδεση με Wallet"}
     </WalletMultiButton>

@@ -8,9 +8,11 @@ export function TransactionSecurityHeader() {
     <div>
       <div className="flex items-center gap-2">
         <AlertTriangle className="h-5 w-5 text-primary" />
-        <CardTitle>Ασφάλεια Συναλλαγών</CardTitle>
+        <CardTitle className="text-xl text-foreground">Ασφάλεια Συναλλαγών</CardTitle>
       </div>
-      <CardDescription>Ελέγξτε τις ρυθμίσεις ασφαλείας των συναλλαγών σας</CardDescription>
+      <CardDescription className="text-muted-foreground">
+        Ελέγξτε τις ρυθμίσεις ασφαλείας των συναλλαγών σας
+      </CardDescription>
     </div>
   );
 }

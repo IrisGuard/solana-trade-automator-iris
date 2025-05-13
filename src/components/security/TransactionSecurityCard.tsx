@@ -10,22 +10,22 @@ import { AdvancedSecuritySettings } from "./transaction/AdvancedSecuritySettings
 
 export const TransactionSecurityCard = () => {
   return (
-    <Card>
+    <Card className="card-highlight">
       <CardHeader>
         <TransactionSecurityHeader />
       </CardHeader>
       <CardContent className="space-y-6">
         <TransactionConfirmationSection />
         
-        <Separator />
+        <Separator className="bg-border" />
         
         <TransactionLimitsSection />
         
-        <Separator />
+        <Separator className="bg-border" />
         
         <ApprovedAddressesSection />
         
-        <Separator />
+        <Separator className="bg-border" />
         
         <AdvancedSecuritySettings />
       </CardContent>

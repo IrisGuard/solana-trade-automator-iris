@@ -14,9 +14,9 @@ export function PlatformSecurityHeader({ expanded, onToggle }: PlatformSecurityH
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
         <Shield className="h-5 w-5 text-primary" />
-        <CardTitle>Κύριες Ρυθμίσεις Ασφαλείας Πλατφόρμας</CardTitle>
+        <CardTitle className="text-xl text-foreground">Κύριες Ρυθμίσεις Ασφαλείας Πλατφόρμας</CardTitle>
       </div>
-      <Button variant="ghost" size="sm" onClick={onToggle}>
+      <Button variant="ghost" size="sm" onClick={onToggle} className="text-foreground hover:bg-primary/10">
         {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
       </Button>
     </div>
