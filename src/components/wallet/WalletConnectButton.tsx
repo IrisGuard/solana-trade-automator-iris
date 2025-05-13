@@ -10,6 +10,7 @@ interface WalletConnectButtonProps {
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   size?: "default" | "sm" | "lg" | "icon";
   isLoading?: boolean;
+  children?: React.ReactNode;  // Προσθήκη υποστήριξης για children
 }
 
 export function WalletConnectButton({ 
@@ -17,6 +18,7 @@ export function WalletConnectButton({
   variant = "default",
   size = "default",
   isLoading = false,
+  children
 }: WalletConnectButtonProps) {
   const { connected } = useWallet();
   const { setVisible } = useWalletModal();
@@ -47,7 +49,7 @@ export function WalletConnectButton({
       className={`flex items-center gap-2 ${className}`}
     >
       <Wallet className="h-4 w-4" />
-      {connected ? "Συνδεδεμένο Wallet" : "Σύνδεση με Wallet"}
+      {children || (connected ? "Συνδεδεμένο Wallet" : "Σύνδεση με Wallet")}
     </Button>
   );
 }

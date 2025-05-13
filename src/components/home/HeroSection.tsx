@@ -24,7 +24,9 @@ export function HeroSection() {
           <WalletConnectButton 
             className="gap-2 w-full md:w-auto"
             size="lg"
-          />
+          >
+            Σύνδεση με Phantom Wallet
+          </WalletConnectButton>
         ) : (
           <Button
             size="lg"
