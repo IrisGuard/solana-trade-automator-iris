@@ -1,0 +1,22 @@
+
+export const general = {
+  connect: "Σύνδεση",
+  disconnect: "Αποσύνδεση",
+  loading: "Φόρτωση...",
+  save: "Αποθήκευση",
+  cancel: "Ακύρωση",
+  add: "Προσθήκη",
+  delete: "Διαγραφή",
+  edit: "Επεξεργασία",
+  view: "Προβολή",
+  settings: "Ρυθμίσεις",
+  wallet: "Πορτοφόλι",
+  transactions: "Συναλλαγές",
+  help: "Βοήθεια",
+  security: "Ασφάλεια",
+  dashboard: "Πίνακας Ελέγχου",
+  home: "Αρχική",
+  docs: "Έγγραφα",
+  profile: "Προφίλ",
+  logout: "Αποσύνδεση",
+};

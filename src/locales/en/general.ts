@@ -1,0 +1,22 @@
+
+export const general = {
+  connect: "Connect",
+  disconnect: "Disconnect",
+  loading: "Loading...",
+  save: "Save",
+  cancel: "Cancel",
+  add: "Add",
+  delete: "Delete",
+  edit: "Edit",
+  view: "View",
+  settings: "Settings",
+  wallet: "Wallet",
+  transactions: "Transactions",
+  help: "Help",
+  security: "Security",
+  dashboard: "Dashboard",
+  home: "Home",
+  docs: "Documentation",
+  profile: "Profile",
+  logout: "Logout",
+};

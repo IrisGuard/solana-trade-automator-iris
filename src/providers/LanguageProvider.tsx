@@ -1,12 +1,17 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import en from "../locales/en";
 import el from "../locales/el";
 
-type Translations = typeof el;
+type TranslationValue = string | Record<string, any>;
+type Translations = typeof en;
 
+// Τύποι για το language context
 interface LanguageContextType {
   t: (key: string, section?: string) => string;
   translations: Translations;
+  language: "en" | "el";
+  setLanguage: (lang: "en" | "el") => void;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -24,12 +29,27 @@ interface LanguageProviderProps {
 }
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  const [translations] = useState<Translations>(el);
+  const [language, setLanguage] = useState<"en" | "el">("el"); // Default σε Ελληνικά
+  const [translations, setTranslations] = useState<Translations>(el);
 
-  // Εφαρμογή των ρυθμίσεων στο HTML
+  // Ενημέρωση των μεταφράσεων όταν αλλάζει η γλώσσα
   useEffect(() => {
-    document.documentElement.setAttribute("lang", "el");
+    setTranslations(language === "en" ? en : el);
+    document.documentElement.setAttribute("lang", language);
+  }, [language]);
+
+  // Διατήρηση της επιλεγμένης γλώσσας στο localStorage
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem("app-language");
+    if (savedLanguage === "en" || savedLanguage === "el") {
+      setLanguage(savedLanguage);
+    }
   }, []);
+
+  // Αποθήκευση της επιλεγμένης γλώσσας όταν αλλάζει
+  useEffect(() => {
+    localStorage.setItem("app-language", language);
+  }, [language]);
 
   // Βοηθητική συνάρτηση για να παίρνουμε μεταφράσεις με dot notation (π.χ., "general.save")
   const t = (key: string, section?: string): string => {
@@ -60,7 +80,9 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
   const value = {
     t,
-    translations
+    translations,
+    language,
+    setLanguage
   };
 
   return (
