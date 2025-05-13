@@ -8,34 +8,17 @@
  * @param message Το μήνυμα του σφάλματος
  */
 export function generateTestError(message = "Δοκιμαστικό σφάλμα για έλεγχο του συστήματος καταγραφής") {
-  // Δημιουργία του σφάλματος
-  const testError = new Error(message);
+  // Καθαρισμός υπαρχόντων σφαλμάτων πρώτα
+  clearAllErrors();
   
-  // Καταγραφή του σφάλματος στην κονσόλα για να πιαστεί από το useConsoleErrorMonitor
-  console.error(testError);
-  
-  // Αποστολή του σφάλματος απευθείας στο σύστημα παραθύρων διαλόγου
-  if (window.lovableChat?.createErrorDialog) {
-    window.lovableChat.createErrorDialog({
-      message: testError.message,
-      stack: testError.stack,
-      timestamp: new Date().toISOString(),
-      url: window.location.href
-    });
-  } else {
-    // Εναλλακτική μέθοδος χρησιμοποιώντας custom event
-    const event = new CustomEvent('lovable-error', {
-      detail: {
-        message: testError.message,
-        stack: testError.stack,
-        timestamp: new Date().toISOString(),
-        url: window.location.href
-      }
-    });
-    window.dispatchEvent(event);
-  }
-  
-  return testError;
+  // Περιμένουμε λίγο πριν δημιουργήσουμε το νέο σφάλμα
+  setTimeout(() => {
+    // Δημιουργία του σφάλματος
+    const testError = new Error(message);
+    
+    // Καταγραφή του σφάλματος στην κονσόλα για να πιαστεί από το useConsoleErrorMonitor
+    console.error(testError);
+  }, 300);
 }
 
 /**
@@ -45,24 +28,21 @@ export function clearAllErrors() {
   // Καθαρισμός των σφαλμάτων που έχουν αποθηκευτεί στο localStorage
   try {
     localStorage.removeItem('lovable_chat_errors');
-    console.log('Τα αποθηκευμένα σφάλματα καθαρίστηκαν');
   } catch (e) {
     console.error('Σφάλμα κατά τον καθαρισμό των σφαλμάτων:', e);
   }
   
-  // Προσπάθεια κλήσης της συνάρτησης καθαρισμού σφαλμάτων από το hook
+  // Αποστολή event καθαρισμού
   try {
     const clearErrorsEvent = new CustomEvent('lovable-clear-errors');
     window.dispatchEvent(clearErrorsEvent);
-    console.log('Στάλθηκε custom event για καθαρισμό σφαλμάτων');
   } catch (e) {
     console.error('Σφάλμα κατά την αποστολή του event καθαρισμού:', e);
   }
   
-  // Προσπάθεια απευθείας καθαρισμού μέσω του window object
+  // Απευθείας καθαρισμός μέσω του window object
   if (window.lovableChat && typeof window.lovableChat.clearErrors === 'function') {
     window.lovableChat.clearErrors();
-    console.log('Κλήθηκε η μέθοδος window.lovableChat.clearErrors()');
   }
 }
 
@@ -92,7 +72,10 @@ export function addTestErrorButton() {
   
   // Προσθήκη του χειριστή συμβάντων
   button.addEventListener('click', () => {
-    generateTestError("Δοκιμαστικό σφάλμα από το κουμπί ελέγχου");
+    clearAllErrors();
+    setTimeout(() => {
+      generateTestError("Δοκιμαστικό σφάλμα από το κουμπί ελέγχου");
+    }, 300);
   });
   
   // Προσθήκη του κουμπιού στο σώμα της σελίδας

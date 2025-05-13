@@ -21,120 +21,32 @@ export function ErrorDialogInChat({ error, onClose }: ErrorDialogProps) {
       // Δημιουργία μηνύματος για αποστολή στο chat
       const errorMessage = `Παρακαλώ διορθώστε το παρακάτω σφάλμα:\n\nΜήνυμα: ${error.message}\n\n${error.stack ? `Stack Trace: ${error.stack}\n\n` : ''}Χρονοσήμανση: ${new Date(error.timestamp).toLocaleString()}\nURL: ${error.url}`;
       
-      // Άμεση καταγραφή για debugging
-      console.log('Προσπάθεια αποστολής σφάλματος στο chat:', { errorMessage });
-      
-      // Εντοπισμός των στοιχείων του chat με πολλαπλές στρατηγικές
-      const textareaSelectors = [
-        '.lov-chat-textarea', 
-        '.lovable-chat-textarea', 
-        'textarea.lovable-chat-input',
-        'textarea[placeholder*="Πληκτρολογήστε"]',
-        'textarea[placeholder*="Type"]',
-        '#lov-chat-textarea',
-        'textarea'  // Τελευταία προσπάθεια: οποιοδήποτε textarea
-      ];
-      
-      const sendButtonSelectors = [
-        '.lov-chat-send',
-        '.lovable-chat-send', 
-        'button.lovable-send-button',
-        'button[aria-label*="Send"]',
-        '#lov-chat-send-button',
-        'button[type="submit"]', // Συνήθως κουμπιά αποστολής
-        'button:last-child' // Τελευταία προσπάθεια
-      ];
-      
-      // Αναζήτηση για το πρώτο textarea που ταιριάζει με οποιοδήποτε από τους selectors
-      let textarea = null;
-      for (const selector of textareaSelectors) {
-        const element = document.querySelector(selector);
-        if (element) {
-          textarea = element;
-          console.log('Βρέθηκε textarea με selector:', selector);
-          break;
+      // Προσπάθεια να βρεθεί το textarea του chat
+      const textarea = document.querySelector('.lov-chat-textarea') || 
+                       document.querySelector('textarea[placeholder*="Type"]') || 
+                       document.querySelector('textarea'); // Fallback σε οποιοδήποτε textarea
+
+      if (textarea) {
+        try {
+          // Αντιγραφή στο πρόχειρο για χειροκίνητη επικόλληση
+          navigator.clipboard.writeText(errorMessage).then(() => {
+            // Εμφάνιση μηνύματος ότι αντιγράφηκε στο πρόχειρο
+            alert('Το σφάλμα αντιγράφηκε στο πρόχειρο. Μπορείτε να το επικολλήσετε στο chat.');
+          });
+        } catch (copyError) {
+          console.error('Σφάλμα κατά την αντιγραφή στο πρόχειρο:', copyError);
         }
-      }
-      
-      // Αναζήτηση για το πρώτο κουμπί αποστολής που ταιριάζει με οποιοδήποτε από τους selectors
-      let sendButton = null;
-      for (const selector of sendButtonSelectors) {
-        const element = document.querySelector(selector);
-        if (element) {
-          sendButton = element;
-          console.log('Βρέθηκε κουμπί αποστολής με selector:', selector);
-          break;
-        }
-      }
-      
-      console.log('Αποτελέσματα αναζήτησης UI:', { 
-        textareaFound: !!textarea, 
-        sendButtonFound: !!sendButton,
-        availableTextareas: document.querySelectorAll('textarea').length,
-        availableButtons: document.querySelectorAll('button').length
-      });
-      
-      if (textarea && sendButton) {
-        // Typescript type assertion
-        const textareaElement = textarea as HTMLTextAreaElement;
-        
-        // Αποθήκευση αρχικής τιμής για επαναφορά σε περίπτωση αποτυχίας
-        const originalValue = textareaElement.value;
-        
-        // Εισαγωγή του περιεχομένου στο textarea
-        textareaElement.value = errorMessage;
-        
-        // Ενεργοποίηση του event για να ενημερώσει το React για την αλλαγή
-        const inputEvent = new Event('input', { bubbles: true });
-        textareaElement.dispatchEvent(inputEvent);
-        
-        // Μικρή καθυστέρηση πριν το "κλικ" για να βεβαιωθούμε ότι το textarea έχει ενημερωθεί
-        setTimeout(() => {
-          try {
-            // Κλικ στο κουμπί αποστολής
-            (sendButton as HTMLButtonElement).click();
-            console.log('Κλικ στο κουμπί αποστολής επιτυχές');
-            
-            // Κλείσιμο του dialog μετά την αποστολή
-            onClose();
-          } catch (clickError) {
-            console.error('Σφάλμα κατά το κλικ στο κουμπί αποστολής:', clickError);
-            // Επαναφορά της αρχικής τιμής του textarea σε περίπτωση αποτυχίας
-            textareaElement.value = originalValue;
-            textareaElement.dispatchEvent(inputEvent);
-          }
-        }, 100);
       } else {
-        console.error("Δεν βρέθηκαν τα στοιχεία της συνομιλίας για αποστολή του σφάλματος", {
-          textareaFound: !!textarea,
-          sendButtonFound: !!sendButton,
-          availableTextareas: document.querySelectorAll('textarea').length,
-          availableButtons: document.querySelectorAll('button').length
-        });
-        
-        // Εναλλακτική μέθοδος - χρήση custom event
+        // Εναλλακτική μέθοδος με αποστολή event
         const customEvent = new CustomEvent('lovable-send-to-chat', {
           detail: { message: errorMessage }
         });
         window.dispatchEvent(customEvent);
         console.log('Αποστολή μέσω custom event');
-        
-        // Παρά την αποτυχία, κλείνουμε το dialog
-        onClose();
-        
-        // Εναλλακτικά, δημιουργία ενός προσωρινού textarea απευθείας στο body
-        try {
-          const tempTextarea = document.createElement('textarea');
-          tempTextarea.value = errorMessage;
-          document.body.appendChild(tempTextarea);
-          tempTextarea.select();
-          document.execCommand('copy');
-          document.body.removeChild(tempTextarea);
-          alert('Το σφάλμα αντιγράφηκε στο πρόχειρο. Μπορείτε να το επικολλήσετε στο chat.');
-        } catch (copyError) {
-          console.error('Αποτυχία δημιουργίας προσωρινού textarea:', copyError);
-        }
       }
+      
+      // Κλείσιμο του dialog μετά την προσπάθεια αποστολής
+      onClose();
     } catch (e) {
       console.error("Σφάλμα κατά την αποστολή του σφάλματος στο chat:", e);
       // Σιγουρευόμαστε ότι το dialog θα κλείσει ακόμα κι αν αποτύχει η αποστολή
@@ -148,7 +60,7 @@ export function ErrorDialogInChat({ error, onClose }: ErrorDialogProps) {
     const forceCloseTimer = setTimeout(() => {
       console.log('Αναγκαστικό κλείσιμο του dialog σφάλματος λόγω timeout');
       onClose();
-    }, 30000); // 30 seconds timeout
+    }, 15000); // 15 seconds timeout (reduced from 30)
     
     // Keyboard escape listener
     const handleEscape = (e: KeyboardEvent) => {
@@ -225,21 +137,9 @@ export function useErrorDialogInChat() {
     // Ορισμός χειριστή για το lovable-error event
     const handleLovableError = (event: CustomEvent) => {
       console.log('Λήφθηκε lovable-error event:', event.detail);
-      // Προσθήκη του σφάλματος στη λίστα
-      setErrors(prev => {
-        // Έλεγχος για διπλότυπα σφάλματα
-        const isDuplicate = prev.some(err => 
-          err.message === event.detail.message && 
-          err.timestamp === event.detail.timestamp
-        );
-        
-        if (isDuplicate) {
-          console.log('Το σφάλμα υπάρχει ήδη, παραλείπεται');
-          return prev;
-        }
-        
-        return [...prev, event.detail];
-      });
+      
+      // Καθαρισμός όλων των προηγούμενων σφαλμάτων και εμφάνιση μόνο του νέου
+      setErrors([event.detail]);
     };
     
     // Προσθήκη του window.lovableChat object αν δεν υπάρχει
@@ -251,30 +151,31 @@ export function useErrorDialogInChat() {
     window.lovableChat.createErrorDialog = (errorData: any) => {
       console.log('Κλήση του createErrorDialog με δεδομένα:', errorData);
       
-      // Έλεγχος για διπλότυπα σφάλματα
-      setErrors(prev => {
-        const isDuplicate = prev.some(err => 
-          err.message === errorData.message && 
-          err.timestamp === errorData.timestamp
-        );
-        
-        if (isDuplicate) {
-          console.log('Το σφάλμα υπάρχει ήδη, παραλείπεται');
-          return prev;
-        }
-        
-        return [...prev, errorData];
-      });
+      // Καθαρισμός όλων των προηγούμενων σφαλμάτων και εμφάνιση μόνο του νέου
+      setErrors([errorData]);
+    };
+
+    // Προσθήκη συνάρτησης καθαρισμού σφαλμάτων
+    window.lovableChat.clearErrors = () => {
+      setErrors([]);
     };
     
-    // Προσθήκη του event listener
+    // Προσθήκη του event listener για καθαρισμό σφαλμάτων
+    const handleClearErrors = () => {
+      setErrors([]);
+    };
+
+    // Προσθήκη των event listeners
     window.addEventListener('lovable-error', handleLovableError as EventListener);
+    window.addEventListener('lovable-clear-errors', handleClearErrors);
     
     // Καθαρισμός
     return () => {
       window.removeEventListener('lovable-error', handleLovableError as EventListener);
+      window.removeEventListener('lovable-clear-errors', handleClearErrors);
       if (window.lovableChat) {
         delete window.lovableChat.createErrorDialog;
+        delete window.lovableChat.clearErrors;
       }
     };
   }, []);
@@ -282,7 +183,7 @@ export function useErrorDialogInChat() {
   // Αφαίρεση σφάλματος από τη λίστα
   const removeError = (index: number) => {
     console.log('Αφαίρεση σφάλματος με index:', index);
-    setErrors(prev => prev.filter((_, i) => i !== index));
+    setErrors([]);
   };
   
   // Καθαρισμός όλων των σφαλμάτων
@@ -294,13 +195,13 @@ export function useErrorDialogInChat() {
   // Παροχή των components για τα διαλογικά παράθυρα σφαλμάτων
   const ErrorDialogs = () => (
     <>
-      {errors.map((error, index) => (
+      {errors.length > 0 && (
         <ErrorDialogInChat
-          key={`error-${index}-${error.timestamp || Date.now()}`}
-          error={error}
-          onClose={() => removeError(index)}
+          key={`error-${Date.now()}`}
+          error={errors[0]}
+          onClose={clearAllErrors}
         />
-      ))}
+      )}
     </>
   );
   

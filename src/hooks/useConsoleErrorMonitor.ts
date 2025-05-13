@@ -10,6 +10,11 @@ export function useConsoleErrorMonitor() {
     // Αποθηκεύστε την αρχική συνάρτηση console.error
     const originalConsoleError = console.error;
 
+    // Μεταβλητές για αποφυγή διπλότυπων σφαλμάτων
+    let lastErrorMessage = '';
+    let lastErrorTime = 0;
+    const errorDedupeDelay = 5000; // 5 δευτερόλεπτα
+
     // Αντικαταστήστε την με τη δική μας έκδοση
     console.error = (...args) => {
       // Καταγράψτε το σφάλμα με την αρχική μέθοδο
@@ -29,42 +34,46 @@ export function useConsoleErrorMonitor() {
         }
       }
 
-      // Έλεγχος για αποφυγή διπλότυπων σφαλμάτων (συχνά εμφανίζονται πολλαπλά ίδια σφάλματα)
+      // Έλεγχος για διπλότυπα σφάλματα
       const now = Date.now();
-      const lastErrorKey = 'last_console_error';
-      const lastErrorTimeKey = 'last_console_error_time';
-      
-      const lastError = sessionStorage.getItem(lastErrorKey);
-      const lastErrorTimeStr = sessionStorage.getItem(lastErrorTimeKey);
-      const lastErrorTime = lastErrorTimeStr ? parseInt(lastErrorTimeStr) : 0;
-      
-      // Έλεγχος αν το ίδιο σφάλμα έχει ήδη καταγραφεί πρόσφατα (τελευταία 3 δευτερόλεπτα)
-      const isDuplicate = lastError === errorMessage && (now - lastErrorTime) < 3000;
-      
+      const isDuplicate = (errorMessage === lastErrorMessage) && ((now - lastErrorTime) < errorDedupeDelay);
+
       if (!isDuplicate) {
-        // Αποθήκευση του τρέχοντος σφάλματος ως το τελευταίο που καταγράφηκε
-        sessionStorage.setItem(lastErrorKey, errorMessage);
-        sessionStorage.setItem(lastErrorTimeKey, now.toString());
+        // Καταγραφή του τρέχοντος σφάλματος
+        lastErrorMessage = errorMessage;
+        lastErrorTime = now;
         
-        // Εμφάνιση toast για σφάλματα που δεν είναι συνηθισμένα ή αναμενόμενα
-        // Αποφύγετε τα πολύ συχνά σφάλματα από βιβλιοθήκες
+        // Αποφεύγουμε τα συνήθη σφάλματα από βιβλιοθήκες
         if (!errorMessage.includes('ResizeObserver') && 
             !errorMessage.includes('act(...)') &&
             !errorMessage.includes('findDOMNode') &&
-            !errorMessage.includes('React does not recognize')) {
+            !errorMessage.includes('React does not recognize') &&
+            !errorMessage.includes('Missing `Description`')) {
           
-          // Αναφορά σφάλματος μέσω του συστήματος αναφοράς
-          if (errorObject) {
-            reportError(errorObject, {
-              showToast: false, // Αλλαγή σε false για να αποφύγουμε το διπλό παράθυρο
-              sendToChatInterface: true
-            });
-          } else {
-            reportError(errorMessage, {
-              showToast: false, // Αλλαγή σε false για να αποφύγουμε το διπλό παράθυρο
-              sendToChatInterface: true
-            });
+          // Καθαρισμός υπαρχόντων σφαλμάτων πριν την εμφάνιση νέου
+          if (window.lovableChat && typeof window.lovableChat.clearErrors === 'function') {
+            window.lovableChat.clearErrors();
           }
+          
+          // Αποστολή custom event για καθαρισμό σφαλμάτων
+          const clearEvent = new CustomEvent('lovable-clear-errors');
+          window.dispatchEvent(clearEvent);
+          
+          // Μικρή καθυστέρηση πριν την αναφορά νέου σφάλματος
+          setTimeout(() => {
+            // Αναφορά σφάλματος μέσω του συστήματος αναφοράς
+            if (errorObject) {
+              reportError(errorObject, {
+                showToast: false,
+                sendToChatInterface: true
+              });
+            } else {
+              reportError(errorMessage, {
+                showToast: false,
+                sendToChatInterface: true
+              });
+            }
+          }, 200);
         }
       }
     };

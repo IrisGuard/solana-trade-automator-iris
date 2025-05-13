@@ -35,7 +35,7 @@ export function useErrorReporting() {
     
     // Καταγραφή στην κονσόλα
     if (options.logToConsole) {
-      console.error("Αυτόματη αναφορά σφάλματος:", {
+      console.log("Αυτόματη αναφορά σφάλματος:", {
         message: errorMessage,
         stack: errorStack,
         timestamp: new Date().toISOString(),
@@ -80,6 +80,11 @@ export function useErrorReporting() {
   // Συνάρτηση για αποστολή σφάλματος στο chat
   const sendErrorToChat = (errorMessage: string, errorStack?: string) => {
     try {
+      // Καθαρισμός προηγούμενων σφαλμάτων
+      if (window.lovableChat && typeof window.lovableChat.clearErrors === 'function') {
+        window.lovableChat.clearErrors();
+      }
+      
       // Δημιουργία μηνύματος για το chat
       const chatMessage = {
         type: 'error',
@@ -89,20 +94,25 @@ export function useErrorReporting() {
         url: window.location.href,
       };
       
-      // Αποθήκευση στο localStorage για εύκολη πρόσβαση
-      const storedErrors = JSON.parse(localStorage.getItem('lovable_chat_errors') || '[]');
-      storedErrors.push(chatMessage);
-      localStorage.setItem('lovable_chat_errors', JSON.stringify(storedErrors));
-      
-      // Αποστολή event για να ενημερώσει το chat interface
-      const event = new CustomEvent('lovable-error', { 
-        detail: chatMessage
-      });
-      window.dispatchEvent(event);
-      
       // Δημιουργία παραθύρου διαλόγου στο chat
       if (window.lovableChat && typeof window.lovableChat.createErrorDialog === 'function') {
         window.lovableChat.createErrorDialog(chatMessage);
+      } else {
+        // Εναλλακτική μέθοδος με χρήση event
+        const event = new CustomEvent('lovable-error', { 
+          detail: chatMessage
+        });
+        window.dispatchEvent(event);
+      }
+      
+      // Προσπάθεια αντιγραφής στο πρόχειρο
+      try {
+        const clipboardText = `Παρακαλώ διορθώστε το παρακάτω σφάλμα:\n\nΜήνυμα: ${errorMessage}\n\n${errorStack ? `Stack Trace: ${errorStack}\n\n` : ''}Χρονοσήμανση: ${new Date().toISOString()}\nURL: ${window.location.href}`;
+        navigator.clipboard.writeText(clipboardText).catch(() => {
+          // Σιωπηλή αποτυχία αν δεν υποστηρίζεται το API clipboard
+        });
+      } catch (e) {
+        // Σιωπηλή αποτυχία για προβλήματα με το clipboard
       }
     } catch (e) {
       console.error("Σφάλμα κατά την αποστολή του σφάλματος στο chat interface:", e);
