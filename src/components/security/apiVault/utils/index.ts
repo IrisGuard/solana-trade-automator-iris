@@ -1,26 +1,22 @@
 
-// Re-export all utility functions
+import { saveKeysToStorage } from "./storageUtils";
+import { testSingleKey } from "./testUtils";
+import { encryptData, decryptData } from "./encryptionUtils";
+import { recoverAllApiKeys } from "./recoveryUtils";
+import { diagnosticScanStorage } from "./diagnosticUtils";
 
-// Storage scanner utilities
-export * from './storageScanner';
+// Αφαίρεση της λειτουργίας εισαγωγής demo κλειδιών
+export const injectDemoKeys = (count = 0) => {
+  // Αφαίρεση της λειτουργικότητας - δεν προσθέτουμε πλέον demo κλειδιά
+  console.log("Η λειτουργία επαναφοράς demo κλειδιών έχει απενεργοποιηθεί");
+  return false;
+};
 
-// Encryption utilities
-export * from './encryptionUtils';
-
-// Recovery utilities
-export * from './recoveryUtils';
-
-// Diagnostic utilities
-export * from './diagnosticUtils';
-
-// Storage utilities
-export * from './storageUtils';
-
-// Format utilities
-export * from './formatUtils';
-
-// Clipboard utilities
-export * from './clipboardUtils';
-
-// Recovery core
-export * from './recoveryCore';
+export {
+  saveKeysToStorage,
+  testSingleKey,
+  encryptData,
+  decryptData,
+  recoverAllApiKeys,
+  diagnosticScanStorage
+};
