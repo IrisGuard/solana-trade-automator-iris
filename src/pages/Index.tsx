@@ -8,6 +8,12 @@ import { FaqSection } from "@/components/home/FaqSection";
 export default function Index() {
   return (
     <div className="flex flex-col min-h-screen">
+      <header className="p-4 border-b bg-background">
+        <div className="container mx-auto flex justify-between items-center">
+          <h1 className="text-xl font-bold">Solana Trade Automator</h1>
+          <a href="/home" className="text-primary hover:underline">Είσοδος στο Dashboard</a>
+        </div>
+      </header>
       <main className="flex-1">
         <HeroSection />
         <BotExplanationSection />

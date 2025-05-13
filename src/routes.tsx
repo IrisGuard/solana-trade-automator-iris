@@ -16,8 +16,8 @@ import Home from "@/pages/Home";
 export function Routes() {
   return (
     <ReactRouterRoutes>
+      <Route index element={<Index />} />
       <Route element={<Layout />}>
-        <Route index element={<Index />} />
         <Route path="/home" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/wallet" element={<Wallet />} />

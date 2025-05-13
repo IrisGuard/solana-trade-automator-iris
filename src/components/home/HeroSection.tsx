@@ -18,6 +18,13 @@ export function HeroSection() {
       
       <div className="flex flex-col md:flex-row gap-4 w-full max-w-md justify-center">
         <Button
+          size="lg"
+          onClick={() => navigate('/home')}
+          className="gap-2 w-full md:w-auto"
+        >
+          Είσοδος στο Dashboard
+        </Button>
+        <Button
           variant="outline"
           size="lg"
           onClick={() => navigate('/api-vault')}
