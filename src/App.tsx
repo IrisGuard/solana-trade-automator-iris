@@ -1,6 +1,6 @@
 
 import { Outlet } from "react-router-dom";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "sonner";
 import { WalletButton } from "@/components/wallet/WalletButton";
 import { HelpButton } from "@/components/help/HelpButton";
 
@@ -15,7 +15,7 @@ export default function App() {
       </div>
       
       <HelpButton />
-      <Toaster />
+      <Toaster position="top-center" richColors closeButton />
     </div>
   );
 }
