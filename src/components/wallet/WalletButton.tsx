@@ -1,23 +1,12 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { useWalletStatus } from '@/hooks/useWalletStatus';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { Wallet } from 'lucide-react';
 
 export function WalletButton() {
-  const { isConnected, isConnecting } = useWalletStatus();
-
   return (
-    <div className="flex justify-end">
-      {isConnected ? (
-        <WalletMultiButton className="!bg-primary hover:!bg-primary/90 !text-white" />
-      ) : (
-        <WalletMultiButton 
-          className="!bg-primary hover:!bg-primary/90 !text-white"
-        >
-          {isConnecting ? 'Σύνδεση...' : 'Σύνδεση Wallet'}
-        </WalletMultiButton>
-      )}
-    </div>
+    <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+      <Wallet className="h-4 w-4" />
+    </Button>
   );
 }
