@@ -1,20 +1,22 @@
 
 import React from "react";
-import { ApiVaultActions } from "./ApiVaultActions";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
+import { ApiKey } from "../types";
 
 interface ApiVaultDescriptionProps {
   isLocked: boolean;
-  apiKeys: any[];
-  isRecovering: boolean;
-  isTestingKeys: boolean;
-  handleRecoverClick: () => void;
+  apiKeys: ApiKey[];
+  isRecovering?: boolean;
+  isTestingKeys?: boolean;
+  handleRecoverClick?: () => void;
 }
 
 export const ApiVaultDescription: React.FC<ApiVaultDescriptionProps> = ({
   isLocked,
   apiKeys,
-  isRecovering,
-  isTestingKeys,
+  isRecovering = false,
+  isTestingKeys = false,
   handleRecoverClick
 }) => {
   return (
@@ -27,13 +29,19 @@ export const ApiVaultDescription: React.FC<ApiVaultDescriptionProps> = ({
           : "Προσθέστε κλειδιά API για να τα διαχειριστείτε με ασφάλεια σε μία τοποθεσία."}
       </p>
       
-      <ApiVaultActions
-        isLocked={isLocked}
-        apiKeys={apiKeys}
-        isRecovering={isRecovering}
-        isTestingKeys={isTestingKeys}
-        handleRecoverClick={handleRecoverClick}
-      />
+      {handleRecoverClick && (
+        <div className="flex justify-end">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRecoverClick}
+            disabled={isRecovering || isTestingKeys}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRecovering ? 'animate-spin' : ''}`} />
+            {isRecovering ? 'Σάρωση...' : 'Ανάκτηση Κλειδιών'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
