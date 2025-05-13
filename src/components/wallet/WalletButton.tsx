@@ -20,10 +20,15 @@ export function WalletButton() {
     try {
       setIsLoading(true);
       await disconnect();
-      toast.success("Το πορτοφόλι αποσυνδέθηκε επιτυχώς");
+      // Use toast in a non-blocking way
+      setTimeout(() => {
+        toast.success("Το πορτοφόλι αποσυνδέθηκε επιτυχώς");
+      }, 100);
     } catch (error) {
       console.error("Σφάλμα αποσύνδεσης:", error);
-      toast.error("Σφάλμα κατά την αποσύνδεση του πορτοφολιού");
+      setTimeout(() => {
+        toast.error("Σφάλμα κατά την αποσύνδεση του πορτοφολιού");
+      }, 100);
     } finally {
       setIsLoading(false);
     }

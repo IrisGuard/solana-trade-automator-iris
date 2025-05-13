@@ -6,7 +6,6 @@ import { FaqSection } from "@/components/home/FaqSection";
 import { FooterSection } from "@/components/home/FooterSection";
 import { BotExplanationSection } from "@/components/home/BotExplanationSection";
 import { useWallet } from '@solana/wallet-adapter-react';
-import { Toaster } from "sonner";
 import { AddHeliusButton } from "@/components/security/apiVault/AddHeliusButton";
 import { SupabaseApiKeysList } from "@/components/security/SupabaseApiKeysList";
 import { Button } from "@/components/ui/button";
@@ -127,8 +126,6 @@ const Index = () => {
       
       {/* Footer */}
       <FooterSection />
-      
-      <Toaster position="top-center" richColors closeButton />
     </div>
   );
 };
