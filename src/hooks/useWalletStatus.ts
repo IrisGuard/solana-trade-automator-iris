@@ -1,105 +1,51 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { toast } from 'sonner';
-import { handleWalletError, checkPhantomWalletInstalled } from '@/utils/walletUtils';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useEffect, useState } from 'react';
 
 export function useWalletStatus() {
-  const [walletAddress, setWalletAddress] = useState<string>('');
-  const [balance, setBalance] = useState<number | null>(null);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [isConnecting, setIsConnecting] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const { connected, connecting, publicKey, disconnect } = useWallet();
+  const [isInitializing, setIsInitializing] = useState(true);
 
-  // Remove auto-connection on startup
+  // Αρχικοποίηση του state μετά από μικρή καθυστέρηση
   useEffect(() => {
-    const checkWalletConnection = async () => {
-      // Only check if the wallet exists, don't try to connect
-      if (typeof window === 'undefined') return;
-      
-      try {
-        const phantom = window.phantom?.solana;
-        if (phantom && phantom.isPhantom) {
-          console.log('Phantom is installed but not auto-connecting');
-        }
-      } catch (err) {
-        console.log('No wallet connection');
-      }
-      return null;
-    };
+    const timer = setTimeout(() => {
+      setIsInitializing(false);
+    }, 500);
 
-    checkWalletConnection();
+    return () => clearTimeout(timer);
   }, []);
 
-  const connectWallet = useCallback(async () => {
-    try {
-      setIsConnecting(true);
-      setError(null);
+  // Check if user has previously connected wallet
+  const wasConnected = localStorage.getItem('walletConnected') === 'true';
 
-      const phantom = window.phantom?.solana;
-
-      if (!phantom) {
-        const errorMsg = 'Το Phantom wallet δεν βρέθηκε! Παρακαλώ εγκαταστήστε το.';
-        setError(errorMsg);
-        toast.error(errorMsg);
-        setIsConnecting(false);
-        return null;
-      }
-
-      toast.loading('Σύνδεση με το Phantom wallet...');
-      
-      const response = await phantom.connect();
-      
-      if (response && response.publicKey) {
-        const address = response.publicKey.toString();
-        console.log('Connected to wallet:', address);
-        setWalletAddress(address);
-        setIsConnected(true);
-        toast.success('Το πορτοφόλι συνδέθηκε επιτυχώς');
-        return address;
-      }
-      return null;
-    } catch (err) {
-      console.error('Connection error:', err);
-      const errorMsg = handleWalletError(err);
-      setError(errorMsg);
-      return null;
-    } finally {
-      setIsConnecting(false);
-      toast.dismiss();
+  useEffect(() => {
+    // Αποθήκευση της κατάστασης σύνδεσης
+    if (connected) {
+      localStorage.setItem('walletConnected', 'true');
     }
-  }, []);
+  }, [connected]);
 
-  const disconnectWallet = useCallback(async () => {
-    try {
-      const phantom = window.phantom?.solana;
-      
-      if (phantom && phantom.isPhantom) {
-        toast.loading('Αποσύνδεση πορτοφολιού...');
-        await phantom.disconnect();
-        setIsConnected(false);
-        setWalletAddress('');
-        setBalance(null);
-        toast.success('Το πορτοφόλι αποσυνδέθηκε');
-      }
-    } catch (err) {
-      console.error('Error disconnecting wallet:', err);
-      const errorMsg = 'Αποτυχία αποσύνδεσης πορτοφολιού';
-      setError(errorMsg);
-      toast.error(errorMsg);
-    } finally {
-      toast.dismiss();
+  // Αποσύνδεση του wallet αν χρειάζεται (αν το user έχει κάνει explicit disconnect)
+  useEffect(() => {
+    const userDisconnected = localStorage.getItem('userDisconnected') === 'true';
+    
+    if (userDisconnected && connected) {
+      disconnect();
     }
-  }, []);
+  }, [connected, disconnect]);
+
+  const handleDisconnect = () => {
+    disconnect();
+    localStorage.setItem('walletConnected', 'false');
+    localStorage.setItem('userDisconnected', 'true');
+  };
 
   return {
-    walletAddress,
-    balance,
-    setBalance,
-    isConnected,
-    isConnecting,
-    error,
-    isPhantomInstalled: checkPhantomWalletInstalled(),
-    connectWallet,
-    disconnectWallet
+    isConnected: connected,
+    isConnecting: connecting,
+    isInitializing,
+    wasConnected,
+    walletAddress: publicKey?.toString() || null,
+    disconnect: handleDisconnect,
   };
 }

@@ -1,64 +1,23 @@
 
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { WalletConnectButton } from "./WalletConnectButton";
-import { Wallet, LogOut } from "lucide-react";
-import { useWallet } from '@solana/wallet-adapter-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { useWalletStatus } from '@/hooks/useWalletStatus';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 
 export function WalletButton() {
-  const { connected, disconnect, publicKey } = useWallet();
-  const [isLoading, setIsLoading] = useState(false);
+  const { isConnected, isConnecting } = useWalletStatus();
 
-  const handleDisconnect = async () => {
-    try {
-      setIsLoading(true);
-      await disconnect();
-      // Use toast in a non-blocking way
-      setTimeout(() => {
-        toast.success("Το πορτοφόλι αποσυνδέθηκε επιτυχώς");
-      }, 100);
-    } catch (error) {
-      console.error("Σφάλμα αποσύνδεσης:", error);
-      setTimeout(() => {
-        toast.error("Σφάλμα κατά την αποσύνδεση του πορτοφολιού");
-      }, 100);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Αν δεν έχει συνδεθεί ακόμα, εμφάνισε το κουμπί σύνδεσης
-  if (!connected || !publicKey) {
-    return <WalletConnectButton isLoading={isLoading} />;
-  }
-
-  // Συντόμευση της διεύθυνσης του wallet για εμφάνιση
-  const shortenedAddress = publicKey 
-    ? `${publicKey.toString().slice(0, 4)}...${publicKey.toString().slice(-4)}`
-    : '';
-
-  // Αν είναι συνδεδεμένος, εμφάνισε το dropdown με τα στοιχεία του wallet και την επιλογή αποσύνδεσης
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="flex items-center gap-2">
-          <Wallet className="h-4 w-4" />
-          <span>{shortenedAddress}</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={handleDisconnect} className="text-destructive cursor-pointer">
-          <LogOut className="h-4 w-4 mr-2" />
-          Αποσύνδεση
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="flex justify-end">
+      {isConnected ? (
+        <WalletMultiButton className="!bg-primary hover:!bg-primary/90 !text-white" />
+      ) : (
+        <WalletMultiButton 
+          className="!bg-primary hover:!bg-primary/90 !text-white"
+        >
+          {isConnecting ? 'Σύνδεση...' : 'Σύνδεση Wallet'}
+        </WalletMultiButton>
+      )}
+    </div>
   );
 }

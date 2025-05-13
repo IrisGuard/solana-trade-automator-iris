@@ -1,75 +1,61 @@
 
 import { toast } from 'sonner';
 
-/**
- * Check if Phantom wallet is installed
- */
-export const isPhantomInstalled = (): boolean => {
-  return window?.phantom?.solana?.isPhantom || false;
-};
+export interface PhantomWindow extends Window {
+  phantom?: {
+    solana?: {
+      isPhantom: boolean;
+      connect: () => Promise<{ publicKey: { toString: () => string } }>;
+      disconnect: () => Promise<void>;
+    };
+  };
+}
 
-/**
- * Try to connect to Phantom wallet (trusted connection)
- * - Modified to NOT auto-connect
- */
-export const connectTrustedPhantomWallet = async (): Promise<string | null> => {
-  // Don't auto-connect, just return null
+declare const window: PhantomWindow;
+
+export const getPhantomWallet = () => {
+  if (window?.phantom?.solana?.isPhantom) {
+    return window.phantom.solana;
+  }
   return null;
 };
 
-/**
- * Connect to Phantom wallet with user interaction
- */
-export const connectPhantomWallet = async (): Promise<string | null> => {
+export const connectPhantomWallet = async () => {
   try {
-    const phantom = window.phantom?.solana;
-
-    if (!phantom) {
-      const errorMsg = 'Το Phantom wallet δεν βρέθηκε! Παρακαλώ εγκαταστήστε το.';
-      toast.error(errorMsg);
+    const wallet = getPhantomWallet();
+    if (!wallet) {
+      toast.error('Phantom wallet not found. Please install it first.');
+      window.open('https://phantom.app/', '_blank');
       return null;
     }
-
-    toast.loading('Σύνδεση με το Phantom wallet...');
     
-    const response = await phantom.connect();
+    const response = await wallet.connect();
+    const publicKey = response.publicKey.toString();
+    localStorage.setItem('walletConnected', 'true');
+    localStorage.setItem('userDisconnected', 'false');
     
-    if (response && response.publicKey) {
-      const address = response.publicKey.toString();
-      console.log('Connected to wallet:', address);
-      toast.success('Το πορτοφόλι συνδέθηκε επιτυχώς');
-      return address;
-    }
+    return publicKey;
+  } catch (error) {
+    console.error('Error connecting to Phantom:', error);
+    localStorage.setItem('walletConnected', 'false');
+    localStorage.setItem('userDisconnected', 'true');
+    toast.error('Failed to connect to Phantom wallet.');
     return null;
-  } catch (err: any) {
-    console.error('Connection error:', err);
-    const errorMsg = err.message || 'Αποτυχία σύνδεσης με το πορτοφόλι';
-    toast.error(errorMsg);
-    return null;
-  } finally {
-    toast.dismiss();
   }
 };
 
-/**
- * Disconnect from Phantom wallet
- */
-export const disconnectPhantomWallet = async (): Promise<boolean> => {
+export const disconnectPhantomWallet = async () => {
   try {
-    const phantom = window.phantom?.solana;
-    
-    if (phantom && phantom.isPhantom) {
-      toast.loading('Αποσύνδεση πορτοφολιού...');
-      await phantom.disconnect();
-      toast.success('Το πορτοφόλι αποσυνδέθηκε');
+    const wallet = getPhantomWallet();
+    if (wallet) {
+      await wallet.disconnect();
+      localStorage.setItem('walletConnected', 'false');
+      localStorage.setItem('userDisconnected', 'true');
       return true;
     }
     return false;
-  } catch (err) {
-    console.error('Error disconnecting wallet:', err);
-    toast.error('Αποτυχία αποσύνδεσης πορτοφολιού');
+  } catch (error) {
+    console.error('Error disconnecting from Phantom:', error);
     return false;
-  } finally {
-    toast.dismiss();
   }
 };
