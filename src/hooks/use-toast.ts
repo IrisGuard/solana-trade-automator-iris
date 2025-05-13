@@ -1,10 +1,8 @@
 
-import { toast as sonnerToast } from "sonner";
+import { toast } from "sonner";
 
 export function useToast() {
   return {
-    toast: sonnerToast
+    toast
   };
 }
-
-export { toast } from "sonner";

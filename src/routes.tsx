@@ -1,5 +1,5 @@
 
-import { Routes as ReactRouterRoutes, Route, Navigate } from "react-router-dom";
+import { Routes as ReactRouterRoutes, Route } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import Dashboard from "@/pages/Dashboard"; 
 import Wallet from "@/pages/Wallet";
@@ -16,8 +16,9 @@ import Home from "@/pages/Home";
 export function Routes() {
   return (
     <ReactRouterRoutes>
-      <Route path="/" element={<Index />} />
       <Route element={<Layout />}>
+        {/* Το Index γίνεται το default route για το "/" και το Layout θα εμφανίζεται */}
+        <Route index element={<Index />} />
         <Route path="/home" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/wallet" element={<Wallet />} />
