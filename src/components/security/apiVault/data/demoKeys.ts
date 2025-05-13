@@ -1,5 +1,5 @@
 
 import { ApiKey } from "../types";
 
-// Επαναφορά των αρχικών κλειδιών του χρήστη αντί για demo κλειδιά
+// Διαγραφή όλων των demo κλειδιών όπως ζητήθηκε
 export const demoKeys: ApiKey[] = [];

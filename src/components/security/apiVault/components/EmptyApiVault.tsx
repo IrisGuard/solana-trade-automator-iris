@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Key, Plus, Upload, Database, Server } from "lucide-react";
 import { injectDemoKeys } from "../utils";
@@ -20,7 +20,7 @@ export const EmptyApiVault: React.FC<EmptyApiVaultProps> = ({
   setApiKeys
 }) => {
   const { user } = useAuth();
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSyncFromSupabase = async () => {
     if (!user) {
