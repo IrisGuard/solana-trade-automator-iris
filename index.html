@@ -1,39 +1,78 @@
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Solana Trade Automator</title>
-    
-    <!-- Load Buffer polyfill first, before any other scripts -->
-    <script src="/buffer-polyfill.js"></script>
-    
-    <!-- Make sure kB is available immediately -->
+    <title>Solana Trading Bot</title>
+    <!-- Inline Buffer polyfill to ensure it loads first -->
     <script>
-      // Emergency kB initialization if polyfill fails
-      if (typeof window.kB === 'undefined') {
-        console.log('Creating emergency kB object');
-        window.kB = {
-          alloc: function(size, fill) {
-            console.log('Emergency kB.alloc called');
-            const buf = new Uint8Array(size);
-            if (fill !== undefined) {
-              buf.fill(fill);
-            }
-            return buf;
-          },
-          from: function(data, encoding) {
-            console.log('Emergency kB.from called');
-            if (typeof data === 'string') {
-              return new TextEncoder().encode(data);
-            }
-            return new Uint8Array(data);
+      // Inline Buffer polyfill (minimal version)
+      (function() {
+        if (typeof window !== 'undefined') {
+          console.log('Providing inline Buffer polyfill');
+          if (!window.Buffer) {
+            window.Buffer = {
+              from: function(data, encoding) {
+                if (typeof data === 'string') {
+                  return new Uint8Array([...data].map(c => c.charCodeAt(0)));
+                }
+                return new Uint8Array(data);
+              },
+              alloc: function(size, fill) {
+                const buffer = new Uint8Array(size);
+                if (fill !== undefined) {
+                  buffer.fill(fill);
+                }
+                return buffer;
+              },
+              allocUnsafe: function(size) {
+                return new Uint8Array(size);
+              },
+              isBuffer: function(obj) {
+                return obj instanceof Uint8Array;
+              },
+              byteLength: function(string, encoding) {
+                return string.length;
+              },
+              concat: function(list, length) {
+                if (length === undefined) {
+                  length = list.reduce((acc, val) => acc + val.length, 0);
+                }
+                const result = new Uint8Array(length);
+                let offset = 0;
+                for (let i = 0; i < list.length; i++) {
+                  result.set(list[i], offset);
+                  offset += list[i].length;
+                }
+                return result;
+              },
+              prototype: {}
+            };
           }
-        };
-      }
+          
+          // Create kB alias
+          if (!window.kB) {
+            window.kB = {
+              alloc: function(size, fill) {
+                return window.Buffer.alloc(size, fill);
+              },
+              from: function(data, encoding) {
+                return window.Buffer.from(data, encoding);
+              }
+            };
+          }
+          
+          console.log('Inline Buffer polyfill loaded');
+          console.log('kB available:', typeof window.kB);
+          console.log('kB.alloc available:', typeof window.kB.alloc);
+        }
+      })();
     </script>
+    <!-- External Buffer polyfill for enhanced functionality -->
+    <script src="/buffer-polyfill.js"></script>
+    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
   </head>
   <body>
     <div id="root"></div>
