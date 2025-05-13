@@ -5,8 +5,6 @@ import { Routes } from "./routes";
 import { Toaster } from "sonner"; 
 
 function App() {
-  console.log("App component mounted");
-
   return (
     <SupabaseAuthProvider>
       <div className="app-container">

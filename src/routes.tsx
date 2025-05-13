@@ -1,7 +1,6 @@
 
-import { Routes as ReactRouterRoutes, Route, Navigate } from "react-router-dom";
+import { Routes as ReactRouterRoutes, Route } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
-import Home from "@/pages/Home";
 import Dashboard from "@/pages/Dashboard"; 
 import Wallet from "@/pages/Wallet";
 import Security from "@/pages/Security";
