@@ -89,17 +89,4 @@ export const disconnectPhantomWallet = async (): Promise<boolean> => {
   }
 };
 
-// Define type for window.phantom
-declare global {
-  interface Window {
-    phantom?: {
-      solana?: {
-        isPhantom: boolean;
-        connect: (opts?: { onlyIfTrusted?: boolean }) => Promise<any>;
-        disconnect: () => Promise<void>;
-        on: (event: string, callback: Function) => void;
-        off: (event: string, callback: Function) => void;
-      };
-    };
-  }
-}
+// No need to redefine Window interface since we already have it in vite-env.d.ts

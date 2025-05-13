@@ -41,19 +41,4 @@ export const formatWalletAddress = (address: string): string => {
   return `${address.substring(0, 4)}...${address.substring(address.length - 4)}`;
 };
 
-/**
- * Ορισμός των τύπων για το Phantom wallet
- */
-declare global {
-  interface Window {
-    phantom?: {
-      solana?: {
-        isPhantom: boolean;
-        connect: (opts?: { onlyIfTrusted?: boolean }) => Promise<any>;
-        disconnect: () => Promise<void>;
-        on: (event: string, callback: Function) => void;
-        off: (event: string, callback: Function) => void;
-      };
-    };
-  }
-}
+// No need to redefine Window interface since we already have it in vite-env.d.ts
