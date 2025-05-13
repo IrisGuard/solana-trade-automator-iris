@@ -8,6 +8,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Wallet } from "lucide-react";
 
 export default function Home() {
+  console.log("Home component initialized");
+  
   const { 
     isConnected, 
     walletAddress, 
@@ -19,6 +21,8 @@ export default function Home() {
     error: connectionError,
     selectTokenForTrading
   } = useWalletConnection();
+  
+  console.log("WalletConnection hook loaded, connection status:", isConnected);
   
   const displayAddress = walletAddress ? 
     `${walletAddress.substring(0, 4)}...${walletAddress.substring(walletAddress.length - 4)}` : 

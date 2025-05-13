@@ -18,12 +18,17 @@ const rootElement = document.getElementById("root");
 if (!rootElement) {
   console.error("Δεν βρέθηκε το element με id 'root'!");
 } else {
-  ReactDOM.createRoot(rootElement).render(
-    <React.StrictMode>
-      <ThemeProvider>
-        <App />
-      </ThemeProvider>
-    </React.StrictMode>
-  );
-  console.log("Η εφαρμογή φορτώθηκε επιτυχώς στο DOM");
+  console.log("Το element 'root' βρέθηκε, προσπαθώ να κάνω render την εφαρμογή...");
+  try {
+    ReactDOM.createRoot(rootElement).render(
+      <React.StrictMode>
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
+      </React.StrictMode>
+    );
+    console.log("Η εφαρμογή φορτώθηκε επιτυχώς στο DOM");
+  } catch (error) {
+    console.error("Σφάλμα κατά το render της εφαρμογής:", error);
+  }
 }

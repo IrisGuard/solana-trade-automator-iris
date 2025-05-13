@@ -5,7 +5,6 @@ import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { cn } from "@/lib/utils";
 import { HelpButton } from "@/components/help/HelpButton";
-import { Toaster } from "sonner";
 
 const pageTitles: Record<string, string> = {
   "/": "Αρχική",
@@ -20,6 +19,8 @@ const pageTitles: Record<string, string> = {
 export function Layout() {
   const location = useLocation();
   const title = pageTitles[location.pathname] || "Solana Trade";
+  
+  console.log("Layout component rendered with path:", location.pathname);
 
   return (
     <div className="flex min-h-screen bg-background">
