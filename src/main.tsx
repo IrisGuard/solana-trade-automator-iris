@@ -4,10 +4,12 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { Buffer } from "buffer";
 
-// Polyfill for Buffer
-window.Buffer = window.Buffer || Buffer;
+// Απλούστερος τρόπος προσθήκης του Buffer polyfill
+// Αυτό αποφεύγει πιθανές διενέξεις με το bundling κατά την παραγωγή
+if (typeof window !== 'undefined' && typeof window.Buffer === 'undefined') {
+  window.Buffer = require('buffer/').Buffer;
+}
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

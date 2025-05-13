@@ -18,10 +18,11 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      buffer: 'buffer/'
     },
   },
   define: {
-    // Polyfills for Node.js built-ins
+    // Βελτιωμένα polyfills για Node.js built-ins
     global: 'globalThis',
     'process.env': {},
   },
@@ -33,4 +34,18 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
+  build: {
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    },
+    rollupOptions: {
+      // Εξασφάλιση ότι τα πακέτα με προβλήματα εξαρτήσεων αντιμετωπίζονται σωστά
+      onwarn(warning, warn) {
+        if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
+          return;
+        }
+        warn(warning);
+      },
+    },
+  }
 }));
