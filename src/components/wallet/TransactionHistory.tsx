@@ -6,12 +6,25 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
 import { TransactionList } from "./transaction/TransactionList";
-import { TransactionItem } from "./transaction/TransactionItem";
 import { TransactionFooter } from "./transaction/TransactionFooter";
+import { Transaction } from "@/types/wallet";
 
-export function TransactionHistory() {
+export function TransactionHistory({ walletAddress, limit = 10 }: { walletAddress: string | null, limit?: number }) {
   const [isLoading] = useState(false);
-  const transactions = []; // Εδώ θα μπορούσαν να φορτωθούν δεδομένα
+  const transactions: Transaction[] = []; // Εδώ θα μπορούσαν να φορτωθούν δεδομένα
+  
+  const getStatusBadgeClass = (status: string) => {
+    return status === 'Success' 
+      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+      : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+  };
+
+  const getTypeIcon = (type: string) => {
+    if (type.includes('Send')) return '↑';
+    if (type.includes('Receive')) return '↓';
+    if (type.includes('Swap')) return '↔';
+    return '•';
+  };
 
   return (
     <div className="space-y-6">
@@ -80,12 +93,21 @@ export function TransactionHistory() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : transactions.length > 0 ? (
-            <TransactionList>
-              {transactions.map((transaction, index) => (
-                <TransactionItem key={index} transaction={transaction} />
-              ))}
-              <TransactionFooter />
-            </TransactionList>
+            <div>
+              <TransactionList 
+                transactions={transactions}
+                isLoading={isLoading}
+                walletAddress={walletAddress}
+                limit={limit}
+                getStatusBadgeClass={getStatusBadgeClass}
+                getTypeIcon={getTypeIcon}
+              />
+              <TransactionFooter 
+                walletAddress={walletAddress} 
+                showViewAll={true} 
+                transactions={transactions} 
+              />
+            </div>
           ) : (
             <div className="text-center py-8">
               <p className="text-muted-foreground">Δεν βρέθηκαν συναλλαγές</p>

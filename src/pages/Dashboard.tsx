@@ -7,6 +7,7 @@ import { useWalletConnection } from "@/hooks/useWalletConnection";
 import { WalletTokensList } from "@/components/wallet/WalletTokensList";
 import { TransactionHistory } from "@/components/wallet/TransactionHistory";
 import { Link } from "react-router-dom";
+import { EnhancedTransactionHistory } from "@/components/wallet/EnhancedTransactionHistory";
 
 const Dashboard = () => {
   const { isConnected, walletAddress, solBalance, tokens, isLoadingTokens } = useWalletConnection();
@@ -104,7 +105,11 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 {walletAddress ? (
-                  <TransactionHistory walletAddress={walletAddress} limit={5} />
+                  <EnhancedTransactionHistory 
+                    walletAddress={walletAddress} 
+                    limit={5}
+                    showViewAll={true} 
+                  />
                 ) : (
                   <div className="py-8 text-center text-muted-foreground">
                     Συνδεθείτε με το πορτοφόλι σας για να δείτε τις συναλλαγές
