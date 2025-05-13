@@ -61,7 +61,7 @@ export function ConsoleLogsViewer() {
   const getBadgeVariant = (type: string) => {
     switch (type) {
       case 'error': return 'destructive';
-      case 'warn': return 'warning';
+      case 'warn': return 'outline'; // Αλλαγή από 'warning' σε 'outline'
       case 'info': return 'secondary';
       default: return 'default';
     }
