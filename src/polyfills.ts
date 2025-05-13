@@ -5,12 +5,12 @@ import 'process/browser';
 import 'stream-browserify';
 import 'util/';
 
-// Import React compatibility patches
-import { ensureReactCompatibility } from './utils/reactPatches';
+// Import React compatibility patches - fix import syntax
+import ensureReactCompatibility from './utils/reactPatches';
 
 // Basic buffer polyfill for early access
 if (typeof window !== 'undefined' && !window.Buffer) {
-  // @ts-ignore - Set up a minimal Buffer implementation until the full one loads
+  // Use type assertion to work around TypeScript errors with Buffer types
   window.Buffer = {
     from: function(data: any, encoding?: string) {
       if (typeof data === 'string') {
@@ -25,7 +25,7 @@ if (typeof window !== 'undefined' && !window.Buffer) {
       }
       return buffer;
     }
-  };
+  } as unknown as typeof Buffer;
 
   console.log('Early Buffer polyfill loaded in polyfills.ts');
 }

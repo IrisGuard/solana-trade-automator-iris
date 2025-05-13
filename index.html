@@ -18,25 +18,58 @@
         versions: {}
       };
       
-      // Ensure Buffer is available
+      // Create a more robust Buffer polyfill
       if (typeof window !== 'undefined' && !window.Buffer) {
-        window.Buffer = {
-          from: function(data, encoding) {
-            if (typeof data === 'string') {
-              return new Uint8Array([...data].map(c => c.charCodeAt(0)));
-            }
-            return new Uint8Array(data);
-          },
-          alloc: function(size, fill) {
-            const buffer = new Uint8Array(size);
-            if (fill !== undefined) {
-              buffer.fill(fill);
-            }
-            return buffer;
-          },
-          allocUnsafe: function(size) {
-            return new Uint8Array(size);
+        // Create a more complete Buffer polyfill
+        window.Buffer = function BufferPolyfill(arg, encodingOrOffset, length) {
+          if (typeof arg === 'number') {
+            return new Uint8Array(arg);
+          } else if (typeof arg === 'string') {
+            return new Uint8Array([...arg].map(c => c.charCodeAt(0)));
+          } else if (Array.isArray(arg) || arg instanceof Uint8Array) {
+            return new Uint8Array(arg);
           }
+          return new Uint8Array();
+        };
+        
+        window.Buffer.from = function(data, encoding) {
+          if (typeof data === 'string') {
+            return new Uint8Array([...data].map(c => c.charCodeAt(0)));
+          }
+          return new Uint8Array(data);
+        };
+        
+        window.Buffer.alloc = function(size, fill) {
+          const buffer = new Uint8Array(size);
+          if (fill !== undefined) {
+            buffer.fill(fill);
+          }
+          return buffer;
+        };
+        
+        window.Buffer.allocUnsafe = function(size) {
+          return new Uint8Array(size);
+        };
+        
+        window.Buffer.isBuffer = function(obj) {
+          return obj instanceof Uint8Array;
+        };
+        
+        window.Buffer.concat = function(list, length) {
+          if (length === undefined) {
+            length = list.reduce((acc, val) => acc + val.length, 0);
+          }
+          
+          const result = new Uint8Array(length);
+          let offset = 0;
+          
+          for (let i = 0; i < list.length; i++) {
+            const buf = list[i];
+            result.set(buf, offset);
+            offset += buf.length;
+          }
+          
+          return result;
         };
       }
       
@@ -61,12 +94,19 @@
             useEffect: function() {},
             useContext: function() { return {}; },
             useRef: function() { return { current: null }; },
-            createContext: function() { return { Provider: function() {}, Consumer: function() {} }; }
+            createContext: function() { return { Provider: function() {}, Consumer: function() {} }; },
+            Children: { map: function() {}, forEach: function() {}, count: function() {}, only: function() {} },
+            createElement: function() { return {}; },
+            Fragment: Symbol('Fragment'),
+            forwardRef: function() {},
+            isValidElement: function() { return false; },
+            memo: function(component) { return component; }
           };
           console.log('Added temporary React stub to window');
         }
       }
     </script>
+    <script src="/buffer-polyfill.js"></script>
   </head>
   <body>
     <div id="root"></div>

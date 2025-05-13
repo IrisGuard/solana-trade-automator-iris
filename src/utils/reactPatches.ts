@@ -42,20 +42,22 @@ if (typeof window !== 'undefined') {
     // Try to make React Router use our fixed React exports
     const originalRequire = window.require;
     if (typeof originalRequire === 'function') {
+      // Use type assertion to satisfy TypeScript
       window.require = function(id: string) {
         if (id === 'react') {
           console.log('Intercepted require("react") for React Router compatibility');
           return window.React;
         }
         return originalRequire(id);
-      };
+      } as unknown as NodeRequire;
     }
   } catch (e) {
     console.warn('Could not patch require for React Router', e);
   }
 }
 
-export default function ensureReactCompatibility() {
+// Export the compatibility function as default
+export function ensureReactCompatibility() {
   console.log('React compatibility layer activated');
   
   if (typeof window !== 'undefined' && window.React) {
@@ -71,3 +73,6 @@ export default function ensureReactCompatibility() {
   
   return true;
 }
+
+// Export as both default and named export for flexibility
+export default ensureReactCompatibility;
