@@ -38,7 +38,7 @@ export function useRecoveryDialog() {
             createdAt: key.created_at,
             status: statusValue as 'active' | 'expired' | 'revoked',
             description: key.description || '',
-            isEncrypted: key.is_encrypted || false
+            // Remove isEncrypted as it's not part of the ApiKey interface
           };
         });
         

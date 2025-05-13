@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { ApiKey } from "../types";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,8 +38,7 @@ export function useKeyTestingState() {
             key: key.key_value,
             createdAt: key.created_at,
             status: statusValue as 'active' | 'expired' | 'revoked',
-            description: key.description || '',
-            isEncrypted: key.is_encrypted || false
+            description: key.description || ''
           };
           
           // If we have a test function, use it
