@@ -1,8 +1,8 @@
 
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AlertCircle } from "lucide-react";
 import { useErrorReporting } from "@/hooks/useErrorReporting";
+import { clearAllErrors } from "@/utils/errorTestUtils";
 
 interface LogRecord {
   type: 'error' | 'warn' | 'info';
@@ -16,6 +16,9 @@ export function ConsoleMonitor() {
 
   // Παρακολούθηση του console.error και console.warn
   useEffect(() => {
+    // Αρχικός καθαρισμός σφαλμάτων
+    clearAllErrors();
+    
     // Αποθηκεύστε τις αρχικές μεθόδους κονσόλας
     const originalConsoleError = console.error;
     const originalConsoleWarn = console.warn;
@@ -59,32 +62,21 @@ export function ConsoleMonitor() {
         
         setLogs(prev => [...prev, newLog]);
         
-        // Εμφάνιση toast με επιλογή αποστολής στο chat
-        toast.error(`Σφάλμα: ${errorMessage.substring(0, 50)}${errorMessage.length > 50 ? '...' : ''}`, {
-          description: "Πατήστε για αποστολή στο chat",
-          duration: 5000,
-          action: {
-            label: "Αποστολή",
-            onClick: () => {
-              if (errorObject) {
-                sendErrorToChat(errorMessage, errorObject.stack);
-              } else {
-                sendErrorToChat(errorMessage);
+        // Εμφάνιση toast με επιλογή αποστολής στο chat μόνο αν δεν είναι από το σύστημα διαχείρισης σφαλμάτων
+        if (!errorMessage.includes('ErrorDialogInChat') && !errorMessage.includes('clearAllErrors')) {
+          toast.error(`Σφάλμα: ${errorMessage.substring(0, 50)}${errorMessage.length > 50 ? '...' : ''}`, {
+            description: "Πατήστε για αποστολή στο chat",
+            duration: 5000,
+            action: {
+              label: "Αποστολή",
+              onClick: () => {
+                if (errorObject) {
+                  sendErrorToChat(errorMessage, errorObject.stack);
+                } else {
+                  sendErrorToChat(errorMessage);
+                }
               }
             }
-          }
-        });
-        
-        // Αυτόματη αποστολή στο σύστημα αναφοράς σφαλμάτων
-        if (errorObject) {
-          reportError(errorObject, {
-            showToast: false,
-            sendToChatInterface: true
-          });
-        } else {
-          reportError(errorMessage, {
-            showToast: false,
-            sendToChatInterface: true
           });
         }
       }
@@ -119,39 +111,12 @@ export function ConsoleMonitor() {
       setLogs(prev => [...prev, newLog]);
     };
 
-    // Δημιουργία χειριστή για το lovable-error event
-    const handleLovableError = (event: CustomEvent) => {
-      // Το event έχει ήδη δημιουργηθεί, οπότε δεν χρειάζεται επιπλέον επεξεργασία
-      console.log("Λήφθηκε lovable-error event:", event.detail);
-    };
-
-    // Προσθήκη του event listener
-    window.addEventListener('lovable-error', handleLovableError as EventListener);
-
     // Καθαρισμός κατά την απομόντωση
     return () => {
       console.error = originalConsoleError;
       console.warn = originalConsoleWarn;
-      window.removeEventListener('lovable-error', handleLovableError as EventListener);
     };
   }, [reportError, sendErrorToChat]);
-
-  // Προσθήκη περιοδικού ελέγχου για νέα σφάλματα στο lovable_chat_errors
-  useEffect(() => {
-    const checkErrorsInterval = setInterval(() => {
-      try {
-        const storedErrors = JSON.parse(localStorage.getItem('lovable_chat_errors') || '[]');
-        if (storedErrors.length > 0) {
-          // Εδώ μπορούμε να κάνουμε κάτι με τα νέα σφάλματα αν χρειαστεί
-          localStorage.setItem('lovable_chat_errors', '[]'); // Καθαρισμός αφού τα ελέγξαμε
-        }
-      } catch (e) {
-        // Σιωπηλή αποτυχία
-      }
-    }, 5000); // Έλεγχος κάθε 5 δευτερόλεπτα
-
-    return () => clearInterval(checkErrorsInterval);
-  }, []);
 
   // Αποθήκευση logs στο localStorage όταν αλλάζουν
   useEffect(() => {

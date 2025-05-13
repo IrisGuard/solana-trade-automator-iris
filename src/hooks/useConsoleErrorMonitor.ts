@@ -2,11 +2,15 @@
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { useErrorReporting } from './useErrorReporting';
+import { clearAllErrors } from '@/utils/errorTestUtils';
 
 export function useConsoleErrorMonitor() {
   const { reportError } = useErrorReporting();
 
   useEffect(() => {
+    // Καθαρισμός όλων των σφαλμάτων αρχικά
+    clearAllErrors();
+
     // Αποθηκεύστε την αρχική συνάρτηση console.error
     const originalConsoleError = console.error;
 
@@ -51,13 +55,7 @@ export function useConsoleErrorMonitor() {
             !errorMessage.includes('Missing `Description`')) {
           
           // Καθαρισμός υπαρχόντων σφαλμάτων πριν την εμφάνιση νέου
-          if (window.lovableChat && typeof window.lovableChat.clearErrors === 'function') {
-            window.lovableChat.clearErrors();
-          }
-          
-          // Αποστολή custom event για καθαρισμό σφαλμάτων
-          const clearEvent = new CustomEvent('lovable-clear-errors');
-          window.dispatchEvent(clearEvent);
+          clearAllErrors();
           
           // Μικρή καθυστέρηση πριν την αναφορά νέου σφάλματος
           setTimeout(() => {
@@ -73,7 +71,7 @@ export function useConsoleErrorMonitor() {
                 sendToChatInterface: true
               });
             }
-          }, 200);
+          }, 300);
         }
       }
     };

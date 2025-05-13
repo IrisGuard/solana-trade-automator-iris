@@ -85,35 +85,42 @@ export function useErrorReporting() {
         window.lovableChat.clearErrors();
       }
       
-      // Δημιουργία μηνύματος για το chat
-      const chatMessage = {
-        type: 'error',
-        message: errorMessage,
-        stack: errorStack,
-        timestamp: new Date().toISOString(),
-        url: window.location.href,
-      };
+      // Αποστολή event για καθαρισμό σφαλμάτων
+      const clearEvent = new CustomEvent('lovable-clear-errors');
+      window.dispatchEvent(clearEvent);
       
-      // Δημιουργία παραθύρου διαλόγου στο chat
-      if (window.lovableChat && typeof window.lovableChat.createErrorDialog === 'function') {
-        window.lovableChat.createErrorDialog(chatMessage);
-      } else {
-        // Εναλλακτική μέθοδος με χρήση event
-        const event = new CustomEvent('lovable-error', { 
-          detail: chatMessage
-        });
-        window.dispatchEvent(event);
-      }
-      
-      // Προσπάθεια αντιγραφής στο πρόχειρο
-      try {
-        const clipboardText = `Παρακαλώ διορθώστε το παρακάτω σφάλμα:\n\nΜήνυμα: ${errorMessage}\n\n${errorStack ? `Stack Trace: ${errorStack}\n\n` : ''}Χρονοσήμανση: ${new Date().toISOString()}\nURL: ${window.location.href}`;
-        navigator.clipboard.writeText(clipboardText).catch(() => {
-          // Σιωπηλή αποτυχία αν δεν υποστηρίζεται το API clipboard
-        });
-      } catch (e) {
-        // Σιωπηλή αποτυχία για προβλήματα με το clipboard
-      }
+      // Περιμένουμε λίγο για να καθαρίσουν τα προηγούμενα σφάλματα
+      setTimeout(() => {
+        // Δημιουργία μηνύματος για το chat
+        const chatMessage = {
+          type: 'error',
+          message: errorMessage,
+          stack: errorStack,
+          timestamp: new Date().toISOString(),
+          url: window.location.href,
+        };
+        
+        // Δημιουργία παραθύρου διαλόγου στο chat
+        if (window.lovableChat && typeof window.lovableChat.createErrorDialog === 'function') {
+          window.lovableChat.createErrorDialog(chatMessage);
+        } else {
+          // Εναλλακτική μέθοδος με χρήση event
+          const event = new CustomEvent('lovable-error', { 
+            detail: chatMessage
+          });
+          window.dispatchEvent(event);
+        }
+        
+        // Αντιγραφή στο πρόχειρο
+        try {
+          const clipboardText = `Παρακαλώ διορθώστε το παρακάτω σφάλμα:\n\nΜήνυμα: ${errorMessage}\n\n${errorStack ? `Stack Trace: ${errorStack}\n\n` : ''}Χρονοσήμανση: ${new Date().toISOString()}\nURL: ${window.location.href}`;
+          navigator.clipboard.writeText(clipboardText).catch(() => {
+            // Σιωπηλή αποτυχία αν δεν υποστηρίζεται το API clipboard
+          });
+        } catch (e) {
+          // Σιωπηλή αποτυχία για προβλήματα με το clipboard
+        }
+      }, 200);
     } catch (e) {
       console.error("Σφάλμα κατά την αποστολή του σφάλματος στο chat interface:", e);
     }

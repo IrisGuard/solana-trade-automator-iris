@@ -2,7 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, MessageSquare } from 'lucide-react';
+import { AlertCircle, MessageSquare, Copy } from 'lucide-react';
+import { toast } from 'sonner';
+import { clearAllErrors } from '@/utils/errorTestUtils';
 
 interface ErrorDialogProps {
   error: {
@@ -21,46 +23,38 @@ export function ErrorDialogInChat({ error, onClose }: ErrorDialogProps) {
       // Δημιουργία μηνύματος για αποστολή στο chat
       const errorMessage = `Παρακαλώ διορθώστε το παρακάτω σφάλμα:\n\nΜήνυμα: ${error.message}\n\n${error.stack ? `Stack Trace: ${error.stack}\n\n` : ''}Χρονοσήμανση: ${new Date(error.timestamp).toLocaleString()}\nURL: ${error.url}`;
       
-      // Προσπάθεια να βρεθεί το textarea του chat
-      const textarea = document.querySelector('.lov-chat-textarea') || 
-                       document.querySelector('textarea[placeholder*="Type"]') || 
-                       document.querySelector('textarea'); // Fallback σε οποιοδήποτε textarea
-
-      if (textarea) {
-        try {
-          // Αντιγραφή στο πρόχειρο για χειροκίνητη επικόλληση
-          navigator.clipboard.writeText(errorMessage).then(() => {
-            // Εμφάνιση μηνύματος ότι αντιγράφηκε στο πρόχειρο
-            alert('Το σφάλμα αντιγράφηκε στο πρόχειρο. Μπορείτε να το επικολλήσετε στο chat.');
+      // Αντιγραφή στο πρόχειρο
+      navigator.clipboard.writeText(errorMessage)
+        .then(() => {
+          toast.success('Το σφάλμα αντιγράφηκε στο πρόχειρο', {
+            duration: 3000
           });
-        } catch (copyError) {
-          console.error('Σφάλμα κατά την αντιγραφή στο πρόχειρο:', copyError);
-        }
-      } else {
-        // Εναλλακτική μέθοδος με αποστολή event
-        const customEvent = new CustomEvent('lovable-send-to-chat', {
-          detail: { message: errorMessage }
+        })
+        .catch((err) => {
+          console.error('Σφάλμα κατά την αντιγραφή στο πρόχειρο:', err);
         });
-        window.dispatchEvent(customEvent);
-        console.log('Αποστολή μέσω custom event');
-      }
       
-      // Κλείσιμο του dialog μετά την προσπάθεια αποστολής
+      // Αποστολή event για το chat
+      const customEvent = new CustomEvent('lovable-send-to-chat', {
+        detail: { message: errorMessage }
+      });
+      window.dispatchEvent(customEvent);
+      
+      // Κλείσιμο του dialog
       onClose();
     } catch (e) {
       console.error("Σφάλμα κατά την αποστολή του σφάλματος στο chat:", e);
-      // Σιγουρευόμαστε ότι το dialog θα κλείσει ακόμα κι αν αποτύχει η αποστολή
       onClose();
     }
   };
 
-  // Force close mechanism
+  // Auto-close mechanism
   useEffect(() => {
-    // Create a force close timer
+    // Create a force close timer - reduced to 10 seconds
     const forceCloseTimer = setTimeout(() => {
-      console.log('Αναγκαστικό κλείσιμο του dialog σφάλματος λόγω timeout');
+      console.log('Αυτόματο κλείσιμο του dialog σφάλματος λόγω timeout');
       onClose();
-    }, 15000); // 15 seconds timeout (reduced from 30)
+    }, 10000);
     
     // Keyboard escape listener
     const handleEscape = (e: KeyboardEvent) => {
@@ -70,11 +64,21 @@ export function ErrorDialogInChat({ error, onClose }: ErrorDialogProps) {
       }
     };
     
+    // Click outside listener
+    const handleClickOutside = (e: MouseEvent) => {
+      const dialogContent = document.querySelector('.DialogContent');
+      if (dialogContent && !dialogContent.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+    
     document.addEventListener('keydown', handleEscape);
+    document.addEventListener('mousedown', handleClickOutside);
     
     return () => {
       clearTimeout(forceCloseTimer);
       document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [onClose]);
 
@@ -111,6 +115,17 @@ export function ErrorDialogInChat({ error, onClose }: ErrorDialogProps) {
           >
             <MessageSquare className="h-4 w-4" />
             Αποστολή στο chat
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              navigator.clipboard.writeText(`${error.message}\n\n${error.stack || ''}`);
+              toast.success('Αντιγράφηκε στο πρόχειρο');
+            }}
+            className="sm:order-1 w-full sm:w-auto flex items-center gap-2"
+          >
+            <Copy className="h-4 w-4" />
+            Αντιγραφή
           </Button>
           <Button 
             variant="outline" 
@@ -180,18 +195,6 @@ export function useErrorDialogInChat() {
     };
   }, []);
   
-  // Αφαίρεση σφάλματος από τη λίστα
-  const removeError = (index: number) => {
-    console.log('Αφαίρεση σφάλματος με index:', index);
-    setErrors([]);
-  };
-  
-  // Καθαρισμός όλων των σφαλμάτων
-  const clearAllErrors = () => {
-    console.log('Καθαρισμός όλων των σφαλμάτων');
-    setErrors([]);
-  };
-  
   // Παροχή των components για τα διαλογικά παράθυρα σφαλμάτων
   const ErrorDialogs = () => (
     <>
@@ -199,11 +202,11 @@ export function useErrorDialogInChat() {
         <ErrorDialogInChat
           key={`error-${Date.now()}`}
           error={errors[0]}
-          onClose={clearAllErrors}
+          onClose={() => setErrors([])}
         />
       )}
     </>
   );
   
-  return { ErrorDialogs, errors, clearAllErrors };
+  return { ErrorDialogs, errors, clearAllErrors: () => setErrors([]) };
 }
