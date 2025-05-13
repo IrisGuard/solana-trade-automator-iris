@@ -1,155 +1,56 @@
 
 import React from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
-import { Link } from "@/components/ui/link";
+import { helpResources, resourceCategories } from "./solana/resources";
 import { ExternalLink } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export function SolanaDocumentation() {
   return (
-    <ScrollArea className="h-full">
-      <div className="p-4">
-        <Tabs defaultValue="docs">
-          <TabsList className="mb-4">
-            <TabsTrigger value="docs">Τεκμηρίωση</TabsTrigger>
-            <TabsTrigger value="tutorials">Οδηγοί</TabsTrigger>
-            <TabsTrigger value="tools">Εργαλεία</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="docs" className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Card className="p-4">
-                <h3 className="text-base font-medium mb-2">Επίσημη Τεκμηρίωση Solana</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Πλήρης τεκμηρίωση για το blockchain Solana.
-                </p>
-                <Link href="https://docs.solana.com/" target="_blank" rel="noopener noreferrer" className="text-sm flex items-center text-primary">
-                  <span>Επίσκεψη</span> <ExternalLink className="ml-1 h-3 w-3" />
-                </Link>
-              </Card>
-              
-              <Card className="p-4">
-                <h3 className="text-base font-medium mb-2">SPL Token Τεκμηρίωση</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Πληροφορίες για το πρότυπο των Solana tokens.
-                </p>
-                <Link href="https://spl.solana.com/token" target="_blank" rel="noopener noreferrer" className="text-sm flex items-center text-primary">
-                  <span>Επίσκεψη</span> <ExternalLink className="ml-1 h-3 w-3" />
-                </Link>
-              </Card>
-              
-              <Card className="p-4">
-                <h3 className="text-base font-medium mb-2">Web3.js SDK</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Το επίσημο JavaScript API για αλληλεπίδραση με το Solana.
-                </p>
-                <Link href="https://solana-labs.github.io/solana-web3.js/" target="_blank" rel="noopener noreferrer" className="text-sm flex items-center text-primary">
-                  <span>Επίσκεψη</span> <ExternalLink className="ml-1 h-3 w-3" />
-                </Link>
-              </Card>
-              
-              <Card className="p-4">
-                <h3 className="text-base font-medium mb-2">Wallet Adapter</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Τεκμηρίωση για το React Wallet Adapter του Solana.
-                </p>
-                <Link href="https://github.com/solana-labs/wallet-adapter" target="_blank" rel="noopener noreferrer" className="text-sm flex items-center text-primary">
-                  <span>Επίσκεψη</span> <ExternalLink className="ml-1 h-3 w-3" />
-                </Link>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="tutorials" className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Card className="p-4">
-                <h3 className="text-base font-medium mb-2">Εισαγωγή στο Solana</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Ένας πλήρης οδηγός για αρχάριους στο Solana ecosystem.
-                </p>
-                <Link href="https://solana.com/developers" target="_blank" rel="noopener noreferrer" className="text-sm flex items-center text-primary">
-                  <span>Επίσκεψη</span> <ExternalLink className="ml-1 h-3 w-3" />
-                </Link>
-              </Card>
-              
-              <Card className="p-4">
-                <h3 className="text-base font-medium mb-2">Οδηγός για το Phantom Wallet</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Αναλυτικές οδηγίες για τη χρήση του Phantom Wallet.
-                </p>
-                <Link href="https://phantom.app/help" target="_blank" rel="noopener noreferrer" className="text-sm flex items-center text-primary">
-                  <span>Επίσκεψη</span> <ExternalLink className="ml-1 h-3 w-3" />
-                </Link>
-              </Card>
-              
-              <Card className="p-4">
-                <h3 className="text-base font-medium mb-2">Δημιουργία SPL Token</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Οδηγός για τη δημιουργία του δικού σας token στο Solana.
-                </p>
-                <Link href="https://solana.com/developers/guides/getstarted/create-token" target="_blank" rel="noopener noreferrer" className="text-sm flex items-center text-primary">
-                  <span>Επίσκεψη</span> <ExternalLink className="ml-1 h-3 w-3" />
-                </Link>
-              </Card>
-              
-              <Card className="p-4">
-                <h3 className="text-base font-medium mb-2">Trading στο Solana</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Οδηγός για την αγορά και πώληση tokens στο Solana.
-                </p>
-                <Link href="https://solana.com/ecosystem/exchange" target="_blank" rel="noopener noreferrer" className="text-sm flex items-center text-primary">
-                  <span>Επίσκεψη</span> <ExternalLink className="ml-1 h-3 w-3" />
-                </Link>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="tools" className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Card className="p-4">
-                <h3 className="text-base font-medium mb-2">Solana Explorer</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Εργαλείο εξερεύνησης του Solana blockchain.
-                </p>
-                <Link href="https://explorer.solana.com/" target="_blank" rel="noopener noreferrer" className="text-sm flex items-center text-primary">
-                  <span>Επίσκεψη</span> <ExternalLink className="ml-1 h-3 w-3" />
-                </Link>
-              </Card>
-              
-              <Card className="p-4">
-                <h3 className="text-base font-medium mb-2">Solana Playground</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Online IDE για την ανάπτυξη προγραμμάτων στο Solana.
-                </p>
-                <Link href="https://beta.solpg.io/" target="_blank" rel="noopener noreferrer" className="text-sm flex items-center text-primary">
-                  <span>Επίσκεψη</span> <ExternalLink className="ml-1 h-3 w-3" />
-                </Link>
-              </Card>
-              
-              <Card className="p-4">
-                <h3 className="text-base font-medium mb-2">Jupiter Aggregator</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Το καλύτερο εργαλείο για swap tokens με τις καλύτερες τιμές.
-                </p>
-                <Link href="https://jup.ag/" target="_blank" rel="noopener noreferrer" className="text-sm flex items-center text-primary">
-                  <span>Επίσκεψη</span> <ExternalLink className="ml-1 h-3 w-3" />
-                </Link>
-              </Card>
-              
-              <Card className="p-4">
-                <h3 className="text-base font-medium mb-2">Solscan</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Εναλλακτικός εξερευνητής με περισσότερες λειτουργίες.
-                </p>
-                <Link href="https://solscan.io/" target="_blank" rel="noopener noreferrer" className="text-sm flex items-center text-primary">
-                  <span>Επίσκεψη</span> <ExternalLink className="ml-1 h-3 w-3" />
-                </Link>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
+    <div className="p-4 space-y-4">
+      <div className="mb-2">
+        <h3 className="text-lg font-medium mb-1">Τεκμηρίωση Solana</h3>
+        <p className="text-sm text-muted-foreground">
+          Χρήσιμοι πόροι και σύνδεσμοι για το οικοσύστημα του Solana
+        </p>
       </div>
-    </ScrollArea>
+      
+      {resourceCategories.map((category) => {
+        const categoryResources = helpResources.filter(
+          (resource) => resource.category === category.name
+        );
+        
+        if (categoryResources.length === 0) return null;
+        
+        return (
+          <div key={category.id} className="space-y-2">
+            <h4 className="font-medium text-sm flex items-center">
+              <Badge variant="outline" className="mr-2">
+                {category.name}
+              </Badge>
+            </h4>
+            
+            <div className="space-y-2">
+              {categoryResources.map((resource, index) => (
+                <a 
+                  key={index}
+                  href={resource.url}
+                  target="_blank"
+                  rel="noopener noreferrer" 
+                  className="block p-3 border rounded-md hover:bg-accent"
+                >
+                  <div className="flex justify-between">
+                    <h5 className="font-medium text-primary">{resource.title}</h5>
+                    <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {resource.description}
+                  </p>
+                </a>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }

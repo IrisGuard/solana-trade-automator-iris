@@ -1,16 +1,23 @@
 
-import React from "react";
-import { SupabaseAuthProvider } from "./providers/SupabaseAuthProvider";
-import { Routes } from "./routes";
+import { Outlet } from "react-router-dom";
+import { Toaster } from "@/components/ui/toaster";
+import { WalletButton } from "@/components/wallet/WalletButton";
+import { HelpButton } from "@/components/help/HelpButton";
+import { Toaster as SonnerToaster } from "sonner";
 
-function App() {
+export default function App() {
   return (
-    <SupabaseAuthProvider>
-      <div className="app-container min-h-screen">
-        <Routes />
+    <div className="min-h-screen">
+      <div className="container max-w-7xl mx-auto px-4 py-4">
+        <div className="flex justify-end mb-4">
+          <WalletButton />
+        </div>
+        <Outlet />
       </div>
-    </SupabaseAuthProvider>
+      
+      <HelpButton />
+      <Toaster />
+      <SonnerToaster position="top-center" />
+    </div>
   );
 }
-
-export default App;
