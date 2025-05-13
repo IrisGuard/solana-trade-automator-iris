@@ -12,6 +12,8 @@ import { SolanaProviderFallback } from "./components/wallet/SolanaProviderFallba
 import { Suspense } from "react";
 import { SupabaseAuthProvider } from "./providers/SupabaseAuthProvider";
 import { LanguageProvider } from "./providers/LanguageProvider";
+import { GlobalErrorHandler } from "./components/errors/GlobalErrorHandler";
+import { useConsoleErrorMonitor } from "./hooks/useConsoleErrorMonitor";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -19,6 +21,13 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
+      onError: (error) => {
+        console.error("Σφάλμα αιτήματος:", error);
+        toast.error(
+          "Σφάλμα αιτήματος δεδομένων",
+          { description: error instanceof Error ? error.message : "Παρουσιάστηκε σφάλμα κατά την ανάκτηση δεδομένων" }
+        );
+      }
     },
   },
 });
@@ -48,13 +57,38 @@ function FallbackComponent() {
 
 // Error logger
 const logError = (error: Error, info: { componentStack: string }) => {
-  console.error("Application error:", error);
+  console.error("Σφάλμα εφαρμογής:", error);
+  
+  // Αποθήκευση λεπτομερειών σφάλματος
+  const errorDetails = {
+    message: error.message,
+    stack: error.stack,
+    componentStack: info.componentStack,
+    url: window.location.href,
+    timestamp: new Date().toISOString(),
+  };
+  
+  // Αποθήκευση του σφάλματος στο localStorage για προσωρινή διατήρηση
+  try {
+    const storedErrors = JSON.parse(localStorage.getItem('app_errors') || '[]');
+    storedErrors.push(errorDetails);
+    localStorage.setItem('app_errors', JSON.stringify(storedErrors.slice(-10))); // Διατήρηση των τελευταίων 10 σφαλμάτων
+  } catch (e) {
+    console.error("Σφάλμα κατά την αποθήκευση του σφάλματος:", e);
+  }
+  
+  // Εμφάνιση toast
   toast.error("Σφάλμα εφαρμογής: " + error.message);
 };
 
+function ErrorMonitor() {
+  useConsoleErrorMonitor();
+  return null;
+}
+
 function App() {
   return (
-    <ErrorBoundary FallbackComponent={FallbackComponent} onError={logError}>
+    <GlobalErrorHandler>
       <ThemeProvider defaultTheme="system">
         <LanguageProvider>
           <QueryClientProvider client={queryClient}>
@@ -62,6 +96,7 @@ function App() {
               <SupabaseAuthProvider>
                 <ErrorBoundary FallbackComponent={FallbackComponent} onError={logError}>
                   <Suspense fallback={<div className="flex items-center justify-center h-screen">Φόρτωση εφαρμογής...</div>}>
+                    <ErrorMonitor />
                     <WalletProviderWrapper>
                       <ErrorBoundary 
                         FallbackComponent={() => (
@@ -85,7 +120,7 @@ function App() {
           </QueryClientProvider>
         </LanguageProvider>
       </ThemeProvider>
-    </ErrorBoundary>
+    </GlobalErrorHandler>
   );
 }
 
