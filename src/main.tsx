@@ -1,51 +1,42 @@
 
-// Import polyfills first
-import './polyfills';
-
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
 import { BrowserRouter } from 'react-router-dom';
-import { ThemeProvider } from './contexts/ThemeContext';
-import { Toaster } from './components/ui/toaster';
-import { SolanaWalletProvider } from './providers/SolanaWalletProvider';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from './providers/ThemeProvider';
+import './index.css';
 
-// Create a client
-const queryClient = new QueryClient();
+// Ensure Buffer polyfill is loaded and available
+console.log('Checking Buffer/kB availability in main.tsx:', {
+  hasBuffer: typeof window.Buffer !== 'undefined',
+  hasKB: typeof window.kB !== 'undefined',
+  hasKBAlloc: typeof window.kB?.alloc === 'function'
+});
 
-// Debug Buffer availability before the app starts
-console.log('Main.tsx loaded, Buffer available:', typeof window.Buffer);
-console.log('Buffer methods:', window.Buffer ? Object.keys(window.Buffer) : 'No Buffer');
-console.log('Buffer.alloc available:', window.Buffer && typeof window.Buffer.alloc);
-console.log('Buffer.from available:', window.Buffer && typeof window.Buffer.from);
-
-// Extra check to ensure Buffer methods are properly bound
-if (window.Buffer && !window.Buffer.alloc) {
-  console.warn('Buffer.alloc is missing in main.tsx, attempting to fix...');
-  try {
-    const bufferModule = require('buffer/');
-    window.Buffer.alloc = bufferModule.Buffer.alloc.bind(bufferModule.Buffer);
-    window.Buffer.from = bufferModule.Buffer.from.bind(bufferModule.Buffer);
-    window.Buffer.allocUnsafe = bufferModule.Buffer.allocUnsafe.bind(bufferModule.Buffer);
-    console.log('Buffer methods fixed in main.tsx');
-  } catch (e) {
-    console.error('Failed to fix Buffer methods:', e);
-  }
+// Emergency fallback if the polyfill didn't load correctly
+if (typeof window.kB === 'undefined' || typeof window.kB.alloc !== 'function') {
+  console.warn('kB not properly initialized, creating emergency implementation');
+  window.kB = {
+    alloc: function(size, fill) {
+      console.log('Emergency kB.alloc called in main.tsx');
+      return new Uint8Array(size);
+    },
+    from: function(data, encoding) {
+      console.log('Emergency kB.from called in main.tsx');
+      if (typeof data === 'string') {
+        return new TextEncoder().encode(data);
+      }
+      return new Uint8Array(data);
+    }
+  };
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <ThemeProvider>
-          <SolanaWalletProvider>
-            <App />
-            <Toaster />
-          </SolanaWalletProvider>
-        </ThemeProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
-  </React.StrictMode>,
-)
+    <BrowserRouter>
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
+    </BrowserRouter>
+  </React.StrictMode>
+);

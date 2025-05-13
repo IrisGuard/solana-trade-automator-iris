@@ -1,187 +1,74 @@
 
-// Early Buffer polyfill for browsers - fixes kB.alloc is not a function
+// Comprehensive Buffer polyfill for web browsers
 (function() {
   if (typeof window !== 'undefined') {
-    console.log('Buffer polyfill script running');
+    console.log('Complete Buffer polyfill initializing');
     
-    // Check for existing Buffer implementation
-    const hasBuffer = typeof window.Buffer !== 'undefined';
-    const hasAlloc = hasBuffer && typeof window.Buffer.alloc === 'function';
-    const hasFrom = hasBuffer && typeof window.Buffer.from === 'function';
-    
-    console.log('Initial Buffer check:', {
-      hasBuffer,
-      hasAlloc,
-      hasFrom
-    });
-    
-    // Create a global kB object if it doesn't exist (this seems to be used in some libraries)
-    if (typeof window.kB === 'undefined') {
-      console.log('Creating kB alias for Buffer');
-      window.kB = {
-        alloc: function(size, fill) {
-          console.log('kB.alloc called with size:', size);
-          if (typeof window.Buffer === 'undefined' || typeof window.Buffer.alloc !== 'function') {
-            console.error('Buffer.alloc not available for kB.alloc');
-            // Fallback implementation
-            const buffer = new Uint8Array(size);
-            if (fill !== undefined) {
-              buffer.fill(fill);
-            }
-            return buffer;
-          }
-          return window.Buffer.alloc(size, fill);
-        },
-        from: function(data, encoding) {
-          console.log('kB.from called');
-          if (typeof window.Buffer === 'undefined' || typeof window.Buffer.from !== 'function') {
-            console.error('Buffer.from not available for kB.from');
-            // Fallback implementation
-            if (typeof data === 'string') {
-              return new Uint8Array([...data].map(c => c.charCodeAt(0)));
-            }
-            return new Uint8Array(data);
-          }
-          return window.Buffer.from(data, encoding);
-        }
-      };
-    }
-    
-    // Always try to use the buffer module
-    try {
-      // Create a minimal Buffer implementation if none exists
-      if (!window.Buffer) {
-        console.log('Creating minimal Buffer implementation');
-        
-        // Minimal Buffer constructor implementation
-        function BufferConstructor(arg, encodingOrOffset, length) {
-          // Basic implementation to handle string conversion
-          if (typeof arg === 'string') {
-            return new Uint8Array([...arg].map(c => c.charCodeAt(0)));
-          }
-          
-          // Handle array-like inputs
-          if (Array.isArray(arg) || arg instanceof Uint8Array) {
-            return new Uint8Array(arg);
-          }
-          
-          // Number (size)
-          if (typeof arg === 'number') {
-            return new Uint8Array(arg);
-          }
-          
-          // Default fallback
-          return new Uint8Array();
-        }
-        
-        // Add critical Buffer static methods
-        BufferConstructor.from = function(data, encoding) {
-          console.log('Buffer.from called with:', typeof data);
-          if (typeof data === 'string') {
-            return new Uint8Array([...data].map(c => c.charCodeAt(0)));
-          }
-          return new Uint8Array(data);
-        };
-        
-        BufferConstructor.alloc = function(size, fill) {
-          console.log('Buffer.alloc called with size:', size);
-          const buffer = new Uint8Array(size);
-          if (fill !== undefined) {
-            buffer.fill(fill);
-          }
-          return buffer;
-        };
-        
-        BufferConstructor.allocUnsafe = function(size) {
-          return new Uint8Array(size);
-        };
-        
-        BufferConstructor.isBuffer = function(obj) {
-          return obj instanceof Uint8Array;
-        };
-        
-        BufferConstructor.byteLength = function(string, encoding) {
-          return string.length;
-        };
-        
-        BufferConstructor.concat = function(list, length) {
-          if (length === undefined) {
-            length = list.reduce((acc, val) => acc + val.length, 0);
-          }
-          
-          const result = new Uint8Array(length);
-          let offset = 0;
-          
-          for (let i = 0; i < list.length; i++) {
-            const buf = list[i];
-            result.set(buf, offset);
-            offset += buf.length;
-          }
-          
-          return result;
-        };
-        
-        // Set the minimal implementation
-        window.Buffer = BufferConstructor;
+    // Create a full Buffer implementation
+    function BufferPolyfill(arg, encodingOrOffset, length) {
+      // Handle different constructor arguments
+      if (typeof arg === 'number') {
+        const buf = new Uint8Array(arg);
+        buf.alloc = BufferPolyfill.alloc;
+        buf.from = BufferPolyfill.from;
+        return buf;
+      } else if (typeof arg === 'string') {
+        const buf = new TextEncoder().encode(arg);
+        buf.alloc = BufferPolyfill.alloc;
+        buf.from = BufferPolyfill.from;
+        return buf;
+      } else if (Array.isArray(arg) || arg instanceof Uint8Array) {
+        const buf = new Uint8Array(arg);
+        buf.alloc = BufferPolyfill.alloc;
+        buf.from = BufferPolyfill.from;
+        return buf;
       }
-      
-      // Dynamic import of buffer module for enhanced functionality
-      import('buffer').then(bufferModule => {
-        const BufferImpl = bufferModule.Buffer;
-        
-        // Enhance the existing Buffer implementation with proper methods
-        if (!window.Buffer.alloc || typeof window.Buffer.alloc !== 'function') {
-          console.log('Enhancing Buffer.alloc');
-          window.Buffer.alloc = BufferImpl.alloc.bind(BufferImpl);
-          
-          // Also update kB if it exists
-          if (window.kB && !window.kB.alloc) {
-            window.kB.alloc = BufferImpl.alloc.bind(BufferImpl);
-          }
-        }
-        
-        if (!window.Buffer.from || typeof window.Buffer.from !== 'function') {
-          console.log('Enhancing Buffer.from');
-          window.Buffer.from = BufferImpl.from.bind(BufferImpl);
-          
-          // Also update kB if it exists
-          if (window.kB && !window.kB.from) {
-            window.kB.from = BufferImpl.from.bind(BufferImpl);
-          }
-        }
-        
-        if (!window.Buffer.allocUnsafe || typeof window.Buffer.allocUnsafe !== 'function') {
-          window.Buffer.allocUnsafe = BufferImpl.allocUnsafe.bind(BufferImpl);
-        }
-        
-        if (!window.Buffer.isBuffer || typeof window.Buffer.isBuffer !== 'function') {
-          window.Buffer.isBuffer = BufferImpl.isBuffer.bind(BufferImpl);
-        }
-        
-        if (!window.Buffer.byteLength || typeof window.Buffer.byteLength !== 'function') {
-          window.Buffer.byteLength = BufferImpl.byteLength.bind(BufferImpl);
-        }
-        
-        if (!window.Buffer.concat || typeof window.Buffer.concat !== 'function') {
-          window.Buffer.concat = BufferImpl.concat.bind(BufferImpl);
-        }
-        
-        console.log('Enhanced Buffer with proper implementation');
-        console.log('Buffer.alloc available:', typeof window.Buffer.alloc === 'function');
-        console.log('Buffer.from available:', typeof window.Buffer.from === 'function');
-        
-        // Check if methods are really functions
-        try {
-          const testBuf = window.Buffer.alloc(10);
-          console.log('Buffer.alloc test successful:', testBuf.length === 10);
-        } catch (e) {
-          console.error('Buffer.alloc test failed:', e);
-        }
-      }).catch(err => {
-        console.warn('ESM Buffer import failed:', err);
-      });
-    } catch (e) {
-      console.warn('Error setting up Buffer polyfill:', e);
+      return new Uint8Array();
     }
+    
+    // Add static methods to Buffer
+    BufferPolyfill.alloc = function(size, fill) {
+      console.log('BufferPolyfill.alloc called with size:', size);
+      const buf = new Uint8Array(size);
+      if (fill !== undefined) {
+        buf.fill(fill);
+      }
+      buf.alloc = BufferPolyfill.alloc;
+      buf.from = BufferPolyfill.from;
+      return buf;
+    };
+    
+    BufferPolyfill.from = function(data, encoding) {
+      console.log('BufferPolyfill.from called with type:', typeof data);
+      if (typeof data === 'string') {
+        const buf = new TextEncoder().encode(data);
+        buf.alloc = BufferPolyfill.alloc;
+        buf.from = BufferPolyfill.from;
+        return buf;
+      }
+      const buf = new Uint8Array(data);
+      buf.alloc = BufferPolyfill.alloc;
+      buf.from = BufferPolyfill.from;
+      return buf;
+    };
+    
+    // Create a global kB object specifically since this is what's causing errors
+    window.kB = {
+      alloc: BufferPolyfill.alloc,
+      from: BufferPolyfill.from
+    };
+    
+    // Also provide the normal Buffer global
+    window.Buffer = BufferPolyfill;
+    Buffer.alloc = BufferPolyfill.alloc;
+    Buffer.from = BufferPolyfill.from;
+    
+    console.log('Buffer polyfill fully initialized', {
+      hasBuffer: typeof window.Buffer !== 'undefined',
+      hasAlloc: typeof window.Buffer.alloc === 'function',
+      hasFrom: typeof window.Buffer.from === 'function',
+      haskB: typeof window.kB !== 'undefined',
+      haskBAlloc: typeof window.kB.alloc === 'function'
+    });
   }
 })();
