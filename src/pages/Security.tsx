@@ -23,11 +23,10 @@ export default function Security() {
         <AlertTitle>Ενισχυμένη ασφάλεια</AlertTitle>
         <AlertDescription>
           Η πλατφόρμα μας χρησιμοποιεί προηγμένα μέτρα ασφαλείας για την προστασία του λογαριασμού σας και των συναλλαγών σας.
-          Όλες οι διαχειριστικές λειτουργίες ασφαλείας έχουν μεταφερθεί στο Supabase για μεγαλύτερη ασφάλεια.
         </AlertDescription>
       </Alert>
       
-      {/* Υπάρχουσες κάρτες ασφαλείας για τους χρήστες */}
+      {/* Κάρτες ασφαλείας για τους χρήστες */}
       <div className="grid gap-6 md:grid-cols-2">
         <TwoFactorCard />
         <AccountAccessCard />
@@ -50,13 +49,6 @@ export default function Security() {
               <h4 className="font-medium mb-2">Ασφάλεια σε πολλαπλά επίπεδα</h4>
               <p className="text-sm text-muted-foreground">
                 Η πλατφόρμα μας εφαρμόζει ασφάλεια σε πολλαπλά επίπεδα, συμπεριλαμβανομένης της κρυπτογράφησης δεδομένων και των προηγμένων ελέγχων πρόσβασης.
-              </p>
-            </div>
-            
-            <div className="bg-muted p-4 rounded-lg">
-              <h4 className="font-medium mb-2">Διαχείριση API</h4>
-              <p className="text-sm text-muted-foreground">
-                Όλα τα API endpoints και κλειδιά διαχειρίζονται κεντρικά για βέλτιστη ασφάλεια και καλύτερο έλεγχο.
               </p>
             </div>
             

@@ -10,17 +10,16 @@ import { HelpButton } from "@/components/help/HelpButton";
 const pageTitles: Record<string, string> = {
   "/": "Αρχική",
   "/dashboard": "Dashboard",
-  "/bot-control": "Bot Control",
-  "/tokens": "Tokens",
   "/wallet": "Wallet",
   "/transactions": "Transactions",
   "/security": "Security",
-  "/notifications": "Notifications",
+  "/settings": "Settings",
+  "/help": "Help",
 };
 
 export function Layout() {
   const location = useLocation();
-  const title = pageTitles[location.pathname] || "Solana Trade Automator";
+  const title = pageTitles[location.pathname] || "Solana Trade";
 
   return (
     <div className="flex min-h-screen bg-background">
