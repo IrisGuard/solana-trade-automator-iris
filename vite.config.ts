@@ -24,7 +24,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         // Fix polyfill path issues - explicitly map each required polyfill
         buffer: 'buffer/',
         // Fix the process polyfill path - important change
-        process: 'process', // Modified from 'process/browser' to just 'process'
+        process: 'process', 
         stream: 'stream-browserify',
         util: 'util/',
         crypto: 'crypto-browserify',
@@ -53,7 +53,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       },
       include: [
         'buffer', 
-        'process', // Changed from 'process/browser' to just 'process'
+        'process', 
         'stream-browserify', 
         'util/', 
         'crypto-browserify',
@@ -61,7 +61,11 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         '@solana/web3.js',
         '@solana/spl-token',
         '@solana/wallet-adapter-base',
-        '@solana/wallet-adapter-react'
+        '@solana/wallet-adapter-react',
+        // Add React and React Router DOM to the optimization
+        'react',
+        'react-dom',
+        'react-router-dom'
       ],
     },
     build: {
@@ -75,7 +79,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
           // Enable rollup polyfills plugin
           rollupNodePolyFill() as any,
         ],
-        // Add external to prevent Rollup from trying to bundle process
+        // External to prevent Rollup from trying to bundle process
         external: ['process/browser'],
         onwarn(warning, warn) {
           if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {

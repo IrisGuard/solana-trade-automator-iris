@@ -18,4 +18,13 @@ export const {
   useDebugValue,
   useImperativeHandle,
   useId,
+  // Add any other hooks that might be needed
+  useDeferredValue,
+  useInsertionEffect,
+  useSyncExternalStore,
+  useTransition,
+  // React 18 specific hooks
+  useOptimistic,
+  useFormStatus,
+  useFormState
 } = React;
