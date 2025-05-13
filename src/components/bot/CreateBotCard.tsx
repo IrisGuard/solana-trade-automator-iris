@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,8 @@ interface CreateBotCardProps {
 export function CreateBotCard({ onCancel }: CreateBotCardProps) {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   
   const [botName, setBotName] = useState("");
   const [baseToken, setBaseToken] = useState("sol");
@@ -30,6 +32,41 @@ export function CreateBotCard({ onCancel }: CreateBotCardProps) {
   const [stopLoss, setStopLoss] = useState("1.5");
   const [riskLevel, setRiskLevel] = useState(30);
   const [autoCompound, setAutoCompound] = useState(true);
+
+  // Load bot templates
+  useEffect(() => {
+    const loadTemplates = async () => {
+      try {
+        const templateData = await botsService.getBotTemplates();
+        setTemplates(templateData);
+      } catch (error) {
+        console.error("Error loading templates:", error);
+      }
+    };
+    
+    loadTemplates();
+  }, []);
+
+  // Handle template selection
+  const handleTemplateChange = (templateId: string) => {
+    setSelectedTemplate(templateId);
+    
+    const selectedTemplateData = templates.find(t => t.id === templateId);
+    if (selectedTemplateData) {
+      const config = selectedTemplateData.default_config as Record<string, any> || {};
+      
+      setBotName(`My ${selectedTemplateData.name}`);
+      setBaseToken((config.selectedToken || "sol").toLowerCase());
+      setQuoteToken((config.quoteToken || "usdc").toLowerCase());
+      setStrategy(selectedTemplateData.strategy || "momentum");
+      setAllocation(String(config.allocation || "25"));
+      setMaxTrade(String(config.maxTrade || "0.5"));
+      setTakeProfit(String(config.takeProfit || "3"));
+      setStopLoss(String(config.stopLoss || "1.5"));
+      setRiskLevel(typeof config.riskLevel === 'number' ? config.riskLevel : 30);
+      setAutoCompound(config.autoCompound !== undefined ? config.autoCompound : true);
+    }
+  };
 
   const handleCreateBot = async () => {
     if (!user) {
@@ -90,6 +127,25 @@ export function CreateBotCard({ onCancel }: CreateBotCardProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {templates.length > 0 && (
+          <div className="space-y-2">
+            <Label htmlFor="template">Template (Optional)</Label>
+            <Select value={selectedTemplate} onValueChange={handleTemplateChange}>
+              <SelectTrigger id="template">
+                <SelectValue placeholder="Start from scratch" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Start from scratch</SelectItem>
+                {templates.map(template => (
+                  <SelectItem key={template.id} value={template.id}>
+                    {template.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
           <div className="space-y-2">
             <Label htmlFor="bot-name">Bot Name</Label>

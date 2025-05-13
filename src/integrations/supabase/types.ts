@@ -81,6 +81,132 @@ export type Database = {
         }
         Relationships: []
       }
+      bot_performance: {
+        Row: {
+          bot_id: string
+          id: string
+          profit_amount: number | null
+          profit_percentage: number | null
+          successful_trades: number | null
+          timestamp: string | null
+          total_trades: number | null
+        }
+        Insert: {
+          bot_id: string
+          id?: string
+          profit_amount?: number | null
+          profit_percentage?: number | null
+          successful_trades?: number | null
+          timestamp?: string | null
+          total_trades?: number | null
+        }
+        Update: {
+          bot_id?: string
+          id?: string
+          profit_amount?: number | null
+          profit_percentage?: number | null
+          successful_trades?: number | null
+          timestamp?: string | null
+          total_trades?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_performance_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_bot_performance"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bot_templates: {
+        Row: {
+          created_at: string | null
+          default_config: Json
+          description: string | null
+          id: string
+          name: string
+          strategy: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          default_config: Json
+          description?: string | null
+          id?: string
+          name: string
+          strategy: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          default_config?: Json
+          description?: string | null
+          id?: string
+          name?: string
+          strategy?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      bot_transactions: {
+        Row: {
+          amount: number
+          bot_id: string
+          created_at: string | null
+          id: string
+          price: number | null
+          signature: string | null
+          status: string
+          token_symbol: string
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          bot_id: string
+          created_at?: string | null
+          id?: string
+          price?: number | null
+          signature?: string | null
+          status: string
+          token_symbol: string
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          bot_id?: string
+          created_at?: string | null
+          id?: string
+          price?: number | null
+          signature?: string | null
+          status?: string
+          token_symbol?: string
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_transactions_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_bot"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bots: {
         Row: {
           active: boolean | null
