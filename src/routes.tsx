@@ -2,6 +2,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import Home from "@/pages/Home";
+import Dashboard from "@/pages/Dashboard"; 
 import Wallet from "@/pages/Wallet";
 import Security from "@/pages/Security";
 import Transactions from "@/pages/Transactions";
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <Home />,
+      },
+      {
+        path: "dashboard",
+        element: <Dashboard />,
       },
       {
         path: "wallet",

@@ -23,7 +23,7 @@ const NotFound = () => {
         <p className="text-muted-foreground">
           Sorry, we couldn't find the page you're looking for: {location.pathname}
         </p>
-        <Button asChild>
+        <Button asChild variant="secondary" className="bg-primary text-primary-foreground hover:bg-primary/90">
           <a href="/">Return to Dashboard</a>
         </Button>
       </div>
