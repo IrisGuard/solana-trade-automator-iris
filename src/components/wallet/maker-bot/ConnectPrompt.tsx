@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Wallet, Loader } from "lucide-react";
 import { toast } from "sonner";
+import { useErrorReporting } from "@/hooks/useErrorReporting";
 
 interface ConnectPromptProps {
   handleConnectWallet: () => void;
@@ -18,10 +19,14 @@ export function ConnectPrompt({
   isPhantomInstalled = true,
   size = "default" 
 }: ConnectPromptProps) {
+  const { reportError } = useErrorReporting();
+  
   const safeConnect = () => {
     try {
       if (!isPhantomInstalled) {
         toast.error("Το Phantom Wallet δεν είναι εγκατεστημένο");
+        // Δημιουργία ενός τεχνητού σφάλματος για δοκιμή
+        reportError(new Error("Σφάλμα κατά τη σύνδεση με το Phantom Wallet: Το wallet δεν βρέθηκε"));
         return;
       }
       if (isConnecting) {
@@ -32,6 +37,12 @@ export function ConnectPrompt({
     } catch (error) {
       console.error("Σφάλμα κατά τη σύνδεση του wallet:", error);
       toast.error("Σφάλμα κατά τη σύνδεση του wallet");
+      // Αναφορά του πραγματικού σφάλματος
+      if (error instanceof Error) {
+        reportError(error);
+      } else {
+        reportError("Άγνωστο σφάλμα κατά τη σύνδεση του wallet");
+      }
     }
   };
 
@@ -51,7 +62,7 @@ export function ConnectPrompt({
           onClick={safeConnect} 
           className={`flex items-center gap-2 ${size === "large" ? "text-base px-6 py-5 h-auto" : ""}`}
           size={size === "large" ? "lg" : "default"}
-          disabled={isConnecting || !isPhantomInstalled}
+          disabled={isConnecting}
         >
           {isConnecting ? (
             <>

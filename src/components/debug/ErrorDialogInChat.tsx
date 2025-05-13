@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { AlertCircle, MessageSquare } from 'lucide-react';
 
 interface ErrorDialogProps {
   error: {
@@ -14,10 +15,51 @@ interface ErrorDialogProps {
 }
 
 export function ErrorDialogInChat({ error, onClose }: ErrorDialogProps) {
+  // Συνάρτηση για αποστολή του σφάλματος στο Lovable chat
+  const sendToLovableChat = () => {
+    try {
+      // Δημιουργία μηνύματος για αποστολή στο chat
+      const errorMessage = `Παρακαλώ διορθώστε το παρακάτω σφάλμα:\n\nΜήνυμα: ${error.message}\n\n${error.stack ? `Stack Trace: ${error.stack}\n\n` : ''}Χρονοσήμανση: ${new Date(error.timestamp).toLocaleString()}\nURL: ${error.url}`;
+      
+      // Προσομοίωση πατήματος του "Send" button στο chat με το περιεχόμενο του σφάλματος
+      const textarea = document.querySelector('textarea[placeholder*="Πληκτρολογήστε"]') || 
+                      document.querySelector('textarea[placeholder*="Type"]') || 
+                      document.querySelector('textarea.lovable-chat-input');
+      
+      const sendButton = document.querySelector('button.lovable-chat-send') || 
+                         document.querySelector('button[aria-label*="Send"]') || 
+                         document.querySelector('button.lovable-send-button');
+      
+      if (textarea && sendButton) {
+        // Typescript type assertion
+        const textareaElement = textarea as HTMLTextAreaElement;
+        // Εισαγωγή του περιεχομένου στο textarea
+        textareaElement.value = errorMessage;
+        
+        // Ενεργοποίηση του event για να ενημερώσει το React για την αλλαγή
+        const inputEvent = new Event('input', { bubbles: true });
+        textareaElement.dispatchEvent(inputEvent);
+        
+        // Μικρή καθυστέρηση πριν το "κλικ" για να βεβαιωθούμε ότι το textarea έχει ενημερωθεί
+        setTimeout(() => {
+          // Κλικ στο κουμπί αποστολής
+          (sendButton as HTMLButtonElement).click();
+          // Κλείσιμο του dialog μετά την αποστολή
+          onClose();
+        }, 100);
+      } else {
+        console.error("Δεν βρέθηκαν τα στοιχεία της συνομιλίας για αποστολή του σφάλματος");
+      }
+    } catch (e) {
+      console.error("Σφάλμα κατά την αποστολή του σφάλματος στο chat:", e);
+    }
+  };
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+        <DialogHeader className="flex items-center space-x-2">
+          <AlertCircle className="h-5 w-5 text-destructive" />
           <DialogTitle>Σφάλμα εφαρμογής</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
@@ -38,8 +80,22 @@ export function ErrorDialogInChat({ error, onClose }: ErrorDialogProps) {
             <div>URL: {error.url}</div>
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Κλείσιμο</Button>
+        <DialogFooter className="flex flex-col sm:flex-row gap-2">
+          <Button 
+            variant="default" 
+            onClick={sendToLovableChat}
+            className="sm:order-2 w-full sm:w-auto flex items-center gap-2"
+          >
+            <MessageSquare className="h-4 w-4" />
+            Αποστολή στο chat
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={onClose}
+            className="sm:order-1 w-full sm:w-auto"
+          >
+            Κλείσιμο
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

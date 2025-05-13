@@ -77,7 +77,7 @@ export function useErrorReporting() {
     }
   };
   
-  // Νέα συνάρτηση για αποστολή σφάλματος στο chat
+  // Συνάρτηση για αποστολή σφάλματος στο chat
   const sendErrorToChat = (errorMessage: string, errorStack?: string) => {
     try {
       // Δημιουργία μηνύματος για το chat
