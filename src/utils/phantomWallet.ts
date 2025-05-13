@@ -14,8 +14,13 @@ export interface PhantomWindow extends Window {
 
 // Έλεγχος αν το Phantom είναι εγκατεστημένο
 export const isPhantomInstalled = (): boolean => {
-  const win = window as unknown as PhantomWindow;
-  return win?.phantom?.solana?.isPhantom || false;
+  try {
+    const win = window as unknown as PhantomWindow;
+    return win?.phantom?.solana?.isPhantom || false;
+  } catch (err) {
+    console.error('Error checking if Phantom is installed:', err);
+    return false;
+  }
 };
 
 // Σύνδεση με το Phantom Wallet

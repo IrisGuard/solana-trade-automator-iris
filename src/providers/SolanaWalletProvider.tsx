@@ -1,42 +1,55 @@
 
-import React, { useMemo } from 'react';
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import React, { useMemo, ReactNode } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
-import { PhantomWalletAdapter, SolflareWalletAdapter, TorusWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
-import { SolanaProviderFallback } from '@/components/wallet/SolanaProviderFallback';
 
-// Default styles
+// Import the default styles
 import '@solana/wallet-adapter-react-ui/styles.css';
 
-interface Props {
-  children: React.ReactNode;
+interface SolanaWalletProviderProps {
+  children: ReactNode;
 }
 
-export const SolanaWalletProvider: React.FC<Props> = ({ children }) => {
-  // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
-  const network = WalletAdapterNetwork.Mainnet;
+export function SolanaWalletProvider({ children }: SolanaWalletProviderProps) {
+  // Set up your Solana network to Devnet, Testnet, or Mainnet
+  const network = WalletAdapterNetwork.Devnet;
+  
+  // Custom RPC endpoint (μπορεί να αλλάξει στο μέλλον με βάση τις ρυθμίσεις)
+  const endpoint = useMemo(() => {
+    // Χρησιμοποιούμε το backupEndpoint σε περίπτωση σφάλματος
+    try {
+      // Για την ώρα χρησιμοποιούμε το Devnet για αποφυγή χρεώσεων και σφαλμάτων
+      return clusterApiUrl(network);
+    } catch (error) {
+      console.error("Error getting Solana endpoint:", error);
+      return "https://api.devnet.solana.com"; // Fallback endpoint
+    }
+  }, [network]);
+  
+  // Initialize all the wallets you want to support
+  const wallets = useMemo(() => {
+    try {
+      return [
+        new PhantomWalletAdapter(),
+        // Μπορούν να προστεθούν και άλλοι adapters στο μέλλον
+      ];
+    } catch (error) {
+      console.error("Error initializing wallet adapters:", error);
+      return [];
+    }
+  }, []);
 
-  // You can also provide a custom RPC endpoint.
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
-
-  const wallets = useMemo(
-    () => [
-      new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(),
-      new TorusWalletAdapter()
-    ],
-    []
-  );
-
+  // Return the wallet provider with connection
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect={true}>
+      <WalletProvider wallets={wallets} autoConnect={false}>
         <WalletModalProvider>
           {children}
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
   );
-};
+}

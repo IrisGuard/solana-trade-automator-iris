@@ -21,25 +21,38 @@ export function useWalletStatus() {
   const wasConnected = localStorage.getItem('walletConnected') === 'true';
 
   useEffect(() => {
-    // Αποθήκευση της κατάστασης σύνδεσης
-    if (connected) {
-      localStorage.setItem('walletConnected', 'true');
+    try {
+      // Αποθήκευση της κατάστασης σύνδεσης
+      if (connected) {
+        localStorage.setItem('walletConnected', 'true');
+      }
+    } catch (err) {
+      console.error('Error saving wallet connection state:', err);
     }
   }, [connected]);
 
   // Αποσύνδεση του wallet αν χρειάζεται (αν το user έχει κάνει explicit disconnect)
   useEffect(() => {
-    const userDisconnected = localStorage.getItem('userDisconnected') === 'true';
-    
-    if (userDisconnected && connected) {
-      disconnect();
+    try {
+      const userDisconnected = localStorage.getItem('userDisconnected') === 'true';
+      
+      if (userDisconnected && connected) {
+        disconnect();
+      }
+    } catch (err) {
+      console.error('Error handling disconnect state:', err);
     }
   }, [connected, disconnect]);
 
   const handleDisconnect = () => {
-    disconnect();
-    localStorage.setItem('walletConnected', 'false');
-    localStorage.setItem('userDisconnected', 'true');
+    try {
+      disconnect();
+      localStorage.setItem('walletConnected', 'false');
+      localStorage.setItem('userDisconnected', 'true');
+    } catch (err) {
+      console.error('Error disconnecting wallet:', err);
+      setError('Αποτυχία αποσύνδεσης πορτοφολιού');
+    }
   };
 
   // Προσθέτουμε isPhantomInstalled, connectWallet και άλλες λειτουργίες που χρειάζονται

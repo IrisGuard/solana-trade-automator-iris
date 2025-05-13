@@ -3,15 +3,15 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { Lock, Wallet, Zap } from "lucide-react";
-import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
 import { WalletConnectButtonSafe } from "@/components/wallet/WalletConnectButtonSafe";
 import { toast } from "sonner";
 
 export function HeroSection() {
   const navigate = useNavigate();
   
-  // Αφαιρώ το useWalletStatus που προκαλεί σφάλματα
-  const isConnected = false; // default to false for landing page
+  // Αφαιρούμε εντελώς το useWalletStatus και χρησιμοποιούμε την ασφαλή έκδοση του κουμπιού
+  // Ορίζουμε false by default για την αρχική σελίδα
+  const isConnected = false; 
   
   const handleNavigateWithToast = (path: string, message: string) => {
     toast.success(message);
