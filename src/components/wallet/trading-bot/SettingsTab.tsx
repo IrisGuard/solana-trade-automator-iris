@@ -3,9 +3,10 @@ import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { Token } from "@/types/wallet";
+import { TokenSelector } from "./TokenSelector";
 
 interface SettingsTabProps {
   config: {
@@ -18,8 +19,8 @@ interface SettingsTabProps {
   updateConfig: (newConfig: Partial<SettingsTabProps['config']>) => void;
   selectToken: (token: string | null) => void;
   selectedTokenPrice: { price: number; priceChange24h: number } | null;
-  selectedTokenDetails: { amount: number; symbol: string } | null;
-  tokens: { address: string; name: string; symbol: string }[];
+  selectedTokenDetails: Token | undefined;
+  tokens: Token[];
 }
 
 export function SettingsTab({
@@ -35,21 +36,12 @@ export function SettingsTab({
       {/* Token Selection */}
       <div className="space-y-2">
         <Label htmlFor="token">Token</Label>
-        <Select 
-          value={config.selectedToken || ""} 
-          onValueChange={(value) => selectToken(value || null)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Επιλέξτε token" />
-          </SelectTrigger>
-          <SelectContent>
-            {tokens.map((token) => (
-              <SelectItem key={token.address} value={token.address}>
-                {token.name} ({token.symbol})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <TokenSelector 
+          tokens={tokens}
+          onSelectToken={selectToken}
+          selectedToken={config.selectedToken}
+        />
+        
         {selectedTokenDetails && selectedTokenPrice && (
           <div className="mt-2 text-sm bg-muted p-2 rounded">
             <div className="flex justify-between items-center">
