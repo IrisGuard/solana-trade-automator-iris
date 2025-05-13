@@ -21,6 +21,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
+        // Fix polyfill path issues - explicitly map each required polyfill
         buffer: 'buffer/',
         process: 'process/browser',
         stream: 'stream-browserify',
@@ -32,7 +33,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     define: {
       // Node.js polyfills
       global: 'globalThis',
-      'process.env': {},
+      'process.env': '{}',
       // Add Buffer to the global scope
       Buffer: ['buffer', 'Buffer'],
     },
@@ -69,8 +70,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       rollupOptions: {
         plugins: [
           // Enable rollup polyfills plugin
-          // Use as any to bypass TypeScript errors with the plugin
-          rollupNodePolyFill() as any
+          rollupNodePolyFill() as any,
         ],
         onwarn(warning, warn) {
           if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
