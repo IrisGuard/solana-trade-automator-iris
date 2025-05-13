@@ -6,7 +6,7 @@ import { useWalletStatus } from './useWalletStatus';
 export function useWalletBalance() {
   const { walletAddress, setBalance } = useWalletStatus();
 
-  // Helper function to load and set balance
+  // Βοηθητική συνάρτηση για τη φόρτωση και ορισμό του υπολοίπου
   const fetchAndSetBalance = useCallback(async (address: string) => {
     try {
       const fetchedBalance = await solanaService.fetchSOLBalance(address);
@@ -19,7 +19,7 @@ export function useWalletBalance() {
     }
   }, [setBalance]);
 
-  // Get current SOL balance for the connected wallet
+  // Λήψη τρέχοντος υπολοίπου SOL για το συνδεδεμένο πορτοφόλι
   const getBalance = useCallback(async () => {
     if (!walletAddress) return 0;
     return fetchAndSetBalance(walletAddress);

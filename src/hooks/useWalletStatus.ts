@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 export function useWalletStatus() {
   const { connected, connecting, publicKey, disconnect } = useWallet();
   const [isInitializing, setIsInitializing] = useState(true);
+  const [balance, setBalance] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Αρχικοποίηση του state μετά από μικρή καθυστέρηση
   useEffect(() => {
@@ -40,6 +42,22 @@ export function useWalletStatus() {
     localStorage.setItem('userDisconnected', 'true');
   };
 
+  // Προσθέτουμε isPhantomInstalled, connectWallet και άλλες λειτουργίες που χρειάζονται
+  const isPhantomInstalled = typeof window !== 'undefined' && 
+    window.phantom?.solana?.isPhantom || false;
+
+  const connectWallet = async () => {
+    try {
+      // Αυτή είναι μια τεχνητή λύση μέχρι να υλοποιηθεί πλήρως η σύνδεση
+      // στην πραγματική εφαρμογή θα χρειαστεί να υλοποιηθεί πλήρως
+      return publicKey?.toString() || null;
+    } catch (err) {
+      console.error('Connection error:', err);
+      setError('Failed to connect wallet');
+      return null;
+    }
+  };
+
   return {
     isConnected: connected,
     isConnecting: connecting,
@@ -47,5 +65,12 @@ export function useWalletStatus() {
     wasConnected,
     walletAddress: publicKey?.toString() || null,
     disconnect: handleDisconnect,
+    balance,
+    setBalance,
+    error,
+    setError,
+    isPhantomInstalled,
+    connectWallet,
+    disconnectWallet: handleDisconnect
   };
 }

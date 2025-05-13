@@ -1,12 +1,15 @@
 
 import { toast } from 'sonner';
 
+// Διορθώνουμε το interface
 export interface PhantomWindow extends Window {
   phantom?: {
     solana?: {
       isPhantom: boolean;
-      connect: () => Promise<{ publicKey: { toString: () => string } }>;
+      connect: (opts?: { onlyIfTrusted?: boolean }) => Promise<{ publicKey: { toString: () => string } }>;
       disconnect: () => Promise<void>;
+      on: (event: string, callback: Function) => void;
+      off: (event: string, callback: Function) => void;
     };
   };
 }
@@ -18,6 +21,10 @@ export const getPhantomWallet = () => {
     return window.phantom.solana;
   }
   return null;
+};
+
+export const isPhantomInstalled = () => {
+  return typeof window !== 'undefined' && window.phantom?.solana?.isPhantom || false;
 };
 
 export const connectPhantomWallet = async () => {
@@ -40,6 +47,21 @@ export const connectPhantomWallet = async () => {
     localStorage.setItem('walletConnected', 'false');
     localStorage.setItem('userDisconnected', 'true');
     toast.error('Failed to connect to Phantom wallet.');
+    return null;
+  }
+};
+
+export const connectTrustedPhantomWallet = async () => {
+  try {
+    const wallet = getPhantomWallet();
+    if (!wallet) {
+      return null;
+    }
+    
+    const response = await wallet.connect({ onlyIfTrusted: true });
+    return response.publicKey.toString();
+  } catch (error) {
+    console.error('Error connecting to trusted Phantom wallet:', error);
     return null;
   }
 };

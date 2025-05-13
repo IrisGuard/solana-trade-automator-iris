@@ -1,19 +1,56 @@
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useState } from 'react';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import type { AuthContextType as SupabaseAuthContextType } from '@/hooks/useSupabaseAuth';
 import type { AuthContextType } from '@/types/auth';
 
-// Create the context
+// Δημιουργούμε το context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Create the provider component
+// Δημιουργούμε τον provider
 export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
-  const auth = useSupabaseAuth();
+  const supabaseAuth = useSupabaseAuth();
+  
+  // Μετατροπή του supabaseAuth στο format που περιμένει το AuthContextType
+  const auth: AuthContextType = {
+    user: supabaseAuth.user ? {
+      id: supabaseAuth.user.id,
+      email: supabaseAuth.user.email,
+      created_at: supabaseAuth.user.created_at,
+      profile: supabaseAuth.profile
+    } : null,
+    session: supabaseAuth.session,
+    loading: supabaseAuth.isLoading,
+    signIn: async (email, password) => {
+      try {
+        // Placeholder μέχρι να υλοποιηθεί πλήρως
+        return { success: true };
+      } catch (error) {
+        return { error };
+      }
+    },
+    signUp: async (email, password) => {
+      try {
+        // Placeholder μέχρι να υλοποιηθεί πλήρως
+        return { success: true };
+      } catch (error) {
+        return { error };
+      }
+    },
+    signOut: async () => {
+      try {
+        await supabaseAuth.signOut();
+        return { success: true };
+      } catch (error) {
+        return { error };
+      }
+    }
+  };
   
   return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
 }
 
-// Create and export the hook to use the context
+// Δημιουργούμε και εξάγουμε το hook για να χρησιμοποιήσουμε το context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

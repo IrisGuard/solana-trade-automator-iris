@@ -9,7 +9,7 @@ import { WalletDisconnectedContent } from "@/components/home/WalletDisconnectedC
 import { useWalletStatus } from "@/hooks/useWalletStatus";
 
 export default function Index() {
-  const { isConnected, walletAddress } = useWalletStatus();
+  const { isConnected, isConnecting, walletAddress } = useWalletStatus();
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -25,7 +25,7 @@ export default function Index() {
             <WalletConnectedContent walletAddress={walletAddress} />
           </div>
         ) : (
-          <WalletDisconnectedContent />
+          <WalletDisconnectedContent isConnecting={isConnecting} />
         )}
       </main>
       <FooterSection />

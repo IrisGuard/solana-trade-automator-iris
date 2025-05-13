@@ -19,6 +19,7 @@ export default function Home() {
     tokenPrices, 
     isLoadingTokens, 
     error: connectionError,
+    isPhantomInstalled,
     selectTokenForTrading
   } = useWalletConnection();
   
@@ -70,7 +71,7 @@ export default function Home() {
           ) : (
             <WalletDisconnectedContent 
               isConnecting={isConnecting}
-              isPhantomInstalled={true}
+              isPhantomInstalled={isPhantomInstalled}
             />
           )}
         </CardContent>
