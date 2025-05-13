@@ -1,74 +1,95 @@
 
-import { ResourceLink, ResourceCategory } from './types';
-
-export const resourceCategories: ResourceCategory[] = [
-  { id: 'basics', name: 'Βασικά' },
-  { id: 'wallets', name: 'Πορτοφόλια' },
-  { id: 'development', name: 'Ανάπτυξη' },
-  { id: 'tokens', name: 'Tokens' },
-  { id: 'trading', name: 'Trading' },
-  { id: 'security', name: 'Ασφάλεια' },
-];
+import { ResourceLink } from "./types";
 
 export const helpResources: ResourceLink[] = [
   {
-    url: 'https://solana.com/docs/intro',
-    title: 'Εισαγωγή στο Solana',
-    description: 'Βασική εισαγωγή στο Solana blockchain και τα χαρακτηριστικά του',
-    category: 'Βασικά',
+    url: "https://docs.solana.com/",
+    title: "Solana Documentation",
+    description: "Official documentation for the Solana blockchain",
+    category: "Documentation"
   },
   {
-    url: 'https://docs.phantom.app/',
-    title: 'Phantom Wallet',
-    description: 'Οδηγίες χρήσης του Phantom Wallet για το Solana',
-    category: 'Πορτοφόλια',
+    url: "https://spl.solana.com/",
+    title: "Solana Program Library",
+    description: "Documentation for SPL tokens and other Solana programs",
+    category: "Documentation"
   },
   {
-    url: 'https://solana.com/developers',
-    title: 'Solana για Προγραμματιστές',
-    description: 'Πόροι και εργαλεία για την ανάπτυξη στο Solana',
-    category: 'Ανάπτυξη',
+    url: "https://solana-labs.github.io/solana-web3.js/",
+    title: "Solana Web3.js Reference",
+    description: "API reference for Solana's JavaScript SDK",
+    category: "Documentation"
   },
   {
-    url: 'https://spl.solana.com/token',
-    title: 'SPL Tokens',
-    description: 'Πληροφορίες για το Solana Program Library Token Standard',
-    category: 'Tokens',
+    url: "https://github.com/solana-labs/wallet-adapter",
+    title: "Wallet Adapter",
+    description: "Connect Solana wallets to your dApp",
+    category: "Development"
   },
   {
-    url: 'https://jup.ag/docs',
-    title: 'Jupiter Exchange',
-    description: 'Aggregator συναλλαγών για το Solana με την καλύτερη τιμή',
-    category: 'Trading',
+    url: "https://solana.com/developers",
+    title: "Developer Resources",
+    description: "Resources and tools for Solana developers",
+    category: "Development"
   },
   {
-    url: 'https://solana.com/news/solana-security-best-practices',
-    title: 'Πρακτικές Ασφάλειας',
-    description: 'Βέλτιστες πρακτικές για την ασφάλεια στο Solana',
-    category: 'Ασφάλεια',
+    url: "https://phantom.app/",
+    title: "Phantom Wallet",
+    description: "Phantom is a digital wallet for the Solana blockchain",
+    category: "Wallets"
   },
   {
-    url: 'https://www.youtube.com/watch?v=1jzROE6EhxM',
-    title: 'Οδηγός Solana για Αρχάριους',
-    description: 'Βίντεο εκμάθησης των βασικών του Solana',
-    category: 'Βασικά',
+    url: "https://solflare.com/",
+    title: "Solflare Wallet",
+    description: "A non-custodial wallet made for Solana",
+    category: "Wallets"
   },
   {
-    url: 'https://raydium.io/swap/',
-    title: 'Raydium DEX',
-    description: 'Αποκεντρωμένο ανταλλακτήριο στο Solana',
-    category: 'Trading',
+    url: "https://explorer.solana.com/",
+    title: "Solana Explorer",
+    description: "Explore transactions on the Solana blockchain",
+    category: "Tools"
   },
   {
-    url: 'https://docs.solana.com/wallet-guide',
-    title: 'Οδηγός Πορτοφολιών Solana',
-    description: 'Επίσημος οδηγός για τα πορτοφόλια στο Solana',
-    category: 'Πορτοφόλια',
+    url: "https://solscan.io/",
+    title: "Solscan",
+    description: "Solana blockchain explorer with advanced analytics",
+    category: "Tools"
   },
   {
-    url: 'https://solflare.com/',
-    title: 'Solflare Wallet',
-    description: 'Εναλλακτική λύση πορτοφολιού για το Solana',
-    category: 'Πορτοφόλια',
+    url: "https://raydium.io/",
+    title: "Raydium",
+    description: "Automated market maker and liquidity provider on Solana",
+    category: "DeFi"
+  },
+  {
+    url: "https://jup.ag/",
+    title: "Jupiter Aggregator",
+    description: "The key liquidity aggregator for Solana",
+    category: "DeFi"
+  },
+  {
+    url: "https://solana.com/ecosystem/exchange",
+    title: "Solana Exchange",
+    description: "Explore exchanges supporting Solana tokens",
+    category: "Trading"
+  },
+  {
+    url: "https://soldev.app/",
+    title: "SolDev",
+    description: "Community-ran Solana development tutorials and resources",
+    category: "Learning"
+  },
+  {
+    url: "https://beta.solpg.io/",
+    title: "Solana Playground",
+    description: "Web-based IDE for Solana development",
+    category: "Development"
+  },
+  {
+    url: "https://discord.com/invite/solana",
+    title: "Solana Discord",
+    description: "Official Solana Discord community",
+    category: "Community"
   }
 ];
