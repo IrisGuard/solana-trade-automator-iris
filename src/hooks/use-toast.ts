@@ -1,12 +1,10 @@
 
-import { toast as sonnerToast } from "sonner";
+import { toast } from "sonner";
 
-// Export toast from Sonner
-export const toast = sonnerToast;
+export { toast };
 
-// Compatibility with the old useToast interface
 export function useToast() {
   return {
-    toast: sonnerToast,
+    toast
   };
 }
