@@ -40,7 +40,6 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   useEffect(() => {
     setTranslations(language === "el" ? el : en);
     document.documentElement.setAttribute("lang", language);
-    console.log(`Language changed to: ${language}`);
     localStorage.setItem("language", language);
   }, [language]);
 

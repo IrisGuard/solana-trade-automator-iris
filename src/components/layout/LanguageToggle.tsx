@@ -17,8 +17,11 @@ export function LanguageToggle() {
   const handleLanguageChange = (newLang: "el" | "en") => {
     if (language !== newLang) {
       setLanguage(newLang);
-      const langName = newLang === "el" ? "Ελληνικά" : "English";
-      toast.success(newLang === "el" ? "Η γλώσσα άλλαξε σε Ελληνικά" : "Language changed to English");
+      if (newLang === "el") {
+        toast.success("Η γλώσσα άλλαξε σε Ελληνικά");
+      } else {
+        toast.success("Language changed to English");
+      }
     }
   };
 
