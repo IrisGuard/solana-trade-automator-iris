@@ -12,6 +12,10 @@ interface Window {
     concat: (list: Uint8Array[], totalLength?: number) => Buffer;
     prototype: Buffer;
   };
+  kB?: {
+    from: (data: any, encoding?: string) => Uint8Array | Buffer;
+    alloc: (size: number, fill?: any) => Uint8Array | Buffer;
+  };
   phantom?: {
     solana?: {
       isPhantom: boolean;
@@ -43,6 +47,7 @@ interface Window {
       unicode: string;
       electron: string;
       chrome: string;
+      http_parser: string;
     };
   };
 }

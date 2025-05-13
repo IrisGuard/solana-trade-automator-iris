@@ -49,7 +49,8 @@ if (typeof window !== 'undefined' && !window.process) {
       tz: '0.0.0',
       unicode: '0.0.0',
       electron: '0.0.0',
-      chrome: '0.0.0'
+      chrome: '0.0.0',
+      http_parser: '0.0.0'  // Προσθήκη του http_parser που λείπει
     }
   };
 }

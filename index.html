@@ -10,51 +10,69 @@
     <script>
       // Inline Buffer polyfill (minimal version)
       (function() {
-        if (typeof window !== 'undefined' && !window.Buffer) {
+        if (typeof window !== 'undefined') {
           console.log('Providing inline Buffer polyfill');
-          window.Buffer = {
-            from: function(data, encoding) {
-              if (typeof data === 'string') {
-                return new Uint8Array([...data].map(c => c.charCodeAt(0)));
+          if (!window.Buffer) {
+            window.Buffer = {
+              from: function(data, encoding) {
+                if (typeof data === 'string') {
+                  return new Uint8Array([...data].map(c => c.charCodeAt(0)));
+                }
+                return new Uint8Array(data);
+              },
+              alloc: function(size, fill) {
+                const buffer = new Uint8Array(size);
+                if (fill !== undefined) {
+                  buffer.fill(fill);
+                }
+                return buffer;
+              },
+              allocUnsafe: function(size) {
+                return new Uint8Array(size);
+              },
+              isBuffer: function(obj) {
+                return obj instanceof Uint8Array;
+              },
+              byteLength: function(string, encoding) {
+                return string.length;
+              },
+              concat: function(list, length) {
+                if (length === undefined) {
+                  length = list.reduce((acc, val) => acc + val.length, 0);
+                }
+                const result = new Uint8Array(length);
+                let offset = 0;
+                for (let i = 0; i < list.length; i++) {
+                  result.set(list[i], offset);
+                  offset += list[i].length;
+                }
+                return result;
+              },
+              prototype: {}
+            };
+          }
+          
+          // Create kB alias
+          if (!window.kB) {
+            window.kB = {
+              alloc: function(size, fill) {
+                return window.Buffer.alloc(size, fill);
+              },
+              from: function(data, encoding) {
+                return window.Buffer.from(data, encoding);
               }
-              return new Uint8Array(data);
-            },
-            alloc: function(size, fill) {
-              const buffer = new Uint8Array(size);
-              if (fill !== undefined) {
-                buffer.fill(fill);
-              }
-              return buffer;
-            },
-            allocUnsafe: function(size) {
-              return new Uint8Array(size);
-            },
-            isBuffer: function(obj) {
-              return obj instanceof Uint8Array;
-            },
-            byteLength: function(string, encoding) {
-              return string.length;
-            },
-            concat: function(list, length) {
-              if (length === undefined) {
-                length = list.reduce((acc, val) => acc + val.length, 0);
-              }
-              const result = new Uint8Array(length);
-              let offset = 0;
-              for (let i = 0; i < list.length; i++) {
-                result.set(list[i], offset);
-                offset += list[i].length;
-              }
-              return result;
-            },
-            prototype: {}
-          };
+            };
+          }
+          
           console.log('Inline Buffer polyfill loaded');
+          console.log('kB available:', typeof window.kB);
+          console.log('kB.alloc available:', typeof window.kB.alloc);
         }
       })();
     </script>
     <!-- External Buffer polyfill for enhanced functionality -->
     <script src="/buffer-polyfill.js"></script>
+    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
   </head>
   <body>
     <div id="root"></div>
