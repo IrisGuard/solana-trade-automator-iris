@@ -49,5 +49,25 @@ interface Window {
       chrome: string;
       http_parser: string;
     };
+    stdout?: any;
+    stderr?: any;
+    stdin?: any;
+    argv?: string[];
+    execPath?: string;
+    execArgv?: string[];
+    abort?: () => void;
+    chdir?: () => void;
+    cwd?: () => string;
+    exit?: () => void;
+    kill?: () => void;
+    nextTick?: (callback: () => void) => void;
+    umask?: () => number;
+    uptime?: () => number;
+    hrtime?: () => [number, number];
+    memoryUsage?: () => { rss: number, heapTotal: number, heapUsed: number, external: number, arrayBuffers: number };
+    pid?: number;
+    ppid?: number;
+    platform?: string;
+    title?: string;
   };
 }

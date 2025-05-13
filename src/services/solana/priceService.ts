@@ -11,7 +11,27 @@ export interface TokenPriceData {
 type PriceCallback = (price: TokenPriceData) => void;
 type Unsubscribe = () => void;
 
-// Για παραγωγικό περιβάλλον θα χρησιμοποιούσαμε μια πραγματική υπηρεσία τιμών
+// Export the function for direct imports
+export const fetchTokenPrices = async (tokenAddresses: string[]): Promise<Record<string, TokenPriceData>> => {
+  try {
+    const prices: Record<string, TokenPriceData> = {};
+    
+    for (const address of tokenAddresses) {
+      prices[address] = {
+        price: MOCK_PRICES[address] || Math.random() * 10,
+        priceChange24h: (Math.random() * 10) - 5,
+        lastUpdated: new Date().toISOString()
+      };
+    }
+    
+    return prices;
+  } catch (error) {
+    console.error('Error fetching token prices:', error);
+    return {};
+  }
+};
+
+// For παραγωγικό περιβάλλον θα χρησιμοποιούσαμε μια πραγματική υπηρεσία τιμών
 class PriceService {
   private subscriptions: Map<string, Set<PriceCallback>> = new Map();
   private priceData: Map<string, TokenPriceData> = new Map();

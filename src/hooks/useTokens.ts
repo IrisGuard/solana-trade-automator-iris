@@ -18,7 +18,7 @@ export function useTokens() {
       toast.loading('Φόρτωση tokens...');
       
       // Use solanaService to load real tokens
-      const userTokens = await solanaService.getTokenAccounts(address);
+      const userTokens = await solanaService.fetchAllTokenBalances(address);
       setTokens(userTokens);
       
       toast.success('Τα tokens φορτώθηκαν επιτυχώς');
@@ -50,15 +50,18 @@ export function useTokens() {
     try {
       if (tokens.length === 0) return;
       
-      const prices: Record<string, number> = {};
+      // Use token addresses to fetch prices
+      const addresses = tokens.map(token => token.address);
+      const prices = await solanaService.fetchTokenPrices(addresses);
       
-      for (const token of tokens) {
-        // Use solanaService to get real prices
-        prices[token.address] = await solanaService.getTokenPrice(token.address);
-      }
+      // Convert the TokenPriceData to simple price record for backward compatibility
+      const simplePrices: Record<string, number> = {};
+      Object.entries(prices).forEach(([address, priceData]) => {
+        simplePrices[address] = priceData.price;
+      });
       
-      setTokenPrices(prices);
-      return prices;
+      setTokenPrices(simplePrices);
+      return simplePrices;
     } catch (error) {
       console.error("Error fetching token prices:", error);
       return {};
