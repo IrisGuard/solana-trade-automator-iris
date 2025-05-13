@@ -1,5 +1,5 @@
 
-import { saveKeysToStorage } from "./storageUtils";
+import { saveKeysToStorage, loadKeysFromStorage } from "./storageUtils";
 import { testSingleKey } from "./testUtils";
 import { encryptData, decryptData } from "./encryptionUtils";
 import { recoverAllApiKeys } from "./recoveryUtils";
@@ -14,6 +14,7 @@ export const injectDemoKeys = (count = 0) => {
 
 export {
   saveKeysToStorage,
+  loadKeysFromStorage,
   testSingleKey,
   encryptData,
   decryptData,
