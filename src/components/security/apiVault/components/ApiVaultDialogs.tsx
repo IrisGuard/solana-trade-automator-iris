@@ -1,14 +1,15 @@
 
 import React from "react";
-import { NewApiKeyDialog } from "../NewApiKeyDialog";
+import { ApiKey } from "../types";
 import { ImportDialog } from "../ImportDialog";
 import { ExportSheet } from "../ExportSheet";
 import { SecuritySettingsDialog } from "../SecuritySettingsDialog";
-import { UnlockDialog } from "../UnlockDialog";
+import { NewApiKeyDialog } from "../NewApiKeyDialog";
 import { RecoveryDialog } from "../RecoveryDialog";
-import { ApiKey } from "../types";
+import { UnlockDialog } from "../UnlockDialog";
 
-interface ApiVaultDialogsProps {
+export interface ApiVaultDialogsProps {
+  // Dialog visibility state
   showDialogApiKey: boolean;
   setShowDialogApiKey: (show: boolean) => void;
   showImportDialog: boolean;
@@ -21,10 +22,16 @@ interface ApiVaultDialogsProps {
   setShowRecoveryDialog: (show: boolean) => void;
   isUnlocking: boolean;
   setIsUnlocking: (unlocking: boolean) => void;
+  isLocked: boolean;
+  
+  // Key management
   apiKeys: ApiKey[];
   addNewKey: (key: ApiKey) => void;
-  handleImport: (keys: ApiKey[]) => void;
   updateKey: (key: ApiKey) => void;
+  handleImport: (keys: ApiKey[]) => void;
+  setApiKeys: React.Dispatch<React.SetStateAction<ApiKey[]>>;
+  
+  // Security
   handleUnlock: (password: string) => void;
   savedMasterPassword: string;
   isEncryptionEnabled: boolean;
@@ -34,89 +41,105 @@ interface ApiVaultDialogsProps {
   autoLockTimeout: number;
   setAutoLockTimeout: (timeout: number) => void;
   setSavedMasterPassword: (password: string) => void;
+  
+  // Recovery
   recoveredKeys: ApiKey[];
   recoveryLocations: { storageKey: string; count: number }[];
   handleRecoveredImport: (keys: ApiKey[]) => void;
+  
+  // Testing
+  testKeyFunctionality: any;
 }
 
-export const ApiVaultDialogs: React.FC<ApiVaultDialogsProps> = ({
-  showDialogApiKey,
-  setShowDialogApiKey,
-  showImportDialog,
-  setShowImportDialog,
-  showExportSheet,
-  setShowExportSheet,
-  showSettingsDialog,
-  setShowSettingsDialog,
-  showRecoveryDialog,
-  setShowRecoveryDialog,
-  isUnlocking,
-  setIsUnlocking,
-  apiKeys,
-  addNewKey,
-  handleImport,
-  updateKey,
-  handleUnlock,
-  savedMasterPassword,
-  isEncryptionEnabled,
-  setIsEncryptionEnabled,
-  isAutoLockEnabled,
-  setIsAutoLockEnabled,
-  autoLockTimeout,
-  setAutoLockTimeout,
-  setSavedMasterPassword,
-  recoveredKeys,
-  recoveryLocations,
-  handleRecoveredImport
-}) => {
+export const ApiVaultDialogs: React.FC<ApiVaultDialogsProps> = (props) => {
+  const {
+    showDialogApiKey,
+    setShowDialogApiKey,
+    showImportDialog,
+    setShowImportDialog,
+    showExportSheet,
+    setShowExportSheet,
+    showSettingsDialog,
+    setShowSettingsDialog,
+    showRecoveryDialog,
+    setShowRecoveryDialog,
+    isUnlocking,
+    setIsUnlocking,
+    isLocked,
+    apiKeys,
+    addNewKey,
+    updateKey,
+    handleImport,
+    setApiKeys,
+    handleUnlock,
+    savedMasterPassword,
+    isEncryptionEnabled,
+    setIsEncryptionEnabled,
+    isAutoLockEnabled,
+    setIsAutoLockEnabled,
+    autoLockTimeout,
+    setAutoLockTimeout,
+    setSavedMasterPassword,
+    recoveredKeys,
+    recoveryLocations,
+    handleRecoveredImport,
+    testKeyFunctionality,
+  } = props;
+
   return (
     <>
-      <NewApiKeyDialog 
-        open={showDialogApiKey}
-        onOpenChange={setShowDialogApiKey}
-        addKey={addNewKey}
-      />
-
-      <ImportDialog 
+      {/* Import Dialog */}
+      <ImportDialog
         open={showImportDialog}
-        onOpenChange={setShowImportDialog}
-        onImport={handleImport}
+        setOpen={setShowImportDialog}
+        handleImport={handleImport}
       />
 
-      <ExportSheet 
+      {/* Export Sheet */}
+      <ExportSheet
         open={showExportSheet}
-        onOpenChange={setShowExportSheet}
+        setOpen={setShowExportSheet}
         apiKeys={apiKeys}
       />
 
-      <SecuritySettingsDialog 
+      {/* Settings Dialog */}
+      <SecuritySettingsDialog
         open={showSettingsDialog}
-        onOpenChange={setShowSettingsDialog}
+        setOpen={setShowSettingsDialog}
         isEncryptionEnabled={isEncryptionEnabled}
         setIsEncryptionEnabled={setIsEncryptionEnabled}
-        savedMasterPassword={savedMasterPassword}
-        setSavedMasterPassword={setSavedMasterPassword}
         isAutoLockEnabled={isAutoLockEnabled}
         setIsAutoLockEnabled={setIsAutoLockEnabled}
         autoLockTimeout={autoLockTimeout}
         setAutoLockTimeout={setAutoLockTimeout}
-      />
-
-      <UnlockDialog 
-        open={isUnlocking}
-        onOpenChange={setIsUnlocking}
         savedMasterPassword={savedMasterPassword}
-        onUnlock={handleUnlock}
+        setSavedMasterPassword={setSavedMasterPassword}
       />
 
+      {/* New/Edit API Key Dialog */}
+      <NewApiKeyDialog
+        open={showDialogApiKey}
+        setOpen={setShowDialogApiKey}
+        addNewKey={addNewKey}
+        updateKey={updateKey}
+        testKeyFunctionality={testKeyFunctionality}
+      />
+
+      {/* Recovery Dialog */}
       <RecoveryDialog
         open={showRecoveryDialog}
-        onOpenChange={setShowRecoveryDialog}
+        setOpen={setShowRecoveryDialog}
         recoveredKeys={recoveredKeys}
-        locations={recoveryLocations}
-        onImport={handleRecoveredImport}
-        onClose={() => setShowRecoveryDialog(false)}
+        recoveryLocations={recoveryLocations}
+        handleImport={handleRecoveredImport}
+      />
+
+      {/* Unlock Dialog */}
+      <UnlockDialog
+        open={isUnlocking}
+        setOpen={setIsUnlocking}
+        handleUnlock={handleUnlock}
       />
     </>
   );
-}
+};

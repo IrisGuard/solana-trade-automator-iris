@@ -1,10 +1,10 @@
 
+/* Εισαγωγή των στυλ για το Solana Wallet Adapter */
+@import url('@solana/wallet-adapter-react-ui/styles.css');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Εισαγωγή των στυλ για το Solana Wallet Adapter */
-@import url('@solana/wallet-adapter-react-ui/styles.css');
 
 @layer base {
   :root {

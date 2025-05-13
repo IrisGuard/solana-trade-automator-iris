@@ -11,6 +11,7 @@ import { useRecoveredKeysImport } from "./useRecoveredKeysImport";
 
 export function useApiVaultState() {
   const [activeTab, setActiveTab] = useState("keys");
+  const [isRecovering, setIsRecovering] = useState(false);
   
   // Key management
   const {
@@ -78,7 +79,6 @@ export function useApiVaultState() {
   
   // Recovery handling
   const {
-    isRecovering,
     recoveredKeys,
     recoveryLocations,
     handleRecoverClick
@@ -168,9 +168,11 @@ export function useApiVaultState() {
     // Testing functionality
     isTestingKeys,
     handleRefreshKeys: refreshKeysHandler,
+    testKeyFunctionality,
     
     // Recovery
     isRecovering,
+    setIsRecovering,
     handleRecoverClick,
     recoveredKeys,
     recoveryLocations,
