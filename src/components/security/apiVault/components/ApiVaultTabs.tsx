@@ -1,9 +1,10 @@
 
 import React from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ApiVaultContent } from "../ApiVaultContent";
+import { TabsContent } from "@/components/ui/tabs";
 import { LockedVaultState } from "../LockedVaultState";
 import { ApiKey, ApiKeyStats, ServiceInfo } from "../types";
+import { TabView } from "./tabs/TabView";
+import { KeysTabContent } from "./tabs/KeysTabContent";
 
 interface ApiVaultTabsProps {
   activeTab: string;
@@ -62,29 +63,34 @@ export const ApiVaultTabs: React.FC<ApiVaultTabsProps> = ({
     );
   }
 
+  // Define available tabs
+  const tabItems = [
+    { value: "keys", label: "Κλειδιά" }
+  ];
+
   return (
-    <Tabs 
-      value={activeTab}
-      onValueChange={handleTabChange}
-      className="w-full"
+    <TabView 
+      activeTab={activeTab} 
+      onTabChange={handleTabChange}
+      tabItems={tabItems}
     >
-      <TabsContent value="keys" className="mt-0">
-        <ApiVaultContent 
-          apiKeys={apiKeys}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          filterService={filterService}
-          setFilterService={setFilterService}
-          isKeyVisible={isKeyVisible}
-          toggleKeyVisibility={toggleKeyVisibility}
-          deleteKey={deleteKey}
-          getFilteredKeys={getFilteredKeys}
-          getKeysByService={getKeysByService}
-          onAddKeyClick={onAddKeyClick}
-          setApiKeys={setApiKeys}
-          onImportClick={() => setActiveTab("import")}
-        />
-      </TabsContent>
-    </Tabs>
+      <KeysTabContent 
+        apiKeys={apiKeys}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        filterService={filterService}
+        setFilterService={setFilterService}
+        isKeyVisible={isKeyVisible}
+        toggleKeyVisibility={toggleKeyVisibility}
+        deleteKey={deleteKey}
+        getFilteredKeys={getFilteredKeys}
+        getKeysByService={getKeysByService}
+        onAddKeyClick={onAddKeyClick}
+        setApiKeys={setApiKeys}
+        onImportClick={() => setActiveTab("import")}
+      />
+      
+      {/* Additional tabs can be added here in the future */}
+    </TabView>
   );
 };
