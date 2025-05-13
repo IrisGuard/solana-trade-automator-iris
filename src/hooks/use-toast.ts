@@ -1,36 +1,14 @@
 
-// Properly implement the useToast hook
-import { toast as sonnerToast } from "sonner";
-import type { ToastT } from "sonner";
+import { toast } from "sonner";
 
-export interface Toast {
-  id: string;
-  title?: React.ReactNode;
-  description?: React.ReactNode;
-  action?: React.ReactNode;
-}
-
-// Use the correct type from sonner
-export type ToastProps = Partial<ToastT> & {
-  title?: React.ReactNode;
-  description?: React.ReactNode;
-  action?: React.ReactNode;
-};
-
+// Simple wrapper hook for sonner toast
 export function useToast() {
   return {
-    toast: (props: ToastProps) => {
-      const { title, description, ...rest } = props;
-      
-      return sonnerToast(title as string, {
-        description,
-        ...rest,
-      });
-    },
-    dismiss: (toastId?: string) => sonnerToast.dismiss(toastId),
-    error: (title: string, description?: string) => sonnerToast.error(title, { description }),
-    success: (title: string, description?: string) => sonnerToast.success(title, { description }),
-    warning: (title: string, description?: string) => sonnerToast(title, { description, className: 'bg-yellow-100' }),
-    info: (title: string, description?: string) => sonnerToast.info(title, { description }),
+    toast,
+    dismiss: toast.dismiss,
+    success: (message: string) => toast.success(message),
+    error: (message: string) => toast.error(message),
+    warning: (message: string) => toast.warning(message),
+    info: (message: string) => toast.info(message),
   };
 }
