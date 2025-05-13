@@ -10,13 +10,17 @@ interface Window {
       disconnect: () => Promise<void>;
     };
   };
-  // Add Buffer and kB definitions
+  // Add Buffer definition
   Buffer: {
     alloc: (size: number, fill?: number) => Uint8Array;
     from: (data: any, encoding?: string) => Uint8Array;
+    [key: string]: any;
   };
+  // Add kB definition 
   kB: {
     alloc: (size: number, fill?: number) => Uint8Array;
     from: (data: any, encoding?: string) => Uint8Array;
+    [key: string]: any;
   };
+  process?: any;
 }
