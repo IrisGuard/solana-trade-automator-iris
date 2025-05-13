@@ -1,11 +1,11 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Loader2, Copy, Eye, EyeOff, RefreshCw, Database } from "lucide-react";
+import { Loader2, Copy, RefreshCw, Eye, EyeOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
 
@@ -24,23 +24,32 @@ export function SupabaseApiKeysList() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch all API keys
+      // Always show demo key if not logged in
+      const demoKey = {
+        id: 'demo',
+        name: 'Helius API Demo Key',
+        service: 'helius',
+        key_value: 'ddb32813-1f4b-459d-8964-310b1b73a053',
+        status: 'active'
+      };
+      
       if (user) {
+        // Fetch all API keys if user is logged in
         const { data: keysData, error: keysError } = await supabase
           .from('api_keys_storage')
           .select('*');
           
         if (keysError) throw keysError;
-        setKeys(keysData || []);
+        
+        // If no keys found and user is logged in, show demo key
+        if (!keysData || keysData.length === 0) {
+          setKeys([demoKey]);
+        } else {
+          setKeys(keysData);
+        }
       } else {
-        // Logged out - only show ddb32813-1f4b-459d-8964-310b1b73a053 as a demo key
-        setKeys([{
-          id: 'demo',
-          name: 'Helius API Demo Key',
-          service: 'helius',
-          key_value: 'ddb32813-1f4b-459d-8964-310b1b73a053',
-          status: 'active'
-        }]);
+        // Not logged in - show demo key
+        setKeys([demoKey]);
       }
       
       // Fetch all endpoints
@@ -75,7 +84,7 @@ export function SupabaseApiKeysList() {
     }, 2000);
   };
 
-  const formatKeyDisplay = (key: string, isVisible: boolean, id: string) => {
+  const formatKeyDisplay = (key: string, isVisible: boolean) => {
     if (isVisible) {
       return key;
     }
@@ -139,7 +148,7 @@ export function SupabaseApiKeysList() {
                         <TableCell className="font-medium">{key.name}</TableCell>
                         <TableCell className="capitalize">{key.service}</TableCell>
                         <TableCell className="font-mono text-xs">
-                          {formatKeyDisplay(key.key_value, visibleKeys[key.id], key.id)}
+                          {formatKeyDisplay(key.key_value, visibleKeys[key.id])}
                         </TableCell>
                         <TableCell>
                           <Badge variant={key.status === 'active' ? 'success' : 'secondary'}>
@@ -164,7 +173,7 @@ export function SupabaseApiKeysList() {
                               disabled={!key.key_value}
                             >
                               {copiedKey === key.key_value ? 
-                                <Check className="h-4 w-4 text-green-500" /> : 
+                                <RefreshCw className="h-4 w-4 text-green-500" /> : 
                                 <Copy className="h-4 w-4" />
                               }
                             </Button>
@@ -177,7 +186,6 @@ export function SupabaseApiKeysList() {
               </div>
             ) : (
               <div className="text-center py-8 border rounded-md">
-                <Database className="mx-auto h-10 w-10 text-muted-foreground opacity-50" />
                 <p className="mt-2 text-muted-foreground">Δεν υπάρχουν αποθηκευμένα κλειδιά API</p>
               </div>
             )}
@@ -212,7 +220,7 @@ export function SupabaseApiKeysList() {
                             title="Αντιγραφή URL"
                           >
                             {copiedKey === endpoint.url ? 
-                              <Check className="h-4 w-4 text-green-500" /> : 
+                              <RefreshCw className="h-4 w-4 text-green-500" /> : 
                               <Copy className="h-4 w-4" />
                             }
                           </Button>
@@ -224,7 +232,6 @@ export function SupabaseApiKeysList() {
               </div>
             ) : (
               <div className="text-center py-8 border rounded-md">
-                <Database className="mx-auto h-10 w-10 text-muted-foreground opacity-50" />
                 <p className="mt-2 text-muted-foreground">Δεν υπάρχουν αποθηκευμένα endpoints</p>
               </div>
             )}

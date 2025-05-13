@@ -1,39 +1,32 @@
 
-import { useState } from "react";
-import { ApiKey } from "../types";
+import { useState, useMemo } from "react";
+import { ApiKey, ApiKeyStats } from "../types";
 
 export function useApiKeyFilters() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterService, setFilterService] = useState("all");
+  const [filterService, setFilterService] = useState("");
 
-  // Φιλτράρισμα κλειδιών βάσει κριτηρίων αναζήτησης
-  const filterKeys = (apiKeys: ApiKey[]) => {
-    return apiKeys.filter(key => {
-      const matchesSearch = 
-        key.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (key.description?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
-        key.key.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        key.service.toLowerCase().includes(searchTerm.toLowerCase());
+  const filterKeys = (keys: ApiKey[]) => {
+    return keys.filter(key => {
+      // Search by name or key value
+      const matchesSearch = !searchTerm || 
+        key.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        (key.key && key.key.toLowerCase().includes(searchTerm.toLowerCase()));
       
-      const matchesFilter = filterService === 'all' || key.service.toLowerCase() === filterService.toLowerCase();
+      // Filter by service
+      const matchesService = !filterService || key.service === filterService;
       
-      return matchesSearch && matchesFilter;
+      return matchesSearch && matchesService;
     });
   };
 
-  // Ομαδοποίηση κλειδιών ανά υπηρεσία
-  const groupKeysByService = (apiKeys: ApiKey[]): Record<string, ApiKey[]> => {
-    const grouped: Record<string, ApiKey[]> = {};
-    
-    filterKeys(apiKeys).forEach(key => {
-      const service = key.service.toLowerCase();
-      if (!grouped[service]) {
-        grouped[service] = [];
-      }
-      grouped[service].push(key);
-    });
-    
-    return grouped;
+  const groupKeysByService = (keys: ApiKey[]) => {
+    return keys.reduce<Record<string, ApiKey[]>>((acc, key) => {
+      const service = key.service || 'other';
+      acc[service] = acc[service] || [];
+      acc[service].push(key);
+      return acc;
+    }, {});
   };
 
   return {
@@ -45,3 +38,25 @@ export function useApiKeyFilters() {
     groupKeysByService
   };
 }
+
+// Utility functions that can be used without the hook
+export const calculateKeyStats = (apiKeys: ApiKey[]): ApiKeyStats => ({
+  total: apiKeys.length,
+  active: apiKeys.filter(key => key.status === "active" || !key.status).length,
+  expired: apiKeys.filter(key => key.status === "expired").length,
+  revoked: apiKeys.filter(key => key.status === "revoked").length,
+});
+
+export const groupKeysByService = (apiKeys: ApiKey[]) => {
+  const keysByService = apiKeys.reduce<Record<string, ApiKey[]>>((acc, key) => {
+    const service = key.service || 'other';
+    acc[service] = acc[service] || [];
+    acc[service].push(key);
+    return acc;
+  }, {});
+  
+  return Object.entries(keysByService).map(([name, keys]) => ({
+    name,
+    count: keys.length,
+  }));
+};
