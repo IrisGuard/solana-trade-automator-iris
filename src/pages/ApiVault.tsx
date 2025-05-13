@@ -2,7 +2,7 @@
 import React from "react";
 import { ApiVaultCard } from "@/components/security/apiVault/ApiVaultCard";
 import { ApiEndpointsCard } from "@/components/security/ApiEndpointsCard";
-import { ApiEndpointsManager } from "@/components/security/ApiEndpointsManager";
+import { ApiEndpointsManager } from "@/components/security/endpoints/ApiEndpointsManager";
 import { AddHeliusButton } from "@/components/security/apiVault/AddHeliusButton";
 
 export default function ApiVault() {
