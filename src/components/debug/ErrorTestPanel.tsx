@@ -17,9 +17,10 @@ export function ErrorTestPanel() {
   const [showToast, setShowToast] = useState(true);
   const [logToConsole, setLogToConsole] = useState(true);
   const [sendToChat, setSendToChat] = useState(true);
+  const [useCollector, setUseCollector] = useState(false);
   
   const handleGenerateError = () => {
-    generateTestError(errorMessage, { showToast, logToConsole, sendToChat });
+    generateTestError(errorMessage, { showToast, logToConsole, sendToChat, useCollector });
   };
   
   const handleNetworkError = () => {
@@ -31,54 +32,67 @@ export function ErrorTestPanel() {
           title: 'Σφάλμα δικτύου',
           showToast,
           logToConsole,
-          sendToChat
+          sendToChat,
+          useCollector
         });
       });
   };
   
   const handleApiError = () => {
     // Προσομοίωση σφάλματος API
-    displayError({
+    const apiError = new Error('Δεν έχετε δικαιώματα πρόσβασης σε αυτόν τον πόρο');
+    // Προσθήκη επιπλέον πληροφοριών στο σφάλμα
+    Object.assign(apiError, {
       status: 403,
-      message: 'Δεν έχετε δικαιώματα πρόσβασης σε αυτόν τον πόρο',
       code: 'FORBIDDEN'
-    }, {
+    });
+    
+    displayError(apiError, {
       title: 'Σφάλμα API',
       showToast,
       logToConsole,
-      sendToChat
+      sendToChat,
+      useCollector
     });
   };
   
   const handleValidationError = () => {
     // Προσομοίωση σφάλματος επικύρωσης
-    displayError({
-      message: 'Μη έγκυρα δεδομένα φόρμας',
+    const validationError = new Error('Μη έγκυρα δεδομένα φόρμας');
+    // Προσθήκη λεπτομερειών σφαλμάτων
+    Object.assign(validationError, {
       errors: {
         username: ['Το όνομα χρήστη είναι υποχρεωτικό'],
         email: ['Μη έγκυρη διεύθυνση email'],
         password: ['Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες']
       }
-    }, {
+    });
+    
+    displayError(validationError, {
       title: 'Σφάλμα επικύρωσης φόρμας',
       showToast,
       logToConsole,
-      sendToChat
+      sendToChat,
+      useCollector
     });
   };
   
   const handleDatabaseError = () => {
     // Προσομοίωση σφάλματος βάσης δεδομένων
-    displayError({
-      message: 'Σφάλμα βάσης δεδομένων',
+    const dbError = new Error('Σφάλμα βάσης δεδομένων');
+    // Προσθήκη λεπτομερειών
+    Object.assign(dbError, {
       details: 'Foreign key constraint violation',
       table: 'users',
       constraint: 'users_profile_id_fkey'
-    }, {
+    });
+    
+    displayError(dbError, {
       title: 'Σφάλμα βάσης δεδομένων',
       showToast,
       logToConsole,
-      sendToChat
+      sendToChat,
+      useCollector
     });
   };
   
@@ -88,11 +102,12 @@ export function ErrorTestPanel() {
       const obj: any = null;
       obj.someProperty = 'test';
     } catch (error) {
-      displayError(error, {
+      displayError(error as Error, {
         title: 'Runtime Error',
         showToast,
         logToConsole,
-        sendToChat
+        sendToChat,
+        useCollector
       });
     }
   };
@@ -146,6 +161,15 @@ export function ErrorTestPanel() {
                   className="mr-2"
                 />
                 Αποστολή στο Chat
+              </label>
+              <label className="inline-flex items-center">
+                <input 
+                  type="checkbox"
+                  checked={useCollector}
+                  onChange={() => setUseCollector(!useCollector)}
+                  className="mr-2"
+                />
+                Χρήση Collector
               </label>
             </div>
             

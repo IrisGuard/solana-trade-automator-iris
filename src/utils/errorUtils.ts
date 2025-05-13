@@ -1,6 +1,6 @@
 
 import { toast } from "sonner";
-import { ErrorCollector } from "@/utils/errorCollector";
+import { errorCollector } from "@/utils/errorCollector";
 
 interface ErrorOptions {
   title?: string;
@@ -57,7 +57,7 @@ export function displayError(
   
   // Χρήση του collector αν ζητηθεί
   if (useCollector) {
-    ErrorCollector.add(errorObj);
+    errorCollector.addError(errorObj);
   }
   
   return errorObj;
@@ -117,65 +117,122 @@ URL: ${url}
 }
 
 /**
- * Κατευθύνει πιθανά σφάλματα console.error στο σύστημα διαχείρισης σφαλμάτων
+ * Εμφανίζει ομαδοποιημένα σφάλματα σε ένα toast και στην κονσόλα
  */
-export function setupConsoleErrorHook() {
-  const originalConsoleError = console.error;
+export function displayGroupedErrors(errors: (Error | string)[]) {
+  if (errors.length === 0) return;
 
+  // Δημιουργία τίτλου με βάση τον αριθμό των σφαλμάτων
+  const title = errors.length === 1 
+    ? "Εντοπίστηκε ένα σφάλμα" 
+    : `Εντοπίστηκαν ${errors.length} σφάλματα`;
+  
+  // Δημιουργία σύντομης περιγραφής των σφαλμάτων
+  const description = errors.map(err => 
+    typeof err === 'string' ? err : err.message
+  ).join('\n');
+  
+  // Εμφάνιση toast με όλα τα σφάλματα
+  toast.error(title, {
+    description: description.length > 200 
+      ? description.substring(0, 200) + '...' 
+      : description,
+    duration: 6000,
+    action: {
+      label: "Λεπτομέρειες",
+      onClick: () => {
+        console.group("Λεπτομέρειες σφαλμάτων");
+        errors.forEach((error, index) => {
+          console.error(`Σφάλμα ${index + 1}:`, error);
+        });
+        console.groupEnd();
+      }
+    }
+  });
+  
+  // Καταγραφή όλων των σφαλμάτων στην κονσόλα
+  console.group("Ομαδοποιημένα σφάλματα");
+  errors.forEach((error, index) => {
+    console.error(`Σφάλμα ${index + 1}:`, error);
+  });
+  console.groupEnd();
+  
+  // Αποθήκευση των σφαλμάτων για αποστολή στο chat αν χρειαστεί
+  const formattedErrors = errors.map(err => {
+    const errorObj = typeof err === 'string' ? new Error(err) : err;
+    return {
+      message: errorObj.message,
+      stack: errorObj.stack,
+      timestamp: new Date().toISOString()
+    };
+  });
+  
+  try {
+    localStorage.setItem('grouped_errors', JSON.stringify(formattedErrors));
+  } catch (e) {
+    console.error('Σφάλμα κατά την αποθήκευση ομαδοποιημένων σφαλμάτων:', e);
+  }
+}
+
+/**
+ * Ρυθμίζει τη συλλογή σφαλμάτων console.error και console.warn
+ */
+export function setupGlobalErrorHandling() {
+  // Αποθήκευση των αρχικών συναρτήσεων
+  const originalConsoleError = console.error;
+  const originalConsoleWarn = console.warn;
+  
+  // Αντικατάσταση της console.error
   console.error = function(...args) {
-    // Καλούμε την αρχική console.error για διατήρηση της συμπεριφοράς
+    // Καλούμε την αρχική console.error
     originalConsoleError.apply(console, args);
     
-    // Προσπαθούμε να βρούμε αν υπάρχει Error object στα arguments
+    // Έλεγχος για σφάλματα
     const errorArg = args.find(arg => arg instanceof Error);
     
     if (errorArg && errorArg instanceof Error) {
-      // Αποθηκεύουμε το σφάλμα για πιθανή χρήση αργότερα
-      const errorDetails = {
-        message: errorArg.message,
-        stack: errorArg.stack,
-        timestamp: new Date().toISOString(),
-        url: window.location.href
-      };
-      
+      // Αποθήκευση του σφάλματος
       try {
         const consoleErrors = JSON.parse(localStorage.getItem('console_errors') || '[]');
-        consoleErrors.push(errorDetails);
+        consoleErrors.push({
+          message: errorArg.message,
+          stack: errorArg.stack,
+          timestamp: new Date().toISOString(),
+          url: window.location.href
+        });
         localStorage.setItem('console_errors', JSON.stringify(consoleErrors.slice(-20)));
       } catch (e) {
         // Αγνοούμε σφάλματα κατά την αποθήκευση
       }
     }
   };
-}
-
-/**
- * Παρόμοιο hook για warning μηνύματα
- */
-export function setupConsoleWarningHook() {
-  const originalConsoleWarn = console.warn;
   
+  // Αντικατάσταση της console.warn
   console.warn = function(...args) {
     // Καλούμε την αρχική console.warn
     originalConsoleWarn.apply(console, args);
     
-    // Αποθηκεύουμε τα warnings για πιθανή διάγνωση αργότερα
+    // Αποθήκευση των warnings
     try {
       const warningMessage = args.map(arg => 
         typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
       ).join(' ');
       
-      const warningDetails = {
+      const consoleWarnings = JSON.parse(localStorage.getItem('console_warnings') || '[]');
+      consoleWarnings.push({
         message: warningMessage,
         timestamp: new Date().toISOString(),
         url: window.location.href
-      };
-      
-      const consoleWarnings = JSON.parse(localStorage.getItem('console_warnings') || '[]');
-      consoleWarnings.push(warningDetails);
+      });
       localStorage.setItem('console_warnings', JSON.stringify(consoleWarnings.slice(-10)));
     } catch (e) {
       // Αγνοούμε σφάλματα κατά την αποθήκευση
     }
+  };
+  
+  // Επιστροφή συνάρτησης καθαρισμού
+  return function cleanup() {
+    console.error = originalConsoleError;
+    console.warn = originalConsoleWarn;
   };
 }
