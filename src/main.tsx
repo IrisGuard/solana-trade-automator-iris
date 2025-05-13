@@ -10,7 +10,6 @@ if (typeof window !== 'undefined' && typeof window.Buffer === 'undefined') {
   window.Buffer = require('buffer/').Buffer;
 }
 
-// Προσθήκη περισσότερων logs για debugging
 console.log("Starting Solana Trade Automator application...");
 
 const rootElement = document.getElementById("root");
@@ -20,13 +19,17 @@ if (!rootElement) {
 } else {
   console.log("Root element found, attempting to render application...");
   try {
-    ReactDOM.createRoot(rootElement).render(
+    const root = ReactDOM.createRoot(rootElement);
+    console.log("Root created successfully, rendering app...");
+    
+    root.render(
       <React.StrictMode>
         <ThemeProvider>
           <App />
         </ThemeProvider>
       </React.StrictMode>
     );
+    
     console.log("Application successfully rendered to DOM");
   } catch (error) {
     console.error("Error rendering application:", error);

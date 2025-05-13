@@ -10,6 +10,8 @@ import Settings from "@/pages/Settings";
 import Help from "@/pages/Help";
 import NotFound from "@/pages/NotFound";
 
+console.log("Routes module loaded");
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -49,6 +51,6 @@ const router = createBrowserRouter([
 ]);
 
 export function Routes() {
-  console.log("Routes component rendered");
+  console.log("Routes component rendering");
   return <RouterProvider router={router} />;
 }
