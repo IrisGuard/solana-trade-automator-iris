@@ -1,12 +1,13 @@
 
-import { toast as toastFunction } from "sonner";
+// Διορθωμένη έκδοση με σωστή εξαγωγή του toast από το sonner
+import { toast as sonnerToast } from "sonner";
 
-// Re-export toast for consistent usage
-export const toast = toastFunction;
+// Εξάγει το toast για συνεπή χρήση
+export const toast = sonnerToast;
 
-// Re-export our own implementation of useToast
+// Δημιουργία και εξαγωγή του useToast hook
 export const useToast = () => {
   return {
-    toast: toastFunction,
+    toast: sonnerToast,
   };
 };

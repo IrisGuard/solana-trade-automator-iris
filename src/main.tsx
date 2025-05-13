@@ -5,8 +5,7 @@ import App from "./App";
 import "./index.css";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
-// Απλούστερος τρόπος προσθήκης του Buffer polyfill
-// Αυτό αποφεύγει πιθανές διενέξεις με το bundling κατά την παραγωγή
+// Buffer polyfill
 if (typeof window !== 'undefined' && typeof window.Buffer === 'undefined') {
   window.Buffer = require('buffer/').Buffer;
 }
@@ -14,10 +13,17 @@ if (typeof window !== 'undefined' && typeof window.Buffer === 'undefined') {
 // Προσθήκη κώδικα για επαλήθευση φόρτωσης
 console.log("Εκκίνηση εφαρμογής Solana Trade Automator...");
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <ThemeProvider>
-      <App />
-    </ThemeProvider>
-  </React.StrictMode>
-);
+const rootElement = document.getElementById("root");
+
+if (!rootElement) {
+  console.error("Δεν βρέθηκε το element με id 'root'!");
+} else {
+  ReactDOM.createRoot(rootElement).render(
+    <React.StrictMode>
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
+    </React.StrictMode>
+  );
+  console.log("Η εφαρμογή φορτώθηκε επιτυχώς στο DOM");
+}

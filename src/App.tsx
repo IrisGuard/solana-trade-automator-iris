@@ -8,13 +8,24 @@ import { Toaster } from "sonner";
 function App() {
   useEffect(() => {
     console.log("App component mounted successfully!");
+    
+    // Έλεγχος αν το DOM έχει φορτωθεί πλήρως
+    if (document.readyState === 'complete') {
+      console.log("Document fully loaded");
+    } else {
+      window.addEventListener('load', () => {
+        console.log("Window load event triggered");
+      });
+    }
   }, []);
 
   return (
     <SolanaWalletProvider>
       <SupabaseAuthProvider>
-        <Routes />
-        <Toaster position="top-right" richColors closeButton />
+        <div className="app-container">
+          <Routes />
+          <Toaster position="top-right" richColors closeButton />
+        </div>
       </SupabaseAuthProvider>
     </SolanaWalletProvider>
   );
