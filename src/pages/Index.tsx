@@ -1,47 +1,19 @@
 
 import React from "react";
 import { HeroSection } from "@/components/home/HeroSection";
-import { WalletConnectedContent } from "@/components/home/WalletConnectedContent";
 import { WalletDisconnectedContent } from "@/components/home/WalletDisconnectedContent";
 import { FaqSection } from "@/components/home/FaqSection";
 import { FooterSection } from "@/components/home/FooterSection";
 import { BotExplanationSection } from "@/components/home/BotExplanationSection";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
-import { formatWalletAddress } from "@/utils/walletUtils";
-import { useSolanaWallet } from "@/hooks/useSolanaWallet";
-import { toast } from "sonner";
 
 const Index = () => {
-  const { 
-    connected,
-    walletAddress,
-    balance,
-    tokens,
-    connecting,
-    isLoadingTokens,
-    isLoadingBalance,
-    connectionError,
-    connectWallet
-  } = useSolanaWallet();
+  // Απλοποιημένη έκδοση που δεν εξαρτάται από το wallet
+  const isConnecting = false;
+  const isPhantomInstalled = false;
   
-  const displayAddress = walletAddress ? formatWalletAddress(walletAddress) : "";
-  const isPhantomInstalled = typeof window !== 'undefined' && window.phantom?.solana;
-  
-  // Handle connection and display errors
-  React.useEffect(() => {
-    if (connectionError) {
-      toast.error(`Σφάλμα σύνδεσης: ${connectionError}`, {
-        duration: 5000,
-      });
-    }
-  }, [connectionError]);
-
-  // Handle wallet connection
   const handleConnectWallet = () => {
-    if (connectWallet) {
-      connectWallet();
-    }
+    // Προσωρινή συνάρτηση
+    console.log("Connect wallet button clicked");
   };
 
   return (
@@ -49,33 +21,12 @@ const Index = () => {
       {/* Hero Section */}
       <HeroSection />
 
-      {/* Εμφάνιση σφάλματος αν υπάρχει */}
-      {connectionError && (
-        <Alert variant="destructive" className="my-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            {connectionError}. Παρακαλώ δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη.
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* Main Content */}
-      {connected && walletAddress ? (
-        <WalletConnectedContent 
-          walletAddress={walletAddress} 
-          solBalance={balance || 0} 
-          tokens={tokens} 
-          displayAddress={displayAddress}
-          isLoadingTokens={isLoadingTokens || isLoadingBalance}
-          connectionError={connectionError}
-        />
-      ) : (
-        <WalletDisconnectedContent 
-          isConnecting={connecting}
-          isPhantomInstalled={!!isPhantomInstalled}
-          handleConnectWallet={handleConnectWallet}
-        />
-      )}
+      <WalletDisconnectedContent 
+        isConnecting={isConnecting}
+        isPhantomInstalled={isPhantomInstalled}
+        handleConnectWallet={handleConnectWallet}
+      />
       
       {/* Bot Explanation Section */}
       <BotExplanationSection />

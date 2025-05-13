@@ -4,7 +4,6 @@ import { ConnectWalletCard } from "./ConnectWalletCard";
 import { PlatformInfoCard } from "./PlatformInfoCard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 interface WalletDisconnectedContentProps {
   isConnecting: boolean;

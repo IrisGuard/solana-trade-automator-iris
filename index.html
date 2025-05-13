@@ -6,8 +6,11 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Solana Trading Bot</title>
-    <!-- Απλός Buffer polyfill -->
+    <!-- Buffer polyfill -->
     <script>
+      window.global = window;
+      window.process = { env: {} };
+      
       // Εξασφάλιση ότι το Buffer είναι διαθέσιμο
       if (typeof window !== 'undefined' && !window.Buffer) {
         window.Buffer = {
@@ -26,27 +29,7 @@
           },
           allocUnsafe: function(size) {
             return new Uint8Array(size);
-          },
-          isBuffer: function(obj) {
-            return obj instanceof Uint8Array;
-          },
-          byteLength: function(string) {
-            return string.length;
-          },
-          concat: function(list) {
-            let length = 0;
-            for (let i = 0; i < list.length; i++) {
-              length += list[i].length;
-            }
-            const result = new Uint8Array(length);
-            let offset = 0;
-            for (let i = 0; i < list.length; i++) {
-              result.set(list[i], offset);
-              offset += list[i].length;
-            }
-            return result;
-          },
-          prototype: {}
+          }
         };
       }
       
@@ -60,7 +43,6 @@
             return window.Buffer.from(data, encoding);
           }
         };
-        console.log("kB polyfill initialized");
       }
     </script>
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
