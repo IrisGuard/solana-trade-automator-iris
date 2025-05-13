@@ -7,6 +7,7 @@ import { Toaster } from "./components/ui/sonner";
 import { SolanaWalletProvider } from "./providers/SolanaWalletProvider";
 import { ErrorBoundary } from "react-error-boundary";
 import { toast } from "sonner";
+import { WalletProviderWrapper } from "./components/wallet/WalletProviderWrapper";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -54,10 +55,12 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
             <ErrorBoundary FallbackComponent={FallbackComponent} onError={logError}>
-              <SolanaWalletProvider>
-                <Routes />
-                <Toaster position="bottom-right" />
-              </SolanaWalletProvider>
+              <WalletProviderWrapper>
+                <SolanaWalletProvider>
+                  <Routes />
+                  <Toaster position="bottom-right" />
+                </SolanaWalletProvider>
+              </WalletProviderWrapper>
             </ErrorBoundary>
           </BrowserRouter>
         </QueryClientProvider>
