@@ -2,7 +2,7 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wallet, Loader } from "lucide-react";
+import { Wallet, Loader, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { useErrorReporting } from "@/hooks/useErrorReporting";
 
@@ -24,24 +24,33 @@ export function ConnectPrompt({
   const safeConnect = () => {
     try {
       if (!isPhantomInstalled) {
-        toast.error("Το Phantom Wallet δεν είναι εγκατεστημένο");
-        // Δημιουργία ενός τεχνητού σφάλματος για δοκιμή
-        reportError(new Error("Σφάλμα κατά τη σύνδεση με το Phantom Wallet: Το wallet δεν βρέθηκε"));
+        toast.error("Το Phantom Wallet δεν είναι εγκατεστημένο", {
+          description: "Παρακαλώ εγκαταστήστε το Phantom Wallet για να συνδεθείτε",
+          duration: 5000
+        });
+        
+        reportError(new Error("Προσπάθεια σύνδεσης χωρίς εγκατεστημένο Phantom Wallet"));
         return;
       }
+      
       if (isConnecting) {
-        toast.info("Η σύνδεση είναι σε εξέλιξη, παρακαλώ περιμένετε");
+        toast.info("Η σύνδεση είναι σε εξέλιξη, παρακαλώ περιμένετε", {
+          duration: 3000
+        });
         return;
       }
+      
+      console.log("ConnectPrompt: Initiating wallet connection");
       handleConnectWallet();
     } catch (error) {
       console.error("Σφάλμα κατά τη σύνδεση του wallet:", error);
       toast.error("Σφάλμα κατά τη σύνδεση του wallet");
+      
       // Αναφορά του πραγματικού σφάλματος
       if (error instanceof Error) {
         reportError(error);
       } else {
-        reportError("Άγνωστο σφάλμα κατά τη σύνδεση του wallet");
+        reportError(new Error("Άγνωστο σφάλμα κατά τη σύνδεση του wallet"));
       }
     }
   };
@@ -78,16 +87,28 @@ export function ConnectPrompt({
         </Button>
         
         {!isPhantomInstalled && (
-          <div className="mt-4 text-sm text-muted-foreground">
+          <div className="mt-4 text-sm text-muted-foreground space-y-3">
             <p>Χρειάζεστε το Phantom Wallet για να συνδεθείτε.</p>
             <a 
               href="https://phantom.app/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary underline font-medium"
+              className="text-primary underline font-medium inline-flex items-center gap-1 hover:text-primary/90 transition-colors"
             >
               Κάντε εγκατάσταση από το phantom.app
+              <ExternalLink className="h-3 w-3" />
             </a>
+            
+            <div className="p-3 bg-muted/50 rounded-md mt-2 text-xs">
+              <p className="font-medium mb-1">Οδηγίες εγκατάστασης:</p>
+              <ol className="list-decimal list-inside space-y-1">
+                <li>Επισκεφθείτε το <strong>phantom.app</strong></li>
+                <li>Κατεβάστε το extension για τον browser σας</li>
+                <li>Ακολουθήστε τις οδηγίες εγκατάστασης</li>
+                <li>Δημιουργήστε ή εισάγετε ένα wallet</li>
+                <li>Επιστρέψτε σε αυτή τη σελίδα και συνδεθείτε</li>
+              </ol>
+            </div>
           </div>
         )}
       </CardContent>
