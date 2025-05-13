@@ -2,202 +2,110 @@
 import React from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ApiVaultHeader } from "./components/ApiVaultHeader";
-import { ApiVaultDialogs } from "./components/ApiVaultDialogs";
-import { ApiVaultTabs } from "./components/ApiVaultTabs";
-import { ApiVaultActions } from "./components/ApiVaultActions";
-import { useApiKeyManagement } from "./hooks/useApiKeyManagement";
-import { useApiKeyVisibility } from "./hooks/useApiKeyVisibility";
-import { useVaultSecurity } from "./hooks/useVaultSecurity";
-import { useVaultState } from "./hooks/useVaultState";
-import { useVaultRecovery } from "./hooks/useVaultRecovery";
-import { useKeyOperations } from "./hooks/useKeyOperations";
-import { useKeyTesting } from "./hooks/useKeyTesting";
+import { ApiVaultContent } from "./components/ApiVaultContent";
+import { ApiVaultDialogsContainer } from "./components/ApiVaultDialogsContainer";
+import { useApiVaultState } from "./hooks/useApiVaultState";
 
 export const ApiVaultCard = () => {
-  // Get UI state from hooks
-  const {
-    dialogState,
-    tabState,
-    recoveryState,
-  } = useVaultState();
-
-  // Destructure states from hooks
-  const {
-    showDialogApiKey, setShowDialogApiKey,
-    showImportDialog, setShowImportDialog,
-    showExportSheet, setShowExportSheet,
-    showSettingsDialog, setShowSettingsDialog,
-    showRecoveryDialog, setShowRecoveryDialog,
-  } = dialogState;
-
-  const { activeTab, setActiveTab } = tabState;
-  
-  const {
-    isRecovering, setIsRecovering,
-    recoveredKeys, setRecoveredKeys,
-    recoveryLocations, setRecoveryLocations,
-    isTestingKeys, setIsTestingKeys,
-  } = recoveryState;
-
-  // Key management hooks
-  const {
-    apiKeys,
-    setApiKeys,
-    searchTerm,
-    setSearchTerm,
-    filterService,
-    setFilterService,
-    addNewKey,
-    deleteKey,
-    updateKey,
-    handleImport,
-    getFilteredKeys,
-    getKeysByService
-  } = useApiKeyManagement();
-
-  // Key testing hooks
-  const { testSingleKey, testAllKeys } = useKeyTesting();
-
-  // Handle refreshing all keys - Wrapper function to avoid type errors
-  const handleRefreshKeys = () => {
-    setIsTestingKeys(true);
-    testAllKeys(apiKeys, setApiKeys)
-      .finally(() => {
-        setIsTestingKeys(false);
-      });
-  };
-
-  // API Key Visibility hook
-  const { isKeyVisible, toggleKeyVisibility } = useApiKeyVisibility();
-
-  // Security hooks
-  const {
-    isEncryptionEnabled,
-    setIsEncryptionEnabled,
-    savedMasterPassword,
-    setSavedMasterPassword,
-    isLocked,
-    setIsLocked,
-    isAutoLockEnabled,
-    setIsAutoLockEnabled,
-    autoLockTimeout,
-    setAutoLockTimeout,
-    isUnlocking,
-    setIsUnlocking,
-    handleUnlock,
-    handleLock,
-    saveSecuritySettings
-  } = useVaultSecurity({ apiKeys, setApiKeys });
-
-  // Recovery hooks
-  const { handleRecoverClick } = useVaultRecovery({
-    apiKeys,
-    isRecovering,
-    setIsRecovering,
-    setRecoveredKeys,
-    setRecoveryLocations,
-    setShowRecoveryDialog
-  });
-
-  // Key operations hooks
-  const { handleRecoveredImport, keyStats } = useKeyOperations({
-    apiKeys,
-    handleImport,
-    recoveredKeys,
-    setShowRecoveryDialog
-  });
-
-  // Get unique services and their counts
-  const serviceStats = Object.entries(getKeysByService()).map(([name, keys]) => ({
-    name,
-    count: keys.length,
-  }));
+  // Use the centralized state management hook
+  const state = useApiVaultState();
 
   return (
     <Card>
       <CardHeader className="px-6 pt-6 pb-4">
         <ApiVaultHeader 
-          onAddKey={() => setShowDialogApiKey(true)}
-          onImport={() => setShowImportDialog(true)}
-          onExport={() => setShowExportSheet(true)}
-          apiKeysCount={apiKeys.length}
-          onSettings={() => setShowSettingsDialog(true)}
-          isLocked={isLocked}
-          isEncryptionEnabled={isEncryptionEnabled}
-          onUnlock={() => setIsUnlocking(true)}
-          onLock={handleLock}
+          onAddKey={() => state.setShowDialogApiKey(true)}
+          onImport={() => state.setShowImportDialog(true)}
+          onExport={() => state.setShowExportSheet(true)}
+          apiKeysCount={state.apiKeys.length}
+          onSettings={() => state.setShowSettingsDialog(true)}
+          isLocked={state.isLocked}
+          isEncryptionEnabled={state.isEncryptionEnabled}
+          onUnlock={() => state.setIsUnlocking(true)}
+          onLock={state.handleLock}
         />
       </CardHeader>
       <CardContent className="px-6 pb-6">
         <div className="space-y-6">
-          {/* Key management tabs */}
-          <ApiVaultTabs 
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            apiKeys={apiKeys}
-            isLocked={isLocked}
-            keyStats={keyStats}
-            services={serviceStats}
-            isTestingKeys={isTestingKeys}
-            handleRefreshKeys={handleRefreshKeys}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            filterService={filterService}
-            setFilterService={setFilterService}
-            isKeyVisible={isKeyVisible}
-            toggleKeyVisibility={toggleKeyVisibility}
-            deleteKey={deleteKey}
-            getFilteredKeys={getFilteredKeys}
-            getKeysByService={getKeysByService}
-            onAddKeyClick={() => setShowDialogApiKey(true)}
-            onUnlockClick={() => setIsUnlocking(true)}
-            handleRecoverClick={handleRecoverClick}
-            setApiKeys={setApiKeys}
-          />
-          
-          {/* Additional actions */}
-          <ApiVaultActions 
-            onImportClick={() => setShowImportDialog(true)}
-            onExportClick={() => setShowExportSheet(true)}
-            onLockClick={isLocked ? () => setIsUnlocking(true) : handleLock}
-            onSecurityClick={() => setShowSettingsDialog(true)}
-            isLocked={isLocked}
-            apiKeys={apiKeys}
-            setApiKeys={setApiKeys}
-            isRecovering={isRecovering}
-            isTestingKeys={isTestingKeys}
-            handleRecoverClick={handleRecoverClick}
+          {/* Key management content */}
+          <ApiVaultContent 
+            // Tab state
+            activeTab={state.activeTab}
+            setActiveTab={state.setActiveTab}
+            
+            // Key Management
+            apiKeys={state.apiKeys}
+            setApiKeys={state.setApiKeys}
+            searchTerm={state.searchTerm}
+            setSearchTerm={state.setSearchTerm}
+            filterService={state.filterService}
+            setFilterService={state.setFilterService}
+            
+            // Visibility
+            isKeyVisible={state.isKeyVisible}
+            toggleKeyVisibility={state.toggleKeyVisibility}
+            deleteKey={state.deleteKey}
+            getFilteredKeys={state.getFilteredKeys}
+            getKeysByService={state.getKeysByService}
+            
+            // Stats
+            keyStats={state.keyStats}
+            serviceStats={state.serviceStats}
+            
+            // Security
+            isLocked={state.isLocked}
+            
+            // Recovery
+            isRecovering={state.isRecovering}
+            isTestingKeys={state.isTestingKeys}
+            handleRefreshKeys={state.handleRefreshKeys}
+            handleRecoverClick={state.handleRecoverClick}
+            
+            // Dialog controls
+            setShowImportDialog={state.setShowImportDialog}
+            setShowExportSheet={state.setShowExportSheet}
+            setShowSettingsDialog={state.setShowSettingsDialog}
+            setIsUnlocking={state.setIsUnlocking}
+            setShowDialogApiKey={state.setShowDialogApiKey}
+            handleLock={state.handleLock}
           />
           
           {/* All dialogs */}
-          <ApiVaultDialogs 
-            showDialogApiKey={showDialogApiKey}
-            setShowDialogApiKey={setShowDialogApiKey}
-            showImportDialog={showImportDialog}
-            setShowImportDialog={setShowImportDialog}
-            showExportSheet={showExportSheet}
-            setShowExportSheet={setShowExportSheet}
-            showSettingsDialog={showSettingsDialog}
-            setShowSettingsDialog={setShowSettingsDialog}
-            showRecoveryDialog={showRecoveryDialog}
-            setShowRecoveryDialog={setShowRecoveryDialog}
-            isUnlocking={isUnlocking}
-            setIsUnlocking={setIsUnlocking}
-            apiKeys={apiKeys}
-            addNewKey={addNewKey}
-            handleImport={handleImport}
-            handleUnlock={handleUnlock}
-            savedMasterPassword={savedMasterPassword}
-            isEncryptionEnabled={isEncryptionEnabled}
-            setIsEncryptionEnabled={setIsEncryptionEnabled}
-            isAutoLockEnabled={isAutoLockEnabled}
-            setIsAutoLockEnabled={setIsAutoLockEnabled}
-            autoLockTimeout={autoLockTimeout}
-            setAutoLockTimeout={setAutoLockTimeout}
-            setSavedMasterPassword={setSavedMasterPassword}
-            recoveredKeys={recoveredKeys}
-            recoveryLocations={recoveryLocations}
-            handleRecoveredImport={handleRecoveredImport}
+          <ApiVaultDialogsContainer 
+            // Dialog states
+            showDialogApiKey={state.showDialogApiKey}
+            setShowDialogApiKey={state.setShowDialogApiKey}
+            showImportDialog={state.showImportDialog}
+            setShowImportDialog={state.setShowImportDialog}
+            showExportSheet={state.showExportSheet}
+            setShowExportSheet={state.setShowExportSheet}
+            showSettingsDialog={state.showSettingsDialog}
+            setShowSettingsDialog={state.setShowSettingsDialog}
+            showRecoveryDialog={state.showRecoveryDialog}
+            setShowRecoveryDialog={state.setShowRecoveryDialog}
+            isUnlocking={state.isUnlocking}
+            setIsUnlocking={state.setIsUnlocking}
+            
+            // Key management
+            apiKeys={state.apiKeys}
+            addNewKey={state.addNewKey}
+            handleImport={state.handleImport}
+            
+            // Security
+            handleUnlock={state.handleUnlock}
+            savedMasterPassword={state.savedMasterPassword}
+            isEncryptionEnabled={state.isEncryptionEnabled}
+            setIsEncryptionEnabled={state.setIsEncryptionEnabled}
+            isAutoLockEnabled={state.isAutoLockEnabled}
+            setIsAutoLockEnabled={state.setIsAutoLockEnabled}
+            autoLockTimeout={state.autoLockTimeout}
+            setAutoLockTimeout={state.setAutoLockTimeout}
+            setSavedMasterPassword={state.setSavedMasterPassword}
+            
+            // Recovery
+            recoveredKeys={state.recoveredKeys}
+            recoveryLocations={state.recoveryLocations}
+            handleRecoveredImport={state.handleRecoveredImport}
           />
         </div>
       </CardContent>
