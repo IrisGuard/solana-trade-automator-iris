@@ -182,7 +182,7 @@ export class ApiIntegrationService {
     const examples: {[key: string]: string} = {
       solana: "4aK9Dz1dDN5GG9kGz6wsNJzpHiYCZjfCiTR8WgSQFrq2",
       phantom: "ph_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6",
-      helius: "12345678-1234-5678-1234-567812345678",
+      helius: "ddb32813-1f4b-459d-8964-310b1b73a053",
       openai: "sk-1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9",
       github: "ghp_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9",
       stripe: "sk_test_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6",

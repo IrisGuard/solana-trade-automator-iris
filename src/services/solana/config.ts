@@ -2,14 +2,15 @@ import { Commitment, Connection, PublicKey, clusterApiUrl } from '@solana/web3.j
 
 // Λίστα με αξιόπιστα δημόσια RPC endpoints (για failover)
 export const RPC_ENDPOINTS = {
-  PRIMARY: 'https://api.mainnet-beta.solana.com',
-  BACKUP_1: 'https://solana-mainnet.g.alchemy.com/v2/demo',
+  PRIMARY: 'https://mainnet.helius-rpc.com/?api-key=ddb32813-1f4b-459d-8964-310b1b73a053',
+  BACKUP_1: 'https://eclipse.helius-rpc.com/',
   BACKUP_2: 'https://solana-rpc.publicnode.com',
   BACKUP_3: 'https://api.blockeden.xyz/solana/67nCBdZQSH9z3YqDDjdm',
   BACKUP_4: 'https://go.getblock.io/4136d34f90a6488b84214ae26f0ed5f4',
   BACKUP_5: 'https://solana.drpc.org/',
   BACKUP_6: 'https://endpoints.omniatech.io/v1/sol/mainnet/public',
   BACKUP_7: 'https://solana.api.onfinality.io/public',
+  HELIUS_WS: 'wss://mainnet.helius-rpc.com/?api-key=ddb32813-1f4b-459d-8964-310b1b73a053',
   DEVNET: clusterApiUrl('devnet'),
   TESTNET: clusterApiUrl('testnet')
 };
@@ -26,12 +27,14 @@ export const API_ENDPOINTS = {
   RAYDIUM: 'https://api.raydium.io',
   ORCA: 'https://api.orca.so/v1',
   SOLFLARE: 'https://public-api.solflare.com',
-  COINGECKO: 'https://api.coingecko.com/api/v3'
+  COINGECKO: 'https://api.coingecko.com/api/v3',
+  HELIUS_API: 'https://api.helius.xyz/v0'
 };
 
 // API keys για third-party υπηρεσίες (μόνο για public keys)
 export const API_KEYS = {
-  COINGECKO: 'CG-2KBnBnmkjfr2zoCQA51GsWBj'
+  COINGECKO: 'CG-2KBnBnmkjfr2zoCQA51GsWBj',
+  HELIUS: 'ddb32813-1f4b-459d-8964-310b1b73a053'
 };
 
 // Επιλογές σύνδεσης με ρυθμίσεις αξιοπιστίας
@@ -86,7 +89,7 @@ export const KNOWN_PROGRAMS: Record<string, string> = {
   "PhoeNiXZ8ByJGLkxNfZRnkUfjvmuYqLR89jjFHGqdXY": "Phoenix DEX",
   "J2NhFnBxcwbxovE7avBQCXWJ8Rm5RhQhNSbNybbMWHCU": "Atrix Protocol",
   "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s": "Metaplex Token Metadata",
-  "Stake11111111111111111111111111111111111111": "Stake Program",
+  "Stake1111111111111111111111111111111111111111": "Stake Program",
   "Vote111111111111111111111111111111111111111": "Vote Program",
   "SearcherDz1LucrwNZSXRrZe27iCbXgdZqYdVqjTkDqL": "MEV Searcher Program",
   "ComputeBudget111111111111111111111111111111": "Compute Budget"
