@@ -17,7 +17,6 @@ export function Routes() {
   return (
     <ReactRouterRoutes>
       <Route element={<Layout />}>
-        {/* Το Index γίνεται το default route για το "/" και το Layout θα εμφανίζεται */}
         <Route index element={<Index />} />
         <Route path="/home" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />

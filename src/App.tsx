@@ -16,7 +16,7 @@ function App() {
         <BrowserRouter>
           <SolanaWalletProvider>
             <Routes />
-            <Toaster />
+            <Toaster position="bottom-right" />
           </SolanaWalletProvider>
         </BrowserRouter>
       </QueryClientProvider>
