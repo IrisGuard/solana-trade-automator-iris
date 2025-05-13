@@ -1,52 +1,17 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/use-language";
 import { Languages } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
 
 export function LanguageToggle() {
-  const { language, setLanguage } = useLanguage();
-
-  const handleLanguageChange = (newLang: "el" | "en") => {
-    if (language !== newLang) {
-      setLanguage(newLang);
-      if (newLang === "el") {
-        toast.success("Η γλώσσα άλλαξε σε Ελληνικά");
-      } else {
-        toast.success("Language changed to English");
-      }
-    }
-  };
-
+  // Απλοποιημένη έκδοση του LanguageToggle που εμφανίζει μόνο το εικονίδιο γλώσσας
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Languages className="h-[1.2rem] w-[1.2rem]" />
-          <span className="sr-only">Αλλαγή γλώσσας</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem 
-          onClick={() => handleLanguageChange("el")} 
-          className={language === "el" ? "bg-accent" : ""}
-        >
-          🇬🇷 Ελληνικά
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => handleLanguageChange("en")} 
-          className={language === "en" ? "bg-accent" : ""}
-        >
-          🇬🇧 English
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Button variant="outline" size="icon" className="relative">
+      <Languages className="h-[1.2rem] w-[1.2rem]" />
+      <span className="sr-only">Ελληνική Γλώσσα</span>
+      <div className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+        EL
+      </div>
+    </Button>
   );
 }
