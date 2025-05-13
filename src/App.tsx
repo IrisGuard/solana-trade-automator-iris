@@ -14,6 +14,7 @@ import { SupabaseAuthProvider } from "./providers/SupabaseAuthProvider";
 import { LanguageProvider } from "./providers/LanguageProvider";
 import { GlobalErrorHandler } from "./components/errors/GlobalErrorHandler";
 import { useConsoleErrorMonitor } from "./hooks/useConsoleErrorMonitor";
+import { ConsoleMonitor } from "./components/debug/ConsoleMonitor";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -100,6 +101,7 @@ function App() {
                 <ErrorBoundary FallbackComponent={FallbackComponent} onError={logError}>
                   <Suspense fallback={<div className="flex items-center justify-center h-screen">Φόρτωση εφαρμογής...</div>}>
                     <ErrorMonitor />
+                    <ConsoleMonitor /> {/* Προσθήκη του νέου ConsoleMonitor για παρακολούθηση των σφαλμάτων */}
                     <WalletProviderWrapper>
                       <ErrorBoundary 
                         FallbackComponent={() => (

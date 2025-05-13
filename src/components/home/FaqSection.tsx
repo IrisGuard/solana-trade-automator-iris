@@ -8,48 +8,48 @@ export function FaqSection() {
   
   return (
     <section className="pt-8">
-      <h2 className="text-2xl font-bold mb-6 text-center">{t("faq.title", "Συχνές Ερωτήσεις")}</h2>
+      <h2 className="text-2xl font-bold mb-6 text-center">{t("faq.title")}</h2>
       <div className="grid md:grid-cols-2 gap-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">{t("faq.howItWorks.question", "Πώς λειτουργεί το Trading Bot;")}</CardTitle>
+            <CardTitle className="text-lg">{t("faq.howItWorks.question")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p>
-              {t("faq.howItWorks.answer", "Τα bots μας αναλύουν σε πραγματικό χρόνο τη ροή συναλλαγών στο Solana blockchain, εντοπίζουν ευκαιρίες με βάση τους αλγορίθμους AI και εκτελούν αυτόματα συναλλαγές σύμφωνα με τις στρατηγικές που έχετε επιλέξει. Κάθε συναλλαγή απαιτεί την έγκρισή σας για μέγιστη ασφάλεια.")}
+              {t("faq.howItWorks.answer")}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">{t("faq.security.question", "Είναι ασφαλή τα κεφάλαιά μου;")}</CardTitle>
+            <CardTitle className="text-lg">{t("faq.security.question")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p>
-              {t("faq.security.answer", "Απόλυτα! Τα bots λειτουργούν με περιορισμένα δικαιώματα και δεν έχουν ποτέ πρόσβαση στο ιδιωτικό σας κλειδί. Όλες οι συναλλαγές πρέπει να εγκριθούν από το πορτοφόλι σας και μπορείτε να διακόψετε τη λειτουργία του bot ανά πάσα στιγμή.")}
+              {t("faq.security.answer")}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">{t("faq.fees.question", "Τι χρεώσεις υπάρχουν;")}</CardTitle>
+            <CardTitle className="text-lg">{t("faq.fees.question")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p>
-              {t("faq.fees.answer", "Υπάρχουν τα κανονικά network fees του Solana για κάθε συναλλαγή. Η πλατφόρμα μας χρεώνει ένα μικρό ποσοστό (2%) μόνο στα κερδοφόρα trades, εξασφαλίζοντας ότι κερδίζουμε μόνο όταν κερδίζετε κι εσείς.")}
+              {t("faq.fees.answer")}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">{t("faq.getStarted.question", "Πως ξεκινάω;")}</CardTitle>
+            <CardTitle className="text-lg">{t("faq.getStarted.question")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p>
-              {t("faq.getStarted.answer", "Συνδέστε το Solana wallet σας, περιηγηθείτε στο Bot Control, επιλέξτε ένα token για trading, ορίστε τις παραμέτρους στρατηγικής και ενεργοποιήστε το bot σας. Μπορείτε να παρακολουθείτε την απόδοσή του σε πραγματικό χρόνο από το dashboard.")}
+              {t("faq.getStarted.answer")}
             </p>
           </CardContent>
         </Card>
