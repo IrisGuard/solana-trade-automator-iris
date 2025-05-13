@@ -39,6 +39,34 @@ export function generateTestError(message = "Δοκιμαστικό σφάλμα
 }
 
 /**
+ * Καθαρίζει όλα τα υπάρχοντα σφάλματα από την εφαρμογή
+ */
+export function clearAllErrors() {
+  // Καθαρισμός των σφαλμάτων που έχουν αποθηκευτεί στο localStorage
+  try {
+    localStorage.removeItem('lovable_chat_errors');
+    console.log('Τα αποθηκευμένα σφάλματα καθαρίστηκαν');
+  } catch (e) {
+    console.error('Σφάλμα κατά τον καθαρισμό των σφαλμάτων:', e);
+  }
+  
+  // Προσπάθεια κλήσης της συνάρτησης καθαρισμού σφαλμάτων από το hook
+  try {
+    const clearErrorsEvent = new CustomEvent('lovable-clear-errors');
+    window.dispatchEvent(clearErrorsEvent);
+    console.log('Στάλθηκε custom event για καθαρισμό σφαλμάτων');
+  } catch (e) {
+    console.error('Σφάλμα κατά την αποστολή του event καθαρισμού:', e);
+  }
+  
+  // Προσπάθεια απευθείας καθαρισμού μέσω του window object
+  if (window.lovableChat && typeof window.lovableChat.clearErrors === 'function') {
+    window.lovableChat.clearErrors();
+    console.log('Κλήθηκε η μέθοδος window.lovableChat.clearErrors()');
+  }
+}
+
+/**
  * Προσθέτει ένα κουμπί στη σελίδα που εμφανίζει ένα δοκιμαστικό σφάλμα
  */
 export function addTestErrorButton() {

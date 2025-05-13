@@ -29,24 +29,42 @@ export function useConsoleErrorMonitor() {
         }
       }
 
-      // Εμφάνιση toast για σφάλματα που δεν είναι συνηθισμένα ή αναμενόμενα
-      // Αποφύγετε τα πολύ συχνά σφάλματα από βιβλιοθήκες
-      if (!errorMessage.includes('ResizeObserver') && 
-          !errorMessage.includes('act(...)') &&
-          !errorMessage.includes('findDOMNode') &&
-          !errorMessage.includes('React does not recognize')) {
+      // Έλεγχος για αποφυγή διπλότυπων σφαλμάτων (συχνά εμφανίζονται πολλαπλά ίδια σφάλματα)
+      const now = Date.now();
+      const lastErrorKey = 'last_console_error';
+      const lastErrorTimeKey = 'last_console_error_time';
+      
+      const lastError = sessionStorage.getItem(lastErrorKey);
+      const lastErrorTimeStr = sessionStorage.getItem(lastErrorTimeKey);
+      const lastErrorTime = lastErrorTimeStr ? parseInt(lastErrorTimeStr) : 0;
+      
+      // Έλεγχος αν το ίδιο σφάλμα έχει ήδη καταγραφεί πρόσφατα (τελευταία 3 δευτερόλεπτα)
+      const isDuplicate = lastError === errorMessage && (now - lastErrorTime) < 3000;
+      
+      if (!isDuplicate) {
+        // Αποθήκευση του τρέχοντος σφάλματος ως το τελευταίο που καταγράφηκε
+        sessionStorage.setItem(lastErrorKey, errorMessage);
+        sessionStorage.setItem(lastErrorTimeKey, now.toString());
         
-        // Αναφορά σφάλματος μέσω του συστήματος αναφοράς
-        if (errorObject) {
-          reportError(errorObject, {
-            showToast: false, // Αλλαγή σε false για να αποφύγουμε το διπλό παράθυρο
-            sendToChatInterface: true
-          });
-        } else {
-          reportError(errorMessage, {
-            showToast: false, // Αλλαγή σε false για να αποφύγουμε το διπλό παράθυρο
-            sendToChatInterface: true
-          });
+        // Εμφάνιση toast για σφάλματα που δεν είναι συνηθισμένα ή αναμενόμενα
+        // Αποφύγετε τα πολύ συχνά σφάλματα από βιβλιοθήκες
+        if (!errorMessage.includes('ResizeObserver') && 
+            !errorMessage.includes('act(...)') &&
+            !errorMessage.includes('findDOMNode') &&
+            !errorMessage.includes('React does not recognize')) {
+          
+          // Αναφορά σφάλματος μέσω του συστήματος αναφοράς
+          if (errorObject) {
+            reportError(errorObject, {
+              showToast: false, // Αλλαγή σε false για να αποφύγουμε το διπλό παράθυρο
+              sendToChatInterface: true
+            });
+          } else {
+            reportError(errorMessage, {
+              showToast: false, // Αλλαγή σε false για να αποφύγουμε το διπλό παράθυρο
+              sendToChatInterface: true
+            });
+          }
         }
       }
     };
