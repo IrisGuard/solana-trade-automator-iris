@@ -1,5 +1,8 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { botsService } from "@/services/botsService";
 
 export interface Bot {
   botName: string;
@@ -7,33 +10,13 @@ export interface Bot {
   tokens: string[];
   profit: string;
   timeRunning: string;
+  id?: string;
 }
 
 export function useBotControl() {
-  const [bots, setBots] = useState<Bot[]>([
-    { 
-      botName: "SOL/USDC Bot",
-      isActive: true,
-      tokens: ["SOL", "USDC"],
-      profit: "+3.8%",
-      timeRunning: "12h 34m",
-    },
-    { 
-      botName: "BTC/USDC Bot",
-      isActive: false,
-      tokens: ["BTC", "USDC"],
-      profit: "-0.5%",
-      timeRunning: "0h 0m",
-    },
-    { 
-      botName: "ETH/USDC Bot",
-      isActive: true,
-      tokens: ["ETH", "USDC"],
-      profit: "+2.1%",
-      timeRunning: "5h 17m",
-    },
-  ]);
-
+  const { user } = useAuth();
+  const [bots, setBots] = useState<Bot[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("active");
 
   const templates = [
@@ -66,20 +49,124 @@ export function useBotControl() {
     }
   ];
 
-  const startAllBots = () => {
-    setBots(bots.map(bot => ({ ...bot, isActive: true })));
+  // Load bots from Supabase when the component mounts or user changes
+  useEffect(() => {
+    const fetchBots = async () => {
+      if (!user) return;
+      
+      try {
+        setIsLoading(true);
+        const userBots = await botsService.getBotsByUser(user.id);
+        
+        // Transform bots to match our UI format
+        const transformedBots = userBots.map(bot => ({
+          botName: bot.name,
+          isActive: bot.active || false,
+          tokens: bot.config?.selectedToken ? [bot.config.selectedToken, "USDC"] : ["SOL", "USDC"],
+          profit: bot.config?.profit || "+0.0%",
+          timeRunning: bot.config?.timeRunning || "0h 0m",
+          id: bot.id
+        }));
+        
+        setBots(transformedBots);
+      } catch (error) {
+        console.error("Error fetching bots:", error);
+        toast.error("Αποτυχία φόρτωσης bots");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchBots();
+  }, [user]);
+
+  const startAllBots = async () => {
+    if (!user) {
+      toast.error("Συνδεθείτε πρώτα για να ξεκινήσετε τα bots");
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      const updatedBots = [...bots];
+      
+      for (const bot of updatedBots) {
+        if (bot.id) {
+          await botsService.updateBot(bot.id, { active: true });
+          bot.isActive = true;
+        }
+      }
+      
+      setBots(updatedBots);
+      toast.success("Όλα τα bots ξεκίνησαν");
+    } catch (error) {
+      console.error("Error starting bots:", error);
+      toast.error("Αποτυχία εκκίνησης bots");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const stopAllBots = () => {
-    setBots(bots.map(bot => ({ ...bot, isActive: false })));
+  const stopAllBots = async () => {
+    if (!user) {
+      toast.error("Συνδεθείτε πρώτα για να σταματήσετε τα bots");
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      const updatedBots = [...bots];
+      
+      for (const bot of updatedBots) {
+        if (bot.id) {
+          await botsService.updateBot(bot.id, { active: false });
+          bot.isActive = false;
+        }
+      }
+      
+      setBots(updatedBots);
+      toast.success("Όλα τα bots σταμάτησαν");
+    } catch (error) {
+      console.error("Error stopping bots:", error);
+      toast.error("Αποτυχία διακοπής bots");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleBotStatus = async (index: number) => {
+    if (!user) {
+      toast.error("Συνδεθείτε πρώτα για να διαχειριστείτε τα bots");
+      return;
+    }
+    
+    try {
+      const updatedBots = [...bots];
+      const bot = updatedBots[index];
+      
+      if (bot.id) {
+        await botsService.updateBot(bot.id, { active: !bot.isActive });
+        bot.isActive = !bot.isActive;
+        setBots(updatedBots);
+        
+        toast.success(bot.isActive 
+          ? `Το bot ${bot.botName} ξεκίνησε` 
+          : `Το bot ${bot.botName} σταμάτησε`);
+      }
+    } catch (error) {
+      console.error("Error toggling bot status:", error);
+      toast.error("Αποτυχία αλλαγής κατάστασης bot");
+    }
   };
 
   return {
     bots,
+    isLoading,
     activeTab,
     setActiveTab,
     templates,
     startAllBots,
-    stopAllBots
+    stopAllBots,
+    toggleBotStatus
   };
 }

@@ -9,7 +9,7 @@ import Settings from "@/pages/Settings";
 import Help from "@/pages/Help";
 import NotFound from "@/pages/NotFound";
 import ApiVault from "@/pages/ApiVault";
-import Bots from "@/pages/Bots";
+import BotControl from "@/pages/BotControl";
 import Index from "@/pages/Index";
 import Home from "@/pages/Home";
 
@@ -26,7 +26,7 @@ export function Routes() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/help" element={<Help />} />
         <Route path="/api-vault" element={<ApiVault />} />
-        <Route path="/bots" element={<Bots />} />
+        <Route path="/bot-control" element={<BotControl />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </ReactRouterRoutes>

@@ -2,13 +2,19 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
-import { Lock, Wallet } from "lucide-react";
+import { Lock, Wallet, Zap } from "lucide-react";
 import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
 import { useWalletStatus } from "@/hooks/useWalletStatus";
+import { toast } from "sonner";
 
 export function HeroSection() {
   const navigate = useNavigate();
   const { isConnected } = useWalletStatus();
+  
+  const handleNavigateWithToast = (path: string, message: string) => {
+    toast.success(message);
+    navigate(path);
+  };
   
   return (
     <div className="py-10 md:py-16 px-4 flex flex-col items-center text-center">
@@ -23,9 +29,10 @@ export function HeroSection() {
         {isConnected ? (
           <Button
             size="lg"
-            onClick={() => navigate('/home')}
+            onClick={() => handleNavigateWithToast('/home', 'Μετάβαση στο Dashboard')}
             className="gap-2 w-full md:w-auto"
           >
+            <Zap className="h-5 w-5" />
             Είσοδος στο Dashboard
           </Button>
         ) : (
@@ -41,11 +48,11 @@ export function HeroSection() {
         <Button
           variant="outline"
           size="lg"
-          onClick={() => navigate('/api-vault')}
+          onClick={() => handleNavigateWithToast('/bot-control', 'Μετάβαση στα Trading Bots')}
           className="gap-2 w-full md:w-auto"
         >
-          <Lock className="h-5 w-5" />
-          <span>Κλειδοθήκη API</span>
+          <Zap className="h-5 w-5" />
+          <span>Trading Bots</span>
         </Button>
       </div>
     </div>

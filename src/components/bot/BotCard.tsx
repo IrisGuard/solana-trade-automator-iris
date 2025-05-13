@@ -13,14 +13,27 @@ export interface BotCardProps {
   profit: string;
   timeRunning: string;
   index: number;
+  onToggle?: (index: number) => void;
 }
 
-export function BotCard({ botName, isActive, tokens, profit, timeRunning, index }: BotCardProps) {
+export function BotCard({ 
+  botName, 
+  isActive, 
+  tokens, 
+  profit, 
+  timeRunning, 
+  index,
+  onToggle
+}: BotCardProps) {
   const [active, setActive] = useState(isActive);
   const [expanded, setExpanded] = useState(false);
 
   const toggleBot = () => {
-    setActive(!active);
+    if (onToggle) {
+      onToggle(index);
+    } else {
+      setActive(!active);
+    }
   };
 
   return (
@@ -28,7 +41,7 @@ export function BotCard({ botName, isActive, tokens, profit, timeRunning, index 
       <BotCardHeader 
         botName={botName} 
         tokens={tokens} 
-        isActive={active} 
+        isActive={onToggle ? isActive : active} 
         onToggle={toggleBot} 
       />
       
