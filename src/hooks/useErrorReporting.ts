@@ -14,7 +14,7 @@ export function useErrorReporting() {
     showToast: true,
     logToConsole: true,
     saveToDatabase: true,
-    sendToChatInterface: true // Νέα επιλογή για αποστολή στο chat interface
+    sendToChatInterface: true
   };
 
   const reportError = async (error: Error | string, options: ErrorReportingOptions = defaultOptions) => {
@@ -26,6 +26,10 @@ export function useErrorReporting() {
       toast.error(`Σφάλμα: ${errorMessage}`, {
         description: "Το σφάλμα καταγράφηκε αυτόματα.",
         duration: 5000,
+        action: {
+          label: "Αποστολή στο chat",
+          onClick: () => sendErrorToChat(errorMessage, errorStack)
+        }
       });
     }
     
@@ -41,27 +45,7 @@ export function useErrorReporting() {
     
     // Αποστολή στο chat interface
     if (options.sendToChatInterface) {
-      try {
-        // Δημιουργία μηνύματος στο lovable-chat
-        const chatMessage = {
-          type: 'error',
-          message: errorMessage,
-          stack: errorStack,
-          timestamp: new Date().toISOString(),
-          url: window.location.href,
-        };
-        
-        // Αποθήκευση στο localStorage για πρόσβαση από το chat
-        const storedErrors = JSON.parse(localStorage.getItem('lovable_chat_errors') || '[]');
-        storedErrors.push(chatMessage);
-        localStorage.setItem('lovable_chat_errors', JSON.stringify(storedErrors));
-        
-        // Αποστολή event για να ενημερώσει το chat interface
-        const event = new CustomEvent('lovable-error', { detail: chatMessage });
-        window.dispatchEvent(event);
-      } catch (e) {
-        console.error("Σφάλμα κατά την αποστολή του σφάλματος στο chat interface:", e);
-      }
+      sendErrorToChat(errorMessage, errorStack);
     }
     
     // Αποθήκευση στη βάση δεδομένων
@@ -93,5 +77,37 @@ export function useErrorReporting() {
     }
   };
   
-  return { reportError };
+  // Νέα συνάρτηση για αποστολή σφάλματος στο chat
+  const sendErrorToChat = (errorMessage: string, errorStack?: string) => {
+    try {
+      // Δημιουργία μηνύματος για το chat
+      const chatMessage = {
+        type: 'error',
+        message: errorMessage,
+        stack: errorStack,
+        timestamp: new Date().toISOString(),
+        url: window.location.href,
+      };
+      
+      // Αποθήκευση στο localStorage για εύκολη πρόσβαση
+      const storedErrors = JSON.parse(localStorage.getItem('lovable_chat_errors') || '[]');
+      storedErrors.push(chatMessage);
+      localStorage.setItem('lovable_chat_errors', JSON.stringify(storedErrors));
+      
+      // Αποστολή event για να ενημερώσει το chat interface
+      const event = new CustomEvent('lovable-error', { 
+        detail: chatMessage
+      });
+      window.dispatchEvent(event);
+      
+      // Δημιουργία παραθύρου διαλόγου στο chat
+      if (window.lovableChat && typeof window.lovableChat.createErrorDialog === 'function') {
+        window.lovableChat.createErrorDialog(chatMessage);
+      }
+    } catch (e) {
+      console.error("Σφάλμα κατά την αποστολή του σφάλματος στο chat interface:", e);
+    }
+  };
+  
+  return { reportError, sendErrorToChat };
 }

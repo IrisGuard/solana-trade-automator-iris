@@ -14,6 +14,8 @@ interface ErrorFallbackProps {
 
 // Component που εμφανίζεται σε περίπτωση σφάλματος
 const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetErrorBoundary }) => {
+  const { sendErrorToChat } = useErrorReporting();
+
   return (
     <Alert variant="destructive" className="my-4">
       <AlertTriangle className="h-4 w-4" />
@@ -25,14 +27,22 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetErrorBoundary
         <p className="text-sm font-mono bg-destructive/10 p-2 rounded max-h-32 overflow-y-auto mb-2">
           {error.message}
         </p>
-        <Button 
-          size="sm" 
-          variant="outline"
-          className="mt-2"
-          onClick={resetErrorBoundary}
-        >
-          <RefreshCw className="h-4 w-4 mr-2" /> Επαναφόρτωση
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={resetErrorBoundary}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" /> Επαναφόρτωση
+          </Button>
+          <Button 
+            size="sm" 
+            variant="secondary"
+            onClick={() => sendErrorToChat(error.message, error.stack)}
+          >
+            Αποστολή στο chat
+          </Button>
+        </div>
       </AlertDescription>
     </Alert>
   );
@@ -43,10 +53,11 @@ interface GlobalErrorHandlerProps {
 }
 
 export const GlobalErrorHandler: React.FC<GlobalErrorHandlerProps> = ({ children }) => {
-  const { reportError } = useErrorReporting();
+  const { reportError, sendErrorToChat } = useErrorReporting();
 
   // Χειριστής σφαλμάτων που καταγράφει τα σφάλματα
   const logError = (error: Error, info: { componentStack: string }) => {
+    // Αποστολή στο σύστημα αναφοράς
     reportError(error, {
       showToast: true,
       logToConsole: true,
@@ -54,7 +65,16 @@ export const GlobalErrorHandler: React.FC<GlobalErrorHandlerProps> = ({ children
       sendToChatInterface: true
     });
     
-    // Αποθήκευση του σφάλματος και στο lovable_chat_errors
+    // Εμφάνιση toast με επιλογή αποστολής στο chat
+    toast.error(`Σφάλμα: ${error.message}`, {
+      description: "Πατήστε για αποστολή στο chat για ανάλυση",
+      action: {
+        label: "Αποστολή",
+        onClick: () => sendErrorToChat(error.message, error.stack)
+      }
+    });
+    
+    // Αποθήκευση του σφάλματος στο lovable_chat_errors
     try {
       const errorData = {
         type: 'error',

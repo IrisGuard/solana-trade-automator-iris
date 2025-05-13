@@ -15,6 +15,7 @@ import { LanguageProvider } from "./providers/LanguageProvider";
 import { GlobalErrorHandler } from "./components/errors/GlobalErrorHandler";
 import { useConsoleErrorMonitor } from "./hooks/useConsoleErrorMonitor";
 import { ConsoleMonitor } from "./components/debug/ConsoleMonitor";
+import { useErrorDialogInChat } from "./components/debug/ErrorDialogInChat";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -90,6 +91,12 @@ function ErrorMonitor() {
   return null;
 }
 
+// Component για την εμφάνιση των διαλογικών παραθύρων σφάλματος
+function ErrorDialogsRenderer() {
+  const { ErrorDialogs } = useErrorDialogInChat();
+  return <ErrorDialogs />;
+}
+
 function App() {
   return (
     <GlobalErrorHandler>
@@ -101,7 +108,8 @@ function App() {
                 <ErrorBoundary FallbackComponent={FallbackComponent} onError={logError}>
                   <Suspense fallback={<div className="flex items-center justify-center h-screen">Φόρτωση εφαρμογής...</div>}>
                     <ErrorMonitor />
-                    <ConsoleMonitor /> {/* Προσθήκη του νέου ConsoleMonitor για παρακολούθηση των σφαλμάτων */}
+                    <ConsoleMonitor />
+                    <ErrorDialogsRenderer /> {/* Προσθήκη των διαλογικών παραθύρων σφάλματος */}
                     <WalletProviderWrapper>
                       <ErrorBoundary 
                         FallbackComponent={() => (

@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { useErrorReporting } from './useErrorReporting';
 
 export function useConsoleErrorMonitor() {
-  const { reportError } = useErrorReporting();
+  const { reportError, sendErrorToChat } = useErrorReporting();
 
   useEffect(() => {
     // Αποθηκεύστε την αρχική συνάρτηση console.error
@@ -49,10 +49,21 @@ export function useConsoleErrorMonitor() {
           });
         }
         
+        // Εμφάνιση toast με επιλογή αποστολής στο chat
         toast.error("Σφάλμα στην εφαρμογή", {
           description: errorMessage.length > 100 
             ? errorMessage.substring(0, 100) + '...' 
             : errorMessage,
+          action: {
+            label: "Αποστολή στο chat",
+            onClick: () => {
+              if (errorObject) {
+                sendErrorToChat(errorMessage, errorObject.stack);
+              } else {
+                sendErrorToChat(errorMessage);
+              }
+            }
+          }
         });
       }
     };
@@ -61,5 +72,5 @@ export function useConsoleErrorMonitor() {
     return () => {
       console.error = originalConsoleError;
     };
-  }, [reportError]);
+  }, [reportError, sendErrorToChat]);
 }

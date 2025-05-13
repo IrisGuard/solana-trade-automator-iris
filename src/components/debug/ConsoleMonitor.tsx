@@ -12,7 +12,7 @@ interface LogRecord {
 
 export function ConsoleMonitor() {
   const [logs, setLogs] = useState<LogRecord[]>([]);
-  const { reportError } = useErrorReporting();
+  const { reportError, sendErrorToChat } = useErrorReporting();
 
   // Παρακολούθηση του console.error και console.warn
   useEffect(() => {
@@ -59,15 +59,31 @@ export function ConsoleMonitor() {
         
         setLogs(prev => [...prev, newLog]);
         
-        // Αποστολή στο σύστημα αναφοράς σφαλμάτων
+        // Εμφάνιση toast με επιλογή αποστολής στο chat
+        toast.error(`Σφάλμα: ${errorMessage.substring(0, 50)}${errorMessage.length > 50 ? '...' : ''}`, {
+          description: "Πατήστε για αποστολή στο chat",
+          duration: 5000,
+          action: {
+            label: "Αποστολή",
+            onClick: () => {
+              if (errorObject) {
+                sendErrorToChat(errorMessage, errorObject.stack);
+              } else {
+                sendErrorToChat(errorMessage);
+              }
+            }
+          }
+        });
+        
+        // Αυτόματη αποστολή στο σύστημα αναφοράς σφαλμάτων
         if (errorObject) {
           reportError(errorObject, {
-            showToast: false, 
+            showToast: false,
             sendToChatInterface: true
           });
         } else {
           reportError(errorMessage, {
-            showToast: false, 
+            showToast: false,
             sendToChatInterface: true
           });
         }
@@ -103,12 +119,22 @@ export function ConsoleMonitor() {
       setLogs(prev => [...prev, newLog]);
     };
 
+    // Δημιουργία χειριστή για το lovable-error event
+    const handleLovableError = (event: CustomEvent) => {
+      // Το event έχει ήδη δημιουργηθεί, οπότε δεν χρειάζεται επιπλέον επεξεργασία
+      console.log("Λήφθηκε lovable-error event:", event.detail);
+    };
+
+    // Προσθήκη του event listener
+    window.addEventListener('lovable-error', handleLovableError as EventListener);
+
     // Καθαρισμός κατά την απομόντωση
     return () => {
       console.error = originalConsoleError;
       console.warn = originalConsoleWarn;
+      window.removeEventListener('lovable-error', handleLovableError as EventListener);
     };
-  }, [reportError]);
+  }, [reportError, sendErrorToChat]);
 
   // Προσθήκη περιοδικού ελέγχου για νέα σφάλματα στο lovable_chat_errors
   useEffect(() => {
