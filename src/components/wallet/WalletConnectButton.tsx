@@ -21,7 +21,7 @@ export const WalletConnectButton = ({
   isLoading = false,
   children
 }: WalletConnectButtonProps) => {
-  const { connected, connecting, select, wallet } = useWallet();
+  const { connected, connecting } = useWallet();
   const { setVisible } = useWalletModal();
 
   const handleClick = () => {
