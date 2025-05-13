@@ -15,7 +15,10 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       port: 8080,
     },
     plugins: [
-      react(),
+      react({
+        // Force React refresh to be enabled in all environments
+        refresh: true,
+      }),
       mode === 'development' && componentTagger(),
     ].filter(Boolean) as PluginOption[],
     resolve: {
@@ -29,6 +32,10 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         util: 'util/',
         crypto: 'crypto-browserify',
         assert: 'assert/',
+        // Add React alias to ensure consistent version
+        "react": path.resolve(__dirname, "node_modules/react"),
+        "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
+        "react-router-dom": path.resolve(__dirname, "node_modules/react-router-dom"),
       },
     },
     define: {
@@ -67,12 +74,14 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         'react-dom',
         'react-router-dom'
       ],
+      // Force optimization of problematic dependencies
+      force: true,
     },
     build: {
       commonjsOptions: {
         transformMixedEsModules: true,
         // Add explicit includes for process module
-        include: [/node_modules\/process/, /node_modules\/buffer/],
+        include: [/node_modules\/process/, /node_modules\/buffer/, /node_modules\/react-router-dom/],
       },
       rollupOptions: {
         plugins: [
@@ -88,6 +97,12 @@ export default defineConfig(({ mode }: ConfigEnv) => {
           warn(warning);
         },
       },
+      // Ensure sourcemaps are generated
+      sourcemap: true,
+      // Increase build performance
+      minify: 'esbuild',
+      // Improve chunk size
+      chunkSizeWarningLimit: 1000,
     }
   };
 });

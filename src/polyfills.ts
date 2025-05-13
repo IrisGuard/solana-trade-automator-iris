@@ -1,21 +1,31 @@
 
-// Manually polyfill globalThis for older browsers
-if (typeof globalThis === 'undefined') {
-  (window as any).globalThis = window;
-}
+/**
+ * Polyfills for browser compatibility
+ * This file should be imported before any other code
+ */
 
-// Ensure process object exists for browser
-if (typeof window !== 'undefined' && !window.process) {
-  (window as any).process = {
-    env: {},
-    browser: true,
-  };
-}
+// Include React patches
+import './utils/reactPatches';
 
 // Buffer polyfill
-import { Buffer } from 'buffer';
 if (typeof window !== 'undefined' && !window.Buffer) {
-  window.Buffer = Buffer;
+  console.log('Setting up Buffer polyfill');
+  try {
+    import('buffer').then(({ Buffer }) => {
+      window.Buffer = Buffer;
+    });
+  } catch (e) {
+    console.error('Failed to load Buffer polyfill', e);
+  }
 }
 
-// These polyfills help Solana web3.js work in browsers
+// Process polyfill
+if (typeof window !== 'undefined' && !window.process) {
+  console.log('Setting up process polyfill');
+  window.process = {
+    env: {},
+    version: '',
+    versions: {},
+    browser: true,
+  } as any;
+}

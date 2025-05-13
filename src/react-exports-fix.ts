@@ -1,5 +1,7 @@
 
-// This file ensures React hooks are properly exported and available
+/**
+ * Enhanced React exports fix to ensure proper hook availability for react-router-dom
+ */
 import * as React from 'react';
 
 // Re-export the React object with all its properties
@@ -25,3 +27,9 @@ export const {
   useTransition
   // React 18 specific hooks that aren't available in this version have been removed
 } = React;
+
+// Ensure these hooks are definitely exported (redundant but ensuring exports work)
+export const useStateExport = React.useState;
+export const useEffectExport = React.useEffect;
+export const useContextExport = React.useContext;
+export const useRefExport = React.useRef;

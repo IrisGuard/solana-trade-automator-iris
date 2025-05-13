@@ -1,7 +1,8 @@
 
 // Import polyfills first
 import './polyfills';
-// Import our React exports fix
+
+// Import our React exports fix - this MUST be before any React-router imports
 import './react-exports-fix';
 
 import React from 'react';
