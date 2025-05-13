@@ -3,7 +3,8 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('@solana/wallet-adapter-react-ui/styles.css');
+/* Make sure Solana Wallet Adapter styles are imported correctly */
+@import '@solana/wallet-adapter-react-ui/styles.css';
 
 @layer base {
   :root {
