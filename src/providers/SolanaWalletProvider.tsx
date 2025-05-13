@@ -3,8 +3,9 @@ import React, { useMemo } from 'react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
-import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { PhantomWalletAdapter, SolflareWalletAdapter, TorusWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
+import { SolanaProviderFallback } from '@/components/wallet/SolanaProviderFallback';
 
 // Default styles
 import '@solana/wallet-adapter-react-ui/styles.css';
@@ -23,13 +24,15 @@ export const SolanaWalletProvider: React.FC<Props> = ({ children }) => {
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
+      new SolflareWalletAdapter(),
+      new TorusWalletAdapter()
     ],
     []
   );
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect={false}>
+      <WalletProvider wallets={wallets} autoConnect={true}>
         <WalletModalProvider>
           {children}
         </WalletModalProvider>

@@ -21,17 +21,22 @@ export const WalletConnectButton = ({
   isLoading = false,
   children
 }: WalletConnectButtonProps) => {
-  const { connected, connecting } = useWallet();
+  const { connected, connecting, publicKey, disconnect } = useWallet();
   const { setVisible } = useWalletModal();
 
   const handleClick = () => {
     if (connecting) return;
     
     try {
-      setVisible(true);
+      if (connected && publicKey) {
+        disconnect();
+        toast.success("Το πορτοφόλι αποσυνδέθηκε");
+      } else {
+        setVisible(true);
+      }
     } catch (error) {
-      console.error("Error showing wallet modal:", error);
-      toast.error("Δεν ήταν δυνατό το άνοιγμα του πορτοφολιού");
+      console.error("Error handling wallet connection:", error);
+      toast.error("Παρουσιάστηκε σφάλμα κατά τη διαχείριση σύνδεσης");
     }
   };
 
@@ -48,7 +53,7 @@ export const WalletConnectButton = ({
       ) : (
         <Wallet className="h-4 w-4 mr-2" />
       )}
-      {children || (connected ? "Συνδεδεμένο Wallet" : "Σύνδεση με Wallet")}
+      {children || (connected ? "Αποσύνδεση Wallet" : "Σύνδεση με Wallet")}
     </Button>
   );
 };

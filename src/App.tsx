@@ -7,7 +7,14 @@ import { Toaster } from "./components/ui/sonner";
 import { SolanaWalletProvider } from "./providers/SolanaWalletProvider";
 
 // Create a client
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 function App() {
   return (
