@@ -1,7 +1,13 @@
 
-import { useToast as useToastOriginal } from "@/components/ui/toast";
+// Import directly from sonner for simplicity
+import { toast as sonnerToast, useToaster } from "sonner";
 
-export const useToast = useToastOriginal;
+// Create a consistent useToast hook API
+export function useToast() {
+  return {
+    toast: sonnerToast
+  };
+}
 
 // Re-export the toast function from sonner for easier use
-export { toast } from "sonner";
+export { sonnerToast as toast };

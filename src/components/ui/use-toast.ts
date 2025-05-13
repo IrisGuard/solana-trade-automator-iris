@@ -1,3 +1,3 @@
 
 // Forward exports from the main hooks location for compatibility
-export { toast, useToast } from "@/hooks/use-toast";
+export { useToast, toast } from "@/hooks/use-toast";

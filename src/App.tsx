@@ -3,7 +3,6 @@ import { Outlet } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { WalletButton } from "@/components/wallet/WalletButton";
 import { HelpButton } from "@/components/help/HelpButton";
-import { Toaster as SonnerToaster } from "sonner";
 
 export default function App() {
   return (
@@ -17,7 +16,6 @@ export default function App() {
       
       <HelpButton />
       <Toaster />
-      <SonnerToaster position="top-center" />
     </div>
   );
 }
