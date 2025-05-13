@@ -8,6 +8,7 @@ import { HelpButton } from "@/components/help/HelpButton";
 
 const pageTitles: Record<string, string> = {
   "/": "Αρχική",
+  "/home": "Αρχική",
   "/dashboard": "Dashboard",
   "/wallet": "Πορτοφόλι",
   "/transactions": "Συναλλαγές",
@@ -19,8 +20,6 @@ const pageTitles: Record<string, string> = {
 export function Layout() {
   const location = useLocation();
   const title = pageTitles[location.pathname] || "Solana Trade";
-  
-  console.log("Layout component rendered with path:", location.pathname);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -32,7 +31,6 @@ export function Layout() {
         </main>
       </div>
       
-      {/* Προσθήκη του κουμπιού βοήθειας */}
       <HelpButton />
     </div>
   );

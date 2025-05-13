@@ -1,9 +1,3 @@
 
-import { toast } from "sonner";
-
-// Απλοποιημένη υλοποίηση toast που δεν θα μπλοκάρει το UI rendering
-export { toast };
-
-export const useToast = () => {
-  return { toast };
-};
+// Forward exports from the main hooks location for compatibility
+export { useToast, toast } from "@/components/ui/sonner";
