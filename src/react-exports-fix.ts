@@ -1,6 +1,6 @@
 
 // This file ensures React hooks are properly exported and available
-import React from 'react';
+import * as React from 'react';
 
 // Re-export the React object with all its properties
 export default React;
