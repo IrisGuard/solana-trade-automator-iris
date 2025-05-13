@@ -1,12 +1,13 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Key, Plus, Upload, Database, Server } from "lucide-react";
+import { Key, Plus, Upload, Database, Server, Globe } from "lucide-react";
 import { injectDemoKeys } from "../utils";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ApiKey } from "../types";
+import { importEndpointsFromEnv } from "@/utils/supabaseEndpoints";
 
 interface EmptyApiVaultProps {
   onAddKeyClick: () => void;
@@ -21,6 +22,7 @@ export const EmptyApiVault: React.FC<EmptyApiVaultProps> = ({
 }) => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isImportingEndpoints, setIsImportingEndpoints] = useState(false);
 
   const handleSyncFromSupabase = async () => {
     if (!user) {
@@ -69,6 +71,15 @@ export const EmptyApiVault: React.FC<EmptyApiVaultProps> = ({
     }
   };
 
+  const handleImportEndpoints = async () => {
+    setIsImportingEndpoints(true);
+    try {
+      await importEndpointsFromEnv();
+    } finally {
+      setIsImportingEndpoints(false);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center py-12 space-y-4 text-center">
       <div className="p-4 bg-muted rounded-full">
@@ -112,7 +123,18 @@ export const EmptyApiVault: React.FC<EmptyApiVaultProps> = ({
             {isLoading ? 'Φόρτωση...' : 'Συγχρονισμός από Supabase'}
           </Button>
         )}
+
+        <Button
+          variant="outline"
+          onClick={handleImportEndpoints}
+          disabled={isImportingEndpoints}
+          className="gap-1"
+        >
+          <Globe className={`h-4 w-4 ${isImportingEndpoints ? 'animate-pulse' : ''}`} />
+          {isImportingEndpoints ? 'Εισαγωγή...' : 'Εισαγωγή Endpoints από ENV'}
+        </Button>
       </div>
     </div>
   );
 };
+

@@ -1,164 +1,150 @@
 
-import { toast } from "sonner";
 import { ApiKey } from "./types";
-import { solanaService } from "@/services/solana";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-// Service for testing API connections and validating keys
-export const ApiIntegrationService = {
-  // Test the connection for a specific API key
-  testConnection: async (apiKey: ApiKey): Promise<boolean> => {
+export interface ApiKeyInsert {
+  name: string;
+  key_value: string;
+  service: string;
+  description?: string;
+  status?: string;
+  user_id: string;
+  is_encrypted?: boolean;
+}
+
+export class ApiIntegrationService {
+  static async saveKeyToSupabase(apiKey: ApiKey, userId: string): Promise<boolean> {
     try {
-      switch (apiKey.service.toLowerCase()) {
-        case 'solana':
-        case 'solarpc':
-          // Test Solana RPC connection
-          return await testSolanaRPC(apiKey.key);
-        case 'phantom':
-          // Test if Phantom is installed
-          return !!window.solana?.isPhantom;
-        case 'solscan':
-          // Test Solscan API
-          return await testSolscanAPI(apiKey.key);
-        case 'jupiter':
-          // Test Jupiter API
-          return await testJupiterAPI(apiKey.key);
-        case 'helius':
-          // Test Helius API
-          return await testHeliusAPI(apiKey.key);
-        case 'quicknode':
-          // Test QuickNode API
-          return await testQuickNodeAPI(apiKey.key);
-        default:
-          // For other APIs, just check if the key format seems valid
-          return validateKeyFormat(apiKey.key, apiKey.service);
+      const { data, error } = await supabase
+        .from('api_keys_storage')
+        .insert({
+          id: apiKey.id,
+          name: apiKey.name,
+          key_value: apiKey.key,
+          service: apiKey.service,
+          description: apiKey.description,
+          status: apiKey.status || 'active',
+          user_id: userId,
+          is_encrypted: false, // Local encryption is handled separately
+          created_at: apiKey.createdAt
+        })
+        .select();
+        
+      if (error) {
+        throw error;
       }
-    } catch (error) {
-      console.error(`Error testing connection for ${apiKey.service}:`, error);
+      
+      return true;
+    } catch (e) {
+      console.error('Error saving API key to Supabase:', e);
       return false;
     }
-  },
+  }
+  
+  static async fetchKeysFromSupabase(userId: string): Promise<ApiKey[]> {
+    try {
+      const { data, error } = await supabase
+        .from('api_keys_storage')
+        .select('*')
+        .eq('user_id', userId);
+        
+      if (error) {
+        throw error;
+      }
+      
+      if (!data || data.length === 0) {
+        return [];
+      }
+      
+      return data.map(item => ({
+        id: item.id,
+        name: item.name,
+        key: item.key_value,
+        service: item.service,
+        createdAt: item.created_at || new Date().toISOString(),
+        description: item.description,
+        status: item.status as 'active' | 'expired' | 'revoked',
+        source: 'supabase'
+      }));
+      
+    } catch (e) {
+      console.error('Error fetching API keys from Supabase:', e);
+      return [];
+    }
+  }
+  
+  static async deleteKeyFromSupabase(keyId: string, userId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('api_keys_storage')
+        .delete()
+        .eq('id', keyId)
+        .eq('user_id', userId);
+        
+      if (error) {
+        throw error;
+      }
+      
+      return true;
+    } catch (e) {
+      console.error('Error deleting API key from Supabase:', e);
+      return false;
+    }
+  }
+  
+  static async updateKeyInSupabase(apiKey: ApiKey, userId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('api_keys_storage')
+        .update({
+          name: apiKey.name,
+          key_value: apiKey.key,
+          service: apiKey.service,
+          description: apiKey.description,
+          status: apiKey.status || 'active',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', apiKey.id)
+        .eq('user_id', userId);
+        
+      if (error) {
+        throw error;
+      }
+      
+      return true;
+    } catch (e) {
+      console.error('Error updating API key in Supabase:', e);
+      return false;
+    }
+  }
 
-  // Get service-specific key format requirements
-  getKeyPatternForService: (service: string): RegExp | null => {
-    const patterns: Record<string, RegExp> = {
-      'solana': /^[a-zA-Z0-9]+$/,
-      'phantom': /^[a-zA-Z0-9]+$/,
-      'supabase': /^eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+$/,
-      'openai': /^sk-[a-zA-Z0-9]{32,}$/,
-      'stripe': /^(pk|sk|rk)_(test|live)_[a-zA-Z0-9]+$/,
-      'github': /^gh[a-z]_[a-zA-Z0-9]+$/,
-      'helius': /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/
-    };
+  static async syncKeysWithSupabase(apiKeys: ApiKey[], userId: string): Promise<number> {
+    if (!userId) {
+      toast.error("Πρέπει να συνδεθείτε για να συγχρονίσετε τα κλειδιά σας");
+      return 0;
+    }
     
-    return patterns[service.toLowerCase()] || null;
-  },
-
-  // Detect service type from key format
-  detectServiceFromKey: (key: string): string | null => {
-    if (/^eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+$/.test(key)) {
-      return 'supabase';
+    try {
+      let syncedCount = 0;
+      
+      // Get existing keys from Supabase
+      const existingKeys = await this.fetchKeysFromSupabase(userId);
+      const existingKeyIds = existingKeys.map(key => key.id);
+      
+      // Keys to add (not in Supabase yet)
+      const keysToAdd = apiKeys.filter(key => !existingKeyIds.includes(key.id));
+      
+      // Add new keys
+      for (const key of keysToAdd) {
+        const success = await this.saveKeyToSupabase(key, userId);
+        if (success) syncedCount++;
+      }
+      
+      return syncedCount;
+    } catch (e) {
+      console.error('Error syncing API keys with Supabase:', e);
+      return 0;
     }
-    if (/^sk-[a-zA-Z0-9]{32,}$/.test(key)) {
-      return 'openai';
-    }
-    if (/^(pk|sk|rk)_(test|live)_[a-zA-Z0-9]+$/.test(key)) {
-      return 'stripe';
-    }
-    if (/^gh[a-z]_[a-zA-Z0-9]+$/.test(key)) {
-      return 'github';
-    }
-    if (/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(key)) {
-      return 'helius';
-    }
-    return null;
-  },
-
-  // Get example key for a service
-  getExampleKeyForService: (service: string): string => {
-    const examples: Record<string, string> = {
-      'solana': 'https://api.mainnet-beta.solana.com',
-      'phantom': 'Connect through browser extension',
-      'supabase': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-      'openai': 'sk-abcdefghijklmnopqrstuvwxyz123456',
-      'stripe': 'sk_test_51Abc123Def456Ghi789Jkl',
-      'github': 'ghp_abcdefghijklmnopqrstuvwxyz123456',
-      'solscan': 'https://public-api.solscan.io/',
-      'jupiter': 'https://quote-api.jup.ag/v4',
-      'helius': 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
-      'quicknode': 'https://xxxxxx.solana-mainnet.quiknode.pro/xxxxxxxxxx/'
-    };
-    
-    return examples[service.toLowerCase()] || 'API key format depends on service';
-  }
-};
-
-// Helper functions for testing specific services
-async function testSolanaRPC(endpoint: string): Promise<boolean> {
-  try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'getHealth',
-      }),
-    });
-    const data = await response.json();
-    return data.result === 'ok' || data.result === null;
-  } catch (error) {
-    console.error('Error testing Solana RPC:', error);
-    return false;
   }
 }
-
-async function testSolscanAPI(key: string): Promise<boolean> {
-  try {
-    // Try to get data for a well-known Solana address
-    const endpoint = 'https://public-api.solscan.io/account/vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg';
-    const headers = key ? { 'token': key } : {};
-    
-    const response = await fetch(endpoint, { headers });
-    return response.ok;
-  } catch (error) {
-    console.error('Error testing Solscan API:', error);
-    return false;
-  }
-}
-
-async function testJupiterAPI(key: string): Promise<boolean> {
-  try {
-    // Jupiter doesn't require authentication for quotes, so we can just test the API
-    const response = await fetch('https://quote-api.jup.ag/v4/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=100000000');
-    return response.ok;
-  } catch (error) {
-    console.error('Error testing Jupiter API:', error);
-    return false;
-  }
-}
-
-async function testHeliusAPI(key: string): Promise<boolean> {
-  try {
-    const response = await fetch(`https://api.helius.xyz/v0/addresses/vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg/transactions?api-key=${key}`);
-    return response.ok;
-  } catch (error) {
-    console.error('Error testing Helius API:', error);
-    return false;
-  }
-}
-
-async function testQuickNodeAPI(key: string): Promise<boolean> {
-  try {
-    // QuickNode uses custom endpoints, we'll just verify the format
-    return key.includes('quiknode') || key.includes('quicknode');
-  } catch (error) {
-    console.error('Error testing QuickNode API:', error);
-    return false;
-  }
-}
-
-function validateKeyFormat(key: string, service: string): boolean {
-  const pattern = ApiIntegrationService.getKeyPatternForService(service);
-  return pattern ? pattern.test(key) : true;
-}
-

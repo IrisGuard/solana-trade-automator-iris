@@ -2,6 +2,7 @@
 import React from "react";
 import { ApiVaultCard } from "@/components/security/apiVault/ApiVaultCard";
 import { ApiEndpointsCard } from "@/components/security/ApiEndpointsCard";
+import { ApiEndpointsManager } from "@/components/security/ApiEndpointsManager";
 
 export default function ApiVault() {
   return (
@@ -15,6 +16,7 @@ export default function ApiVault() {
       
       <div className="space-y-6">
         <ApiVaultCard />
+        <ApiEndpointsManager />
         <ApiEndpointsCard />
       </div>
     </div>
