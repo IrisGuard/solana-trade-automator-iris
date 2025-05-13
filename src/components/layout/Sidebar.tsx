@@ -12,7 +12,8 @@ import {
   FileText,
   BarChart2,
   Wallet,
-  Shield
+  Shield,
+  HelpCircle
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -61,6 +62,7 @@ export function Sidebar({ className }: SidebarProps) {
             <CollapsedNavLink to="/transactions" icon={FileText} />
             <CollapsedNavLink to="/security" icon={Shield} />
             <CollapsedNavLink to="/settings" icon={Settings} />
+            <CollapsedNavLink to="/help" icon={HelpCircle} />
           </div>
         ) : (
           <SidebarNav />

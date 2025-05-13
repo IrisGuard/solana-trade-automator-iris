@@ -10,11 +10,11 @@ import { HelpButton } from "@/components/help/HelpButton";
 const pageTitles: Record<string, string> = {
   "/": "Αρχική",
   "/dashboard": "Dashboard",
-  "/wallet": "Wallet",
-  "/transactions": "Transactions",
-  "/security": "Security",
-  "/settings": "Settings",
-  "/help": "Help",
+  "/wallet": "Πορτοφόλι",
+  "/transactions": "Συναλλαγές",
+  "/security": "Ασφάλεια",
+  "/settings": "Ρυθμίσεις",
+  "/help": "Βοήθεια",
 };
 
 export function Layout() {

@@ -2,22 +2,14 @@
 import React from "react";
 import { TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ApiKey, ApiSettings } from "./api-vault/types";
+import { ApiKey } from "./api-vault/types";
 import { Badge } from "@/components/ui/badge";
 import { Database, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ApiVaultTabProps {
   apiKeys: ApiKey[];
-  isUnlocked: boolean;
-  apiSettings: ApiSettings;
-  handleUnlockVault: () => void;
-  handleLockVault: () => void;
   handleApiConnect: (index: number) => void;
-  handleExportKeys: () => void;
-  handleImportKeys: () => void;
-  setApiSettings: (settings: ApiSettings) => void;
-  handleSaveApiSettings: () => void;
 }
 
 export function ApiVaultTab({
