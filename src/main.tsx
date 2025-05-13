@@ -23,7 +23,7 @@ console.log('Buffer.from available:', window.Buffer && typeof window.Buffer.from
 
 // Extra check to ensure Buffer methods are properly bound
 if (window.Buffer && !window.Buffer.alloc) {
-  console.warn('Buffer.alloc is missing, attempting to fix...');
+  console.warn('Buffer.alloc is missing in main.tsx, attempting to fix...');
   try {
     const bufferModule = require('buffer/');
     window.Buffer.alloc = bufferModule.Buffer.alloc.bind(bufferModule.Buffer);

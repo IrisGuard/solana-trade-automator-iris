@@ -17,18 +17,18 @@
     <meta name="twitter:site" content="@solana_trade_automator" />
     <meta name="twitter:image" content="https://solana-maker-bot.vercel.app/og-image.png" />
     
-    <!-- Direct Buffer implementation to ensure it's available before anything else -->
+    <!-- Critical inline Buffer polyfill - must run before anything else -->
     <script>
-      // Robust inline Buffer polyfill for earliest availability
+      // Robust Buffer polyfill implementation that runs before any module code
       (function() {
+        // Ensure Buffer is available immediately
         if (typeof window !== 'undefined' && (!window.Buffer || !window.Buffer.alloc)) {
-          // Save any existing partial implementation
-          const existingBuffer = window.Buffer;
+          console.log('Initializing critical Buffer polyfill');
           
           function EarlyBuffer(arg, encodingOrOffset, length) {
-            // Basic implementation
+            // Basic implementation for early availability
             if (typeof arg === 'number') {
-              this.length = arg;
+              this.length = arg > 0 ? Math.floor(arg) : 0;
               for (let i = 0; i < this.length; i++) {
                 this[i] = 0;
               }
@@ -42,17 +42,24 @@
               for (let i = 0; i < this.length; i++) {
                 this[i] = arg[i] & 255;
               }
+            } else if (arg && arg.buffer instanceof ArrayBuffer) {
+              // Handle typed arrays
+              const view = new Uint8Array(arg.buffer);
+              this.length = view.length;
+              for (let i = 0; i < this.length; i++) {
+                this[i] = view[i];
+              }
             } else {
               this.length = 0;
             }
           }
           
-          // Critical static methods
+          // Ensure we have all critical static methods
           EarlyBuffer.alloc = function(size, fill) {
             const buf = new EarlyBuffer(size);
             if (fill !== undefined) {
               for (let i = 0; i < buf.length; i++) {
-                buf[i] = fill & 255;
+                buf[i] = typeof fill === 'number' ? fill & 255 : 0;
               }
             }
             return buf;
@@ -63,39 +70,55 @@
               return new EarlyBuffer(value);
             } else if (Array.isArray(value)) {
               return new EarlyBuffer(value);
-            } else {
-              const buf = new EarlyBuffer(0);
+            } else if (value instanceof ArrayBuffer) {
+              const view = new Uint8Array(value);
+              const buf = new EarlyBuffer(view.length);
+              for (let i = 0; i < view.length; i++) {
+                buf[i] = view[i];
+              }
+              return buf;
+            } else if (value && typeof value === 'object' && 'length' in value) {
+              const buf = new EarlyBuffer(value.length);
+              for (let i = 0; i < value.length; i++) {
+                buf[i] = value[i] & 255;
+              }
               return buf;
             }
+            return new EarlyBuffer(0);
           };
           
           EarlyBuffer.isBuffer = function(obj) {
             return obj instanceof EarlyBuffer;
           };
           
-          EarlyBuffer.concat = function(list) {
-            let length = 0;
-            for (let i = 0; i < list.length; i++) {
-              length += list[i].length;
+          EarlyBuffer.concat = function(list, totalLength) {
+            if (list.length === 0) return new EarlyBuffer(0);
+            
+            if (totalLength === undefined) {
+              totalLength = 0;
+              for (let i = 0; i < list.length; i++) {
+                totalLength += list[i].length;
+              }
             }
-            const result = new EarlyBuffer(length);
-            let offset = 0;
+            
+            const result = new EarlyBuffer(totalLength);
+            let pos = 0;
             for (let i = 0; i < list.length; i++) {
               const buf = list[i];
               for (let j = 0; j < buf.length; j++) {
-                result[offset] = buf[j];
-                offset++;
+                result[pos] = buf[j];
+                pos++;
               }
             }
             return result;
           };
           
-          EarlyBuffer.byteLength = function(str) {
-            return str.length;
+          EarlyBuffer.byteLength = function(str, encoding) {
+            return typeof str === 'string' ? str.length : 0;
           };
           
-          // Instance methods
-          EarlyBuffer.prototype.toString = function() {
+          // Add prototype methods
+          EarlyBuffer.prototype.toString = function(encoding) {
             let result = '';
             for (let i = 0; i < this.length; i++) {
               result += String.fromCharCode(this[i]);
@@ -103,24 +126,15 @@
             return result;
           };
           
-          // Merge with existing implementation if available
-          if (existingBuffer) {
-            if (!existingBuffer.alloc) existingBuffer.alloc = EarlyBuffer.alloc;
-            if (!existingBuffer.from) existingBuffer.from = EarlyBuffer.from;
-            if (!existingBuffer.isBuffer) existingBuffer.isBuffer = EarlyBuffer.isBuffer;
-            if (!existingBuffer.concat) existingBuffer.concat = EarlyBuffer.concat;
-            if (!existingBuffer.byteLength) existingBuffer.byteLength = EarlyBuffer.byteLength;
-            window.Buffer = existingBuffer;
-          } else {
-            window.Buffer = EarlyBuffer;
-          }
+          // Make Buffer available globally
+          window.Buffer = EarlyBuffer;
           
-          console.log('Early Buffer polyfill initialized with critical methods');
+          console.log('Inline Buffer polyfill initialized with alloc method:', typeof window.Buffer.alloc);
         }
       })();
     </script>
     
-    <!-- Buffer polyfill - load this next -->
+    <!-- Load external buffer polyfill next -->
     <script src="/buffer-polyfill.js"></script>
   </head>
 
