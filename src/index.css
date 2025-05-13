@@ -3,46 +3,79 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('@solana/wallet-adapter-react-ui/styles.css');
+
 @layer base {
   :root {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    --background: 0 0% 100%;
+    --foreground: 222.2 47.4% 11.2%;
 
-    --card: 222 47% 13%;
-    --card-foreground: 210 40% 98%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
 
-    --primary: 272 100% 64%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 47.4% 11.2%;
+
+    --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 154 82% 51%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 217 33% 20%;
-    --muted-foreground: 215.4 16.3% 75%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
-    --accent: 217 33% 20%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 84% 60%;
+    --destructive: 0 100% 50%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217 33% 25%;
-    --input: 217 33% 25%;
-    --ring: 272 100% 64%;
+    --ring: 215 20.2% 65.1%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 222 47% 9%;
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: 222.2 47.4% 11.2%;
+  }
+
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
+
+    --accent: 216 34% 17%;
+    --accent-foreground: 210 40% 98%;
+
+    --popover: 224 71% 4%;
+    --popover-foreground: 215 20.2% 65.1%;
+
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+
+    --card: 224 71% 4%;
+    --card-foreground: 213 31% 91%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 1.2%;
+
+    --secondary: 222.2 47.4% 11.2%;
+    --secondary-foreground: 210 40% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --ring: 216 34% 17%;
+
+    --radius: 0.5rem;
+
+    --sidebar: 222.2 47.4% 11.2%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 272 100% 64%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 222 47% 14%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222 47% 14%;
-    --sidebar-ring: 272 100% 64%;
   }
 }
 
@@ -50,41 +83,25 @@
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
-  }
-  
-  h1, h2, h3, h4, h5, h6 {
-    @apply text-foreground font-semibold;
-  }
-  
-  a {
-    @apply text-primary hover:text-primary/80 transition-colors;
-  }
-  
-  p {
-    @apply text-foreground/90;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-.grid-cols-autofit {
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+.button-glow {
+  animation: button-glow 1.5s infinite alternate;
+}
+
+@keyframes button-glow {
+  from {
+    box-shadow: 0 0 5px -5px var(--primary);
+  }
+  to {
+    box-shadow: 0 0 5px 3px var(--primary);
+  }
 }
 
 .active-nav-link {
-  @apply bg-accent text-accent-foreground;
-}
-
-/* Βελτιώσεις για καλύτερη εμφάνιση στοιχείων */
-.card-highlight {
-  @apply border-primary/20 bg-card/80 shadow-md shadow-primary/5;
-}
-
-.button-glow:hover {
-  @apply shadow-lg shadow-primary/20;
-}
-
-.text-gradient {
-  @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+  @apply bg-primary/10 text-primary font-medium;
 }

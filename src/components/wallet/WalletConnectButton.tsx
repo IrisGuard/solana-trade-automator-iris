@@ -3,7 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, Wallet } from "lucide-react";
 import { useWallet } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 
 interface WalletConnectButtonProps {
   className?: string;
@@ -19,6 +19,11 @@ export function WalletConnectButton({
   isLoading = false,
 }: WalletConnectButtonProps) {
   const { connected } = useWallet();
+  const { setVisible } = useWalletModal();
+
+  const handleClick = () => {
+    setVisible(true);
+  };
 
   if (isLoading) {
     return (
@@ -35,9 +40,14 @@ export function WalletConnectButton({
   }
 
   return (
-    <WalletMultiButton className={`bg-primary text-white hover:bg-primary/90 rounded-md flex items-center gap-2 px-4 py-2 button-glow ${className}`}>
+    <Button 
+      onClick={handleClick}
+      variant={variant || "default"}
+      size={size || "default"}
+      className={`flex items-center gap-2 ${className}`}
+    >
       <Wallet className="h-4 w-4" />
       {connected ? "Συνδεδεμένο Wallet" : "Σύνδεση με Wallet"}
-    </WalletMultiButton>
+    </Button>
   );
 }
