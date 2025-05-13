@@ -1,44 +1,25 @@
 
-import { useState, useEffect } from "react";
+import { useState, useMemo, useCallback } from "react";
+import { toast } from "sonner";
 import { ApiKey } from "../types";
 import { useApiKeyManagement } from "./useApiKeyManagement";
-import { useApiKeyVisibility } from "./useApiKeyVisibility";
 import { useVaultSecurity } from "./useVaultSecurity";
-import { useVaultState } from "./useVaultState";
 import { useVaultRecovery } from "./useVaultRecovery";
-import { useKeyOperations } from "./useKeyOperations";
 import { useKeyTesting } from "./useKeyTesting";
+import { useVaultDialogs } from "./useVaultDialogs";
+import { useApiKeyStorage, ApiKeyStorageState } from "./useApiKeyStorage";
 
-export const useApiVaultState = () => {
-  // Get UI state from hooks
-  const {
-    dialogState,
-    tabState,
-    recoveryState,
-  } = useVaultState();
-
-  // Destructure states from hooks
-  const {
-    showDialogApiKey, setShowDialogApiKey,
-    showImportDialog, setShowImportDialog,
-    showExportSheet, setShowExportSheet,
-    showSettingsDialog, setShowSettingsDialog,
-    showRecoveryDialog, setShowRecoveryDialog,
-  } = dialogState;
-
-  const { activeTab, setActiveTab } = tabState;
+export function useApiVaultState() {
+  const [activeTab, setActiveTab] = useState("keys");
+  const [recoveredKeys, setRecoveredKeys] = useState<ApiKey[]>([]);
+  const [recoveryLocations, setRecoveryLocations] = useState<{ storageKey: string; count: number }[]>([]);
   
-  const {
-    isRecovering, setIsRecovering,
-    recoveredKeys, setRecoveredKeys,
-    recoveryLocations, setRecoveryLocations,
-    isTestingKeys, setIsTestingKeys,
-  } = recoveryState;
-
-  // Key management hooks
+  // Key management
   const {
     apiKeys,
     setApiKeys,
+    isKeyVisible,
+    toggleKeyVisibility,
     searchTerm,
     setSearchTerm,
     filterService,
@@ -50,23 +31,16 @@ export const useApiVaultState = () => {
     getFilteredKeys,
     getKeysByService
   } = useApiKeyManagement();
-
-  // Key testing hooks
-  const { testSingleKey, testAllKeys } = useKeyTesting();
-
-  // Handle refreshing all keys - Wrapper function to avoid type errors
-  const handleRefreshKeys = () => {
-    setIsTestingKeys(true);
-    testAllKeys(apiKeys, setApiKeys)
-      .finally(() => {
-        setIsTestingKeys(false);
-      });
-  };
-
-  // API Key Visibility hook
-  const { isKeyVisible, toggleKeyVisibility } = useApiKeyVisibility();
-
-  // Security hooks
+  
+  // Storage handling with error states
+  const {
+    testKeyFunctionality,
+    recoverFromBackup,
+    storageState,
+    renderErrorState
+  } = useApiKeyStorage(apiKeys, setApiKeys);
+  
+  // Security management
   const {
     isEncryptionEnabled,
     setIsEncryptionEnabled,
@@ -84,77 +58,159 @@ export const useApiVaultState = () => {
     handleLock,
     saveSecuritySettings
   } = useVaultSecurity({ apiKeys, setApiKeys });
-
-  // Recovery hooks
-  const { handleRecoverClick } = useVaultRecovery({
-    apiKeys,
+  
+  // Test keys functionality
+  const {
+    isTestingKeys,
+    handleRefreshKeys
+  } = useKeyTesting(apiKeys, setApiKeys, testKeyFunctionality);
+  
+  // Recovery handling
+  const {
     isRecovering,
     setIsRecovering,
+    handleRecoverClick
+  } = useVaultRecovery({
+    apiKeys,
+    isRecovering: false,
+    setIsRecovering: useState<boolean>(false)[1],
     setRecoveredKeys,
     setRecoveryLocations,
-    setShowRecoveryDialog
+    setShowRecoveryDialog: useState<boolean>(false)[1]
   });
-
-  // Key operations hooks
-  const { handleRecoveredImport, keyStats } = useKeyOperations({
-    apiKeys,
-    handleImport,
-    recoveredKeys,
+  
+  // Dialog management
+  const {
+    showDialogApiKey,
+    setShowDialogApiKey,
+    showImportDialog,
+    setShowImportDialog,
+    showExportSheet,
+    setShowExportSheet,
+    showSettingsDialog,
+    setShowSettingsDialog,
+    showRecoveryDialog,
     setShowRecoveryDialog
-  });
+  } = useVaultDialogs();
 
-  // Get unique services and their counts
-  const serviceStats = Object.entries(getKeysByService()).map(([name, keys]) => ({
-    name,
-    count: keys.length,
-  }));
+  // Handle recovery import
+  const handleRecoveredImport = useCallback((keys: ApiKey[]) => {
+    if (keys.length === 0) {
+      toast.error("Δεν υπάρχουν κλειδιά για εισαγωγή");
+      return;
+    }
+    
+    try {
+      // Filter out duplicates
+      const newKeys = keys.filter(recoveredKey => 
+        !apiKeys.some(existingKey => existingKey.key === recoveredKey.key)
+      );
+      
+      if (newKeys.length === 0) {
+        toast.info("Όλα τα ανακτηθέντα κλειδιά υπάρχουν ήδη");
+        return;
+      }
+      
+      // Add the new keys
+      setApiKeys(prev => [...prev, ...newKeys]);
+      toast.success(`Εισαγωγή ${newKeys.length} ανακτηθέντων κλειδιών`);
+      setShowRecoveryDialog(false);
+    } catch (e) {
+      console.error("Σφάλμα κατά την εισαγωγή ανακτηθέντων κλειδιών:", e);
+      toast.error("Σφάλμα κατά την εισαγωγή κλειδιών");
+    }
+  }, [apiKeys, setApiKeys, setShowRecoveryDialog]);
+  
+  // Computed key statistics
+  const keyStats = useMemo(() => ({
+    total: apiKeys.length,
+    active: apiKeys.filter(key => key.status === "active" || !key.status).length,
+    expired: apiKeys.filter(key => key.status === "expired").length,
+    revoked: apiKeys.filter(key => key.status === "revoked").length,
+  }), [apiKeys]);
+  
+  // Service statistics
+  const serviceStats = useMemo(() => {
+    const keysByService = getKeysByService();
+    return Object.entries(keysByService).map(([name, keys]) => ({
+      name,
+      count: keys.length,
+    }));
+  }, [getKeysByService]);
 
   return {
-    // Dialog states
-    showDialogApiKey, setShowDialogApiKey,
-    showImportDialog, setShowImportDialog,
-    showExportSheet, setShowExportSheet,
-    showSettingsDialog, setShowSettingsDialog,
-    showRecoveryDialog, setShowRecoveryDialog,
-    
     // Tab state
-    activeTab, setActiveTab,
-    
-    // Recovery state
-    isRecovering, setIsRecovering,
-    recoveredKeys, setRecoveredKeys,
-    recoveryLocations, setRecoveryLocations,
-    isTestingKeys, setIsTestingKeys,
+    activeTab,
+    setActiveTab,
     
     // Key management
-    apiKeys, setApiKeys,
-    searchTerm, setSearchTerm,
-    filterService, setFilterService,
-    addNewKey, deleteKey, updateKey,
-    handleImport, getFilteredKeys, getKeysByService,
+    apiKeys,
+    setApiKeys,
+    addNewKey,
+    deleteKey,
+    updateKey,
+    handleImport,
     
-    // Key testing
-    handleRefreshKeys,
+    // Error handling & storage state
+    storageState,
+    renderStorageErrorState: renderErrorState,
+    recoverFromBackup,
     
-    // Visibility
-    isKeyVisible, toggleKeyVisibility,
+    // Key visibility
+    isKeyVisible,
+    toggleKeyVisibility,
+    
+    // Search and filtering
+    searchTerm,
+    setSearchTerm,
+    filterService,
+    setFilterService,
+    getFilteredKeys,
+    getKeysByService,
+    
+    // Statistics
+    keyStats,
+    serviceStats,
     
     // Security
-    isEncryptionEnabled, setIsEncryptionEnabled,
-    savedMasterPassword, setSavedMasterPassword,
-    isLocked, setIsLocked,
-    isAutoLockEnabled, setIsAutoLockEnabled,
-    autoLockTimeout, setAutoLockTimeout,
-    isUnlocking, setIsUnlocking,
-    handleUnlock, handleLock,
+    isEncryptionEnabled,
+    setIsEncryptionEnabled,
+    savedMasterPassword,
+    setSavedMasterPassword,
+    isLocked,
+    setIsLocked,
+    isAutoLockEnabled,
+    setIsAutoLockEnabled,
+    autoLockTimeout,
+    setAutoLockTimeout,
+    handleUnlock,
+    handleLock,
     saveSecuritySettings,
+    isUnlocking,
+    setIsUnlocking,
     
-    // Recovery and operations
+    // Testing functionality
+    isTestingKeys,
+    handleRefreshKeys,
+    
+    // Recovery
+    isRecovering,
+    setIsRecovering,
     handleRecoverClick,
+    recoveredKeys,
+    recoveryLocations,
     handleRecoveredImport,
     
-    // Stats
-    keyStats,
-    serviceStats
+    // Dialogs
+    showDialogApiKey,
+    setShowDialogApiKey,
+    showImportDialog,
+    setShowImportDialog,
+    showExportSheet,
+    setShowExportSheet,
+    showSettingsDialog,
+    setShowSettingsDialog,
+    showRecoveryDialog,
+    setShowRecoveryDialog
   };
-};
+}

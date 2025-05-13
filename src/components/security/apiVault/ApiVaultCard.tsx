@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ApiVaultHeader } from "./components/ApiVaultHeader";
@@ -27,6 +26,9 @@ export const ApiVaultCard = () => {
       </CardHeader>
       <CardContent className="px-6 pb-6">
         <div className="space-y-6">
+          {/* Show error state if there are storage errors */}
+          {state.renderStorageErrorState && state.renderStorageErrorState()}
+          
           {/* Key management content */}
           <ApiVaultContent 
             // Tab state
@@ -68,6 +70,9 @@ export const ApiVaultCard = () => {
             setIsUnlocking={state.setIsUnlocking}
             setShowDialogApiKey={state.setShowDialogApiKey}
             handleLock={state.handleLock}
+            
+            // Additional error state props
+            storageState={state.storageState}
           />
           
           {/* All dialogs */}
@@ -106,6 +111,9 @@ export const ApiVaultCard = () => {
             recoveredKeys={state.recoveredKeys}
             recoveryLocations={state.recoveryLocations}
             handleRecoveredImport={state.handleRecoveredImport}
+            
+            // Recovery methods
+            recoverFromBackup={state.recoverFromBackup}
           />
         </div>
       </CardContent>

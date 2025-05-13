@@ -1,8 +1,10 @@
-
 import React from "react";
 import { ApiVaultTabs } from "./ApiVaultTabs";
 import { ApiVaultActions } from "./ApiVaultActions";
 import { ApiKey, ApiKeyStats, ServiceInfo } from "../types";
+import { ApiKeyStorageState } from "../hooks/useApiKeyStorage";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
 
 interface ApiVaultContentProps {
   // Tab state
@@ -44,6 +46,9 @@ interface ApiVaultContentProps {
   setIsUnlocking: (unlocking: boolean) => void;
   setShowDialogApiKey: (show: boolean) => void;
   handleLock: () => void;
+  
+  // Error handling
+  storageState?: ApiKeyStorageState;
 }
 
 export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
@@ -85,10 +90,33 @@ export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
   setShowSettingsDialog,
   setIsUnlocking,
   setShowDialogApiKey,
-  handleLock
+  handleLock,
+  
+  // Error handling
+  storageState
 }) => {
+  // Show loading state if loading data
+  if (storageState?.isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">Φόρτωση κλειδιών...</p>
+      </div>
+    );
+  }
+  
   return (
     <div className="space-y-6">
+      {/* Error alert from storage if applicable */}
+      {storageState?.error && (
+        <Alert variant={storageState.hasBackupData ? "default" : "destructive"} className="mb-4">
+          <AlertDescription>
+            {storageState.error}
+            {storageState.hasBackupData && " (Χρησιμοποιούνται εφεδρικά δεδομένα)"}
+          </AlertDescription>
+        </Alert>
+      )}
+    
       {/* Key management tabs */}
       <ApiVaultTabs 
         activeTab={activeTab}
