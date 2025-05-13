@@ -10,15 +10,15 @@ if (typeof window !== 'undefined' && typeof window.Buffer === 'undefined') {
   window.Buffer = require('buffer/').Buffer;
 }
 
-// Προσθήκη κώδικα για επαλήθευση φόρτωσης
-console.log("Εκκίνηση εφαρμογής Solana Trade Automator...");
+// Προσθήκη περισσότερων logs για debugging
+console.log("Starting Solana Trade Automator application...");
 
 const rootElement = document.getElementById("root");
 
 if (!rootElement) {
-  console.error("Δεν βρέθηκε το element με id 'root'!");
+  console.error("Root element not found!");
 } else {
-  console.log("Το element 'root' βρέθηκε, προσπαθώ να κάνω render την εφαρμογή...");
+  console.log("Root element found, attempting to render application...");
   try {
     ReactDOM.createRoot(rootElement).render(
       <React.StrictMode>
@@ -27,8 +27,8 @@ if (!rootElement) {
         </ThemeProvider>
       </React.StrictMode>
     );
-    console.log("Η εφαρμογή φορτώθηκε επιτυχώς στο DOM");
+    console.log("Application successfully rendered to DOM");
   } catch (error) {
-    console.error("Σφάλμα κατά το render της εφαρμογής:", error);
+    console.error("Error rendering application:", error);
   }
 }
