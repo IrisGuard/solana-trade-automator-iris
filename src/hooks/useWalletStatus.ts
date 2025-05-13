@@ -10,30 +10,19 @@ export function useWalletStatus() {
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if wallet is already connected on startup
+  // Remove auto-connection on startup
   useEffect(() => {
     const checkWalletConnection = async () => {
+      // Only check if the wallet exists, don't try to connect
       if (typeof window === 'undefined') return;
       
       try {
-        // Check if Phantom is installed
         const phantom = window.phantom?.solana;
-        
         if (phantom && phantom.isPhantom) {
-          // Check if user is already connected
-          const response = await phantom.connect({ onlyIfTrusted: true });
-          
-          if (response && response.publicKey) {
-            const address = response.publicKey.toString();
-            setWalletAddress(address);
-            setIsConnected(true);
-            console.log('Wallet auto-connected:', address);
-            return address;
-          }
+          console.log('Phantom is installed but not auto-connecting');
         }
       } catch (err) {
-        console.log('No trusted connection:', err);
-        // Not an error, just means user hasn't connected previously
+        console.log('No wallet connection');
       }
       return null;
     };

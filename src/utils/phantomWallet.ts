@@ -10,25 +10,10 @@ export const isPhantomInstalled = (): boolean => {
 
 /**
  * Try to connect to Phantom wallet (trusted connection)
+ * - Modified to NOT auto-connect
  */
 export const connectTrustedPhantomWallet = async (): Promise<string | null> => {
-  if (!isPhantomInstalled()) return null;
-  
-  try {
-    const phantom = window.phantom?.solana;
-    if (!phantom) return null;
-    
-    // Only try to reconnect if trusted
-    const response = await phantom.connect({ onlyIfTrusted: true });
-    
-    if (response && response.publicKey) {
-      return response.publicKey.toString();
-    }
-  } catch (err) {
-    // Silent fail - user might have revoked access or Phantom settings changed
-    console.log('Could not auto-reconnect to wallet:', err);
-  }
-  
+  // Don't auto-connect, just return null
   return null;
 };
 
@@ -88,5 +73,3 @@ export const disconnectPhantomWallet = async (): Promise<boolean> => {
     toast.dismiss();
   }
 };
-
-// No need to redefine Window interface since we already have it in vite-env.d.ts
