@@ -21,14 +21,19 @@ export function ErrorDialogInChat({ error, onClose }: ErrorDialogProps) {
       // Δημιουργία μηνύματος για αποστολή στο chat
       const errorMessage = `Παρακαλώ διορθώστε το παρακάτω σφάλμα:\n\nΜήνυμα: ${error.message}\n\n${error.stack ? `Stack Trace: ${error.stack}\n\n` : ''}Χρονοσήμανση: ${new Date(error.timestamp).toLocaleString()}\nURL: ${error.url}`;
       
-      // Προσομοίωση πατήματος του "Send" button στο chat με το περιεχόμενο του σφάλματος
-      const textarea = document.querySelector('textarea[placeholder*="Πληκτρολογήστε"]') || 
-                      document.querySelector('textarea[placeholder*="Type"]') || 
-                      document.querySelector('textarea.lovable-chat-input');
+      // Εντοπισμός των στοιχείων του chat
+      const textarea = document.querySelector('.lov-chat-textarea') || 
+                       document.querySelector('.lovable-chat-textarea') || 
+                       document.querySelector('textarea.lovable-chat-input') || 
+                       document.querySelector('textarea[placeholder*="Πληκτρολογήστε"]') || 
+                       document.querySelector('textarea[placeholder*="Type"]') || 
+                       document.querySelector('#lov-chat-textarea');
       
-      const sendButton = document.querySelector('button.lovable-chat-send') || 
+      const sendButton = document.querySelector('.lov-chat-send') || 
+                         document.querySelector('.lovable-chat-send') || 
+                         document.querySelector('button.lovable-send-button') || 
                          document.querySelector('button[aria-label*="Send"]') || 
-                         document.querySelector('button.lovable-send-button');
+                         document.querySelector('#lov-chat-send-button');
       
       if (textarea && sendButton) {
         // Typescript type assertion
@@ -48,7 +53,21 @@ export function ErrorDialogInChat({ error, onClose }: ErrorDialogProps) {
           onClose();
         }, 100);
       } else {
-        console.error("Δεν βρέθηκαν τα στοιχεία της συνομιλίας για αποστολή του σφάλματος");
+        console.error("Δεν βρέθηκαν τα στοιχεία της συνομιλίας για αποστολή του σφάλματος", {
+          textareaFound: !!textarea,
+          sendButtonFound: !!sendButton,
+          availableTextareas: document.querySelectorAll('textarea').length,
+          availableButtons: document.querySelectorAll('button').length
+        });
+        
+        // Εναλλακτική μέθοδος - χρήση custom event
+        const customEvent = new CustomEvent('lovable-send-to-chat', {
+          detail: { message: errorMessage }
+        });
+        window.dispatchEvent(customEvent);
+        
+        // Κλείσιμο του dialog ακόμη κι αν αποτύχει η κύρια μέθοδος
+        onClose();
       }
     } catch (e) {
       console.error("Σφάλμα κατά την αποστολή του σφάλματος στο chat:", e);
@@ -58,7 +77,7 @@ export function ErrorDialogInChat({ error, onClose }: ErrorDialogProps) {
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader className="flex items-center space-x-2">
+        <DialogHeader className="flex flex-row items-center space-x-2">
           <AlertCircle className="h-5 w-5 text-destructive" />
           <DialogTitle>Σφάλμα εφαρμογής</DialogTitle>
         </DialogHeader>
