@@ -1,4 +1,3 @@
-
 export default {
   general: {
     connect: "Connect",
@@ -151,5 +150,67 @@ export default {
     tools: "Tools",
     defi: "DeFi",
     nft: "NFT",
+  },
+  platform: {
+    title: "What is Solana Trade Automator?",
+    subtitle: "Automated trading with AI technology",
+    description: "The Solana Trade Automator is an advanced platform that allows you to create and manage automated trading bots on the Solana blockchain, without having to write code.",
+    howItWorks: "How the bot works:",
+    feature1: "Monitors selected token prices in real-time",
+    feature2: "Analyzes market trends with artificial intelligence algorithms",
+    feature3: "Identifies buying/selling opportunities based on your parameters",
+    feature4: "Suggests transactions that require your approval",
+    feature5: "Provides detailed statistics and performance reports",
+    createBot: "Create your first bot"
+  },
+  hero: {
+    tagline: "Manage your cryptocurrencies, automate your transactions, and monitor your funds - all in one place",
+    dashboardToast: "Navigate to Dashboard",
+    dashboard: "Enter Dashboard",
+    botControlToast: "Navigate to Trading Bots"
+  },
+  faq: {
+    title: "Frequently Asked Questions",
+    howItWorks: {
+      question: "How does the Trading Bot work?",
+      answer: "Our bots analyze the transaction flow on the Solana blockchain in real-time, identify opportunities based on AI algorithms, and automatically execute transactions according to the strategies you've selected. Each transaction requires your approval for maximum security."
+    },
+    security: {
+      question: "Are my funds safe?",
+      answer: "Absolutely! The bots operate with limited permissions and never have access to your private key. All transactions must be approved by your wallet and you can stop the bot's operation at any time."
+    },
+    fees: {
+      question: "What fees are there?",
+      answer: "There are the regular Solana network fees for each transaction. Our platform charges a small percentage (2%) only on profitable trades, ensuring that we earn only when you earn too."
+    },
+    getStarted: {
+      question: "How do I get started?",
+      answer: "Connect your Solana wallet, navigate to Bot Control, select a token for trading, set your strategy parameters, and activate your bot. You can monitor its performance in real-time from the dashboard."
+    }
+  },
+  botExplanation: {
+    title: "How the Trading Bot Works",
+    tabs: {
+      overview: "Overview", 
+      features: "Features",
+      security: "Security"
+    },
+    overview: {
+      title: "Introduction to Solana Trading Bot",
+      subtitle: "Automated trading on the Solana blockchain",
+      p1: "The Solana Trading Bot is a powerful tool designed to simplify transactions on the Solana blockchain, allowing you to execute automated trading strategies based on predetermined parameters.",
+      p2: "Unlike traditional exchanges that close, the Solana blockchain operates 24/7, allowing the bot to capitalize on trading opportunities at any time of the day.",
+      p3: "By integrating advanced algorithms and access to real-time data, the bot continuously monitors the market and executes transactions based on the criteria you've set."
+    },
+    features: {
+      title: "Key Features",
+      subtitle: "What makes the Solana Trading Bot special",
+      feature1: "Comprehensive price monitoring with real-time data",
+      feature2: "Customizable trading strategies with multiple parameters",
+      feature3: "Simulation function for testing strategies without risk",
+      feature4: "Integration with Phantom Wallet for secure transactions",
+      feature5: "Detailed historical data and performance reports",
+      feature6: "Secure API key management through the API Vault"
+    }
   }
 };
