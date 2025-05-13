@@ -4,34 +4,36 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth"; 
 import { ErrorLogsViewer } from "@/components/settings/ErrorLogsViewer";
+import { useLanguage } from "@/hooks/use-language";
 
 export default function Settings() {
   const { user } = useAuth();
-
+  const { t } = useLanguage();
+  
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Ρυθμίσεις</h2>
+        <h2 className="text-3xl font-bold tracking-tight">{t("general.settings")}</h2>
         <p className="text-muted-foreground">
-          Διαχειριστείτε τις ρυθμίσεις του λογαριασμού και της εφαρμογής σας
+          {t("settings.manageAccount")}
         </p>
       </div>
       
       <Tabs defaultValue="account" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="account">Λογαριασμός</TabsTrigger>
-          <TabsTrigger value="appearance">Εμφάνιση</TabsTrigger>
-          <TabsTrigger value="notifications">Ειδοποιήσεις</TabsTrigger>
-          <TabsTrigger value="advanced">Προχωρημένες</TabsTrigger>
-          <TabsTrigger value="diagnostics">Διαγνωστικά</TabsTrigger>
+          <TabsTrigger value="account">{t("settings.accountSettings")}</TabsTrigger>
+          <TabsTrigger value="appearance">{t("settings.appearance")}</TabsTrigger>
+          <TabsTrigger value="notifications">{t("settings.notifications")}</TabsTrigger>
+          <TabsTrigger value="advanced">{t("settings.advanced")}</TabsTrigger>
+          <TabsTrigger value="diagnostics">{t("settings.diagnostics")}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="account">
           <Card>
             <CardHeader>
-              <CardTitle>Πληροφορίες Λογαριασμού</CardTitle>
+              <CardTitle>{t("settings.accountSettings")}</CardTitle>
               <CardDescription>
-                Διαχειριστείτε τις πληροφορίες του λογαριασμού σας
+                {t("settings.manageAccount")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -46,14 +48,14 @@ export default function Settings() {
         <TabsContent value="appearance">
           <Card>
             <CardHeader>
-              <CardTitle>Ρυθμίσεις Εμφάνισης</CardTitle>
+              <CardTitle>{t("settings.appearance")}</CardTitle>
               <CardDescription>
-                Προσαρμόστε την εμφάνιση της εφαρμογής
+                {t("settings.platformPreferences")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="text-muted-foreground">
-                Οι ρυθμίσεις εμφάνισης θα είναι διαθέσιμες σύντομα
+                {t("settings.comingSoon")}
               </div>
             </CardContent>
           </Card>
@@ -62,14 +64,14 @@ export default function Settings() {
         <TabsContent value="notifications">
           <Card>
             <CardHeader>
-              <CardTitle>Ρυθμίσεις Ειδοποιήσεων</CardTitle>
+              <CardTitle>{t("settings.notifications")}</CardTitle>
               <CardDescription>
-                Προσαρμόστε τις ειδοποιήσεις που λαμβάνετε
+                {t("settings.platformPreferences")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="text-muted-foreground">
-                Οι ρυθμίσεις ειδοποιήσεων θα είναι διαθέσιμες σύντομα
+                {t("settings.comingSoon")}
               </div>
             </CardContent>
           </Card>
@@ -78,14 +80,14 @@ export default function Settings() {
         <TabsContent value="advanced">
           <Card>
             <CardHeader>
-              <CardTitle>Προχωρημένες Ρυθμίσεις</CardTitle>
+              <CardTitle>{t("settings.advanced")}</CardTitle>
               <CardDescription>
-                Ρυθμίσεις για προχωρημένους χρήστες
+                {t("settings.platformPreferences")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="text-muted-foreground">
-                Οι προχωρημένες ρυθμίσεις θα είναι διαθέσιμες σύντομα
+                {t("settings.comingSoon")}
               </div>
             </CardContent>
           </Card>
@@ -96,19 +98,19 @@ export default function Settings() {
           
           <Card>
             <CardHeader>
-              <CardTitle>Πληροφορίες Συστήματος</CardTitle>
+              <CardTitle>{t("settings.systemInfo")}</CardTitle>
               <CardDescription>
-                Πληροφορίες για την έκδοση και το περιβάλλον της εφαρμογής
+                {t("settings.platformPreferences")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <div className="text-sm font-medium">Πρόγραμμα Περιήγησης</div>
+                  <div className="text-sm font-medium">{t("settings.browser")}</div>
                   <div className="text-sm text-muted-foreground">{navigator.userAgent}</div>
                 </div>
                 <div>
-                  <div className="text-sm font-medium">Γλώσσα</div>
+                  <div className="text-sm font-medium">{t("settings.language")}</div>
                   <div className="text-sm text-muted-foreground">{navigator.language}</div>
                 </div>
               </div>

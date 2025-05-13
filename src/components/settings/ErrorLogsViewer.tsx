@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Trash2, RefreshCw, Clock } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ConsoleLogsViewer } from '../debug/ConsoleLogsViewer';
+import { useLanguage } from '@/hooks/use-language';
 
 interface ErrorLog {
   message: string;
@@ -20,6 +21,7 @@ export function ErrorLogsViewer() {
   const [errors, setErrors] = useState<ErrorLog[]>([]);
   const [selectedError, setSelectedError] = useState<ErrorLog | null>(null);
   const [activeTab, setActiveTab] = useState<string>('errors');
+  const { t } = useLanguage();
 
   // Φόρτωση σφαλμάτων από το localStorage
   const loadErrors = () => {
@@ -68,7 +70,7 @@ export function ErrorLogsViewer() {
     <Card className="mb-6">
       <CardHeader>
         <CardTitle className="text-xl flex items-center">
-          <span>Παρακολούθηση Σφαλμάτων</span>
+          <span>{t("settings.errorMonitoring")}</span>
           {errors.length > 0 && activeTab === 'errors' && (
             <Badge variant="destructive" className="ml-2">
               {errors.length}
@@ -76,25 +78,25 @@ export function ErrorLogsViewer() {
           )}
         </CardTitle>
         <CardDescription>
-          Προβολή και διαχείριση των σφαλμάτων και των μηνυμάτων της κονσόλας για εύκολη αποσφαλμάτωση
+          {t("settings.errorMonitoringDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid grid-cols-2 w-full max-w-md">
-            <TabsTrigger value="errors">Σφάλματα Εφαρμογής</TabsTrigger>
-            <TabsTrigger value="console">Μηνύματα Κονσόλας</TabsTrigger>
+            <TabsTrigger value="errors">{t("settings.applicationErrors")}</TabsTrigger>
+            <TabsTrigger value="console">{t("settings.consoleMessages")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="errors" className="space-y-4">
             {errors.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <p>Δεν έχουν καταγραφεί σφάλματα</p>
+                <p>{t("settings.noErrorsRecorded")}</p>
               </div>
             ) : (
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="border rounded-md">
-                  <div className="p-2 bg-muted font-medium border-b">Λίστα Σφαλμάτων</div>
+                  <div className="p-2 bg-muted font-medium border-b">{t("settings.errorsList")}</div>
                   <ScrollArea className="h-60">
                     {errors.map((error, index) => (
                       <div 
@@ -102,7 +104,7 @@ export function ErrorLogsViewer() {
                         className={`p-2 border-b hover:bg-accent cursor-pointer ${selectedError === error ? 'bg-accent' : ''}`}
                         onClick={() => setSelectedError(error)}
                       >
-                        <div className="font-medium truncate">{error.message || "Άγνωστο σφάλμα"}</div>
+                        <div className="font-medium truncate">{error.message || t("settings.unknownError")}</div>
                         <div className="text-xs text-muted-foreground flex items-center mt-1">
                           <Clock className="h-3 w-3 mr-1" />
                           {formatDate(error.timestamp)}
@@ -113,12 +115,12 @@ export function ErrorLogsViewer() {
                 </div>
                 
                 <div className="border rounded-md">
-                  <div className="p-2 bg-muted font-medium border-b">Λεπτομέρειες</div>
+                  <div className="p-2 bg-muted font-medium border-b">{t("settings.details")}</div>
                   <ScrollArea className="h-60 p-3">
                     {selectedError ? (
                       <>
                         <div className="mb-2">
-                          <span className="font-medium">Μήνυμα:</span>
+                          <span className="font-medium">{t("settings.message")}:</span>
                           <div className="bg-muted p-2 rounded mt-1 text-sm">{selectedError.message}</div>
                         </div>
                         
@@ -128,7 +130,7 @@ export function ErrorLogsViewer() {
                         </div>
                         
                         <div className="mb-2">
-                          <span className="font-medium">Χρονοσφραγίδα:</span>
+                          <span className="font-medium">{t("settings.timestamp")}:</span>
                           <div className="bg-muted p-2 rounded mt-1 text-sm">{formatDate(selectedError.timestamp)}</div>
                         </div>
                         
@@ -143,7 +145,7 @@ export function ErrorLogsViewer() {
                       </>
                     ) : (
                       <div className="text-center py-8 text-muted-foreground">
-                        <p>Επιλέξτε ένα σφάλμα για προβολή λεπτομερειών</p>
+                        <p>{t("settings.selectErrorForDetails")}</p>
                       </div>
                     )}
                   </ScrollArea>
@@ -157,7 +159,7 @@ export function ErrorLogsViewer() {
                 size="sm"
                 onClick={loadErrors}
               >
-                <RefreshCw className="h-4 w-4 mr-2" /> Ανανέωση
+                <RefreshCw className="h-4 w-4 mr-2" /> {t("settings.refresh")}
               </Button>
               <Button 
                 variant="destructive" 
@@ -165,7 +167,7 @@ export function ErrorLogsViewer() {
                 onClick={clearErrors}
                 disabled={errors.length === 0}
               >
-                <Trash2 className="h-4 w-4 mr-2" /> Εκκαθάριση
+                <Trash2 className="h-4 w-4 mr-2" /> {t("settings.clear")}
               </Button>
             </div>
           </TabsContent>

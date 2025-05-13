@@ -1,11 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, RefreshCw, Clock, AlertCircle, AlertTriangle, Info } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useLanguage } from '@/hooks/use-language';
 
 interface LogRecord {
   type: 'error' | 'warn' | 'info';
@@ -17,6 +16,7 @@ export function ConsoleLogsViewer() {
   const [logs, setLogs] = useState<LogRecord[]>([]);
   const [selectedLog, setSelectedLog] = useState<LogRecord | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'error' | 'warn'>('all');
+  const { t } = useLanguage();
 
   // Φόρτωση logs από το localStorage
   const loadLogs = () => {
@@ -81,108 +81,117 @@ export function ConsoleLogsViewer() {
   };
 
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle className="text-xl flex items-center">
-          <span>Καταγραφή Console Logs</span>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold flex items-center">
+          {t("settings.consoleLogMonitoring")}
           {logs.length > 0 && (
             <Badge variant="outline" className="ml-2">
-              {logs.length}
+              {filteredLogs.length}
             </Badge>
           )}
-        </CardTitle>
-        <CardDescription>
-          Παρακολούθηση και διαχείριση των μηνυμάτων της κονσόλας για εύκολη αποσφαλμάτωση
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'all' | 'error' | 'warn')}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="all">Όλα</TabsTrigger>
-            <TabsTrigger value="error" className="flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" />
-              Σφάλματα
-            </TabsTrigger>
-            <TabsTrigger value="warn" className="flex items-center gap-1">
-              <AlertTriangle className="h-3 w-3" />
-              Προειδοποιήσεις
-            </TabsTrigger>
-          </TabsList>
+        </h3>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className={activeTab === 'all' ? 'bg-muted' : ''}
+            onClick={() => setActiveTab('all')}
+          >
+            {t("settings.all")}
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            className={`flex items-center gap-1 ${activeTab === 'error' ? 'bg-muted' : ''}`}
+            onClick={() => setActiveTab('error')}
+          >
+            <AlertCircle className="h-3 w-3" />
+            {t("settings.errors")}
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            className={`flex items-center gap-1 ${activeTab === 'warn' ? 'bg-muted' : ''}`}
+            onClick={() => setActiveTab('warn')}
+          >
+            <AlertTriangle className="h-3 w-3" />
+            {t("settings.warnings")}
+          </Button>
+        </div>
+      </div>
 
-          <TabsContent value={activeTab}>
-            {filteredLogs.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>Δεν έχουν καταγραφεί μηνύματα κονσόλας</p>
-              </div>
-            ) : (
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="border rounded-md">
-                  <div className="p-2 bg-muted font-medium border-b">Λίστα Μηνυμάτων</div>
-                  <ScrollArea className="h-60">
-                    {filteredLogs.map((log, index) => (
-                      <div 
-                        key={index}
-                        className={`p-2 border-b hover:bg-accent cursor-pointer ${selectedLog === log ? 'bg-accent' : ''}`}
-                        onClick={() => setSelectedLog(log)}
-                      >
-                        <div className="font-medium truncate flex items-center gap-1">
-                          {getLogIcon(log.type)}
-                          <span className="max-w-[85%] truncate">{log.message || "Άγνωστο μήνυμα"}</span>
-                        </div>
-                        <div className="text-xs text-muted-foreground flex items-center mt-1">
-                          <Clock className="h-3 w-3 mr-1" />
-                          {formatDate(log.timestamp)}
-                        </div>
-                      </div>
-                    ))}
-                  </ScrollArea>
+      {filteredLogs.length === 0 ? (
+        <div className="text-center py-8 text-muted-foreground border rounded-md">
+          <p>{t("settings.noConsoleMessagesRecorded")}</p>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="border rounded-md">
+            <div className="p-2 bg-muted font-medium border-b">{t("settings.messagesList")}</div>
+            <ScrollArea className="h-60">
+              {filteredLogs.map((log, index) => (
+                <div 
+                  key={index}
+                  className={`p-2 border-b hover:bg-accent cursor-pointer ${selectedLog === log ? 'bg-accent' : ''}`}
+                  onClick={() => setSelectedLog(log)}
+                >
+                  <div className="font-medium truncate flex items-center gap-1">
+                    {getLogIcon(log.type)}
+                    <span className="max-w-[85%] truncate">{log.message || t("settings.unknownMessage")}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground flex items-center mt-1">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {formatDate(log.timestamp)}
+                  </div>
                 </div>
-                
-                <div className="border rounded-md">
-                  <div className="p-2 bg-muted font-medium border-b">Λεπτομέρειες</div>
-                  <ScrollArea className="h-60 p-3">
-                    {selectedLog ? (
-                      <>
-                        <div className="mb-2">
-                          <span className="font-medium">Τύπος:</span>
-                          <div className="flex items-center gap-2 bg-muted p-2 rounded mt-1 text-sm">
-                            {getLogIcon(selectedLog.type)}
-                            <span>
-                              {selectedLog.type === 'error' ? 'Σφάλμα' : 
-                               selectedLog.type === 'warn' ? 'Προειδοποίηση' : 'Πληροφορία'}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="mb-2">
-                          <span className="font-medium">Μήνυμα:</span>
-                          <div className="bg-muted p-2 rounded mt-1 text-sm">{selectedLog.message}</div>
-                        </div>
-                        
-                        <div className="mb-2">
-                          <span className="font-medium">Χρονοσφραγίδα:</span>
-                          <div className="bg-muted p-2 rounded mt-1 text-sm">{formatDate(selectedLog.timestamp)}</div>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <p>Επιλέξτε ένα μήνυμα για προβολή λεπτομερειών</p>
-                      </div>
-                    )}
-                  </ScrollArea>
+              ))}
+            </ScrollArea>
+          </div>
+          
+          <div className="border rounded-md">
+            <div className="p-2 bg-muted font-medium border-b">{t("settings.details")}</div>
+            <ScrollArea className="h-60 p-3">
+              {selectedLog ? (
+                <>
+                  <div className="mb-2">
+                    <span className="font-medium">{t("settings.type")}:</span>
+                    <div className="flex items-center gap-2 bg-muted p-2 rounded mt-1 text-sm">
+                      {getLogIcon(selectedLog.type)}
+                      <span>
+                        {selectedLog.type === 'error' ? t("settings.error") : 
+                         selectedLog.type === 'warn' ? t("settings.warning") : t("settings.information")}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-2">
+                    <span className="font-medium">{t("settings.message")}:</span>
+                    <div className="bg-muted p-2 rounded mt-1 text-sm">{selectedLog.message}</div>
+                  </div>
+                  
+                  <div className="mb-2">
+                    <span className="font-medium">{t("settings.timestamp")}:</span>
+                    <div className="bg-muted p-2 rounded mt-1 text-sm">{formatDate(selectedLog.timestamp)}</div>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>{t("settings.selectMessageForDetails")}</p>
                 </div>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-      <CardFooter className="flex justify-between">
+              )}
+            </ScrollArea>
+          </div>
+        </div>
+      )}
+
+      <div className="flex justify-between">
         <Button 
           variant="outline" 
           size="sm"
           onClick={loadLogs}
         >
-          <RefreshCw className="h-4 w-4 mr-2" /> Ανανέωση
+          <RefreshCw className="h-4 w-4 mr-2" /> {t("settings.refresh")}
         </Button>
         <Button 
           variant="destructive" 
@@ -190,9 +199,9 @@ export function ConsoleLogsViewer() {
           onClick={clearLogs}
           disabled={logs.length === 0}
         >
-          <Trash2 className="h-4 w-4 mr-2" /> Εκκαθάριση
+          <Trash2 className="h-4 w-4 mr-2" /> {t("settings.clear")}
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }

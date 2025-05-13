@@ -1,4 +1,4 @@
 
-// Forward exports from the correct locations
+// Forward exports από τις σωστές τοποθεσίες
 export { toast } from "sonner";
-export { useToast } from "@/hooks/use-toast";
+export { useToast, type ToastProps, type ToastActionElement } from "@/hooks/use-toast";
