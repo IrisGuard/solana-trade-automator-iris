@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React from "react";
 import { HeroSection } from "@/components/home/HeroSection";
 import { WalletConnectedContent } from "@/components/home/WalletConnectedContent";
 import { WalletDisconnectedContent } from "@/components/home/WalletDisconnectedContent";
@@ -24,7 +24,6 @@ const Index = () => {
     isLoadingTokens,
     isLoadingBalance,
     connectionError,
-    selectWallet,
     connectWallet
   } = useSolanaWallet();
   
@@ -33,8 +32,8 @@ const Index = () => {
   const displayAddress = walletAddress ? formatWalletAddress(walletAddress) : "";
   const isPhantomInstalled = typeof window !== 'undefined' && window.phantom?.solana;
   
-  // Εμφάνιση σφάλματος σύνδεσης αν υπάρχει
-  useEffect(() => {
+  // Handle connection and display errors
+  React.useEffect(() => {
     if (connectionError) {
       toast.error(`Σφάλμα σύνδεσης: ${connectionError}`, {
         duration: 5000,
@@ -43,6 +42,14 @@ const Index = () => {
     
     console.log("Index component mounted, wallet status:", connected ? "Connected" : "Not connected");
   }, [connectionError, connected]);
+
+  // Handle wallet connection
+  const handleConnectWallet = () => {
+    console.log("Attempting to connect wallet");
+    if (connectWallet) {
+      connectWallet();
+    }
+  };
 
   return (
     <div className="container mx-auto space-y-8 pb-8">
@@ -73,6 +80,7 @@ const Index = () => {
         <WalletDisconnectedContent 
           isConnecting={connecting}
           isPhantomInstalled={!!isPhantomInstalled}
+          handleConnectWallet={handleConnectWallet}
         />
       )}
       
