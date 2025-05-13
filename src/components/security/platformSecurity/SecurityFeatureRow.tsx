@@ -3,7 +3,7 @@ import React from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 
-interface SecurityFeatureRowProps {
+export interface SecurityFeatureRowProps {
   name: string;
   description: string;
   isEnabled: boolean;

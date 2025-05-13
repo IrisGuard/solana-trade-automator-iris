@@ -55,7 +55,9 @@ export function SecurityTable({
             {securitySettings.map((setting) => (
               <SecurityFeatureRow
                 key={setting.id}
-                setting={setting}
+                name={setting.name}
+                description={setting.description}
+                isEnabled={setting.isEnabled}
                 onToggle={() => handleToggle(setting.id)}
               />
             ))}

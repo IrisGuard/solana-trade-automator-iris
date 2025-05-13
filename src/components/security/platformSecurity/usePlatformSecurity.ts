@@ -2,67 +2,103 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
-export interface SecuritySettings {
-  rowLevelSecurity: boolean;
-  apiKeyEncryption: boolean;
-  twoFactorAuth: boolean;
-  transactionLimits: boolean;
-  approvedAddresses: boolean;
-  geoRestrictions: boolean;
-  advancedEmailAuth: boolean;
-  biometricAuth: boolean;
-  socialAuth: boolean;
-  transactionDelays: boolean;
-  [key: string]: boolean; // Add index signature to allow string indexing
+export interface SecuritySetting {
+  id: string;
+  name: string;
+  description: string;
+  isEnabled: boolean;
 }
 
 export function usePlatformSecurity() {
   const [expanded, setExpanded] = useState(false);
-  const [securitySettings, setSecuritySettings] = useState<SecuritySettings>({
-    rowLevelSecurity: false,
-    apiKeyEncryption: false,
-    twoFactorAuth: false,
-    transactionLimits: false,
-    approvedAddresses: false,
-    geoRestrictions: false,
-    advancedEmailAuth: false,
-    biometricAuth: false,
-    socialAuth: false,
-    transactionDelays: false,
-  });
+  const [securitySettings, setSecuritySettings] = useState<SecuritySetting[]>([
+    {
+      id: "rowLevelSecurity",
+      name: "Ασφάλεια Επιπέδου Γραμμής",
+      description: "Περιορίζει την πρόσβαση σε δεδομένα στους κατάλληλους χρήστες",
+      isEnabled: false
+    },
+    {
+      id: "apiKeyEncryption",
+      name: "Κρυπτογράφηση API Keys",
+      description: "Ασφαλίζει τα API keys με προηγμένη κρυπτογράφηση",
+      isEnabled: false
+    },
+    {
+      id: "twoFactorAuth",
+      name: "Έλεγχος Ταυτότητας Δύο Παραγόντων",
+      description: "Απαιτεί δεύτερο παράγοντα για την επαλήθευση της ταυτότητας",
+      isEnabled: false
+    },
+    {
+      id: "transactionLimits",
+      name: "Όρια Συναλλαγών",
+      description: "Ορίζει μέγιστα ποσά για συναλλαγές",
+      isEnabled: false
+    },
+    {
+      id: "approvedAddresses",
+      name: "Εγκεκριμένες Διευθύνσεις",
+      description: "Περιορίζει τις συναλλαγές σε εγκεκριμένες διευθύνσεις μόνο",
+      isEnabled: false
+    },
+    {
+      id: "geoRestrictions",
+      name: "Γεωγραφικοί Περιορισμοί",
+      description: "Περιορίζει την πρόσβαση με βάση τη γεωγραφική τοποθεσία",
+      isEnabled: false
+    },
+    {
+      id: "advancedEmailAuth",
+      name: "Προηγμένος Έλεγχος Email",
+      description: "Χρησιμοποιεί προηγμένες τεχνικές ελέγχου ταυτότητας μέσω email",
+      isEnabled: false
+    },
+    {
+      id: "biometricAuth",
+      name: "Βιομετρική Ταυτοποίηση",
+      description: "Επιτρέπει τη χρήση βιομετρικών στοιχείων για έλεγχο ταυτότητας",
+      isEnabled: false
+    },
+    {
+      id: "socialAuth",
+      name: "Κοινωνική Ταυτοποίηση",
+      description: "Επιτρέπει την είσοδο μέσω λογαριασμών κοινωνικής δικτύωσης",
+      isEnabled: false
+    },
+    {
+      id: "transactionDelays",
+      name: "Καθυστερήσεις Συναλλαγών",
+      description: "Εισάγει μια καθυστέρηση ασφαλείας στις συναλλαγές μεγάλης αξίας",
+      isEnabled: false
+    }
+  ]);
 
   const toggleExpanded = useCallback(() => {
     setExpanded((prev) => !prev);
   }, []);
 
-  const handleToggle = useCallback((setting: string) => {
-    setSecuritySettings((prev) => ({
-      ...prev,
-      [setting]: !prev[setting],
-    }));
+  const handleToggle = useCallback((id: string) => {
+    setSecuritySettings((prev) => 
+      prev.map(setting => 
+        setting.id === id ? {...setting, isEnabled: !setting.isEnabled} : setting
+      )
+    );
   }, []);
 
   const handleEnableAll = useCallback(() => {
-    // Create new object with all settings set to true
-    const allEnabled = Object.keys(securitySettings).reduce((acc, key) => {
-      return { ...acc, [key]: true };
-    }, {} as { [key: string]: boolean });
-    
-    // Type assertion to SecuritySettings
-    setSecuritySettings(allEnabled as SecuritySettings);
+    setSecuritySettings((prev) => 
+      prev.map(setting => ({...setting, isEnabled: true}))
+    );
     toast.info("Όλες οι λειτουργίες ασφαλείας ενεργοποιήθηκαν");
-  }, [securitySettings]);
+  }, []);
 
   const handleDisableAll = useCallback(() => {
-    // Create new object with all settings set to false
-    const allDisabled = Object.keys(securitySettings).reduce((acc, key) => {
-      return { ...acc, [key]: false };
-    }, {} as { [key: string]: boolean });
-    
-    // Type assertion to SecuritySettings
-    setSecuritySettings(allDisabled as SecuritySettings);
+    setSecuritySettings((prev) => 
+      prev.map(setting => ({...setting, isEnabled: false}))
+    );
     toast.info("Όλες οι λειτουργίες ασφαλείας απενεργοποιήθηκαν");
-  }, [securitySettings]);
+  }, []);
 
   const handleSaveSettings = useCallback(() => {
     // Εδώ θα μπορούσατε να αποθηκεύσετε τις ρυθμίσεις στο Supabase όταν είναι έτοιμο
