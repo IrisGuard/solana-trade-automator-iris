@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { WalletConnectedContent } from "@/components/home/WalletConnectedContent";
 import { WalletDisconnectedContent } from "@/components/home/WalletDisconnectedContent";
@@ -23,6 +23,10 @@ export default function Home() {
   const displayAddress = walletAddress ? 
     `${walletAddress.substring(0, 4)}...${walletAddress.substring(walletAddress.length - 4)}` : 
     "Δεν έχει συνδεθεί πορτοφόλι";
+  
+  useEffect(() => {
+    console.log("Home page loaded. Connection status:", isConnected ? "Connected" : "Not connected");
+  }, [isConnected]);
 
   return (
     <div className="space-y-6">
