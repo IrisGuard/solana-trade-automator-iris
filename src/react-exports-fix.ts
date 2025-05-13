@@ -22,9 +22,6 @@ export const {
   useDeferredValue,
   useInsertionEffect,
   useSyncExternalStore,
-  useTransition,
-  // React 18 specific hooks
-  useOptimistic,
-  useFormStatus,
-  useFormState
+  useTransition
+  // React 18 specific hooks that aren't available in this version have been removed
 } = React;
