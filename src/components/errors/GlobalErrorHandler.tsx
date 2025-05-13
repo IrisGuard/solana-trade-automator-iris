@@ -50,8 +50,31 @@ export const GlobalErrorHandler: React.FC<GlobalErrorHandlerProps> = ({ children
     reportError(error, {
       showToast: true,
       logToConsole: true,
-      saveToDatabase: true
+      saveToDatabase: true,
+      sendToChatInterface: true
     });
+    
+    // Αποθήκευση του σφάλματος και στο lovable_chat_errors
+    try {
+      const errorData = {
+        type: 'error',
+        message: error.message,
+        stack: error.stack,
+        componentStack: info.componentStack,
+        url: window.location.href,
+        timestamp: new Date().toISOString()
+      };
+      
+      const storedErrors = JSON.parse(localStorage.getItem('lovable_chat_errors') || '[]');
+      storedErrors.push(errorData);
+      localStorage.setItem('lovable_chat_errors', JSON.stringify(storedErrors));
+      
+      // Dispatch custom event για να ενημερώσει το Lovable chat
+      const event = new CustomEvent('lovable-error', { detail: errorData });
+      window.dispatchEvent(event);
+    } catch (e) {
+      console.error("Σφάλμα κατά την αποθήκευση του σφάλματος για το chat:", e);
+    }
   };
 
   return (

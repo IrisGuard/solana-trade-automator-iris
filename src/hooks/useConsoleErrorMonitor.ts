@@ -38,9 +38,15 @@ export function useConsoleErrorMonitor() {
         
         // Αναφορά σφάλματος μέσω του συστήματος αναφοράς
         if (errorObject) {
-          reportError(errorObject, {showToast: false});
+          reportError(errorObject, {
+            showToast: false, 
+            sendToChatInterface: true
+          });
         } else {
-          reportError(errorMessage, {showToast: false});
+          reportError(errorMessage, {
+            showToast: false, 
+            sendToChatInterface: true
+          });
         }
         
         toast.error("Σφάλμα στην εφαρμογή", {

@@ -14,6 +14,7 @@ export function ConsoleMonitor() {
   const [logs, setLogs] = useState<LogRecord[]>([]);
   const { reportError } = useErrorReporting();
 
+  // Παρακολούθηση του console.error και console.warn
   useEffect(() => {
     // Αποθηκεύστε τις αρχικές μεθόδους κονσόλας
     const originalConsoleError = console.error;
@@ -60,19 +61,16 @@ export function ConsoleMonitor() {
         
         // Αποστολή στο σύστημα αναφοράς σφαλμάτων
         if (errorObject) {
-          reportError(errorObject, {showToast: false});
+          reportError(errorObject, {
+            showToast: false, 
+            sendToChatInterface: true
+          });
         } else {
-          reportError(errorMessage, {showToast: false});
+          reportError(errorMessage, {
+            showToast: false, 
+            sendToChatInterface: true
+          });
         }
-        
-        // Εμφάνιση toast
-        toast.error("Σφάλμα εφαρμογής", {
-          description: errorMessage.length > 100 
-            ? errorMessage.substring(0, 100) + '...' 
-            : errorMessage,
-          icon: <AlertCircle className="h-4 w-4" />,
-          duration: 5000
-        });
       }
     };
 
@@ -111,6 +109,23 @@ export function ConsoleMonitor() {
       console.warn = originalConsoleWarn;
     };
   }, [reportError]);
+
+  // Προσθήκη περιοδικού ελέγχου για νέα σφάλματα στο lovable_chat_errors
+  useEffect(() => {
+    const checkErrorsInterval = setInterval(() => {
+      try {
+        const storedErrors = JSON.parse(localStorage.getItem('lovable_chat_errors') || '[]');
+        if (storedErrors.length > 0) {
+          // Εδώ μπορούμε να κάνουμε κάτι με τα νέα σφάλματα αν χρειαστεί
+          localStorage.setItem('lovable_chat_errors', '[]'); // Καθαρισμός αφού τα ελέγξαμε
+        }
+      } catch (e) {
+        // Σιωπηλή αποτυχία
+      }
+    }, 5000); // Έλεγχος κάθε 5 δευτερόλεπτα
+
+    return () => clearInterval(checkErrorsInterval);
+  }, []);
 
   // Αποθήκευση logs στο localStorage όταν αλλάζουν
   useEffect(() => {

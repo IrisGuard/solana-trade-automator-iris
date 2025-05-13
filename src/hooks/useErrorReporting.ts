@@ -6,6 +6,7 @@ interface ErrorReportingOptions {
   showToast?: boolean;
   logToConsole?: boolean;
   saveToDatabase?: boolean;
+  sendToChatInterface?: boolean;
 }
 
 export function useErrorReporting() {
@@ -13,6 +14,7 @@ export function useErrorReporting() {
     showToast: true,
     logToConsole: true,
     saveToDatabase: true,
+    sendToChatInterface: true // Νέα επιλογή για αποστολή στο chat interface
   };
 
   const reportError = async (error: Error | string, options: ErrorReportingOptions = defaultOptions) => {
@@ -35,6 +37,31 @@ export function useErrorReporting() {
         timestamp: new Date().toISOString(),
         url: window.location.href,
       });
+    }
+    
+    // Αποστολή στο chat interface
+    if (options.sendToChatInterface) {
+      try {
+        // Δημιουργία μηνύματος στο lovable-chat
+        const chatMessage = {
+          type: 'error',
+          message: errorMessage,
+          stack: errorStack,
+          timestamp: new Date().toISOString(),
+          url: window.location.href,
+        };
+        
+        // Αποθήκευση στο localStorage για πρόσβαση από το chat
+        const storedErrors = JSON.parse(localStorage.getItem('lovable_chat_errors') || '[]');
+        storedErrors.push(chatMessage);
+        localStorage.setItem('lovable_chat_errors', JSON.stringify(storedErrors));
+        
+        // Αποστολή event για να ενημερώσει το chat interface
+        const event = new CustomEvent('lovable-error', { detail: chatMessage });
+        window.dispatchEvent(event);
+      } catch (e) {
+        console.error("Σφάλμα κατά την αποστολή του σφάλματος στο chat interface:", e);
+      }
     }
     
     // Αποθήκευση στη βάση δεδομένων
