@@ -21,7 +21,7 @@ export function ApiVaultTab({
     <TabsContent value="api-vault" className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>API Συνδέσεις</CardTitle>
+          <CardTitle>Συνδέσεις API</CardTitle>
           <CardDescription>Κατάσταση συνδέσεων με απαιτούμενα APIs</CardDescription>
         </CardHeader>
         <CardContent>

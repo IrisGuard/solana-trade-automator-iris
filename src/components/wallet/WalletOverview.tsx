@@ -25,16 +25,16 @@ export function WalletOverview({
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Wallet Status</CardDescription>
+            <CardDescription>Κατάσταση Πορτοφολιού</CardDescription>
             <CardTitle className="text-2xl font-bold">
-              {isConnected ? "Connected" : "Not Connected"}
+              {isConnected ? "Συνδεδεμένο" : "Μη Συνδεδεμένο"}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {isConnected && (
               <div className="text-sm text-muted-foreground">
-                <p>Address: {walletAddress}</p>
-                <p>Balance: {solBalance} SOL</p>
+                <p>Διεύθυνση: {walletAddress}</p>
+                <p>Υπόλοιπο: {solBalance} SOL</p>
               </div>
             )}
           </CardContent>
@@ -42,7 +42,7 @@ export function WalletOverview({
 
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Maker Bot Status</CardDescription>
+            <CardDescription>Κατάσταση Maker Bot</CardDescription>
             <CardTitle className="text-2xl font-bold">
               {/* Using a passed in botActive prop */}
             </CardTitle>
@@ -56,15 +56,15 @@ export function WalletOverview({
 
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>API Status</CardDescription>
+            <CardDescription>Κατάσταση API</CardDescription>
             <CardTitle className="text-2xl font-bold">
               {/* API status information */}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-sm text-muted-foreground">
-              <p>Connected to Solana Mainnet</p>
-              <p>Last sync: 1 min ago</p>
+              <p>Συνδεδεμένο με Solana Mainnet</p>
+              <p>Τελευταίος συγχρονισμός: 1 λεπτό πριν</p>
             </div>
           </CardContent>
         </Card>
@@ -73,8 +73,8 @@ export function WalletOverview({
       {isConnected && (
         <Card>
           <CardHeader>
-            <CardTitle>Wallet QR Code</CardTitle>
-            <CardDescription>Scan to send SOL or tokens</CardDescription>
+            <CardTitle>QR Code Πορτοφολιού</CardTitle>
+            <CardDescription>Σαρώστε για να στείλετε SOL ή tokens</CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
             <div className="border border-border p-4 rounded-lg">

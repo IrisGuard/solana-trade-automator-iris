@@ -24,14 +24,14 @@ export function TransactionHistory({ walletAddress, limit = 5 }: TransactionHist
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Transactions</CardTitle>
-        <CardDescription>Latest activity on your wallet</CardDescription>
+        <CardTitle>Πρόσφατες Συναλλαγές</CardTitle>
+        <CardDescription>Τελευταίες δραστηριότητες στο πορτοφόλι σας</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {isLoadingTransactions ? (
           <div className="py-6 text-center text-muted-foreground">
             <Loader className="h-6 w-6 animate-spin mx-auto mb-2" />
-            <p>Loading transactions...</p>
+            <p>Φόρτωση συναλλαγών...</p>
           </div>
         ) : displayedTransactions.length > 0 ? (
           <>
@@ -67,12 +67,12 @@ export function TransactionHistory({ walletAddress, limit = 5 }: TransactionHist
               className="w-full"
               onClick={() => window.open(`https://solscan.io/account/${walletAddress}?cluster=mainnet`, '_blank')}
             >
-              View All Transactions <ExternalLink className="ml-2 h-3 w-3" />
+              Προβολή Όλων των Συναλλαγών <ExternalLink className="ml-2 h-3 w-3" />
             </Button>
           </>
         ) : (
           <div className="py-6 text-center text-muted-foreground">
-            <p>No transactions found</p>
+            <p>Δεν βρέθηκαν συναλλαγές</p>
           </div>
         )}
       </CardContent>

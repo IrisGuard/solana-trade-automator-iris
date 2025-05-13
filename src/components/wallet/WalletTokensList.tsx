@@ -33,8 +33,8 @@ export function WalletTokensList({ tokens, isLoading }: WalletTokensListProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Token Balance</CardTitle>
-        <CardDescription>Your Solana SPL tokens</CardDescription>
+        <CardTitle>Υπόλοιπο Token</CardTitle>
+        <CardDescription>Τα Solana SPL tokens σας</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {tokens.map((token, index) => (
@@ -60,7 +60,7 @@ export function WalletTokensList({ tokens, isLoading }: WalletTokensListProps) {
                 className="h-auto p-0 text-xs" 
                 onClick={() => window.open(`https://solscan.io/token/${token.address}`, '_blank')}
               >
-                View <ExternalLink className="h-3 w-3 ml-1" />
+                Προβολή <ExternalLink className="h-3 w-3 ml-1" />
               </Button>
             </div>
           </div>

@@ -19,12 +19,12 @@ const NotFound = () => {
           </svg>
         </div>
         <h1 className="text-4xl font-extrabold tracking-tight">404</h1>
-        <p className="text-xl">Page Not Found</p>
+        <p className="text-xl">Η σελίδα δεν βρέθηκε</p>
         <p className="text-muted-foreground">
-          Sorry, we couldn't find the page you're looking for: {location.pathname}
+          Συγγνώμη, δεν μπορέσαμε να βρούμε τη σελίδα που ψάχνετε: {location.pathname}
         </p>
         <Button asChild variant="secondary" className="bg-primary text-primary-foreground hover:bg-primary/90">
-          <a href="/">Return to Dashboard</a>
+          <a href="/">Επιστροφή στο Dashboard</a>
         </Button>
       </div>
     </div>
