@@ -1,6 +1,6 @@
 
 // Import directly from sonner for simplicity
-import { toast as sonnerToast, useToaster } from "sonner";
+import { toast as sonnerToast } from "sonner";
 
 // Create a consistent useToast hook API
 export function useToast() {
