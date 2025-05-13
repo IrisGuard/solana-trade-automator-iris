@@ -7,6 +7,8 @@ import { FooterSection } from "@/components/home/FooterSection";
 import { BotExplanationSection } from "@/components/home/BotExplanationSection";
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Toaster } from "sonner";
+import { AddHeliusButton } from "@/components/security/apiVault/AddHeliusButton";
+import { SupabaseApiKeysList } from "@/components/security/SupabaseApiKeysList";
 
 const Index = () => {
   const { connected, connecting } = useWallet();
@@ -15,6 +17,16 @@ const Index = () => {
     <div className="container mx-auto space-y-8 pb-8">
       {/* Hero Section */}
       <HeroSection />
+
+      {/* API Key Action */}
+      <div className="flex justify-center my-8">
+        <AddHeliusButton />
+      </div>
+      
+      {/* Supabase API Keys List */}
+      <div className="my-8">
+        <SupabaseApiKeysList />
+      </div>
 
       {/* Main Content */}
       {!connected && (
