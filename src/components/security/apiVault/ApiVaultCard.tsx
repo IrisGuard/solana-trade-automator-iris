@@ -1,9 +1,11 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ApiVaultHeader } from "./components/ApiVaultHeader";
 import { ApiVaultContent } from "./components/ApiVaultContent";
 import { ApiVaultDialogsContainer } from "./components/ApiVaultDialogsContainer";
 import { useApiVaultState } from "./hooks/useApiVaultState";
+import { ApiStorageError } from "./components/ApiStorageError";
 
 export const ApiVaultCard = () => {
   // Use the centralized state management hook
@@ -27,7 +29,9 @@ export const ApiVaultCard = () => {
       <CardContent className="px-6 pb-6">
         <div className="space-y-6">
           {/* Show error state if there are storage errors */}
-          {state.renderStorageErrorState && state.renderStorageErrorState()}
+          {state.storageState && state.storageState.error && (
+            <ApiStorageError storageState={state.storageState} />
+          )}
           
           {/* Key management content */}
           <ApiVaultContent 

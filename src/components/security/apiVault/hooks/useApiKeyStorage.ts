@@ -1,8 +1,6 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { ApiKey } from "../types";
 import { toast } from "sonner";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export interface ApiKeyStorageState {
   isLoading: boolean;
@@ -203,25 +201,9 @@ export function useApiKeyStorage(
     }
   }, []);
 
-  // Render error state component
-  const renderErrorState = useCallback(() => {
-    if (storageState.error) {
-      return (
-        <Alert variant="destructive" className="mb-4">
-          <AlertDescription>
-            {storageState.error}
-            {storageState.hasBackupData && " (Χρησιμοποιούνται εφεδρικά δεδομένα)"}
-          </AlertDescription>
-        </Alert>
-      );
-    }
-    return null;
-  }, [storageState.error, storageState.hasBackupData]);
-
   return {
     testKeyFunctionality,
     recoverFromBackup,
-    storageState,
-    renderErrorState
+    storageState
   };
 }

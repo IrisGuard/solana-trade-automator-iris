@@ -1,10 +1,11 @@
+
 import React from "react";
 import { ApiVaultTabs } from "./ApiVaultTabs";
 import { ApiVaultActions } from "./ApiVaultActions";
 import { ApiKey, ApiKeyStats, ServiceInfo } from "../types";
 import { ApiKeyStorageState } from "../hooks/useApiKeyStorage";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { ApiStorageError } from "./ApiStorageError";
 
 interface ApiVaultContentProps {
   // Tab state
@@ -109,12 +110,7 @@ export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
     <div className="space-y-6">
       {/* Error alert from storage if applicable */}
       {storageState?.error && (
-        <Alert variant={storageState.hasBackupData ? "default" : "destructive"} className="mb-4">
-          <AlertDescription>
-            {storageState.error}
-            {storageState.hasBackupData && " (Χρησιμοποιούνται εφεδρικά δεδομένα)"}
-          </AlertDescription>
-        </Alert>
+        <ApiStorageError storageState={storageState} />
       )}
     
       {/* Key management tabs */}

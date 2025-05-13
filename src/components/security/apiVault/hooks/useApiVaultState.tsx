@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import { ApiKey } from "../types";
@@ -7,7 +6,7 @@ import { useVaultSecurity } from "./useVaultSecurity";
 import { useVaultRecovery } from "./useVaultRecovery";
 import { useKeyTesting } from "./useKeyTesting";
 import { useVaultDialogs } from "./useVaultDialogs";
-import { useApiKeyStorage, ApiKeyStorageState } from "./useApiKeyStorage";
+import { useApiKeyStorage } from "./useApiKeyStorage";
 
 export function useApiVaultState() {
   const [activeTab, setActiveTab] = useState("keys");
@@ -36,8 +35,7 @@ export function useApiVaultState() {
   const {
     testKeyFunctionality,
     recoverFromBackup,
-    storageState,
-    renderErrorState
+    storageState
   } = useApiKeyStorage(apiKeys, setApiKeys);
   
   // Security management
@@ -153,7 +151,6 @@ export function useApiVaultState() {
     
     // Error handling & storage state
     storageState,
-    renderStorageErrorState: renderErrorState,
     recoverFromBackup,
     
     // Key visibility
