@@ -156,15 +156,24 @@ export function useErrorDialogInChat() {
   
   // Προσθήκη του event listener για τα σφάλματα
   useEffect(() => {
-    // Καθαρισμός τυχόν υπαρχόντων σφαλμάτων κατά την αρχικοποίηση
-    setErrors([]);
-    
     // Ορισμός χειριστή για το lovable-error event
     const handleLovableError = (event: CustomEvent) => {
       console.log('Λήφθηκε lovable-error event:', event.detail);
       
-      // Καθαρισμός όλων των προηγούμενων σφαλμάτων και εμφάνιση μόνο του νέου
-      setErrors([event.detail]);
+      // Προσθήκη του νέου σφάλματος στο array (διατηρώντας και τα προηγούμενα)
+      setErrors(prevErrors => {
+        // Έλεγχος για αποφυγή διπλότυπων σφαλμάτων
+        const isDuplicate = prevErrors.some(err => 
+          err.message === event.detail.message && 
+          err.stack === event.detail.stack
+        );
+        
+        if (isDuplicate) return prevErrors;
+        
+        // Περιορισμός στα τελευταία 10 σφάλματα για απόδοση
+        const updatedErrors = [...prevErrors, event.detail].slice(-10);
+        return updatedErrors;
+      });
     };
     
     // Προσθήκη του window.lovableChat object αν δεν υπάρχει
@@ -176,8 +185,19 @@ export function useErrorDialogInChat() {
     window.lovableChat.createErrorDialog = (errorData: any) => {
       console.log('Κλήση του createErrorDialog με δεδομένα:', errorData);
       
-      // Καθαρισμός όλων των προηγούμενων σφαλμάτων και εμφάνιση μόνο του νέου
-      setErrors([errorData]);
+      // Προσθήκη του νέου σφάλματος στο array (διατηρώντας και τα προηγούμενα)
+      setErrors(prevErrors => {
+        // Έλεγχος για αποφυγή διπλότυπων σφαλμάτων
+        const isDuplicate = prevErrors.some(err => 
+          err.message === errorData.message && 
+          err.stack === errorData.stack
+        );
+        
+        if (isDuplicate) return prevErrors;
+        
+        // Περιορισμός στα τελευταία 10 σφάλματα για απόδοση
+        return [...prevErrors, errorData].slice(-10);
+      });
     };
 
     // Προσθήκη συνάρτησης καθαρισμού σφαλμάτων
@@ -208,13 +228,15 @@ export function useErrorDialogInChat() {
   // Παροχή των components για τα διαλογικά παράθυρα σφαλμάτων
   const ErrorDialogs = () => (
     <>
-      {errors.length > 0 && (
+      {errors.map((error, index) => (
         <ErrorDialogInChat
-          key={`error-${Date.now()}`}
-          error={errors[0]}
-          onClose={() => setErrors([])}
+          key={`error-${index}-${Date.now()}`}
+          error={error}
+          onClose={() => {
+            setErrors(prevErrors => prevErrors.filter((_, i) => i !== index));
+          }}
         />
-      )}
+      ))}
     </>
   );
   

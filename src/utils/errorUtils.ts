@@ -25,7 +25,7 @@ export function displayError(
     showToast = true, 
     logToConsole = true,
     throwError = false,
-    sendToChat = false
+    sendToChat = true
   } = options;
 
   // Εξαγωγή του μηνύματος σφάλματος
@@ -69,10 +69,12 @@ export function displayError(
   }
 
   // Αποστολή στο chat αν ζητηθεί
-  if (sendToChat && errorObject) {
-    sendErrorToChat(errorMessage, errorObject.stack);
-  } else if (sendToChat) {
-    sendErrorToChat(errorMessage);
+  if (sendToChat) {
+    if (errorObject) {
+      sendErrorToChat(errorMessage, errorObject.stack);
+    } else {
+      sendErrorToChat(errorMessage);
+    }
   }
 
   // Throw το σφάλμα αν ζητηθεί
@@ -130,7 +132,9 @@ export function sendErrorToChat(errorMessage: string, errorStack?: string) {
  */
 export function setupGlobalErrorHandling() {
   const originalConsoleError = console.error;
+  const originalConsoleWarn = console.warn;
   
+  // Αντικατάσταση του console.error
   console.error = (...args) => {
     // Καλεί την αρχική console.error πρώτα
     originalConsoleError.apply(console, args);
@@ -141,13 +145,16 @@ export function setupGlobalErrorHandling() {
     // Βγάζουμε το πρώτο argument ως πιθανό σφάλμα
     const firstArg = args[0];
     
-    // Αγνοούμε συνηθισμένα React warnings
+    // Αγνοούμε συνηθισμένα React warnings και εσωτερικά μηνύματα
     if (typeof firstArg === 'string' && (
       firstArg.includes('ResizeObserver') ||
       firstArg.includes('findDOMNode') ||
       firstArg.includes('act(...)') ||
       firstArg.includes('React does not recognize') ||
-      firstArg.includes('Missing `Description`')
+      firstArg.includes('Missing `Description`') ||
+      firstArg.includes('[ErrorUtils]') ||
+      firstArg.includes('Αδυναμία αντιγραφής') ||
+      firstArg.includes('clearAllErrors')
     )) {
       return;
     }
@@ -164,30 +171,188 @@ export function setupGlobalErrorHandling() {
       displayMessage = displayMessage.substring(0, 147) + '...';
     }
 
-    // Εμφανίζουμε το σφάλμα με toast αλλά μόνο μία φορά ανά 5 δευτερόλεπτα
-    // για το ίδιο μήνυμα (για να αποφύγουμε flood)
-    if (!window._lastErrorDisplayTime || !window._lastErrorMessage || 
-        window._lastErrorMessage !== displayMessage || 
-        (Date.now() - window._lastErrorDisplayTime > 5000)) {
+    // Αποθήκευση μοναδικού αναγνωριστικού σφάλματος για αποφυγή διπλότυπων
+    const errorId = `${displayMessage.substring(0, 50)}`;
+    const lastErrorTime = window._lastErrorDisplayTimes?.[errorId] || 0;
+    
+    // Έλεγχος αν το ίδιο σφάλμα έχει εμφανιστεί πρόσφατα (τελευταία 5 δευτερόλεπτα)
+    if (!window._lastErrorDisplayTimes || !window._lastErrorDisplayTimes[errorId] || 
+        (Date.now() - lastErrorTime > 5000)) {
       
-      window._lastErrorDisplayTime = Date.now();
-      window._lastErrorMessage = displayMessage;
+      // Ενημέρωση χρόνου τελευταίας εμφάνισης
+      if (!window._lastErrorDisplayTimes) window._lastErrorDisplayTimes = {};
+      window._lastErrorDisplayTimes[errorId] = Date.now();
       
+      // Αποστολή στο σύστημα εμφάνισης σφαλμάτων
       displayError(firstArg, {
         title: 'Σφάλμα στην κονσόλα',
-        showToast: true,
+        showToast: false, // Όχι toast για να αποφύγουμε διπλές ειδοποιήσεις
         logToConsole: false, // Το έχουμε ήδη καταγράψει
-        sendToChat: true
+        sendToChat: true // Αποστολή στο chat interface
       });
     }
   };
 
-  // Προσθήκη των απαραίτητων πεδίων στο παράθυρο
-  window._lastErrorDisplayTime = 0;
-  window._lastErrorMessage = '';
-
-  return () => {
-    // Function to restore original console.error
-    console.error = originalConsoleError;
+  // Αντικατάσταση του console.warn για σημαντικές προειδοποιήσεις
+  console.warn = (...args) => {
+    // Καλεί την αρχική console.warn πρώτα
+    originalConsoleWarn.apply(console, args);
+    
+    // Δεν προχωράμε περισσότερο αν δεν υπάρχουν arguments
+    if (args.length === 0) return;
+    
+    // Βγάζουμε το πρώτο argument
+    const firstArg = args[0];
+    
+    // Αναζητάμε σημαντικές προειδοποιήσεις
+    const importantWarnings = [
+      "supabase", "authentication", "database", "unauthorized", "permission", "axios", 
+      "api", "connection", "wallet", "solana", "transaction"
+    ];
+    
+    // Ελέγχουμε αν η προειδοποίηση είναι σημαντική
+    let isImportant = false;
+    if (typeof firstArg === 'string') {
+      isImportant = importantWarnings.some(term => 
+        firstArg.toLowerCase().includes(term.toLowerCase())
+      );
+    }
+    
+    // Αν είναι σημαντική, στέλνουμε την προειδοποίηση και στο chat
+    if (isImportant) {
+      const warningMessage = typeof firstArg === 'string' 
+        ? firstArg 
+        : (firstArg instanceof Error 
+          ? firstArg.message 
+          : 'Σημαντική προειδοποίηση');
+      
+      displayError({
+        message: `Προειδοποίηση: ${warningMessage}`,
+        stack: typeof firstArg !== 'string' && firstArg instanceof Error ? firstArg.stack : undefined
+      }, {
+        title: 'Σημαντική προειδοποίηση',
+        showToast: true,
+        logToConsole: false,
+        sendToChat: true
+      });
+    }
   };
+  
+  // Προσθήκη αποθήκευσης χρόνων εμφάνισης σφαλμάτων
+  if (!window._lastErrorDisplayTimes) {
+    window._lastErrorDisplayTimes = {};
+  }
+
+  // Προσθήκη χειριστή για μη συλληφθέντα σφάλματα (uncaught errors)
+  const handleUncaughtError = (event: ErrorEvent) => {
+    event.preventDefault();
+    
+    displayError({
+      message: event.message,
+      stack: event.error?.stack
+    }, {
+      title: 'Μη συλληφθέν σφάλμα',
+      showToast: true,
+      logToConsole: true,
+      sendToChat: true
+    });
+  };
+  
+  // Προσθήκη χειριστή για απόρριψη υποσχέσεων (unhandled rejections)
+  const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+    event.preventDefault();
+    
+    const error = event.reason;
+    displayError(error, {
+      title: 'Μη διαχειρίσιμη απόρριψη υπόσχεσης',
+      showToast: true,
+      logToConsole: true,
+      sendToChat: true
+    });
+  };
+
+  // Προσθήκη χειριστή για σφάλματα δικτύου
+  const handleNetworkError = (event: Event) => {
+    // Έλεγχος για σφάλμα δικτύου
+    if (event.target instanceof XMLHttpRequest) {
+      const xhr = event.target;
+      if (xhr.status >= 400) {
+        displayError(`Σφάλμα δικτύου: ${xhr.status} ${xhr.statusText}`, {
+          title: 'Σφάλμα API',
+          showToast: true,
+          logToConsole: true,
+          sendToChat: true
+        });
+      }
+    }
+  };
+  
+  // Προσθήκη των event listeners
+  window.addEventListener('error', handleUncaughtError);
+  window.addEventListener('unhandledrejection', handleUnhandledRejection);
+  window.addEventListener('xhr', handleNetworkError);
+  
+  // Επιστροφή συνάρτησης καθαρισμού
+  return () => {
+    // Επαναφορά των αρχικών συναρτήσεων
+    console.error = originalConsoleError;
+    console.warn = originalConsoleWarn;
+    
+    // Αφαίρεση των event listeners
+    window.removeEventListener('error', handleUncaughtError);
+    window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    window.removeEventListener('xhr', handleNetworkError);
+  };
+}
+
+/**
+ * Ομαδοποιεί πολλαπλά σφάλματα και τα εμφανίζει μαζί
+ * @param errors Πίνακας σφαλμάτων
+ */
+export function displayGroupedErrors(errors: (Error | string)[]) {
+  if (errors.length === 0) return;
+  
+  // Αν υπάρχει μόνο ένα σφάλμα, το εμφανίζουμε μεμονωμένα
+  if (errors.length === 1) {
+    displayError(errors[0]);
+    return;
+  }
+  
+  // Δημιουργία συγκεντρωτικού μηνύματος
+  const errorMessages = errors.map(err => {
+    if (err instanceof Error) {
+      return err.message;
+    }
+    return String(err);
+  });
+  
+  // Εμφάνιση ομαδοποιημένων σφαλμάτων
+  const message = `Εντοπίστηκαν ${errors.length} σφάλματα:\n\n${errorMessages.join('\n\n')}`;
+  
+  // Δημιουργία stack trace για όλα τα σφάλματα που είναι Error objects
+  const stackTraces = errors
+    .filter((err): err is Error => err instanceof Error && !!err.stack)
+    .map(err => `--- ${err.message} ---\n${err.stack}`);
+  
+  const combinedStack = stackTraces.length > 0 ? stackTraces.join('\n\n') : undefined;
+  
+  // Εμφάνιση όλων των σφαλμάτων ως ένα μήνυμα
+  displayError({
+    message, 
+    stack: combinedStack
+  }, {
+    title: `Πολλαπλά σφάλματα (${errors.length})`,
+    showToast: true,
+    logToConsole: true,
+    sendToChat: true
+  });
+  
+  // Επιπλέον εμφάνιση κάθε σφάλματος ξεχωριστά στο chat
+  errors.forEach(err => {
+    if (err instanceof Error) {
+      sendErrorToChat(err.message, err.stack);
+    } else {
+      sendErrorToChat(String(err));
+    }
+  });
 }

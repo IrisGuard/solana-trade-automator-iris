@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useErrorReporting } from "@/hooks/useErrorReporting";
 import { clearAllErrors } from "@/utils/errorTestUtils";
+import { displayError, sendErrorToChat } from "@/utils/errorUtils";
 
 interface LogRecord {
   type: 'error' | 'warn' | 'info';
@@ -12,124 +13,65 @@ interface LogRecord {
 
 export function ConsoleMonitor() {
   const [logs, setLogs] = useState<LogRecord[]>([]);
-  const { reportError, sendErrorToChat } = useErrorReporting();
+  const { reportError } = useErrorReporting();
 
-  // Παρακολούθηση του console.error και console.warn
+  // Παρακολούθηση των σφαλμάτων API
   useEffect(() => {
-    // Αρχικός καθαρισμός σφαλμάτων
-    clearAllErrors();
-    
-    // Αποθηκεύστε τις αρχικές μεθόδους κονσόλας
-    const originalConsoleError = console.error;
-    const originalConsoleWarn = console.warn;
-
-    // Αντικαταστήστε τη μέθοδο console.error
-    console.error = (...args) => {
-      // Καλέστε την αρχική μέθοδο
-      originalConsoleError.apply(console, args);
-      
-      // Δημιουργήστε ένα μήνυμα για το σφάλμα
-      let errorMessage = "";
-      let errorObject: Error | null = null;
-
-      if (args.length > 0) {
-        if (args[0] instanceof Error) {
-          errorMessage = args[0].message;
-          errorObject = args[0];
-        } else if (typeof args[0] === 'string') {
-          errorMessage = args[0];
-        } else {
-          try {
-            errorMessage = JSON.stringify(args[0]);
-          } catch {
-            errorMessage = "Μη αναγνώσιμο σφάλμα";
-          }
-        }
-      }
-
-      // Εμφάνιση toast μόνο για μη συνηθισμένα σφάλματα
-      if (!errorMessage.includes('ResizeObserver') && 
-          !errorMessage.includes('act(...)') &&
-          !errorMessage.includes('findDOMNode') &&
-          !errorMessage.includes('React does not recognize')) {
-        
-        // Προσθέστε το στο state
-        const newLog: LogRecord = {
-          type: 'error',
-          message: errorMessage,
-          timestamp: new Date()
-        };
-        
-        setLogs(prev => [...prev, newLog]);
-        
-        // Εμφάνιση toast με επιλογή αποστολής στο chat μόνο αν δεν είναι από το σύστημα διαχείρισης σφαλμάτων
-        if (!errorMessage.includes('ErrorDialogInChat') && !errorMessage.includes('clearAllErrors')) {
-          toast.error(`Σφάλμα: ${errorMessage.substring(0, 50)}${errorMessage.length > 50 ? '...' : ''}`, {
-            description: "Πατήστε για αποστολή στο chat",
-            duration: 5000,
-            action: {
-              label: "Αποστολή",
-              onClick: () => {
-                if (errorObject) {
-                  sendErrorToChat(errorMessage, errorObject.stack);
-                } else {
-                  sendErrorToChat(errorMessage);
-                }
-              }
+    const handleFetchErrors = () => {
+      // Δημιουργία αντικαταστάτη για την fetch API
+      const originalFetch = window.fetch;
+      window.fetch = async (...args) => {
+        try {
+          const response = await originalFetch(...args);
+          
+          // Έλεγχος για HTTP σφάλματα
+          if (!response.ok) {
+            const url = typeof args[0] === 'string' 
+              ? args[0] 
+              : (args[0] instanceof Request ? args[0].url : 'unknown');
+            
+            const errorMessage = `HTTP ${response.status}: ${response.statusText} - ${url}`;
+            
+            // Αν είναι σφάλμα Supabase, το εμφανίζουμε
+            if (url.includes('supabase') || url.includes('lvkbyfocssuzcdphpmfu')) {
+              displayError(errorMessage, {
+                title: 'Σφάλμα Supabase',
+                showToast: true,
+                logToConsole: true,
+                sendToChat: true
+              });
+            } else if (response.status >= 500) {
+              // Σοβαρό σφάλμα σε API
+              displayError(errorMessage, {
+                title: 'Σοβαρό σφάλμα API',
+                showToast: true,
+                logToConsole: true,
+                sendToChat: true
+              });
             }
-          });
-        }
-      }
-    };
-
-    // Αντικαταστήστε τη μέθοδο console.warn
-    console.warn = (...args) => {
-      // Καλέστε την αρχική μέθοδο
-      originalConsoleWarn.apply(console, args);
-      
-      // Δημιουργήστε ένα μήνυμα για την προειδοποίηση
-      let warnMessage = "";
-      if (args.length > 0) {
-        if (typeof args[0] === 'string') {
-          warnMessage = args[0];
-        } else {
-          try {
-            warnMessage = JSON.stringify(args[0]);
-          } catch {
-            warnMessage = "Μη αναγνώσιμη προειδοποίηση";
           }
+          
+          return response;
+        } catch (error: any) {
+          // Σφάλμα δικτύου ή CORS
+          displayError(error, {
+            title: 'Σφάλμα δικτύου',
+            showToast: true,
+            logToConsole: true,
+            sendToChat: true
+          });
+          throw error;
         }
-      }
-
-      // Προσθέστε το στο state
-      const newLog: LogRecord = {
-        type: 'warn',
-        message: warnMessage,
-        timestamp: new Date()
       };
       
-      setLogs(prev => [...prev, newLog]);
+      // Καθαρισμός
+      return () => {
+        window.fetch = originalFetch;
+      };
     };
-
-    // Καθαρισμός κατά την απομόντωση
-    return () => {
-      console.error = originalConsoleError;
-      console.warn = originalConsoleWarn;
-    };
-  }, [reportError, sendErrorToChat]);
-
-  // Αποθήκευση logs στο localStorage όταν αλλάζουν
-  useEffect(() => {
-    if (logs.length > 0) {
-      try {
-        // Κρατάμε μόνο τα τελευταία 50 logs για απόδοση
-        const logsToStore = logs.slice(-50);
-        localStorage.setItem('app_console_logs', JSON.stringify(logsToStore));
-      } catch (e) {
-        // Σιωπηλή αποτυχία αν δεν μπορούμε να αποθηκεύσουμε στο localStorage
-      }
-    }
-  }, [logs]);
+    
+    return handleFetchErrors();
+  }, []);
 
   // Δεν χρειάζεται να επιστρέψουμε JSX καθώς αυτό είναι ένα "αόρατο" component
   return null;

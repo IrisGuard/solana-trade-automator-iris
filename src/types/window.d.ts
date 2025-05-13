@@ -10,4 +10,13 @@ interface Window {
   };
   _lastErrorDisplayTime?: number;
   _lastErrorMessage?: string;
+  _lastErrorDisplayTimes?: {
+    [errorId: string]: number;
+  };
+  _errorQueue?: Array<{
+    message: string;
+    stack?: string;
+    timestamp: string;
+    type: string;
+  }>;
 }
