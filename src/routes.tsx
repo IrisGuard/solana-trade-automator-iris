@@ -49,5 +49,6 @@ const router = createBrowserRouter([
 ]);
 
 export function Routes() {
+  console.log("Routes component loaded");
   return <RouterProvider router={router} />;
 }

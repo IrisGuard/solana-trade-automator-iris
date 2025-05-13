@@ -4,8 +4,8 @@ import { Outlet, useLocation } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { cn } from "@/lib/utils";
-import { Toaster } from "@/components/ui/toaster";
 import { HelpButton } from "@/components/help/HelpButton";
+import { Toaster } from "sonner";
 
 const pageTitles: Record<string, string> = {
   "/": "Αρχική",
@@ -29,7 +29,6 @@ export function Layout() {
         <main className={cn("flex-1 overflow-auto p-6")}>
           <Outlet />
         </main>
-        <Toaster />
       </div>
       
       {/* Προσθήκη του κουμπιού βοήθειας */}
