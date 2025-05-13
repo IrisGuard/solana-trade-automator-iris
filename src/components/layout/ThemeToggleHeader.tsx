@@ -1,8 +1,8 @@
 
 import React from "react";
-import { ThemeToggle } from "./ThemeToggle";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { LanguageToggle } from "./LanguageToggle";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-exports";
 import { useLanguage } from "@/providers/LanguageProvider";
 
 export function ThemeToggleHeader() {
