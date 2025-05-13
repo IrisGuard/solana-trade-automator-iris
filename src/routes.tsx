@@ -6,8 +6,6 @@ import Dashboard from "@/pages/Dashboard";
 import Wallet from "@/pages/Wallet";
 import Security from "@/pages/Security";
 import Transactions from "@/pages/Transactions";
-import TransactionsEnhanced from "@/pages/TransactionsEnhanced";
-import Bots from "@/pages/Bots";
 import Settings from "@/pages/Settings";
 import Help from "@/pages/Help";
 import NotFound from "@/pages/NotFound";
@@ -37,14 +35,6 @@ const router = createBrowserRouter([
       {
         path: "transactions",
         element: <Transactions />,
-      },
-      {
-        path: "transactions-enhanced",
-        element: <TransactionsEnhanced />,
-      },
-      {
-        path: "bots",
-        element: <Bots />,
       },
       {
         path: "settings",
