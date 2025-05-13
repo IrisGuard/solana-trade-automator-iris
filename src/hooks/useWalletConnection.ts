@@ -3,8 +3,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { isPhantomInstalled, connectPhantomWallet, disconnectPhantomWallet } from '@/utils/phantomWallet';
 import { Token } from '@/types/wallet';
-import { fetchAllTokenBalances, fetchTokenPrices } from '@/services/solana/tokenService';
+import { fetchAllTokenBalances } from '@/services/solana/tokenService';
 import { fetchSOLBalance } from '@/services/solana/walletService';
+import { fetchTokenPrices } from '@/services/solana/priceService';
+import { TokenPriceData } from '@/services/solana/priceService';
 
 export function useWalletConnection() {
   const [isConnected, setIsConnected] = useState<boolean>(false);
@@ -55,15 +57,15 @@ export function useWalletConnection() {
       // Load token prices
       if (userTokens.length > 0) {
         const tokenAddresses = userTokens.map(token => token.address);
-        const prices = await fetchTokenPrices(tokenAddresses);
+        const priceData = await fetchTokenPrices(tokenAddresses);
         
         // Convert the TokenPriceData to simple price record
         const simplePrices: Record<string, number> = {};
-        Object.entries(prices).forEach(([address, price]) => {
-          if (typeof price === 'number') {
-            simplePrices[address] = price;
-          } else if (typeof price === 'object' && price !== null && 'price' in price) {
-            simplePrices[address] = price.price;
+        
+        // Safely extract price values
+        Object.entries(priceData).forEach(([address, data]) => {
+          if (data && typeof data === 'object' && 'price' in data) {
+            simplePrices[address] = data.price;
           }
         });
         

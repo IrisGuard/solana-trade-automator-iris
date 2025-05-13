@@ -61,6 +61,22 @@ export async function getTokenPrice(tokenAddress: string): Promise<TokenPriceDat
   }
 }
 
+// Fetch prices for multiple tokens
+export async function fetchTokenPrices(tokenAddresses: string[]): Promise<Record<string, TokenPriceData>> {
+  try {
+    const prices: Record<string, TokenPriceData> = {};
+    
+    for (const address of tokenAddresses) {
+      prices[address] = await getTokenPrice(address);
+    }
+    
+    return prices;
+  } catch (error) {
+    console.error('Error fetching token prices:', error);
+    return {};
+  }
+}
+
 // Subscribe to price updates for a token
 export function subscribeToPriceUpdates(
   tokenAddress: string,
@@ -79,5 +95,6 @@ export function subscribeToPriceUpdates(
 // Export services
 export const priceService = {
   getTokenPrice,
-  subscribeToPriceUpdates
+  subscribeToPriceUpdates,
+  fetchTokenPrices
 };
