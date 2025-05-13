@@ -11,6 +11,7 @@ import NotFound from "@/pages/NotFound";
 import ApiVault from "@/pages/ApiVault";
 import Bots from "@/pages/Bots";
 import Index from "@/pages/Index";
+import Home from "@/pages/Home";
 
 console.log("Routes module loaded");
 
@@ -20,6 +21,7 @@ export function Routes() {
     <ReactRouterRoutes>
       <Route element={<Layout />}>
         <Route path="/" element={<Index />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/wallet" element={<Wallet />} />
         <Route path="/security" element={<Security />} />
