@@ -1,8 +1,8 @@
 
-import React, { createContext, useContext, ReactNode, useState } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
-import type { AuthContextType as SupabaseAuthContextType } from '@/hooks/useSupabaseAuth';
 import type { AuthContextType } from '@/types/auth';
+import { authService } from '@/services/authService';
 
 // Δημιουργούμε το context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,16 +23,14 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     loading: supabaseAuth.isLoading,
     signIn: async (email, password) => {
       try {
-        // Placeholder μέχρι να υλοποιηθεί πλήρως
-        return { success: true };
+        return await authService.signInWithPassword(email, password);
       } catch (error) {
         return { error };
       }
     },
     signUp: async (email, password) => {
       try {
-        // Placeholder μέχρι να υλοποιηθεί πλήρως
-        return { success: true };
+        return await authService.signUp(email, password);
       } catch (error) {
         return { error };
       }
