@@ -6,6 +6,7 @@ export function useVaultDialogs() {
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showExportSheet, setShowExportSheet] = useState(false);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
 
   return {
     showDialogApiKey,
@@ -15,6 +16,8 @@ export function useVaultDialogs() {
     showExportSheet,
     setShowExportSheet,
     showSettingsDialog,
-    setShowSettingsDialog
+    setShowSettingsDialog,
+    showRecoveryDialog,
+    setShowRecoveryDialog
   };
 }

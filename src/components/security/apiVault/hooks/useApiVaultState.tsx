@@ -1,17 +1,16 @@
-import { useState, useMemo, useCallback } from "react";
-import { toast } from "sonner";
+
+import { useState, useMemo } from "react";
 import { ApiKey } from "../types";
 import { useApiKeyManagement } from "./useApiKeyManagement";
 import { useVaultSecurity } from "./useVaultSecurity";
 import { useVaultRecovery } from "./useVaultRecovery";
-import { useKeyTesting } from "./useKeyTesting";
+import { useKeyTestingState } from "./useKeyTestingState";
 import { useVaultDialogs } from "./useVaultDialogs";
 import { useApiKeyStorage } from "./useApiKeyStorage";
+import { useRecoveredKeysImport } from "./useRecoveredKeysImport";
 
 export function useApiVaultState() {
   const [activeTab, setActiveTab] = useState("keys");
-  const [recoveredKeys, setRecoveredKeys] = useState<ApiKey[]>([]);
-  const [recoveryLocations, setRecoveryLocations] = useState<{ storageKey: string; count: number }[]>([]);
   
   // Key management
   const {
@@ -61,21 +60,7 @@ export function useApiVaultState() {
   const {
     isTestingKeys,
     handleRefreshKeys
-  } = useKeyTesting(apiKeys, setApiKeys, testKeyFunctionality);
-  
-  // Recovery handling
-  const {
-    isRecovering,
-    setIsRecovering,
-    handleRecoverClick
-  } = useVaultRecovery({
-    apiKeys,
-    isRecovering: false,
-    setIsRecovering: useState<boolean>(false)[1],
-    setRecoveredKeys,
-    setRecoveryLocations,
-    setShowRecoveryDialog: useState<boolean>(false)[1]
-  });
+  } = useKeyTestingState();
   
   // Dialog management
   const {
@@ -90,34 +75,23 @@ export function useApiVaultState() {
     showRecoveryDialog,
     setShowRecoveryDialog
   } = useVaultDialogs();
-
-  // Handle recovery import
-  const handleRecoveredImport = useCallback((keys: ApiKey[]) => {
-    if (keys.length === 0) {
-      toast.error("Δεν υπάρχουν κλειδιά για εισαγωγή");
-      return;
-    }
-    
-    try {
-      // Filter out duplicates
-      const newKeys = keys.filter(recoveredKey => 
-        !apiKeys.some(existingKey => existingKey.key === recoveredKey.key)
-      );
-      
-      if (newKeys.length === 0) {
-        toast.info("Όλα τα ανακτηθέντα κλειδιά υπάρχουν ήδη");
-        return;
-      }
-      
-      // Add the new keys
-      setApiKeys(prev => [...prev, ...newKeys]);
-      toast.success(`Εισαγωγή ${newKeys.length} ανακτηθέντων κλειδιών`);
-      setShowRecoveryDialog(false);
-    } catch (e) {
-      console.error("Σφάλμα κατά την εισαγωγή ανακτηθέντων κλειδιών:", e);
-      toast.error("Σφάλμα κατά την εισαγωγή κλειδιών");
-    }
-  }, [apiKeys, setApiKeys, setShowRecoveryDialog]);
+  
+  // Recovery handling
+  const {
+    isRecovering,
+    recoveredKeys,
+    recoveryLocations,
+    handleRecoverClick
+  } = useVaultRecovery({ apiKeys });
+  
+  // Recovered keys import handling
+  const { 
+    handleRecoveredImport 
+  } = useRecoveredKeysImport({
+    apiKeys,
+    setApiKeys,
+    setShowRecoveryDialog
+  });
   
   // Computed key statistics
   const keyStats = useMemo(() => ({
@@ -135,6 +109,11 @@ export function useApiVaultState() {
       count: keys.length,
     }));
   }, [getKeysByService]);
+
+  // Create a refreshKeys handler that works with our key testing state
+  const refreshKeysHandler = () => {
+    handleRefreshKeys(apiKeys, setApiKeys, testKeyFunctionality);
+  };
 
   return {
     // Tab state
@@ -188,11 +167,10 @@ export function useApiVaultState() {
     
     // Testing functionality
     isTestingKeys,
-    handleRefreshKeys,
+    handleRefreshKeys: refreshKeysHandler,
     
     // Recovery
     isRecovering,
-    setIsRecovering,
     handleRecoverClick,
     recoveredKeys,
     recoveryLocations,

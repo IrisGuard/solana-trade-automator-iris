@@ -38,6 +38,7 @@ interface ApiVaultDialogsContainerProps {
   recoveredKeys: ApiKey[];
   recoveryLocations: { storageKey: string; count: number }[];
   handleRecoveredImport: (keys: ApiKey[]) => void;
+  recoverFromBackup?: () => Promise<ApiKey[]>;
 }
 
 export const ApiVaultDialogsContainer: React.FC<ApiVaultDialogsContainerProps> = (props) => {

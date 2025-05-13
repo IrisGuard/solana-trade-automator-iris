@@ -115,12 +115,10 @@ export const ApiVaultCard = () => {
             recoveredKeys={state.recoveredKeys}
             recoveryLocations={state.recoveryLocations}
             handleRecoveredImport={state.handleRecoveredImport}
-            
-            // Recovery methods
             recoverFromBackup={state.recoverFromBackup}
           />
         </div>
       </CardContent>
     </Card>
   );
-};
+}

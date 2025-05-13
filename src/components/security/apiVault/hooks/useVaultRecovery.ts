@@ -1,26 +1,18 @@
 
-import { useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { recoverAllApiKeys } from "../utils";
 import { ApiKey } from "../types";
 
 interface UseVaultRecoveryProps {
   apiKeys: ApiKey[];
-  isRecovering: boolean;
-  setIsRecovering: (value: boolean) => void;
-  setRecoveredKeys: (keys: ApiKey[]) => void;
-  setRecoveryLocations: (locations: { storageKey: string; count: number }[]) => void;
-  setShowRecoveryDialog: (show: boolean) => void;
 }
 
-export function useVaultRecovery({
-  apiKeys,
-  isRecovering,
-  setIsRecovering,
-  setRecoveredKeys,
-  setRecoveryLocations,
-  setShowRecoveryDialog
-}: UseVaultRecoveryProps) {
+export function useVaultRecovery({ apiKeys }: UseVaultRecoveryProps) {
+  const [recoveredKeys, setRecoveredKeys] = useState<ApiKey[]>([]);
+  const [recoveryLocations, setRecoveryLocations] = useState<{ storageKey: string; count: number }[]>([]);
+  const [isRecovering, setIsRecovering] = useState(false);
+  const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
   
   // Attempt automatic recovery when the component mounts and no keys are found
   useEffect(() => {
@@ -31,10 +23,10 @@ export function useVaultRecovery({
         handleRecoverClick();
       }, 1000);
     }
-  }, []);
+  }, [apiKeys]);
 
   // Handle recovery scan
-  const handleRecoverClick = () => {
+  const handleRecoverClick = useCallback(() => {
     setIsRecovering(true);
     setTimeout(() => {
       try {
@@ -55,9 +47,15 @@ export function useVaultRecovery({
         setIsRecovering(false);
       }
     }, 1000);
-  };
+  }, []);
   
   return {
-    handleRecoverClick
+    isRecovering,
+    setIsRecovering,
+    recoveredKeys,
+    recoveryLocations,
+    handleRecoverClick,
+    showRecoveryDialog,
+    setShowRecoveryDialog
   };
 }
