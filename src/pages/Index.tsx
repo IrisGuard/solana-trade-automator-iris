@@ -25,7 +25,7 @@ export default function Index() {
             <WalletConnectedContent walletAddress={walletAddress} />
           </div>
         ) : (
-          <WalletDisconnectedContent isConnecting={isConnecting} />
+          <WalletDisconnectedContent isConnecting={isConnecting || false} isPhantomInstalled={true} />
         )}
       </main>
       <FooterSection />

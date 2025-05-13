@@ -1,12 +1,10 @@
 
-import { toast } from 'sonner';
-
-// Διορθώνουμε το interface
+// Interface για το Phantom Wallet
 export interface PhantomWindow extends Window {
   phantom?: {
     solana?: {
       isPhantom: boolean;
-      connect: (opts?: { onlyIfTrusted?: boolean }) => Promise<{ publicKey: { toString: () => string } }>;
+      connect: (opts?: { onlyIfTrusted?: boolean }) => Promise<any>;
       disconnect: () => Promise<void>;
       on: (event: string, callback: Function) => void;
       off: (event: string, callback: Function) => void;
@@ -14,70 +12,48 @@ export interface PhantomWindow extends Window {
   };
 }
 
-declare const window: PhantomWindow;
+// Έλεγχος αν το Phantom είναι εγκατεστημένο
+export const isPhantomInstalled = (): boolean => {
+  const win = window as unknown as PhantomWindow;
+  return win?.phantom?.solana?.isPhantom || false;
+};
 
-export const getPhantomWallet = () => {
-  if (window?.phantom?.solana?.isPhantom) {
-    return window.phantom.solana;
+// Σύνδεση με το Phantom Wallet
+export const connectPhantomWallet = async (onlyIfTrusted = false): Promise<string | null> => {
+  const win = window as unknown as PhantomWindow;
+  
+  if (!win.phantom?.solana) {
+    alert('Το Phantom wallet δεν βρέθηκε! Παρακαλώ εγκαταστήστε το.');
+    return null;
   }
-  return null;
-};
-
-export const isPhantomInstalled = () => {
-  return typeof window !== 'undefined' && window.phantom?.solana?.isPhantom || false;
-};
-
-export const connectPhantomWallet = async () => {
+  
   try {
-    const wallet = getPhantomWallet();
-    if (!wallet) {
-      toast.error('Phantom wallet not found. Please install it first.');
-      window.open('https://phantom.app/', '_blank');
-      return null;
-    }
-    
-    const response = await wallet.connect();
-    const publicKey = response.publicKey.toString();
-    localStorage.setItem('walletConnected', 'true');
-    localStorage.setItem('userDisconnected', 'false');
-    
-    return publicKey;
-  } catch (error) {
-    console.error('Error connecting to Phantom:', error);
-    localStorage.setItem('walletConnected', 'false');
-    localStorage.setItem('userDisconnected', 'true');
-    toast.error('Failed to connect to Phantom wallet.');
+    const { publicKey } = await win.phantom.solana.connect({ onlyIfTrusted });
+    return publicKey.toString();
+  } catch (err) {
+    console.error('Σφάλμα κατά τη σύνδεση με το Phantom Wallet:', err);
     return null;
   }
 };
 
-export const connectTrustedPhantomWallet = async () => {
-  try {
-    const wallet = getPhantomWallet();
-    if (!wallet) {
-      return null;
-    }
-    
-    const response = await wallet.connect({ onlyIfTrusted: true });
-    return response.publicKey.toString();
-  } catch (error) {
-    console.error('Error connecting to trusted Phantom wallet:', error);
-    return null;
-  }
+// Σύνδεση μόνο με trusted Phantom Wallet (για αυτόματη σύνδεση)
+export const connectTrustedPhantomWallet = async (): Promise<string | null> => {
+  return connectPhantomWallet(true);
 };
 
-export const disconnectPhantomWallet = async () => {
-  try {
-    const wallet = getPhantomWallet();
-    if (wallet) {
-      await wallet.disconnect();
-      localStorage.setItem('walletConnected', 'false');
-      localStorage.setItem('userDisconnected', 'true');
-      return true;
-    }
+// Αποσύνδεση από το Phantom Wallet
+export const disconnectPhantomWallet = async (): Promise<boolean> => {
+  const win = window as unknown as PhantomWindow;
+  
+  if (!win.phantom?.solana) {
     return false;
-  } catch (error) {
-    console.error('Error disconnecting from Phantom:', error);
+  }
+  
+  try {
+    await win.phantom.solana.disconnect();
+    return true;
+  } catch (err) {
+    console.error('Σφάλμα κατά την αποσύνδεση από το Phantom Wallet:', err);
     return false;
   }
 };

@@ -4,7 +4,9 @@ import { solanaService } from '@/services/solanaService';
 import { useWalletStatus } from './useWalletStatus';
 
 export function useWalletBalance() {
-  const { walletAddress, setBalance } = useWalletStatus();
+  const walletStatus = useWalletStatus();
+  const walletAddress = walletStatus.walletAddress;
+  const setBalance = walletStatus.setBalance || (() => {});
 
   // Βοηθητική συνάρτηση για τη φόρτωση και ορισμό του υπολοίπου
   const fetchAndSetBalance = useCallback(async (address: string) => {

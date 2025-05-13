@@ -38,18 +38,19 @@ export function WalletConnectedContent({
       <WalletInfoCard 
         walletAddress={walletAddress} 
         displayAddress={shortAddress}
-        balance={solBalance}
+        balance={solBalance || 0}
       />
       <PlatformInfoCard />
       <TokensCard 
         tokens={tokens || []}
-        isLoading={isLoadingTokens}
+        isLoading={!!isLoadingTokens}
         onSelectToken={selectTokenForTrading}
       />
       <BotStatusCard />
       <div className="md:col-span-2">
         <TransactionsCard 
           walletAddress={walletAddress}
+          displayAddress={shortAddress}
         />
       </div>
     </div>
