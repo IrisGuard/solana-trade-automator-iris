@@ -97,8 +97,8 @@ export function StatusCard({
                       : order.type === 'take-profit' 
                         ? 'Take Profit' 
                         : order.type === 'limit-buy' 
-                          ? 'Limit Buy' 
-                          : 'Limit Sell'}
+                          ? 'Αγορά Limit' 
+                          : 'Πώληση Limit'}
                   </span>
                   <span>${order.price.toFixed(4)}</span>
                 </div>

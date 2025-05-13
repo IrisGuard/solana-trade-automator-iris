@@ -8,16 +8,16 @@ export function SimulationResultsCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Simulation Results</CardTitle>
-        <CardDescription>Performance metrics from simulations</CardDescription>
+        <CardTitle>Αποτελέσματα Προσομοίωσης</CardTitle>
+        <CardDescription>Μετρήσεις απόδοσης από προσομοιώσεις</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: "Total Return", value: "+12.8%", positive: true },
-            { label: "Max Drawdown", value: "-4.3%", positive: false },
-            { label: "Win Rate", value: "68%", positive: true },
-            { label: "Sharpe Ratio", value: "1.74", positive: true }
+            { label: "Συνολική Απόδοση", value: "+12.8%", positive: true },
+            { label: "Μέγιστη Πτώση", value: "-4.3%", positive: false },
+            { label: "Ποσοστό Επιτυχίας", value: "68%", positive: true },
+            { label: "Δείκτης Sharpe", value: "1.74", positive: true }
           ].map((stat, i) => (
             <Card key={i} className="border border-muted">
               <CardContent className="pt-6">
@@ -34,39 +34,39 @@ export function SimulationResultsCard() {
         
         <div className="pt-4">
           <div className="flex items-center justify-between">
-            <h4 className="font-medium">Latest Simulation</h4>
-            <p className="text-sm text-muted-foreground">Run 2 hours ago</p>
+            <h4 className="font-medium">Τελευταία Προσομοίωση</h4>
+            <p className="text-sm text-muted-foreground">Εκτελέστηκε πριν 2 ώρες</p>
           </div>
           
           <div className="mt-4 space-y-1">
             <div className="flex items-center justify-between text-sm">
-              <p>Strategy</p>
+              <p>Στρατηγική</p>
               <p className="font-medium">Grid Trading</p>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <p>Trading Pair</p>
+              <p>Ζεύγος Συναλλαγών</p>
               <p className="font-medium">SOL/USDC</p>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <p>Period</p>
-              <p className="font-medium">Last Week</p>
+              <p>Περίοδος</p>
+              <p className="font-medium">Τελευταία Εβδομάδα</p>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <p>Initial Capital</p>
-              <p className="font-medium">1,000 USDC</p>
+              <p>Αρχικό Κεφάλαιο</p>
+              <p className="font-medium">1.000 USDC</p>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <p>Final Capital</p>
-              <p className="font-medium text-green-400">1,128 USDC</p>
+              <p>Τελικό Κεφάλαιο</p>
+              <p className="font-medium text-green-400">1.128 USDC</p>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <p>Trades Executed</p>
+              <p>Εκτελεσμένες Συναλλαγές</p>
               <p className="font-medium">47</p>
             </div>
           </div>
           
           <div className="mt-4">
-            <Button variant="outline" className="w-full">View Detailed Report</Button>
+            <Button variant="outline" className="w-full">Προβολή Αναλυτικής Αναφοράς</Button>
           </div>
         </div>
       </CardContent>

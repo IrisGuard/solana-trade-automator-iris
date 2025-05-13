@@ -42,7 +42,7 @@ export function CreateBotForm({ onCancel }: CreateBotFormProps) {
         const templateData = await botsService.getBotTemplates();
         setTemplates(templateData);
       } catch (error) {
-        console.error("Error loading templates:", error);
+        console.error("Σφάλμα φόρτωσης προτύπων:", error);
       }
     };
     
@@ -57,7 +57,7 @@ export function CreateBotForm({ onCancel }: CreateBotFormProps) {
     if (selectedTemplateData) {
       const config = selectedTemplateData.default_config as Record<string, any> || {};
       
-      setBotName(`My ${selectedTemplateData.name}`);
+      setBotName(`Το ${selectedTemplateData.name} μου`);
       setBaseToken((config.selectedToken || "sol").toLowerCase());
       setQuoteToken((config.quoteToken || "usdc").toLowerCase());
       setStrategy(selectedTemplateData.strategy || "momentum");
@@ -113,7 +113,7 @@ export function CreateBotForm({ onCancel }: CreateBotFormProps) {
         onCancel();
       }
     } catch (error) {
-      console.error("Error creating bot:", error);
+      console.error("Σφάλμα δημιουργίας bot:", error);
       toast.error("Αποτυχία δημιουργίας bot");
     } finally {
       setIsSubmitting(false);
@@ -161,13 +161,13 @@ export function CreateBotForm({ onCancel }: CreateBotFormProps) {
       <AutoCompoundToggle autoCompound={autoCompound} setAutoCompound={setAutoCompound} />
 
       <div className="flex justify-between">
-        <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+        <Button variant="ghost" onClick={onCancel}>Άκυρο</Button>
         <Button 
           onClick={handleCreateBot}
           disabled={isSubmitting}
         >
           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Create Bot
+          Δημιουργία Bot
         </Button>
       </div>
     </div>

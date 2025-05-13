@@ -11,21 +11,21 @@ export function SimulationSettingsCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Simulation Settings</CardTitle>
-        <CardDescription>Configure virtual trading environment</CardDescription>
+        <CardTitle>Ρυθμίσεις Προσομοίωσης</CardTitle>
+        <CardDescription>Διαμόρφωση εικονικού περιβάλλοντος συναλλαγών</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label>Market Conditions</Label>
+          <Label>Συνθήκες Αγοράς</Label>
           <div className="grid grid-cols-3 gap-2">
-            <Button variant="outline" size="sm">Bullish</Button>
-            <Button variant="default" size="sm">Neutral</Button>
-            <Button variant="outline" size="sm">Bearish</Button>
+            <Button variant="outline" size="sm">Ανοδική</Button>
+            <Button variant="default" size="sm">Ουδέτερη</Button>
+            <Button variant="outline" size="sm">Καθοδική</Button>
           </div>
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="sim-volatility">Market Volatility: 25%</Label>
+          <Label htmlFor="sim-volatility">Μεταβλητότητα Αγοράς: 25%</Label>
           <Slider 
             id="sim-volatility"
             min={5} 
@@ -36,21 +36,21 @@ export function SimulationSettingsCard() {
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="sim-liquidity">Simulated Liquidity: Medium</Label>
+          <Label htmlFor="sim-liquidity">Προσομοιωμένη Ρευστότητα: Μέτρια</Label>
           <Select defaultValue="medium">
             <SelectTrigger id="sim-liquidity">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="low">Low</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="high">High</SelectItem>
+              <SelectItem value="low">Χαμηλή</SelectItem>
+              <SelectItem value="medium">Μέτρια</SelectItem>
+              <SelectItem value="high">Υψηλή</SelectItem>
             </SelectContent>
           </Select>
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="sim-slippage">Slippage Tolerance: 1.5%</Label>
+          <Label htmlFor="sim-slippage">Ανοχή Slippage: 1.5%</Label>
           <Slider 
             id="sim-slippage"
             min={0.1} 
@@ -61,26 +61,26 @@ export function SimulationSettingsCard() {
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="sim-speed">Simulation Speed</Label>
+          <Label htmlFor="sim-speed">Ταχύτητα Προσομοίωσης</Label>
           <Select defaultValue="normal">
             <SelectTrigger id="sim-speed">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="slow">Slow (1x)</SelectItem>
-              <SelectItem value="normal">Normal (10x)</SelectItem>
-              <SelectItem value="fast">Fast (100x)</SelectItem>
+              <SelectItem value="slow">Αργή (1x)</SelectItem>
+              <SelectItem value="normal">Κανονική (10x)</SelectItem>
+              <SelectItem value="fast">Γρήγορη (100x)</SelectItem>
             </SelectContent>
           </Select>
         </div>
         
         <div className="flex items-center space-x-2">
           <Switch id="sim-logs" defaultChecked />
-          <Label htmlFor="sim-logs">Enable detailed logs</Label>
+          <Label htmlFor="sim-logs">Ενεργοποίηση αναλυτικών καταγραφών</Label>
         </div>
 
         <Button className="w-full">
-          Start New Simulation
+          Έναρξη Νέας Προσομοίωσης
         </Button>
       </CardContent>
     </Card>

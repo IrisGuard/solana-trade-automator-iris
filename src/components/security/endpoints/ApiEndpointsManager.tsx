@@ -78,7 +78,7 @@ export function ApiEndpointsManager() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>API Endpoints Manager</CardTitle>
+          <CardTitle>Διαχείριση API Endpoints</CardTitle>
           <CardDescription>
             Διαχείριση των API endpoints της εφαρμογής
           </CardDescription>

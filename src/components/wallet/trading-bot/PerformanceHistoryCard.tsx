@@ -116,29 +116,30 @@ export function PerformanceHistoryCard() {
                   data={performanceData}
                   margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#888" strokeOpacity={0.2} />
-                  <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#888" strokeOpacity={0.3} />
+                  <XAxis 
+                    dataKey="date" 
+                    tickFormatter={(value) => {
+                      const date = new Date(value);
+                      return `${date.getDate()}/${date.getMonth()+1}`;
+                    }}
+                  />
+                  <YAxis />
                   <Tooltip 
-                    formatter={(value: any) => [`${value}`, '']}
-                    labelFormatter={(label) => `Ημερομηνία: ${label}`}
+                    formatter={(value: number) => [`${value.toFixed(2)}`, 'Αξία']}
+                    labelFormatter={(label) => {
+                      const date = new Date(label);
+                      return `${date.getDate()}/${date.getMonth()+1}/${date.getFullYear()}`;
+                    }}
                   />
                   <Legend />
                   <Line 
                     type="monotone" 
                     dataKey="value" 
                     name="Αξία" 
-                    stroke="#8884d8" 
-                    activeDot={{ r: 8 }}
-                    strokeWidth={2} 
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="roi" 
-                    name="ROI %" 
-                    stroke="#82ca9d" 
-                    strokeDasharray="5 5"
-                    strokeWidth={2} 
+                    stroke="#3b82f6" 
+                    activeDot={{ r: 6 }} 
+                    strokeWidth={2}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -149,34 +150,32 @@ export function PerformanceHistoryCard() {
         <TabsContent value="trades">
           <CardContent className="pt-2 px-6">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[600px] border-collapse">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-2">Ημερομηνία</th>
-                    <th className="text-left p-2">Τύπος</th>
-                    <th className="text-left p-2">Token</th>
-                    <th className="text-right p-2">Ποσότητα</th>
-                    <th className="text-right p-2">Τιμή</th>
-                    <th className="text-right p-2">Κατάσταση</th>
+                    <th className="text-left py-3 px-2">Ημ/νία</th>
+                    <th className="text-left py-3 px-2">Τύπος</th>
+                    <th className="text-left py-3 px-2">Token</th>
+                    <th className="text-left py-3 px-2">Ποσότητα</th>
+                    <th className="text-right py-3 px-2">Τιμή</th>
                   </tr>
                 </thead>
                 <tbody>
                   {tradeHistory.map((trade) => (
-                    <tr key={trade.id} className="border-b">
-                      <td className="p-2">{trade.date}</td>
-                      <td className="p-2 capitalize">
-                        <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${trade.type === 'buy' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'}`}>
-                          {trade.type}
+                    <tr key={trade.id} className="border-b hover:bg-muted/50">
+                      <td className="py-3 px-2 text-sm">{trade.date}</td>
+                      <td className="py-3 px-2">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                          trade.type === 'buy' 
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' 
+                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                        }`}>
+                          {trade.type === 'buy' ? 'Αγορά' : 'Πώληση'}
                         </span>
                       </td>
-                      <td className="p-2">{trade.token}</td>
-                      <td className="p-2 text-right">{trade.amount}</td>
-                      <td className="p-2 text-right">${trade.price}</td>
-                      <td className="p-2 text-right">
-                        <span className="inline-block px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-                          {trade.status}
-                        </span>
-                      </td>
+                      <td className="py-3 px-2">{trade.token}</td>
+                      <td className="py-3 px-2">{trade.amount}</td>
+                      <td className="py-3 px-2 text-right">${trade.price.toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -186,14 +185,14 @@ export function PerformanceHistoryCard() {
         </TabsContent>
       </Tabs>
       
-      <CardFooter className="flex justify-between border-t px-6 py-4">
-        <Button variant="outline" size="sm" className="flex items-center">
-          <Calendar className="h-4 w-4 mr-2" />
-          <span>Προσαρμογή Ημερομηνιών</span>
+      <CardFooter className="flex justify-between px-6 py-4 border-t">
+        <Button variant="outline" size="sm" className="flex items-center gap-1">
+          <Calendar className="h-4 w-4" />
+          <span>Περίοδος</span>
         </Button>
-        <Button variant="outline" size="sm" className="flex items-center">
-          <Download className="h-4 w-4 mr-2" />
-          <span>Εξαγωγή Δεδομένων</span>
+        <Button variant="outline" size="sm" className="flex items-center gap-1">
+          <Download className="h-4 w-4" />
+          <span>Εξαγωγή δεδομένων</span>
         </Button>
       </CardFooter>
     </Card>

@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { AlertCircle, Info } from "lucide-react";
+import { Info } from "lucide-react";
 import { toast } from "sonner";
 
 interface AdvancedStrategiesCardProps {
