@@ -2,12 +2,17 @@
 /**
  * Βοηθητικές συναρτήσεις για δοκιμή των σφαλμάτων και του συστήματος καταγραφής
  */
+import { displayError } from './errorUtils';
 
 /**
  * Δημιουργεί ένα προσομοιωμένο σφάλμα και το αποστέλλει στο σύστημα καταγραφής σφαλμάτων
  * @param message Το μήνυμα του σφάλματος
+ * @param options Επιλογές για τον τρόπο εμφάνισης
  */
-export function generateTestError(message = "Δοκιμαστικό σφάλμα για έλεγχο του συστήματος καταγραφής") {
+export function generateTestError(
+  message = "Δοκιμαστικό σφάλμα για έλεγχο του συστήματος καταγραφής", 
+  options = { showToast: true, logToConsole: true, sendToChat: true }
+) {
   // Καθαρισμός υπαρχόντων σφαλμάτων πρώτα
   clearAllErrors();
   
@@ -16,9 +21,12 @@ export function generateTestError(message = "Δοκιμαστικό σφάλμα
     // Δημιουργία του σφάλματος
     const testError = new Error(message);
     
-    // Καταγραφή του σφάλματος στην κονσόλα για να πιαστεί από το useConsoleErrorMonitor
-    console.error(testError);
-  }, 300);
+    // Εμφάνιση του σφάλματος με τις επιλεγμένες επιλογές
+    displayError(testError, {
+      title: 'Δοκιμαστικό Σφάλμα',
+      ...options
+    });
+  }, 500);
 }
 
 /**
@@ -29,7 +37,7 @@ export function clearAllErrors() {
   try {
     localStorage.removeItem('lovable_chat_errors');
   } catch (e) {
-    console.error('Σφάλμα κατά τον καθαρισμό των σφαλμάτων:', e);
+    console.error('Σφάλμα κατά τον καθαρισμό των σφαλμάτων από το localStorage:', e);
   }
   
   // Αποστολή event καθαρισμού
@@ -42,42 +50,43 @@ export function clearAllErrors() {
   
   // Απευθείας καθαρισμός μέσω του window object
   if (window.lovableChat && typeof window.lovableChat.clearErrors === 'function') {
-    window.lovableChat.clearErrors();
+    try {
+      window.lovableChat.clearErrors();
+    } catch (e) {
+      console.error('Σφάλμα κατά τον καθαρισμό από το lovableChat:', e);
+    }
   }
 }
 
 /**
- * Προσθέτει ένα κουμπί στη σελίδα που εμφανίζει ένα δοκιμαστικό σφάλμα
+ * Δημιουργεί διάφορους τύπους σφαλμάτων για δοκιμές
  */
-export function addTestErrorButton() {
-  // Έλεγχος αν υπάρχει ήδη το κουμπί
-  if (document.getElementById('test-error-button')) {
-    return;
-  }
+export function generateVariousErrors() {
+  // Καθαρισμός υπαρχόντων σφαλμάτων
+  clearAllErrors();
   
-  // Δημιουργία του κουμπιού
-  const button = document.createElement('button');
-  button.id = 'test-error-button';
-  button.innerText = 'Δοκιμή Σφάλματος';
-  button.style.position = 'fixed';
-  button.style.bottom = '10px';
-  button.style.right = '10px';
-  button.style.zIndex = '9999';
-  button.style.padding = '8px 16px';
-  button.style.backgroundColor = '#ef4444';
-  button.style.color = 'white';
-  button.style.border = 'none';
-  button.style.borderRadius = '4px';
-  button.style.cursor = 'pointer';
+  // Δημιουργία διαφόρων σφαλμάτων με διαφορετικές καθυστερήσεις
+  setTimeout(() => {
+    console.error(new Error('Δοκιμαστικό σφάλμα 1: Απλό σφάλμα'));
+  }, 500);
   
-  // Προσθήκη του χειριστή συμβάντων
-  button.addEventListener('click', () => {
-    clearAllErrors();
-    setTimeout(() => {
-      generateTestError("Δοκιμαστικό σφάλμα από το κουμπί ελέγχου");
-    }, 300);
-  });
+  setTimeout(() => {
+    console.error('Δοκιμαστικό σφάλμα 2: Σφάλμα ως string χωρίς stack trace');
+  }, 1500);
   
-  // Προσθήκη του κουμπιού στο σώμα της σελίδας
-  document.body.appendChild(button);
+  setTimeout(() => {
+    try {
+      // Προκαλούμε ένα σφάλμα
+      const nullObj: any = null;
+      nullObj.someProperty = 'test';
+    } catch (e) {
+      console.error('Δοκιμαστικό σφάλμα 3: Πιασμένη εξαίρεση', e);
+    }
+  }, 2500);
+  
+  setTimeout(() => {
+    const error = new Error('Δοκιμαστικό σφάλμα 4: Σφάλμα με προσαρμοσμένο stack');
+    error.stack = 'Προσομοιωμένο Stack\n  at function1 (file1.js:10:20)\n  at function2 (file2.js:30:10)';
+    console.error(error);
+  }, 3500);
 }
