@@ -37,6 +37,9 @@ export function useSupabaseAuth() {
         created_at: currentSession.user.created_at
       } : null);
       setLoading(false);
+    }).catch(err => {
+      console.error('Error getting session:', err);
+      setLoading(false);
     });
 
     return () => {
@@ -51,6 +54,7 @@ export function useSupabaseAuth() {
       setLoading(false);
       return result;
     } catch (error) {
+      console.error('Sign in error:', error);
       setLoading(false);
       return { error };
     }
@@ -63,6 +67,7 @@ export function useSupabaseAuth() {
       setLoading(false);
       return result;
     } catch (error) {
+      console.error('Sign up error:', error);
       setLoading(false);
       return { error };
     }
@@ -75,6 +80,7 @@ export function useSupabaseAuth() {
       setLoading(false);
       return result;
     } catch (error) {
+      console.error('Sign out error:', error);
       setLoading(false);
       return { error };
     }

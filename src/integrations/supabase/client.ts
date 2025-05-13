@@ -10,7 +10,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    storage: localStorage
+    storage: localStorage,
+    // Debug logging for auth issues
+    debug: process.env.NODE_ENV === 'development'
   }
 });
 

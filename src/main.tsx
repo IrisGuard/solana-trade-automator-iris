@@ -2,15 +2,15 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import "./index.css";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
-// Buffer polyfill
-if (typeof window !== 'undefined' && typeof window.Buffer === 'undefined') {
-  window.Buffer = require('buffer/').Buffer;
-}
+import "./index.css";
+
+// Debug Supabase imports
+import { supabase } from '@/integrations/supabase/client';
 
 console.log("Starting Solana Trade Automator application...");
+console.log("Supabase client initialized:", !!supabase);
 
 // Εξετάζουμε λεπτομερώς τη διαδικασία ενεργοποίησης της εφαρμογής
 const rootElement = document.getElementById("root");
