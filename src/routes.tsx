@@ -27,7 +27,6 @@ export function Routes() {
         <Route path="/help" element={<Help />} />
         <Route path="/api-vault" element={<ApiVault />} />
         <Route path="/bots" element={<Bots />} />
-        <Route path="/bot-control" element={<Bots />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </ReactRouterRoutes>
