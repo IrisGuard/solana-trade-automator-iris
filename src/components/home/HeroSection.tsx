@@ -24,10 +24,7 @@ export function HeroSection() {
           <WalletConnectButton 
             className="gap-2 w-full md:w-auto"
             size="lg"
-          >
-            <Wallet className="h-5 w-5" />
-            <span>Σύνδεση Πορτοφολιού</span>
-          </WalletConnectButton>
+          />
         ) : (
           <Button
             size="lg"

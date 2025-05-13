@@ -88,21 +88,21 @@ export const ApiVaultDialogs: React.FC<ApiVaultDialogsProps> = (props) => {
 
   return (
     <>
-      {/* Import Dialog - Fixing prop name from 'open/setOpen' to 'showImportDialog/setShowImportDialog' */}
+      {/* Import Dialog */}
       <ImportDialog
         open={showImportDialog}
         onOpenChange={setShowImportDialog}
-        handleImport={handleImport}
+        onImport={handleImport}
       />
 
-      {/* Export Sheet - Fixing prop name from 'open/setOpen' to 'showExportSheet/setShowExportSheet' */}
+      {/* Export Sheet */}
       <ExportSheet
         open={showExportSheet}
         onOpenChange={setShowExportSheet}
         apiKeys={apiKeys}
       />
 
-      {/* Settings Dialog - Fixing prop name from 'open/setOpen' to 'showSettingsDialog/setShowSettingsDialog' */}
+      {/* Settings Dialog */}
       <SecuritySettingsDialog
         open={showSettingsDialog}
         onOpenChange={setShowSettingsDialog}
@@ -116,29 +116,30 @@ export const ApiVaultDialogs: React.FC<ApiVaultDialogsProps> = (props) => {
         setSavedMasterPassword={setSavedMasterPassword}
       />
 
-      {/* New/Edit API Key Dialog - Fixing prop name from 'open/setOpen' to 'showDialogApiKey/setShowDialogApiKey' */}
+      {/* New/Edit API Key Dialog */}
       <NewApiKeyDialog
         open={showDialogApiKey}
         onOpenChange={setShowDialogApiKey}
-        addNewKey={addNewKey}
+        addKey={addNewKey}
         updateKey={updateKey}
         testKeyFunctionality={testKeyFunctionality}
       />
 
-      {/* Recovery Dialog - Fixing prop name from 'open/setOpen' to 'showRecoveryDialog/setShowRecoveryDialog' */}
+      {/* Recovery Dialog */}
       <RecoveryDialog
         open={showRecoveryDialog}
         onOpenChange={setShowRecoveryDialog}
         recoveredKeys={recoveredKeys}
-        recoveryLocations={recoveryLocations}
-        handleImport={handleRecoveredImport}
+        locations={recoveryLocations}
+        onImport={handleRecoveredImport}
+        onClose={() => setShowRecoveryDialog(false)}
       />
 
-      {/* Unlock Dialog - Fixing prop name from 'open/setOpen' to 'isUnlocking/setIsUnlocking' */}
+      {/* Unlock Dialog */}
       <UnlockDialog
         open={isUnlocking}
         onOpenChange={setIsUnlocking}
-        handleUnlock={handleUnlock}
+        onUnlock={handleUnlock}
       />
     </>
   );
