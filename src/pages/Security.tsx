@@ -1,6 +1,5 @@
 
 import React from "react";
-import { ApiVaultCard } from "@/components/security/apiVault/ApiVaultCard";
 import { TwoFactorCard } from "@/components/security/TwoFactorCard";
 import { AccountAccessCard } from "@/components/security/AccountAccessCard";
 import { TransactionSecurityCard } from "@/components/security/TransactionSecurityCard";
@@ -15,12 +14,6 @@ export default function Security() {
         <p className="text-muted-foreground">
           Διαχειριστείτε τις ρυθμίσεις ασφαλείας και την προστασία του λογαριασμού σας
         </p>
-      </div>
-      
-      {/* API Key Vault */}
-      <div className="mt-4 mb-6">
-        <h3 className="text-xl font-semibold mb-2">Κλειδοθήκη API</h3>
-        <ApiVaultCard />
       </div>
       
       {/* Ρυθμίσεις ασφαλείας πλατφόρμας */}

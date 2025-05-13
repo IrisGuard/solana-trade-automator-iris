@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import {
   Home,
   Settings,
-  List,
   FileText,
   BarChart2,
   Wallet,
@@ -69,26 +68,20 @@ export function SidebarNav() {
       <NavItem to="/dashboard" icon={BarChart2}>
         Dashboard
       </NavItem>
-      <NavItem to="/bot-control" icon={Bot}>
-        Bot Control
-      </NavItem>
-      <NavItem to="/tokens" icon={List}>
-        Tokens
-      </NavItem>
       <NavItem to="/wallet" icon={Wallet}>
-        Wallet
+        Πορτοφόλι
       </NavItem>
       <NavItem to="/transactions" icon={FileText}>
-        Transactions
+        Συναλλαγές
+      </NavItem>
+      <NavItem to="/bots" icon={Bot}>
+        Trading Bots
       </NavItem>
       <NavItem to="/security" icon={Shield}>
-        Security
-      </NavItem>
-      <NavItem to="/notifications" icon={Bell}>
-        Notifications
+        Ασφάλεια
       </NavItem>
       <NavItem to="/settings" icon={Settings}>
-        Settings
+        Ρυθμίσεις
       </NavItem>
     </div>
   );
