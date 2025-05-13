@@ -4,6 +4,11 @@
  */
 import * as React from 'react';
 
+// Set up React on window to ensure global availability
+if (typeof window !== 'undefined') {
+  window.React = React;
+}
+
 // Re-export the React object with all its properties
 export default React;
 
@@ -20,16 +25,40 @@ export const {
   useDebugValue,
   useImperativeHandle,
   useId,
-  // Add any other hooks that might be needed
   useDeferredValue,
   useInsertionEffect,
   useSyncExternalStore,
-  useTransition
-  // React 18 specific hooks that aren't available in this version have been removed
+  useTransition,
+  // Add other React exports
+  createContext,
+  forwardRef,
+  Children,
+  cloneElement,
+  isValidElement,
+  createElement,
+  Fragment,
+  Component,
+  PureComponent,
+  memo,
+  createRef,
+  Suspense,
+  lazy,
+  startTransition
 } = React;
 
-// Ensure these hooks are definitely exported (redundant but ensuring exports work)
+// Ensure these hooks are definitely exported
 export const useStateExport = React.useState;
 export const useEffectExport = React.useEffect;
 export const useContextExport = React.useContext;
 export const useRefExport = React.useRef;
+export const createContextExport = React.createContext;
+export const forwardRefExport = React.forwardRef;
+
+// Log successful load of React exports fix
+console.log('React exports fix loaded. Hooks available:', {
+  useState: !!React.useState,
+  useEffect: !!React.useEffect,
+  useContext: !!React.useContext,
+  useRef: !!React.useRef,
+  createContext: !!React.createContext
+});

@@ -1,3 +1,4 @@
+
 import { defineConfig, type ConfigEnv, type PluginOption } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -14,10 +15,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       port: 8080,
     },
     plugins: [
-      react({
-        // The 'refresh' property doesn't exist in the Options type, removing it
-        // and using default refresh behavior which is enabled in development
-      }),
+      react(),
       mode === 'development' && componentTagger(),
     ].filter(Boolean) as PluginOption[],
     resolve: {
@@ -36,6 +34,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
         "react-router-dom": path.resolve(__dirname, "node_modules/react-router-dom"),
       },
+      mainFields: ['browser', 'module', 'main'],
     },
     define: {
       // Node.js polyfills

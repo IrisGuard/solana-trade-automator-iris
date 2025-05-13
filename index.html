@@ -51,6 +51,21 @@
           }
         };
       }
+      
+      // Early React patch setup
+      if (typeof window !== 'undefined') {
+        // Add dummy React if not present to avoid initial errors
+        if (!window.React) {
+          window.React = {
+            useState: function() { return [undefined, function() {}]; },
+            useEffect: function() {},
+            useContext: function() { return {}; },
+            useRef: function() { return { current: null }; },
+            createContext: function() { return { Provider: function() {}, Consumer: function() {} }; }
+          };
+          console.log('Added temporary React stub to window');
+        }
+      }
     </script>
   </head>
   <body>

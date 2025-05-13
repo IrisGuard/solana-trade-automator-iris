@@ -1,31 +1,53 @@
 
-/**
- * Polyfills for browser compatibility
- * This file should be imported before any other code
- */
+// Import the core polyfills
+import 'buffer/';
+import 'process/browser';
+import 'stream-browserify';
+import 'util/';
 
-// Include React patches
-import './utils/reactPatches';
+// Import React compatibility patches
+import { ensureReactCompatibility } from './utils/reactPatches';
 
-// Buffer polyfill
+// Basic buffer polyfill for early access
 if (typeof window !== 'undefined' && !window.Buffer) {
-  console.log('Setting up Buffer polyfill');
-  try {
-    import('buffer').then(({ Buffer }) => {
-      window.Buffer = Buffer;
-    });
-  } catch (e) {
-    console.error('Failed to load Buffer polyfill', e);
+  // @ts-ignore - Set up a minimal Buffer implementation until the full one loads
+  window.Buffer = {
+    from: function(data: any, encoding?: string) {
+      if (typeof data === 'string') {
+        return new Uint8Array([...data].map(c => c.charCodeAt(0)));
+      }
+      return new Uint8Array(data);
+    },
+    alloc: function(size: number, fill?: any) {
+      const buffer = new Uint8Array(size);
+      if (fill !== undefined) {
+        buffer.fill(fill);
+      }
+      return buffer;
+    }
+  };
+
+  console.log('Early Buffer polyfill loaded in polyfills.ts');
+}
+
+// Set global for potential CommonJS interoperability
+if (typeof window !== 'undefined') {
+  window.global = window;
+  
+  // Create kB alias for Buffer (used by some libraries)
+  if (!window.kB) {
+    window.kB = {
+      from: function(data: any, encoding?: string) {
+        return window.Buffer.from(data, encoding);
+      },
+      alloc: function(size: number, fill?: any) {
+        return window.Buffer.alloc(size, fill);
+      }
+    };
   }
 }
 
-// Process polyfill
-if (typeof window !== 'undefined' && !window.process) {
-  console.log('Setting up process polyfill');
-  window.process = {
-    env: {},
-    version: '',
-    versions: {},
-    browser: true,
-  } as any;
-}
+// Call React compatibility function
+ensureReactCompatibility();
+
+console.log('Polyfills loaded successfully');
