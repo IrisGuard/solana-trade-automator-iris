@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { Languages } from "lucide-react";
@@ -9,9 +9,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 export function LanguageToggle() {
   const { language, setLanguage } = useLanguage();
+
+  const handleLanguageChange = (newLang: "el" | "en") => {
+    if (language !== newLang) {
+      setLanguage(newLang);
+      const langName = newLang === "el" ? "Ελληνικά" : "English";
+      toast.success(newLang === "el" ? "Η γλώσσα άλλαξε σε Ελληνικά" : "Language changed to English");
+    }
+  };
 
   return (
     <DropdownMenu>
@@ -22,10 +31,16 @@ export function LanguageToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setLanguage("el")} className={language === "el" ? "bg-accent" : ""}>
+        <DropdownMenuItem 
+          onClick={() => handleLanguageChange("el")} 
+          className={language === "el" ? "bg-accent" : ""}
+        >
           🇬🇷 Ελληνικά
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setLanguage("en")} className={language === "en" ? "bg-accent" : ""}>
+        <DropdownMenuItem 
+          onClick={() => handleLanguageChange("en")} 
+          className={language === "en" ? "bg-accent" : ""}
+        >
           🇬🇧 English
         </DropdownMenuItem>
       </DropdownMenuContent>

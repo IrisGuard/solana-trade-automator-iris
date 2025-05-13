@@ -36,6 +36,13 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
   const [translations, setTranslations] = useState<Translations>(language === "el" ? el : en);
 
+  // Εφαρμογή των μεταφράσεων όταν αλλάζει η γλώσσα
+  useEffect(() => {
+    setTranslations(language === "el" ? el : en);
+    document.documentElement.setAttribute("lang", language);
+    console.log(`Language changed to: ${language}`);
+  }, [language]);
+
   const setLanguage = (lang: LanguageKey) => {
     setLanguageState(lang);
     localStorage.setItem("language", lang);
