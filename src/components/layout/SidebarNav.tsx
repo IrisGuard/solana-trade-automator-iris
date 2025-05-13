@@ -19,6 +19,17 @@ interface NavItemProps {
   end?: boolean;
 }
 
+// Navigation items data
+const navItems = [
+  { to: "/", icon: Home, label: "Αρχική", end: true },
+  { to: "/dashboard", icon: BarChart2, label: "Dashboard" },
+  { to: "/wallet", icon: Wallet, label: "Πορτοφόλι" },
+  { to: "/transactions", icon: FileText, label: "Συναλλαγές" },
+  { to: "/security", icon: Shield, label: "Ασφάλεια" },
+  { to: "/settings", icon: Settings, label: "Ρυθμίσεις" },
+  { to: "/help", icon: HelpCircle, label: "Βοήθεια" }
+];
+
 const NavItem = ({ to, icon: Icon, children, end }: NavItemProps) => {
   return (
     <NavLink
@@ -37,30 +48,55 @@ const NavItem = ({ to, icon: Icon, children, end }: NavItemProps) => {
   );
 };
 
-export function SidebarNav() {
+const CollapsedNavItem = ({ to, icon: Icon, end }: Omit<NavItemProps, 'children'>) => {
   return (
-    <div className="flex flex-col gap-2 py-2">
-      <NavItem to="/" icon={Home} end>
-        Αρχική
-      </NavItem>
-      <NavItem to="/dashboard" icon={BarChart2}>
-        Dashboard
-      </NavItem>
-      <NavItem to="/wallet" icon={Wallet}>
-        Πορτοφόλι
-      </NavItem>
-      <NavItem to="/transactions" icon={FileText}>
-        Συναλλαγές
-      </NavItem>
-      <NavItem to="/security" icon={Shield}>
-        Ασφάλεια
-      </NavItem>
-      <NavItem to="/settings" icon={Settings}>
-        Ρυθμίσεις
-      </NavItem>
-      <NavItem to="/help" icon={HelpCircle}>
-        Βοήθεια
-      </NavItem>
-    </div>
+    <NavLink
+      to={to}
+      end={end}
+      className={({ isActive }) =>
+        cn(
+          "flex items-center justify-center rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
+          isActive ? "active-nav-link bg-accent text-accent-foreground" : "text-muted-foreground"
+        )
+      }
+    >
+      <Icon className="h-4 w-4" />
+    </NavLink>
   );
 };
+
+interface SidebarNavProps {
+  isCollapsed?: boolean;
+}
+
+export function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
+  if (isCollapsed) {
+    return (
+      <div className="flex flex-col gap-2 py-2">
+        {navItems.map((item) => (
+          <CollapsedNavItem 
+            key={item.to}
+            to={item.to} 
+            icon={item.icon}
+            end={item.end}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2 py-2">
+      {navItems.map((item) => (
+        <NavItem 
+          key={item.to}
+          to={item.to} 
+          icon={item.icon} 
+          end={item.end}
+        >
+          {item.label}
+        </NavItem>
+      ))}
+    </div>
+  );
+}

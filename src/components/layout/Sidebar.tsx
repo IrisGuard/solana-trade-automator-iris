@@ -6,14 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { 
   ArrowLeft, 
-  ArrowRight, 
-  Home, 
-  Settings, 
-  FileText,
-  BarChart2,
-  Wallet,
-  Shield,
-  HelpCircle
+  ArrowRight 
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -54,19 +47,7 @@ export function Sidebar({ className }: SidebarProps) {
       </div>
       
       <div className="flex-1 overflow-auto px-4">
-        {isCollapsed ? (
-          <div className="flex flex-col gap-2 py-2">
-            <CollapsedNavLink to="/" icon={Home} />
-            <CollapsedNavLink to="/dashboard" icon={BarChart2} />
-            <CollapsedNavLink to="/wallet" icon={Wallet} />
-            <CollapsedNavLink to="/transactions" icon={FileText} />
-            <CollapsedNavLink to="/security" icon={Shield} />
-            <CollapsedNavLink to="/settings" icon={Settings} />
-            <CollapsedNavLink to="/help" icon={HelpCircle} />
-          </div>
-        ) : (
-          <SidebarNav />
-        )}
+        <SidebarNav isCollapsed={isCollapsed} />
       </div>
       
       {/* User profile section */}
@@ -86,25 +67,3 @@ export function Sidebar({ className }: SidebarProps) {
     </div>
   );
 }
-
-interface CollapsedNavLinkProps {
-  to: string;
-  icon: React.ElementType;
-}
-
-// Create a separate component for collapsed nav links to avoid naming conflict
-const CollapsedNavLink = ({ to, icon: Icon }: CollapsedNavLinkProps) => {
-  return (
-    <RouterNavLink
-      to={to}
-      className={({ isActive }) =>
-        cn(
-          "flex items-center justify-center rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
-          isActive ? "active-nav-link" : "text-muted-foreground"
-        )
-      }
-    >
-      <Icon className="h-4 w-4" />
-    </RouterNavLink>
-  );
-};
