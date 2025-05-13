@@ -1,4 +1,3 @@
-
 import { defineConfig, type ConfigEnv, type PluginOption } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -16,8 +15,8 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     },
     plugins: [
       react({
-        // Force React refresh to be enabled in all environments
-        refresh: true,
+        // The 'refresh' property doesn't exist in the Options type, removing it
+        // and using default refresh behavior which is enabled in development
       }),
       mode === 'development' && componentTagger(),
     ].filter(Boolean) as PluginOption[],
