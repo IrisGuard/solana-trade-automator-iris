@@ -118,15 +118,7 @@ export default function WalletPage() {
 
         <ApiVaultTab 
           apiKeys={apiKeys}
-          isUnlocked={isUnlocked}
-          apiSettings={apiSettings}
-          handleUnlockVault={handleUnlockVault}
-          handleLockVault={handleLockVault}
           handleApiConnect={handleApiConnect}
-          handleExportKeys={handleExportKeys}
-          handleImportKeys={handleImportKeys}
-          setApiSettings={setApiSettings}
-          handleSaveApiSettings={handleSaveApiSettings}
         />
 
         <SimulationTab />
