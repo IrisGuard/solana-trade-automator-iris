@@ -1,14 +1,19 @@
 
 import { Toaster as SonnerToaster } from "sonner";
 
-// Απλό wrapper για το Sonner Toaster για συμβατότητα με υπάρχοντα κώδικα
 export function Toaster() {
-  // Απλή προώθηση του Sonner Toaster με προ-διαμορφωμένες επιλογές
   return (
     <SonnerToaster 
-      position="top-right"
+      position="top-center"
       richColors
       closeButton
+      toastOptions={{
+        style: {
+          fontSize: '16px',
+          paddingLeft: '16px',
+          paddingRight: '16px',
+        }
+      }}
     />
   );
 }

@@ -1,5 +1,5 @@
 
-import { Routes as ReactRouterRoutes, Route } from "react-router-dom";
+import { Routes as ReactRouterRoutes, Route, Navigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import Dashboard from "@/pages/Dashboard"; 
 import Wallet from "@/pages/Wallet";
@@ -13,10 +13,9 @@ import Bots from "@/pages/Bots";
 import Index from "@/pages/Index";
 import Home from "@/pages/Home";
 
-console.log("Routes module loaded");
+console.log("Routes component rendering...");
 
 export function Routes() {
-  console.log("Routes component rendering");
   return (
     <ReactRouterRoutes>
       <Route element={<Layout />}>

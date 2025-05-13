@@ -5,13 +5,11 @@ import { Routes } from "./routes";
 import { Toaster } from "sonner"; 
 
 function App() {
-  console.log("App component rendering");
-  
   return (
     <SupabaseAuthProvider>
-      <div className="app-container">
+      <div className="app-container min-h-screen">
         <Routes />
-        <Toaster position="top-right" richColors closeButton />
+        <Toaster position="top-center" richColors closeButton />
       </div>
     </SupabaseAuthProvider>
   );

@@ -8,15 +8,14 @@ import App from './App.tsx'
 import './index.css'
 import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { Toaster } from './components/ui/toaster';
 import { SolanaWalletProvider } from './providers/SolanaWalletProvider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Create a client
 const queryClient = new QueryClient();
 
-// Debug Buffer availability before the app starts
-console.log('Main.tsx loaded, Buffer available:', typeof window.Buffer);
+// Debug Buffer availability
+console.log('Main.tsx loaded, application starting');
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -25,7 +24,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <ThemeProvider>
           <SolanaWalletProvider>
             <App />
-            <Toaster />
           </SolanaWalletProvider>
         </ThemeProvider>
       </BrowserRouter>
