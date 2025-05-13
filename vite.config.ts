@@ -18,7 +18,8 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      buffer: 'buffer/'
+      buffer: 'buffer/',
+      process: 'process/browser',
     },
   },
   define: {
@@ -35,6 +36,7 @@ export default defineConfig(({ mode }) => ({
         global: 'globalThis',
       },
     },
+    include: ['buffer', 'process/browser'],
   },
   build: {
     commonjsOptions: {

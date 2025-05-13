@@ -16,6 +16,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 const queryClient = new QueryClient();
 
 console.log('Main.tsx loaded, Buffer available:', typeof window.Buffer);
+console.log('Buffer methods:', window.Buffer ? Object.keys(window.Buffer) : 'No Buffer');
+console.log('Buffer.alloc available:', window.Buffer && typeof window.Buffer.alloc);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

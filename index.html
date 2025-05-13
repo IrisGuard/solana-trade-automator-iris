@@ -17,8 +17,19 @@
     <meta name="twitter:site" content="@solana_trade_automator" />
     <meta name="twitter:image" content="https://solana-maker-bot.vercel.app/og-image.png" />
     
-    <!-- Buffer polyfill -->
+    <!-- Buffer polyfill - load this as early as possible -->
     <script src="/buffer-polyfill.js"></script>
+    <!-- Inline script to ensure Buffer is available -->
+    <script>
+      if (typeof window !== 'undefined' && !window.Buffer) {
+        console.log('Setting up inline Buffer polyfill');
+        window.Buffer = { 
+          from: function(){}, 
+          alloc: function(){},
+          allocUnsafe: function(){}
+        };
+      }
+    </script>
   </head>
 
   <body>

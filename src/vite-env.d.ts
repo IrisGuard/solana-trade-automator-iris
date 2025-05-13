@@ -3,7 +3,16 @@
 
 // Global Buffer definition and Phantom wallet types
 interface Window {
-  Buffer: typeof Buffer;
+  Buffer: {
+    from: (data: any, encodingOrOffset?: string | number, length?: number) => Buffer;
+    alloc: (size: number, fill?: any, encoding?: string) => Buffer;
+    allocUnsafe: (size: number) => Buffer;
+    isBuffer: (obj: any) => boolean;
+    byteLength: (string: string, encoding?: string) => number;
+    concat: (list: Uint8Array[], totalLength?: number) => Buffer;
+    new (arg: any, encodingOrOffset?: string | number, length?: number): Buffer;
+    prototype: Buffer;
+  } & Function;
   phantom?: {
     solana?: {
       isPhantom: boolean;
