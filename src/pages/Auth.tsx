@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from '@/lib/router-exports';
 import { toast } from 'sonner';
 
 const Auth = () => {

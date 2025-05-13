@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation } from "@/lib/router-exports";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { cn } from "@/lib/utils";

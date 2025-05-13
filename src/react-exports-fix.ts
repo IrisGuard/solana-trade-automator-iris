@@ -54,6 +54,26 @@ export const useRefExport = React.useRef;
 export const createContextExport = React.createContext;
 export const forwardRefExport = React.forwardRef;
 
+// Fix for React Router DOM - ensure it can access our React exports
+if (typeof window !== 'undefined') {
+  // Make all React hooks available globally for React Router DOM
+  Object.assign(window.React, {
+    useState: React.useState,
+    useEffect: React.useEffect,
+    useContext: React.useContext,
+    useRef: React.useRef,
+    createContext: React.createContext
+  });
+  
+  // Create a reference to our patched React for module resolution
+  try {
+    (window as any).patchedReact = React;
+    console.log('Patched React object created for React Router DOM');
+  } catch (e) {
+    console.error('Failed to create patched React reference:', e);
+  }
+}
+
 // Log successful load of React exports fix
 console.log('React exports fix loaded. Hooks available:', {
   useState: !!React.useState,
