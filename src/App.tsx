@@ -1,21 +1,27 @@
 
-import { Outlet } from "react-router-dom";
-import { Toaster } from "sonner";
-import { WalletButton } from "@/components/wallet/WalletButton";
-import { HelpButton } from "@/components/help/HelpButton";
+import { Routes } from "./routes";
+import { BrowserRouter } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "./components/ui/sonner";
+import { SolanaWalletProvider } from "./providers/SolanaWalletProvider";
 
-export default function App() {
+// Create a client
+const queryClient = new QueryClient();
+
+function App() {
   return (
-    <div className="min-h-screen">
-      <div className="container max-w-7xl mx-auto px-4 py-4">
-        <div className="flex justify-end mb-4">
-          <WalletButton />
-        </div>
-        <Outlet />
-      </div>
-      
-      <HelpButton />
-      <Toaster position="top-center" richColors closeButton />
-    </div>
+    <ThemeProvider defaultTheme="system" enableSystem>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <SolanaWalletProvider>
+            <Routes />
+            <Toaster />
+          </SolanaWalletProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
+
+export default App;

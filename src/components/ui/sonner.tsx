@@ -1,6 +1,6 @@
 
 import { useTheme } from "next-themes";
-import { Toaster as SonnerToaster, toast } from "sonner";
+import { Toaster as SonnerToaster } from "sonner";
 
 type ToasterProps = React.ComponentProps<typeof SonnerToaster>;
 
@@ -23,11 +23,6 @@ const Toaster = ({ ...props }: ToasterProps) => {
             "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
           cancelButton:
             "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
-        },
-        style: {
-          fontSize: '16px',
-          paddingLeft: '16px',
-          paddingRight: '16px',
         }
       }}
       {...props}
@@ -35,4 +30,5 @@ const Toaster = ({ ...props }: ToasterProps) => {
   );
 };
 
-export { Toaster, toast };
+export { Toaster };
+export { toast } from "sonner";
