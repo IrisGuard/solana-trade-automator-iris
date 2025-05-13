@@ -7,9 +7,29 @@ import { Button } from "@/components/ui/button";
 
 interface WalletTokensListProps {
   tokens: Token[];
+  isLoading?: boolean; // Added isLoading as an optional prop
 }
 
-export function WalletTokensList({ tokens }: WalletTokensListProps) {
+export function WalletTokensList({ tokens, isLoading }: WalletTokensListProps) {
+  // Display loading state if isLoading is true
+  if (isLoading) {
+    return (
+      <div className="py-4 text-center text-muted-foreground">
+        <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+        <p>Φόρτωση tokens...</p>
+      </div>
+    );
+  }
+  
+  // Display empty state if no tokens
+  if (tokens.length === 0) {
+    return (
+      <div className="py-4 text-center text-muted-foreground">
+        <p>Δεν βρέθηκαν tokens</p>
+      </div>
+    );
+  }
+  
   return (
     <Card>
       <CardHeader>

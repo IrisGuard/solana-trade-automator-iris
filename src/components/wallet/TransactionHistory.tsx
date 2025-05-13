@@ -7,10 +7,14 @@ import { useTransactions } from "@/hooks/useTransactions";
 
 interface TransactionHistoryProps {
   walletAddress: string;
+  limit?: number; // Added limit as an optional prop
 }
 
-export function TransactionHistory({ walletAddress }: TransactionHistoryProps) {
+export function TransactionHistory({ walletAddress, limit = 5 }: TransactionHistoryProps) {
   const { transactions, isLoadingTransactions } = useTransactions(walletAddress);
+
+  // Use the limit prop to restrict the number of transactions shown
+  const displayedTransactions = limit ? transactions.slice(0, limit) : transactions;
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -29,9 +33,9 @@ export function TransactionHistory({ walletAddress }: TransactionHistoryProps) {
             <Loader className="h-6 w-6 animate-spin mx-auto mb-2" />
             <p>Loading transactions...</p>
           </div>
-        ) : transactions.length > 0 ? (
+        ) : displayedTransactions.length > 0 ? (
           <>
-            {transactions.map((tx, i) => (
+            {displayedTransactions.map((tx, i) => (
               <div key={i} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
                 <div>
                   <div className="flex items-center gap-2">
