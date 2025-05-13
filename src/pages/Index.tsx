@@ -13,8 +13,6 @@ import { useSolanaWallet } from "@/hooks/useSolanaWallet";
 import { toast } from "sonner";
 
 const Index = () => {
-  console.log("Index component initialized");
-  
   const { 
     connected,
     walletAddress,
@@ -27,8 +25,6 @@ const Index = () => {
     connectWallet
   } = useSolanaWallet();
   
-  console.log("SolanaWallet hook loaded, connection status:", connected);
-  
   const displayAddress = walletAddress ? formatWalletAddress(walletAddress) : "";
   const isPhantomInstalled = typeof window !== 'undefined' && window.phantom?.solana;
   
@@ -39,13 +35,10 @@ const Index = () => {
         duration: 5000,
       });
     }
-    
-    console.log("Index component mounted, wallet status:", connected ? "Connected" : "Not connected");
-  }, [connectionError, connected]);
+  }, [connectionError]);
 
   // Handle wallet connection
   const handleConnectWallet = () => {
-    console.log("Attempting to connect wallet");
     if (connectWallet) {
       connectWallet();
     }

@@ -13,13 +13,11 @@ import Bots from "@/pages/Bots";
 import Index from "@/pages/Index";
 import Home from "@/pages/Home";
 
-console.log("Routes component rendering...");
-
 export function Routes() {
   return (
     <ReactRouterRoutes>
+      <Route path="/" element={<Index />} />
       <Route element={<Layout />}>
-        <Route path="/" element={<Index />} />
         <Route path="/home" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/wallet" element={<Wallet />} />
