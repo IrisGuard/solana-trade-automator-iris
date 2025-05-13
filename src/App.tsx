@@ -11,6 +11,7 @@ import { WalletProviderWrapper } from "./components/wallet/WalletProviderWrapper
 import { SolanaProviderFallback } from "./components/wallet/SolanaProviderFallback";
 import { Suspense } from "react";
 import { SupabaseAuthProvider } from "./providers/SupabaseAuthProvider";
+import { LanguageProvider } from "./providers/LanguageProvider";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -55,32 +56,34 @@ function App() {
   return (
     <ErrorBoundary FallbackComponent={FallbackComponent} onError={logError}>
       <ThemeProvider defaultTheme="system">
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <SupabaseAuthProvider>
-              <ErrorBoundary FallbackComponent={FallbackComponent} onError={logError}>
-                <Suspense fallback={<div className="flex items-center justify-center h-screen">Φόρτωση εφαρμογής...</div>}>
-                  <WalletProviderWrapper>
-                    <ErrorBoundary 
-                      FallbackComponent={() => (
-                        <SolanaProviderFallback>
+        <LanguageProvider>
+          <QueryClientProvider client={queryClient}>
+            <BrowserRouter>
+              <SupabaseAuthProvider>
+                <ErrorBoundary FallbackComponent={FallbackComponent} onError={logError}>
+                  <Suspense fallback={<div className="flex items-center justify-center h-screen">Φόρτωση εφαρμογής...</div>}>
+                    <WalletProviderWrapper>
+                      <ErrorBoundary 
+                        FallbackComponent={() => (
+                          <SolanaProviderFallback>
+                            <Routes />
+                            <Toaster position="bottom-right" />
+                          </SolanaProviderFallback>
+                        )} 
+                        onError={logError}
+                      >
+                        <SolanaWalletProvider>
                           <Routes />
                           <Toaster position="bottom-right" />
-                        </SolanaProviderFallback>
-                      )} 
-                      onError={logError}
-                    >
-                      <SolanaWalletProvider>
-                        <Routes />
-                        <Toaster position="bottom-right" />
-                      </SolanaWalletProvider>
-                    </ErrorBoundary>
-                  </WalletProviderWrapper>
-                </Suspense>
-              </ErrorBoundary>
-            </SupabaseAuthProvider>
-          </BrowserRouter>
-        </QueryClientProvider>
+                        </SolanaWalletProvider>
+                      </ErrorBoundary>
+                    </WalletProviderWrapper>
+                  </Suspense>
+                </ErrorBoundary>
+              </SupabaseAuthProvider>
+            </BrowserRouter>
+          </QueryClientProvider>
+        </LanguageProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );
