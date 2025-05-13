@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, MessageSquare, Copy } from 'lucide-react';
+import { AlertCircle, MessageSquare, Copy, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { clearAllErrors } from '@/utils/errorTestUtils';
 
@@ -17,6 +17,9 @@ interface ErrorDialogProps {
 }
 
 export function ErrorDialogInChat({ error, onClose }: ErrorDialogProps) {
+  // Απενεργοποίηση αυτόματου κλεισίματος
+  const [autoClose, setAutoClose] = useState<boolean>(false);
+  
   // Συνάρτηση για αποστολή του σφάλματος στο Lovable chat
   const sendToLovableChat = () => {
     try {
@@ -40,50 +43,36 @@ export function ErrorDialogInChat({ error, onClose }: ErrorDialogProps) {
       });
       window.dispatchEvent(customEvent);
       
-      // Κλείσιμο του dialog
-      onClose();
+      // ΔΕΝ κλείνουμε το dialog αυτόματα πλέον, ο χρήστης θα το κλείσει
     } catch (e) {
       console.error("Σφάλμα κατά την αποστολή του σφάλματος στο chat:", e);
-      onClose();
     }
   };
 
-  // Auto-close mechanism
+  // Keyboard escape listener
   useEffect(() => {
-    // Create a force close timer - reduced to 10 seconds
-    const forceCloseTimer = setTimeout(() => {
-      console.log('Αυτόματο κλείσιμο του dialog σφάλματος λόγω timeout');
-      onClose();
-    }, 10000);
-    
-    // Keyboard escape listener
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        console.log('Κλείσιμο με πλήκτρο Escape');
-        onClose();
-      }
-    };
-    
-    // Click outside listener
-    const handleClickOutside = (e: MouseEvent) => {
-      const dialogContent = document.querySelector('.DialogContent');
-      if (dialogContent && !dialogContent.contains(e.target as Node)) {
+      if (e.key === 'Escape' && autoClose) {
         onClose();
       }
     };
     
     document.addEventListener('keydown', handleEscape);
-    document.addEventListener('mousedown', handleClickOutside);
     
     return () => {
-      clearTimeout(forceCloseTimer);
       document.removeEventListener('keydown', handleEscape);
-      document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [onClose]);
+  }, [onClose, autoClose]);
+
+  // Δημιουργία κωδικού σφάλματος σε μορφή που μπορεί να αντιγραφεί
+  const generateErrorCode = () => {
+    return `ERROR-${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 4)}`;
+  };
+  
+  const errorCode = generateErrorCode();
 
   return (
-    <Dialog open={true} onOpenChange={() => onClose()}>
+    <Dialog open={true} onOpenChange={() => autoClose && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="flex flex-row items-center space-x-2">
           <AlertCircle className="h-5 w-5 text-destructive" />
@@ -105,6 +94,26 @@ export function ErrorDialogInChat({ error, onClose }: ErrorDialogProps) {
           <div className="text-xs text-muted-foreground space-y-1">
             <div>Χρονοσήμανση: {new Date(error.timestamp).toLocaleString()}</div>
             <div>URL: {error.url}</div>
+          </div>
+          
+          {/* Κωδικός σφάλματος - Νέα λειτουργία */}
+          <div className="border border-muted p-2 rounded mt-4">
+            <h4 className="font-medium mb-1 text-sm flex justify-between items-center">
+              <span>Κωδικός Σφάλματος:</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-6 px-2 text-xs"
+                onClick={() => {
+                  navigator.clipboard.writeText(errorCode);
+                  toast.success('Ο κωδικός αντιγράφηκε στο πρόχειρο');
+                }}
+              >
+                <Copy className="h-3 w-3 mr-1" />
+                Αντιγραφή
+              </Button>
+            </h4>
+            <code className="text-xs bg-muted p-2 rounded block">{errorCode}</code>
           </div>
         </div>
         <DialogFooter className="flex flex-col sm:flex-row gap-2">
@@ -130,8 +139,9 @@ export function ErrorDialogInChat({ error, onClose }: ErrorDialogProps) {
           <Button 
             variant="outline" 
             onClick={onClose}
-            className="sm:order-1 w-full sm:w-auto"
+            className="sm:order-1 w-full sm:w-auto flex items-center gap-2"
           >
+            <X className="h-4 w-4" />
             Κλείσιμο
           </Button>
         </DialogFooter>

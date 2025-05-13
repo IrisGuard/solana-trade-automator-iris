@@ -192,14 +192,14 @@ function App() {
                         FallbackComponent={() => (
                           <SolanaProviderFallback>
                             <Routes />
-                            <Toaster position="bottom-right" />
+                            <Toaster />
                           </SolanaProviderFallback>
                         )} 
                         onError={logError}
                       >
                         <SolanaWalletProvider>
                           <Routes />
-                          <Toaster position="bottom-right" />
+                          <Toaster />
                         </SolanaWalletProvider>
                       </ErrorBoundary>
                     </WalletProviderWrapper>
