@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,6 +26,7 @@ import { toast } from "sonner";
 import { ApiEndpoint, fetchApiEndpoints, addApiEndpoint, updateApiEndpoint, deleteApiEndpoint, importEndpointsFromEnv } from "@/utils/supabaseEndpoints";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { AddHeliusButton } from "./apiVault/AddHeliusButton";
 
 export function ApiEndpointsManager() {
   const [endpoints, setEndpoints] = useState<ApiEndpoint[]>([]);
@@ -163,6 +163,7 @@ export function ApiEndpointsManager() {
           </CardDescription>
         </div>
         <div className="flex gap-2">
+          <AddHeliusButton />
           <Button
             variant="outline"
             size="sm"

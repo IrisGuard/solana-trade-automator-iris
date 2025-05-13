@@ -1,165 +1,140 @@
-
-import React from "react";
-import { useApiKeyManagement } from "./hooks/useApiKeyManagement";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useApiVaultState } from "./hooks/useApiVaultState";
 import { ApiVaultHeader } from "./components/ApiVaultHeader";
 import { ApiVaultContent } from "./components/ApiVaultContent";
 import { ApiVaultDialogsContainer } from "./components/ApiVaultDialogsContainer";
-import { LockedVaultState } from "./LockedVaultState";
-import { useApiKeyStorage } from "./hooks/useApiKeyStorage";
+import { ApiKeyStats } from "./types";
+import { toast } from "sonner";
+import { calculateKeyStats, groupKeysByService } from "./hooks/useApiKeyFilters";
 import { HeliusIntegrationButton } from "./HeliusIntegrationButton";
-import { useKeyTestingState } from "./hooks/useKeyTestingState";
+import { AddHeliusButton } from "./AddHeliusButton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function ApiVaultCard() {
-  const [isLocked, setIsLocked] = React.useState(false);
-  const [activeTab, setActiveTab] = React.useState("all");
-  const [isUnlocking, setIsUnlocking] = React.useState(false);
-  const [showDialogApiKey, setShowDialogApiKey] = React.useState(false);
-  const [showImportDialog, setShowImportDialog] = React.useState(false);
-  const [showExportSheet, setShowExportSheet] = React.useState(false);
-  const [showSettingsDialog, setShowSettingsDialog] = React.useState(false);
-  const [showRecoveryDialog, setShowRecoveryDialog] = React.useState(false);
-  const [isRecovering, setIsRecovering] = React.useState(false);
-  
   const {
+    storageState,
+    isLocked,
+    setIsLocked,
+    isRecovering,
+    setIsRecovering,
+    isUnlocking,
+    setIsUnlocking,
+    showImportDialog,
+    setShowImportDialog,
+    showExportSheet,
+    setShowExportSheet,
+    showSettingsDialog,
+    setShowSettingsDialog,
+    showDialogApiKey,
+    setShowDialogApiKey,
+    activeTab,
+    setActiveTab,
     apiKeys,
     setApiKeys,
-    isKeyVisible,
-    toggleKeyVisibility,
     searchTerm,
     setSearchTerm,
     filterService,
     setFilterService,
+    isKeyVisible,
+    toggleKeyVisibility,
     addNewKey,
     deleteKey,
     updateKey,
     handleImport,
     getFilteredKeys,
-    getKeysByService
-  } = useApiKeyManagement();
+    getKeysByService,
+    handleLock,
+    handleRecoverClick,
+    isTestingKeys,
+    handleRefreshKeys,
+  } = useApiVaultState();
 
-  const {
-    testKeyFunctionality,
-    recoverFromBackup,
-    storageState
-  } = useApiKeyStorage(apiKeys, setApiKeys);
-  
-  // Use the key testing state hook
-  const { isTestingKeys, handleRefreshKeys } = useKeyTestingState();
+  const keyStats: ApiKeyStats = calculateKeyStats(apiKeys);
+  const serviceStats = groupKeysByService(apiKeys);
 
-  const handleLock = () => {
-    setIsLocked(true);
-  };
+  const [mounted, setMounted] = useState(false);
 
-  const handleUnlock = () => {
-    setIsLocked(false);
-  };
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  // Calculate key statistics
-  const keyStats = {
-    total: apiKeys.length,
-    active: apiKeys.filter(key => key.status === "active" || !key.status).length,
-    expired: apiKeys.filter(key => key.status === "expired").length,
-    revoked: apiKeys.filter(key => key.status === "revoked").length
-  };
+  if (!mounted) {
+    return null;
+  }
 
-  // Generate service statistics
-  const serviceStats = Object.entries(getKeysByService()).map(([name, keys]) => ({
-    name,
-    count: keys.length
-  }));
+  const state = useApiVaultState();
 
-  const handleRecoverClick = () => {
-    setIsRecovering(true);
-    setTimeout(() => setIsRecovering(false), 3000);
-  };
+  if (!state) {
+    return <div>Φόρτωση...</div>;
+  }
 
   return (
-    <>
-      <Card>
-        <CardHeader className="pb-0">
-          <div className="flex justify-between items-center">
-            <ApiVaultHeader
-              apiKeysCount={apiKeys.length}
-              isLocked={isLocked}
-              onAddKey={() => setShowDialogApiKey(true)}
-              onImport={() => setShowImportDialog(true)}
-              onExport={() => setShowExportSheet(true)}
-              onSettings={() => setShowSettingsDialog(true)}
-              isEncryptionEnabled={false}
-              onUnlock={() => setIsUnlocking(true)}
-              onLock={handleLock}
-            />
-            <HeliusIntegrationButton />
+    <Card>
+      <CardHeader>
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="text-2xl font-bold">Κλειδοθήκη API</CardTitle>
+            <CardDescription>
+              Διαχείριση των κλειδιών σας API με ασφάλεια
+            </CardDescription>
           </div>
-        </CardHeader>
-        <CardContent className="pt-4">
-          {isLocked ? (
-            <LockedVaultState onUnlockClick={() => setIsUnlocking(true)} />
-          ) : (
-            <ApiVaultContent
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-              apiKeys={apiKeys}
-              setApiKeys={setApiKeys}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              filterService={filterService}
-              setFilterService={setFilterService}
-              isKeyVisible={isKeyVisible}
-              toggleKeyVisibility={toggleKeyVisibility}
-              deleteKey={deleteKey}
-              getFilteredKeys={getFilteredKeys}
-              getKeysByService={getKeysByService}
-              keyStats={keyStats}
-              serviceStats={serviceStats}
-              isLocked={isLocked}
-              isRecovering={isRecovering}
-              isTestingKeys={isTestingKeys}
-              handleRefreshKeys={() => handleRefreshKeys(apiKeys, setApiKeys, testKeyFunctionality)}
-              handleRecoverClick={handleRecoverClick}
-              setShowImportDialog={setShowImportDialog}
-              setShowExportSheet={setShowExportSheet}
-              setShowSettingsDialog={setShowSettingsDialog}
-              setIsUnlocking={setIsUnlocking}
-              setShowDialogApiKey={setShowDialogApiKey}
-              handleLock={handleLock}
-              storageState={storageState}
-            />
-          )}
-        </CardContent>
-      </Card>
+          <div className="flex space-x-2">
+            <AddHeliusButton />
+          </div>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="p-4">
+        <ApiVaultContent
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          apiKeys={apiKeys}
+          setApiKeys={setApiKeys}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          filterService={filterService}
+          setFilterService={setFilterService}
+          isKeyVisible={isKeyVisible}
+          toggleKeyVisibility={toggleKeyVisibility}
+          deleteKey={deleteKey}
+          getFilteredKeys={getFilteredKeys}
+          getKeysByService={getKeysByService}
+          keyStats={keyStats}
+          serviceStats={serviceStats}
+          isLocked={isLocked}
+          isRecovering={isRecovering}
+          isTestingKeys={isTestingKeys}
+          handleRefreshKeys={handleRefreshKeys}
+          handleRecoverClick={handleRecoverClick}
+          setShowImportDialog={setShowImportDialog}
+          setShowExportSheet={setShowExportSheet}
+          setShowSettingsDialog={setShowSettingsDialog}
+          setIsUnlocking={setIsUnlocking}
+          setShowDialogApiKey={setShowDialogApiKey}
+          handleLock={handleLock}
+          storageState={storageState}
+        />
+      </CardContent>
 
       <ApiVaultDialogsContainer
-        apiKeys={apiKeys}
-        showDialogApiKey={showDialogApiKey}
-        setShowDialogApiKey={setShowDialogApiKey}
+        isLocked={isLocked}
+        isUnlocking={isUnlocking}
+        setIsUnlocking={setIsUnlocking}
         showImportDialog={showImportDialog}
         setShowImportDialog={setShowImportDialog}
         showExportSheet={showExportSheet}
         setShowExportSheet={setShowExportSheet}
         showSettingsDialog={showSettingsDialog}
         setShowSettingsDialog={setShowSettingsDialog}
-        showRecoveryDialog={showRecoveryDialog}
-        setShowRecoveryDialog={setShowRecoveryDialog}
-        isUnlocking={isUnlocking}
-        setIsUnlocking={setIsUnlocking}
-        handleUnlock={handleUnlock}
+        showDialogApiKey={showDialogApiKey}
+        setShowDialogApiKey={setShowDialogApiKey}
         addNewKey={addNewKey}
-        handleImport={handleImport}
         updateKey={updateKey}
-        savedMasterPassword=""
-        isEncryptionEnabled={false}
-        setIsEncryptionEnabled={() => {}}
-        isAutoLockEnabled={false}
-        setIsAutoLockEnabled={() => {}}
-        autoLockTimeout={0}
-        setAutoLockTimeout={() => {}}
-        setSavedMasterPassword={() => {}}
-        recoveredKeys={[]}
-        recoveryLocations={[]}
-        handleRecoveredImport={() => {}}
+        apiKeys={apiKeys}
+        setApiKeys={setApiKeys}
+        testKeyFunctionality={state.testKeyFunctionality}
       />
-    </>
+    </Card>
   );
 }
