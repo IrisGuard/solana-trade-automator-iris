@@ -1,13 +1,10 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { useWallet } from '@solana/wallet-adapter-react';
 import { useNavigate } from 'react-router-dom';
-import { Wallet, Lock } from "lucide-react";
-import { WalletConnectButton } from "../wallet/WalletConnectButton";
+import { Lock } from "lucide-react";
 
 export function HeroSection() {
-  const { connected } = useWallet();
   const navigate = useNavigate();
   
   return (
@@ -20,24 +17,6 @@ export function HeroSection() {
       </p>
       
       <div className="flex flex-col md:flex-row gap-4 w-full max-w-md justify-center">
-        {!connected ? (
-          <WalletConnectButton 
-            className="gap-2 w-full md:w-auto"
-            size="lg"
-          >
-            Σύνδεση με Phantom Wallet
-          </WalletConnectButton>
-        ) : (
-          <Button
-            size="lg"
-            onClick={() => navigate('/wallet')}
-            className="gap-2 w-full md:w-auto"
-          >
-            <Wallet className="h-5 w-5" />
-            <span>Προβολή Πορτοφολιού</span>
-          </Button>
-        )}
-        
         <Button
           variant="outline"
           size="lg"
