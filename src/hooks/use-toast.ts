@@ -1,6 +1,7 @@
 
 // Properly implement the useToast hook
-import { toast as sonnerToast, type ToastOptions } from "sonner";
+import { toast as sonnerToast } from "sonner";
+import type { ToastT } from "sonner";
 
 export interface Toast {
   id: string;
@@ -9,7 +10,8 @@ export interface Toast {
   action?: React.ReactNode;
 }
 
-export type ToastProps = ToastOptions & {
+// Use the correct type from sonner
+export type ToastProps = Partial<ToastT> & {
   title?: React.ReactNode;
   description?: React.ReactNode;
   action?: React.ReactNode;
