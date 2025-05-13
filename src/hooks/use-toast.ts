@@ -1,12 +1,10 @@
 
-// Forward exports from the main hooks location for compatibility
-import { toast as sonnerToast } from "@/components/ui/sonner";
+import { toast as sonnerToast } from "sonner";
 
-export { toast } from "@/components/ui/sonner";
-
-// Implement a basic useToast hook
-export const useToast = () => {
+export function useToast() {
   return {
     toast: sonnerToast
   };
-};
+}
+
+export { toast } from "sonner";
