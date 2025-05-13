@@ -2,5 +2,6 @@
 import { useLanguage as useLanguageContext } from "@/providers/LanguageProvider";
 
 export function useLanguage() {
-  return useLanguageContext();
+  const context = useLanguageContext();
+  return context;
 }

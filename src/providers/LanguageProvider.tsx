@@ -41,17 +41,19 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     setTranslations(language === "el" ? el : en);
     document.documentElement.setAttribute("lang", language);
     console.log(`Language changed to: ${language}`);
+    localStorage.setItem("language", language);
   }, [language]);
 
   const setLanguage = (lang: LanguageKey) => {
     setLanguageState(lang);
     localStorage.setItem("language", lang);
-    setTranslations(lang === "el" ? el : en);
   };
 
   // Βοηθητική συνάρτηση για να παίρνουμε μεταφράσεις με dot notation (π.χ., "general.save")
   const t = (key: string, section?: string): string => {
     try {
+      if (!key) return "";
+      
       const keys = key.split(".");
       let result: any = translations;
       
@@ -62,13 +64,14 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       }
       
       for (const k of keys) {
+        if (!result) return key;
         result = result[k];
         if (result === undefined) return key;
       }
       
-      return result;
+      return result || key;
     } catch (error) {
-      console.error("Translation error:", error);
+      console.error("Translation error:", error, key);
       return key;
     }
   };
