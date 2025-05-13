@@ -3,6 +3,9 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
+import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill';
+import rollupNodePolyFill from 'rollup-plugin-node-polyfills';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -20,6 +23,10 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
       buffer: 'buffer/',
       process: 'process/browser',
+      stream: 'stream-browserify',
+      util: 'util/',
+      crypto: 'crypto-browserify',
+      assert: 'assert/',
     },
   },
   define: {
@@ -35,14 +42,31 @@ export default defineConfig(({ mode }) => ({
       define: {
         global: 'globalThis',
       },
+      plugins: [
+        NodeGlobalsPolyfillPlugin({
+          buffer: true,
+          process: true,
+        }),
+        NodeModulesPolyfillPlugin(),
+      ],
     },
-    include: ['buffer', 'process/browser'],
+    include: [
+      'buffer', 
+      'process/browser', 
+      'stream-browserify', 
+      'util/', 
+      'crypto-browserify',
+      'assert/'
+    ],
   },
   build: {
     commonjsOptions: {
       transformMixedEsModules: true,
     },
     rollupOptions: {
+      plugins: [
+        rollupNodePolyFill(),
+      ],
       // Ensure problematic dependency packages are handled correctly
       onwarn(warning, warn) {
         if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {

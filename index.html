@@ -17,19 +17,32 @@
     <meta name="twitter:site" content="@solana_trade_automator" />
     <meta name="twitter:image" content="https://solana-maker-bot.vercel.app/og-image.png" />
     
-    <!-- Buffer polyfill - load this as early as possible -->
-    <script src="/buffer-polyfill.js"></script>
-    <!-- Inline script to ensure Buffer is available -->
+    <!-- Direct Buffer implementation to ensure it's available before anything else -->
     <script>
-      if (typeof window !== 'undefined' && !window.Buffer) {
-        console.log('Setting up inline Buffer polyfill');
-        window.Buffer = { 
-          from: function(){}, 
-          alloc: function(){},
-          allocUnsafe: function(){}
-        };
-      }
+      // Minimal Buffer polyfill for early availability
+      (function() {
+        if (typeof window !== 'undefined' && typeof window.Buffer === 'undefined') {
+          function MinBuffer(arg, encodingOrOffset, length) {
+            // Basic implementation
+            this.length = typeof arg === 'number' ? arg : 0;
+          }
+          
+          // Required methods
+          MinBuffer.from = function() { return new MinBuffer(0); };
+          MinBuffer.alloc = function(size) { return new MinBuffer(size); };
+          MinBuffer.allocUnsafe = function(size) { return new MinBuffer(size); };
+          MinBuffer.isBuffer = function() { return false; };
+          MinBuffer.concat = function() { return new MinBuffer(0); };
+          MinBuffer.prototype = { };
+          
+          window.Buffer = MinBuffer;
+          console.log('Early MinBuffer polyfill initialized');
+        }
+      })();
     </script>
+    
+    <!-- Buffer polyfill - load this next -->
+    <script src="/buffer-polyfill.js"></script>
   </head>
 
   <body>
