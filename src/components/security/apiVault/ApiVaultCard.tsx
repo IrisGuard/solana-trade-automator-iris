@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ApiVaultHeader } from "./components/ApiVaultHeader";
@@ -162,6 +161,7 @@ export const ApiVaultCard = () => {
             isRecovering={isRecovering}
             isTestingKeys={isTestingKeys}
             handleRecoverClick={handleRecoverClick}
+            setApiKeys={setApiKeys}
           />
           
           {/* All dialogs */}

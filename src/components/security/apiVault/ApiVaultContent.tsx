@@ -21,6 +21,7 @@ interface ApiVaultContentProps {
   getKeysByService: () => Record<string, ApiKey[]>;
   onAddKeyClick: () => void;
   setApiKeys: React.Dispatch<React.SetStateAction<ApiKey[]>>;
+  onImportClick?: () => void;
 }
 
 export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
@@ -35,10 +36,15 @@ export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
   getFilteredKeys,
   getKeysByService,
   onAddKeyClick,
-  setApiKeys
+  setApiKeys,
+  onImportClick
 }) => {
   if (apiKeys.length === 0) {
-    return <EmptyApiVault onAddKeyClick={onAddKeyClick} />;
+    return <EmptyApiVault 
+      onAddKeyClick={onAddKeyClick} 
+      onImportClick={onImportClick}
+      setApiKeys={setApiKeys} 
+    />;
   }
 
   // Calculate statistics for keys
