@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { SolanaWalletProvider } from "./providers/SolanaWalletProvider";
 import { SupabaseAuthProvider } from "./providers/SupabaseAuthProvider";
 import { Routes } from "./routes";
-import { Toaster } from "sonner";
+import { Toaster } from "./components/ui/toaster";
 
 function App() {
   useEffect(() => {
@@ -24,7 +24,7 @@ function App() {
       <SupabaseAuthProvider>
         <div className="app-container">
           <Routes />
-          <Toaster position="top-right" richColors closeButton />
+          <Toaster />
         </div>
       </SupabaseAuthProvider>
     </SolanaWalletProvider>

@@ -1,12 +1,3 @@
 
-import { toast } from "sonner";
-
-// Απλή επανεξαγωγή του toast για συνέπεια
-export { toast };
-
-// Επιστρέφει το hook με το toast function
-export const useToast = () => {
-  return {
-    toast,
-  };
-};
+// Re-export from the main hooks location for backward compatibility
+export { toast, useToast } from "@/hooks/use-toast";
