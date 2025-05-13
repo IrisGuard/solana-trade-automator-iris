@@ -4,7 +4,6 @@ import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl } from '@solana/web3.js';
-import { SolanaProviderFallback } from '@/components/wallet/SolanaProviderFallback';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 
 // Import the styles here to make sure they're loaded
@@ -34,9 +33,7 @@ export function SolanaWalletProvider({ children }: SolanaWalletProviderProps) {
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          <SolanaProviderFallback>
-            {children}
-          </SolanaProviderFallback>
+          {children}
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
