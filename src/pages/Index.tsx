@@ -9,8 +9,8 @@ import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
 import { useWalletStatus } from "@/hooks/useWalletStatus";
 
 export default function Index() {
-  const { isConnected, isPhantomInstalled } = useWalletStatus();
-
+  // Αφαιρώ την κλήση του useWalletStatus καθώς δεν χρειάζεται εδώ και δημιουργεί πρόβλημα
+  
   return (
     <div className="flex flex-col min-h-screen">
       <header className="p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">

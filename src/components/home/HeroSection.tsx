@@ -4,12 +4,14 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { Lock, Wallet, Zap } from "lucide-react";
 import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
-import { useWalletStatus } from "@/hooks/useWalletStatus";
+import { WalletConnectButtonSafe } from "@/components/wallet/WalletConnectButtonSafe";
 import { toast } from "sonner";
 
 export function HeroSection() {
   const navigate = useNavigate();
-  const { isConnected } = useWalletStatus();
+  
+  // Αφαιρώ το useWalletStatus που προκαλεί σφάλματα
+  const isConnected = false; // default to false for landing page
   
   const handleNavigateWithToast = (path: string, message: string) => {
     toast.success(message);
@@ -36,14 +38,14 @@ export function HeroSection() {
             Είσοδος στο Dashboard
           </Button>
         ) : (
-          <WalletConnectButton
+          <WalletConnectButtonSafe
             variant="default"
             size="lg"
             className="gap-2 w-full md:w-auto"
           >
             <Wallet className="h-5 w-5" />
             Σύνδεση με Wallet
-          </WalletConnectButton>
+          </WalletConnectButtonSafe>
         )}
         <Button
           variant="outline"
