@@ -8,11 +8,13 @@ import { AlertCircle } from "lucide-react";
 interface WalletDisconnectedContentProps {
   isConnecting: boolean;
   isPhantomInstalled?: boolean;
+  handleConnectWallet?: () => void;
 }
 
 export function WalletDisconnectedContent({ 
   isConnecting,
-  isPhantomInstalled = true
+  isPhantomInstalled = true,
+  handleConnectWallet
 }: WalletDisconnectedContentProps) {
   return (
     <div className="space-y-6">
@@ -30,6 +32,7 @@ export function WalletDisconnectedContent({
         <ConnectWalletCard 
           isConnecting={isConnecting}
           isPhantomInstalled={isPhantomInstalled}
+          handleConnectWallet={handleConnectWallet}
         />
         <PlatformInfoCard />
       </div>

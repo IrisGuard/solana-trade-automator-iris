@@ -2,14 +2,19 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Wallet, AlertCircle } from "lucide-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { Button } from "@/components/ui/button";
 
 interface ConnectWalletCardProps {
   isConnecting?: boolean;
   isPhantomInstalled?: boolean;
+  handleConnectWallet?: () => void;
 }
 
-export function ConnectWalletCard({ isConnecting = false, isPhantomInstalled = true }: ConnectWalletCardProps) {
+export function ConnectWalletCard({ 
+  isConnecting = false, 
+  isPhantomInstalled = true,
+  handleConnectWallet = () => {}
+}: ConnectWalletCardProps) {
   return (
     <Card className="border-dashed border-2 border-primary transition-all hover:shadow-md">
       <CardHeader className="text-center">
@@ -22,9 +27,12 @@ export function ConnectWalletCard({ isConnecting = false, isPhantomInstalled = t
         </div>
         
         <div className="flex justify-center">
-          <WalletMultiButton className="bg-primary text-white hover:bg-primary/90 rounded-md flex items-center gap-2 px-4 py-2">
+          <Button 
+            onClick={handleConnectWallet}
+            className="bg-primary text-white hover:bg-primary/90 rounded-md flex items-center gap-2 px-4 py-2"
+          >
             Σύνδεση με Wallet
-          </WalletMultiButton>
+          </Button>
         </div>
         
         {!isPhantomInstalled && (

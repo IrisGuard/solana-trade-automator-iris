@@ -1,10 +1,10 @@
 
 import { toast as sonnerToast } from "sonner";
 
-// Απλοποιημένο export του toast
+// Απλό export του toast από το Sonner
 export const toast = sonnerToast;
 
-// Και ένα hook για συμβατότητα με υπάρχοντα κώδικα
+// Συμβατότητα με την παλιά διεπαφή useToast
 export function useToast() {
   return {
     toast: sonnerToast,
