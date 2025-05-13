@@ -11,6 +11,7 @@ import Bots from "@/pages/Bots";
 import Settings from "@/pages/Settings";
 import Help from "@/pages/Help";
 import NotFound from "@/pages/NotFound";
+import ApiVault from "@/pages/ApiVault";
 
 const router = createBrowserRouter([
   {
@@ -53,6 +54,10 @@ const router = createBrowserRouter([
       {
         path: "help",
         element: <Help />,
+      },
+      {
+        path: "api-vault",
+        element: <ApiVault />,
       },
     ],
   },
