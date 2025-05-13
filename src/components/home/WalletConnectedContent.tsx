@@ -28,7 +28,7 @@ export function WalletConnectedContent({
   connectionError,
   selectTokenForTrading
 }: WalletConnectedContentProps) {
-  // Μορφοποίηση της διεύθυνσης για εμφάνιση αν δεν έχει παρασχεθεί
+  // Format wallet address for display if not provided
   const shortAddress = displayAddress || (walletAddress ? 
     `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}` : 
     '');
@@ -37,13 +37,12 @@ export function WalletConnectedContent({
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <WalletInfoCard 
         walletAddress={walletAddress} 
-        displayAddress={shortAddress}
         balance={solBalance || 0}
       />
       <PlatformInfoCard />
       <TokensCard 
         tokens={tokens || []}
-        isLoading={!!isLoadingTokens}
+        isLoadingTokens={isLoadingTokens}
         onSelectToken={selectTokenForTrading}
       />
       <BotStatusCard />

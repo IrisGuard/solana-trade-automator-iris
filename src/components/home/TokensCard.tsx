@@ -8,18 +8,16 @@ import { TokensFooter } from "./tokens/TokensFooter";
 
 interface TokensCardProps {
   tokens: Token[];
-  displayAddress: string;
   tokenPrices?: Record<string, number>;
-  selectTokenForTrading?: (tokenAddress: string) => Token | null;
+  onSelectToken?: (tokenAddress: string) => Token | null;
   isLoadingTokens?: boolean;
   connectionError?: string | null;
 }
 
 export function TokensCard({ 
   tokens, 
-  displayAddress,
   tokenPrices,
-  selectTokenForTrading,
+  onSelectToken,
   isLoadingTokens = false,
   connectionError = null
 }: TokensCardProps) {
@@ -40,10 +38,10 @@ export function TokensCard({
 
   // Handle trading button click
   const handleTradingClick = (tokenAddress: string) => {
-    if (selectTokenForTrading) {
+    if (onSelectToken) {
       setIsLoading(true);
       try {
-        selectTokenForTrading(tokenAddress);
+        onSelectToken(tokenAddress);
         // Navigate to bot control page after a brief delay
         setTimeout(() => {
           window.location.href = `/bot-control?token=${tokenAddress}`;

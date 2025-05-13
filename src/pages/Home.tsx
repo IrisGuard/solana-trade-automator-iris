@@ -60,7 +60,6 @@ export default function Home() {
           {isConnected ? (
             <WalletConnectedContent 
               walletAddress={walletAddress} 
-              displayAddress={displayAddress}
               solBalance={solBalance}
               tokens={tokens}
               tokenPrices={tokenPrices}
