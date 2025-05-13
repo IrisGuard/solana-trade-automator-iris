@@ -1,118 +1,109 @@
 
-import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-// Τα endpoints του Helius που πρέπει να προστεθούν
-const HELIUS_ENDPOINTS = [
-  {
-    name: "HELIUS_RPC_MAINNET",
-    url: "https://mainnet.helius-rpc.com/?api-key=ddb32813-1f4b-459d-8964-310b1b73a053",
-    category: "solana"
-  },
-  {
-    name: "HELIUS_ECLIPSE",
-    url: "https://eclipse.helius-rpc.com/",
-    category: "solana"
-  },
-  {
-    name: "HELIUS_WEBSOCKET",
-    url: "wss://mainnet.helius-rpc.com/?api-key=ddb32813-1f4b-459d-8964-310b1b73a053",
-    category: "solana"
-  },
-  {
-    name: "HELIUS_API_TRANSACTIONS",
-    url: "https://api.helius.xyz/v0/transactions/?api-key=ddb32813-1f4b-459d-8964-310b1b73a053",
-    category: "solana"
-  },
-  {
-    name: "HELIUS_API_ADDRESS_TRANSACTIONS",
-    url: "https://api.helius.xyz/v0/addresses/{address}/transactions/?api-key=ddb32813-1f4b-459d-8964-310b1b73a053",
-    category: "solana"
-  }
-];
+// Σταθερό δοκιμαστικό κλειδί Helius για επίδειξη
+const DEMO_HELIUS_KEY = "ddb32813-1f4b-459d-8964-310b1b73a053";
 
-// Συνάρτηση για προσθήκη των endpoints στη βάση δεδομένων
-export async function addHeliusEndpoints() {
+// Προσθέτει τα προκαθορισμένα endpoints του Helius στη βάση δεδομένων
+export const addHeliusEndpoints = async (): Promise<boolean> => {
   try {
-    // Έλεγχος για υπάρχοντα endpoints με αυτά τα ονόματα
-    const { data: existingEndpoints } = await supabase
+    // Έλεγχος αν υπάρχουν ήδη τα endpoints
+    const { data: existingEndpoints, error: checkError } = await supabase
       .from('api_endpoints')
-      .select('name')
-      .in('name', HELIUS_ENDPOINTS.map(ep => ep.name));
+      .select('*')
+      .eq('category', 'helius');
     
-    const existingNames = existingEndpoints?.map(ep => ep.name) || [];
+    if (checkError) throw checkError;
     
-    // Φιλτράρισμα νέων endpoints
-    const newEndpoints = HELIUS_ENDPOINTS.filter(ep => !existingNames.includes(ep.name));
-    
-    if (newEndpoints.length === 0) {
-      toast.info('Όλα τα Helius endpoints υπάρχουν ήδη στη βάση δεδομένων');
-      return [];
+    // Αν υπάρχουν ήδη endpoints Helius, επιστρέφουμε επιτυχία
+    if (existingEndpoints && existingEndpoints.length > 0) {
+      console.log('Endpoints Helius ήδη υπάρχουν:', existingEndpoints.length);
+      return true;
     }
     
-    // Προσθήκη νέων endpoints
-    const { data, error } = await supabase
-      .from('api_endpoints')
-      .insert(newEndpoints.map(ep => ({
-        name: ep.name,
-        url: ep.url,
-        category: ep.category,
+    // Λίστα με τα endpoints του Helius που θέλουμε να προσθέσουμε
+    const heliusEndpoints = [
+      {
+        name: "Helius Enhanced Transactions",
+        url: `https://api.helius.xyz/v0/transactions?api-key=${DEMO_HELIUS_KEY}`,
+        category: "helius",
         is_active: true,
         is_public: true
-      })))
-      .select();
+      },
+      {
+        name: "Helius Name Service",
+        url: `https://api.helius.xyz/v0/addresses/{address}/names?api-key=${DEMO_HELIUS_KEY}`,
+        category: "helius",
+        is_active: true,
+        is_public: true
+      },
+      {
+        name: "Helius Token Balances",
+        url: `https://api.helius.xyz/v0/addresses/{address}/balances?api-key=${DEMO_HELIUS_KEY}`,
+        category: "helius",
+        is_active: true,
+        is_public: true
+      }
+    ];
     
-    if (error) {
-      throw error;
-    }
+    // Προσθήκη των endpoints στη βάση δεδομένων
+    const { error } = await supabase
+      .from('api_endpoints')
+      .insert(heliusEndpoints);
+      
+    if (error) throw error;
     
-    toast.success(`Προστέθηκαν ${newEndpoints.length} νέα Helius endpoints`);
-    return data;
+    console.log('Επιτυχής προσθήκη endpoints Helius');
+    return true;
   } catch (error) {
-    console.error('Error adding Helius endpoints:', error);
-    toast.error('Σφάλμα κατά την προσθήκη των Helius endpoints');
-    return [];
+    console.error('Σφάλμα κατά την προσθήκη των endpoints Helius:', error);
+    toast.error('Σφάλμα κατά την προσθήκη endpoints Helius');
+    return false;
   }
-}
+};
 
-// Συνάρτηση για την προσθήκη του κλειδιού Helius στην κλειδοθήκη
-export async function addHeliusKey(userId: string) {
+// Προσθέτει το κλειδί API Helius στην κλειδοθήκη του χρήστη
+export const addHeliusKey = async (userId: string): Promise<boolean> => {
   try {
     // Έλεγχος αν υπάρχει ήδη το κλειδί
-    const { data: existingKeys } = await supabase
+    const { data: existingKeys, error: checkError } = await supabase
       .from('api_keys_storage')
       .select('*')
       .eq('service', 'helius')
       .eq('user_id', userId);
     
+    if (checkError) throw checkError;
+    
+    // Αν υπάρχουν ήδη κλειδιά Helius, επιστρέφουμε επιτυχία
     if (existingKeys && existingKeys.length > 0) {
-      toast.info('Το κλειδί Helius υπάρχει ήδη στην κλειδοθήκη');
-      return null;
+      console.log('Κλειδί Helius ήδη υπάρχει');
+      return true;
     }
     
-    // Προσθήκη του κλειδιού
-    const { data, error } = await supabase
+    // Δημιουργία νέου κλειδιού Helius
+    const heliusKey = {
+      name: "Helius API Demo Key",
+      key_value: DEMO_HELIUS_KEY,
+      service: "helius",
+      description: "Demo key for accessing Helius API services",
+      status: "active",
+      user_id: userId,
+      is_encrypted: false
+    };
+    
+    // Προσθήκη του κλειδιού στη βάση δεδομένων
+    const { error } = await supabase
       .from('api_keys_storage')
-      .insert({
-        name: 'Helius API Key',
-        key_value: 'ddb32813-1f4b-459d-8964-310b1b73a053',
-        service: 'helius',
-        description: 'Helius API key for RPC and data services',
-        status: 'active',
-        user_id: userId,
-        is_encrypted: false
-      })
-      .select();
+      .insert(heliusKey);
+      
+    if (error) throw error;
     
-    if (error) {
-      throw error;
-    }
-    
-    toast.success('Το κλειδί Helius προστέθηκε επιτυχώς στην κλειδοθήκη');
-    return data[0];
+    console.log('Επιτυχής προσθήκη κλειδιού Helius');
+    return true;
   } catch (error) {
-    console.error('Error adding Helius key:', error);
-    toast.error('Σφάλμα κατά την προσθήκη του κλειδιού Helius');
-    return null;
+    console.error('Σφάλμα κατά την προσθήκη του κλειδιού Helius:', error);
+    toast.error('Σφάλμα κατά την προσθήκη κλειδιού Helius');
+    return false;
   }
-}
+};

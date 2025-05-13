@@ -5,11 +5,35 @@ import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { Loader2, Check, AlertCircle } from "lucide-react";
 import { addHeliusEndpoints, addHeliusKey } from "@/utils/addHeliusEndpoints";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export function AddHeliusButton() {
   const [isAdding, setIsAdding] = React.useState(false);
   const [isAdded, setIsAdded] = React.useState(false);
   const { user } = useAuth();
+
+  // Έλεγχος αν το κλειδί Helius έχει ήδη προστεθεί
+  React.useEffect(() => {
+    const checkHeliusKey = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('api_keys_storage')
+          .select('*')
+          .eq('service', 'helius')
+          .eq('user_id', user.id);
+          
+        if (!error && data && data.length > 0) {
+          setIsAdded(true);
+        }
+      } catch (error) {
+        console.error("Error checking for Helius key:", error);
+      }
+    };
+    
+    checkHeliusKey();
+  }, [user]);
 
   const handleAddHelius = async () => {
     if (!user) {

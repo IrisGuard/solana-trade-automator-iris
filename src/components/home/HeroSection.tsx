@@ -1,40 +1,54 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import { ArrowRight, LayoutDashboard, TrendingUp } from "lucide-react";
-import { useWalletStatus } from "@/hooks/useWalletStatus";
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useNavigate } from 'react-router-dom';
+import { Wallet, Lock } from "lucide-react";
+import { WalletConnectButton } from "../wallet/WalletConnectButton";
 
 export function HeroSection() {
-  const { isConnected } = useWalletStatus();
+  const { connected } = useWallet();
+  const navigate = useNavigate();
   
   return (
-    <section className="py-12 md:py-16 text-center space-y-6 max-w-3xl mx-auto">
-      <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-        Αυτοματοποιημένη αγορά & πώληση <span className="text-primary">Solana tokens</span> με AI
+    <div className="py-10 md:py-16 px-4 flex flex-col items-center text-center">
+      <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">
+        Solana Trade Automator
       </h1>
-      <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-        Αναπτύξτε προσωπικά trading bots που παρακολουθούν την αγορά 24/7, 
-        αναλύουν τάσεις με τεχνητή νοημοσύνη και μεγιστοποιούν τα κέρδη σας 
-        στο Solana blockchain, χωρίς γνώσεις προγραμματισμού.
+      <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mb-8">
+        Διαχειριστείτε τα κρυπτονομίσματά σας, αυτοματοποιήστε τις συναλλαγές σας και παρακολουθήστε τα κεφάλαιά σας - όλα από ένα μέρος
       </p>
-      <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
-        {isConnected ? (
-          <Link to="/dashboard">
-            <Button size="lg" className="gap-2 px-6 py-6 h-auto text-base">
-              <LayoutDashboard className="h-5 w-5" />
-              Πίνακας Ελέγχου
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-          </Link>
-        ) : null}
-        <Link to="/bot-control">
-          <Button size="lg" variant="outline" className="gap-2 px-6 py-6 h-auto text-base">
-            <TrendingUp className="h-5 w-5" />
-            Έλεγχος Trading Bot
+      
+      <div className="flex flex-col md:flex-row gap-4 w-full max-w-md justify-center">
+        {!connected ? (
+          <WalletConnectButton 
+            className="gap-2 w-full md:w-auto"
+            size="lg"
+          >
+            <Wallet className="h-5 w-5" />
+            <span>Σύνδεση Πορτοφολιού</span>
+          </WalletConnectButton>
+        ) : (
+          <Button
+            size="lg"
+            onClick={() => navigate('/wallet')}
+            className="gap-2 w-full md:w-auto"
+          >
+            <Wallet className="h-5 w-5" />
+            <span>Προβολή Πορτοφολιού</span>
           </Button>
-        </Link>
+        )}
+        
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={() => navigate('/api-vault')}
+          className="gap-2 w-full md:w-auto"
+        >
+          <Lock className="h-5 w-5" />
+          <span>Κλειδοθήκη API</span>
+        </Button>
       </div>
-    </section>
+    </div>
   );
 }
