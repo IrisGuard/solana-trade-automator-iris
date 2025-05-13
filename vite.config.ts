@@ -45,7 +45,7 @@ export default defineConfig(({ mode }) => {
           NodeGlobalsPolyfillPlugin({
             buffer: true,
             process: true,
-          }) as any, // Use type assertion to avoid TypeScript errors
+          }) as any, // Type assertion to avoid TypeScript errors
         ],
       },
       include: [
@@ -54,7 +54,11 @@ export default defineConfig(({ mode }) => {
         'stream-browserify', 
         'util/', 
         'crypto-browserify',
-        'assert/'
+        'assert/',
+        '@solana/web3.js',
+        '@solana/spl-token',
+        '@solana/wallet-adapter-base',
+        '@solana/wallet-adapter-react'
       ],
     },
     build: {
