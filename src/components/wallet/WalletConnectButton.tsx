@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Wallet, Loader } from "lucide-react";
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
+import { toast } from "sonner";
 
 interface WalletConnectButtonProps {
   className?: string;
@@ -20,11 +21,18 @@ export const WalletConnectButton = ({
   isLoading = false,
   children
 }: WalletConnectButtonProps) => {
-  const { connected } = useWallet();
+  const { connected, connecting, select, wallet } = useWallet();
   const { setVisible } = useWalletModal();
 
   const handleClick = () => {
-    setVisible(true);
+    if (connecting) return;
+    
+    try {
+      setVisible(true);
+    } catch (error) {
+      console.error("Error showing wallet modal:", error);
+      toast.error("Δεν ήταν δυνατό το άνοιγμα του πορτοφολιού");
+    }
   };
 
   return (
@@ -33,9 +41,9 @@ export const WalletConnectButton = ({
       variant={variant}
       size={size}
       className={`flex items-center gap-2 ${className}`}
-      disabled={isLoading}
+      disabled={isLoading || connecting}
     >
-      {isLoading ? (
+      {(isLoading || connecting) ? (
         <Loader className="h-4 w-4 animate-spin mr-2" />
       ) : (
         <Wallet className="h-4 w-4 mr-2" />

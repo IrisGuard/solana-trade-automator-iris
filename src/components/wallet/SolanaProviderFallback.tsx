@@ -7,9 +7,6 @@ interface SolanaProviderFallbackProps {
 }
 
 export function SolanaProviderFallback({ children }: SolanaProviderFallbackProps) {
-  const { wallet, connecting } = useWallet();
-  
-  // We'll always render children - the individual components will handle
-  // their own fallbacks/loading states as needed
+  // We're simply passing through the children
   return <>{children}</>;
 }
