@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Lock, Upload, Download, ShieldAlert, Server } from "lucide-react";
+import { Lock, Upload, Download, ShieldAlert, Server, RefreshCw } from "lucide-react";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { useSupabaseSync } from "../hooks/useSupabaseSync";
 import { ApiKey } from "../types";
@@ -14,6 +14,10 @@ interface ApiVaultActionsProps {
   isLocked: boolean;
   apiKeys: ApiKey[];
   setApiKeys?: React.Dispatch<React.SetStateAction<ApiKey[]>>;
+  // Add the missing props from the error
+  isRecovering?: boolean;
+  isTestingKeys?: boolean;
+  handleRecoverClick?: () => void;
 }
 
 export function ApiVaultActions({
@@ -23,7 +27,10 @@ export function ApiVaultActions({
   onSecurityClick,
   isLocked,
   apiKeys,
-  setApiKeys
+  setApiKeys,
+  isRecovering = false,
+  isTestingKeys = false,
+  handleRecoverClick
 }: ApiVaultActionsProps) {
   const { user } = useAuth();
   const { syncApiKeysToSupabase, isSyncing } = useSupabaseSync();
@@ -87,6 +94,18 @@ export function ApiVaultActions({
         >
           <Server className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-pulse' : ''}`} />
           {isSyncing ? 'Συγχρονισμός...' : 'Αποθήκευση στο Supabase'}
+        </Button>
+      )}
+
+      {handleRecoverClick && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRecoverClick}
+          disabled={isRecovering || isTestingKeys}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isRecovering ? 'animate-spin' : ''}`} />
+          {isRecovering ? 'Σάρωση...' : 'Ανάκτηση Κλειδιών'}
         </Button>
       )}
     </div>

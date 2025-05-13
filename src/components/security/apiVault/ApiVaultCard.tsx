@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ApiVaultHeader } from "./components/ApiVaultHeader";
@@ -156,12 +157,16 @@ export const ApiVaultCard = () => {
           
           {/* Additional actions */}
           <ApiVaultActions 
+            onImportClick={() => setShowImportDialog(true)}
+            onExportClick={() => setShowExportSheet(true)}
+            onLockClick={isLocked ? () => setIsUnlocking(true) : handleLock}
+            onSecurityClick={() => setShowSettingsDialog(true)}
             isLocked={isLocked}
             apiKeys={apiKeys}
+            setApiKeys={setApiKeys}
             isRecovering={isRecovering}
             isTestingKeys={isTestingKeys}
             handleRecoverClick={handleRecoverClick}
-            setApiKeys={setApiKeys}
           />
           
           {/* All dialogs */}
