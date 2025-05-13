@@ -31,6 +31,6 @@ if (typeof window !== 'undefined' && !window.process) {
     env: {},
     browser: true,
     version: '',
-    versions: { node: false }
+    versions: { node: '0.0.0' }  // Changed from boolean to string
   };
 }
