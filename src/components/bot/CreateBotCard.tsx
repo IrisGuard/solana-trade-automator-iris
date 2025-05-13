@@ -53,7 +53,7 @@ export function CreateBotCard({ onCancel }: CreateBotCardProps) {
         maxTrade: parseFloat(maxTrade),
         takeProfit: parseFloat(takeProfit),
         stopLoss: parseFloat(stopLoss),
-        riskLevel,
+        riskLevel: riskLevel, // This now matches our updated BotConfig type
         autoCompound,
         profit: "+0.0%",
         timeRunning: "0h 0m"

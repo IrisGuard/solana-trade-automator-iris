@@ -7,12 +7,18 @@ export type { Database } from '@/integrations/supabase/types';
 // Extended/supplementary types that don't require modifying the original types file
 export type BotConfig = {
   selectedToken?: string;
+  quoteToken?: string;
   tradingAmount?: number;
+  allocation?: number;
+  maxTrade?: number;
   stopLoss?: number;
   takeProfit?: number;
   strategy?: 'dca' | 'grid' | 'momentum' | 'arbitrage';
   autoRebalance?: boolean;
-  riskLevel?: 'low' | 'medium' | 'high';
+  riskLevel?: number | 'low' | 'medium' | 'high';
+  autoCompound?: boolean;
+  profit?: string;
+  timeRunning?: string;
 };
 
 // Type-safe helper for accessing Supabase tables

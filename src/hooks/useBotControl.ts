@@ -59,14 +59,17 @@ export function useBotControl() {
         const userBots = await botsService.getBotsByUser(user.id);
         
         // Transform bots to match our UI format
-        const transformedBots = userBots.map(bot => ({
-          botName: bot.name,
-          isActive: bot.active || false,
-          tokens: bot.config?.selectedToken ? [bot.config.selectedToken, "USDC"] : ["SOL", "USDC"],
-          profit: bot.config?.profit || "+0.0%",
-          timeRunning: bot.config?.timeRunning || "0h 0m",
-          id: bot.id
-        }));
+        const transformedBots = userBots.map(bot => {
+          const config = bot.config as Record<string, any> || {};
+          return {
+            botName: bot.name,
+            isActive: bot.active || false,
+            tokens: config.selectedToken ? [config.selectedToken, config.quoteToken || "USDC"] : ["SOL", "USDC"],
+            profit: config.profit || "+0.0%",
+            timeRunning: config.timeRunning || "0h 0m",
+            id: bot.id
+          };
+        });
         
         setBots(transformedBots);
       } catch (error) {
