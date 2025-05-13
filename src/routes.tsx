@@ -12,11 +12,13 @@ import ApiVault from "@/pages/ApiVault";
 import BotControl from "@/pages/BotControl";
 import Index from "@/pages/Index";
 import Home from "@/pages/Home";
+import Auth from "@/pages/Auth";
 
 export function Routes() {
   return (
     <ReactRouterRoutes>
       <Route path="/" element={<Index />} />
+      <Route path="/auth" element={<Auth />} />
       <Route element={<Layout />}>
         <Route path="/home" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />

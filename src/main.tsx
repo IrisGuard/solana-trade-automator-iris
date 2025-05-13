@@ -1,6 +1,8 @@
 
 // Import polyfills first
 import './polyfills';
+// Import our React exports fix
+import './react-exports-fix';
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
