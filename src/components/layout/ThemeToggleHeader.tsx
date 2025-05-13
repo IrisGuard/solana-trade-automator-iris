@@ -1,18 +1,22 @@
 
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import React from "react";
+import { ThemeToggle } from "./ThemeToggle";
+import { LanguageToggle } from "./LanguageToggle";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Home } from "lucide-react";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 export function ThemeToggleHeader() {
+  const { t } = useLanguage();
+  
   return (
-    <div className="flex items-center space-x-2">
-      <Link to="/">
-        <Button variant="ghost" size="icon" className="mr-2" title="Αρχική σελίδα">
-          <Home className="h-4 w-4" />
-        </Button>
+    <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
+      <Link to="/" className="lg:hidden">
+        <img src="/logo.svg" alt="SolApp" className="h-6" />
       </Link>
-      <ThemeToggle />
-    </div>
+      <div className="ml-auto flex items-center gap-2">
+        <LanguageToggle />
+        <ThemeToggle />
+      </div>
+    </header>
   );
 }

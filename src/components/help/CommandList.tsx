@@ -1,65 +1,68 @@
 
 import React from "react";
+import { useLanguage } from "@/providers/LanguageProvider";
 
 // Λίστα με εντολές και την περιγραφή τους
 const COMMANDS = [
   {
     command: "/connect",
-    description: "Συνδέει το Solana πορτοφόλι σας με την εφαρμογή",
+    descriptionKey: "wallet.connectWallet",
   },
   {
     command: "/disconnect",
-    description: "Αποσυνδέει το συνδεδεμένο πορτοφόλι",
+    descriptionKey: "wallet.disconnectWallet",
   },
   {
     command: "/balance",
-    description: "Εμφανίζει το υπόλοιπο του πορτοφολιού σας",
+    descriptionKey: "wallet.walletBalance",
   },
   {
     command: "/tokens",
-    description: "Εμφανίζει τη λίστα με τα tokens που διαθέτετε",
+    descriptionKey: "wallet.tokensBalance",
   },
   {
     command: "/swap [ποσό] [από] [προς]",
-    description: "Ανταλλάσσει tokens (π.χ. /swap 10 SOL USDC)",
+    descriptionKey: "Ανταλλάσσει tokens (π.χ. /swap 10 SOL USDC)",
   },
   {
     command: "/bot start",
-    description: "Ξεκινάει το trading bot",
+    descriptionKey: "makerBot.startBot",
   },
   {
     command: "/bot stop",
-    description: "Σταματάει το trading bot",
+    descriptionKey: "makerBot.stopBot",
   },
   {
     command: "/bot status",
-    description: "Εμφανίζει την κατάσταση του bot",
+    descriptionKey: "botStats",
   },
   {
     command: "/maker start",
-    description: "Ξεκινάει το maker bot",
+    descriptionKey: "makerBot.startBot",
   },
   {
     command: "/maker stop",
-    description: "Σταματάει το maker bot",
+    descriptionKey: "makerBot.stopBot",
   },
   {
     command: "/api list",
-    description: "Εμφανίζει τα διαθέσιμα API keys",
+    descriptionKey: "apiVault.manageApiKeys",
   },
   {
     command: "/help",
-    description: "Εμφανίζει αυτή τη λίστα βοήθειας",
+    descriptionKey: "help.availableCommands",
   }
 ];
 
 export function CommandList() {
+  const { t } = useLanguage();
+  
   return (
     <div className="p-4">
       <div className="mb-4">
-        <h3 className="text-lg font-medium mb-2">Διαθέσιμες Εντολές</h3>
+        <h3 className="text-lg font-medium mb-2">{t("help.availableCommands")}</h3>
         <p className="text-sm text-muted-foreground">
-          Χρησιμοποιήστε αυτές τις εντολές για γρήγορη πρόσβαση στη λειτουργικότητα
+          {t("help.useCommands")}
         </p>
       </div>
       
@@ -70,9 +73,11 @@ export function CommandList() {
               <code className="font-mono text-sm bg-muted px-2 py-1 rounded">
                 {cmd.command}
               </code>
-              <span className="text-xs text-muted-foreground">Εντολή</span>
+              <span className="text-xs text-muted-foreground">{t("general.command", "Εντολή")}</span>
             </div>
-            <p className="text-sm mt-1">{cmd.description}</p>
+            <p className="text-sm mt-1">
+              {cmd.descriptionKey.includes('.') ? t(cmd.descriptionKey) : cmd.descriptionKey}
+            </p>
           </div>
         ))}
       </div>
