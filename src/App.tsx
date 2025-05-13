@@ -1,13 +1,11 @@
 
-import React, { useEffect } from "react";
+import React from "react";
 import { SupabaseAuthProvider } from "./providers/SupabaseAuthProvider";
 import { Routes } from "./routes";
 import { Toaster } from "sonner"; 
 
 function App() {
-  useEffect(() => {
-    console.log("App component mounted successfully!");
-  }, []);
+  console.log("App component mounted");
 
   return (
     <SupabaseAuthProvider>

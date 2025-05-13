@@ -1,5 +1,5 @@
 
-import { createBrowserRouter, RouterProvider, Routes as ReactRouterRoutes, Route, Navigate } from "react-router-dom";
+import { Routes as ReactRouterRoutes, Route, Navigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import Home from "@/pages/Home";
 import Dashboard from "@/pages/Dashboard"; 
@@ -14,7 +14,6 @@ import Bots from "@/pages/Bots";
 
 console.log("Routes module loaded");
 
-// Instead of creating a new router, use Routes and Route directly
 export function Routes() {
   console.log("Routes component rendering");
   return (

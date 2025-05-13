@@ -2,7 +2,6 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Wallet, AlertCircle } from "lucide-react";
-import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 interface ConnectWalletCardProps {
