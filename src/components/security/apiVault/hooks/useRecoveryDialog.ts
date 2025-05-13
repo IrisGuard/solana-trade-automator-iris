@@ -24,16 +24,23 @@ export function useRecoveryDialog() {
       
       if (data && data.length > 0) {
         // Map Supabase data to ApiKey format
-        const mappedKeys: ApiKey[] = data.map((key) => ({
-          id: key.id,
-          name: key.name,
-          service: key.service,
-          key: key.key_value,
-          createdAt: key.created_at,
-          status: key.status || 'active',
-          description: key.description || '',
-          isEncrypted: key.is_encrypted || false
-        }));
+        const mappedKeys: ApiKey[] = data.map((key) => {
+          // Ensure status is one of the allowed values
+          const statusValue = key.status === 'expired' ? 'expired' : 
+                            key.status === 'revoked' ? 'revoked' : 
+                            'active';
+                            
+          return {
+            id: key.id,
+            name: key.name,
+            service: key.service,
+            key: key.key_value,
+            createdAt: key.created_at,
+            status: statusValue as 'active' | 'expired' | 'revoked',
+            description: key.description || '',
+            isEncrypted: key.is_encrypted || false
+          };
+        });
         
         setRecoveredKeys(mappedKeys);
         toast.success(`Ανακτήθηκαν ${mappedKeys.length} κλειδιά από Supabase`);

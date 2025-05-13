@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { ApiKey } from "../types";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,13 +27,18 @@ export function useKeyTestingState() {
       if (data && data.length > 0) {
         // Map Supabase data to ApiKey format with isWorking property
         const updatedKeys: ApiKey[] = await Promise.all(data.map(async (key) => {
+          // Ensure status is one of the allowed values
+          const statusValue = key.status === 'expired' ? 'expired' : 
+                            key.status === 'revoked' ? 'revoked' : 
+                            'active';
+          
           const apiKey: ApiKey = {
             id: key.id,
             name: key.name,
             service: key.service,
             key: key.key_value,
             createdAt: key.created_at,
-            status: key.status || 'active',
+            status: statusValue as 'active' | 'expired' | 'revoked',
             description: key.description || '',
             isEncrypted: key.is_encrypted || false
           };
