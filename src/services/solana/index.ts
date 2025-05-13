@@ -1,37 +1,14 @@
 
-import { connection } from './config';
-import { walletService } from './walletService';
-import { tokenService } from './tokenService';
-import { transactionService } from './transaction';
-import { apiServices } from './apiServices';
-import { raydiumService } from './raydiumService';
-import { ApiEndpointManager, SolanaApis } from './apiConfig';
+// Re-export solana services for consistent access
+import { fetchTokenBalance, fetchAllTokenBalances } from './tokenService';
+import { fetchSOLBalance } from './walletService';
+import { fetchTransactionHistory } from './transaction';
+import { fetchTokenPrices } from './priceService';
 
-// Combine all services into a single exported object
 export const solanaService = {
-  // Re-export connection
-  getConnection: () => connection,
-  
-  // Wallet functionality
-  getSolBalance: walletService.getSolBalance,
-  sendToken: walletService.sendToken,
-  
-  // Token functionality
-  getTokenAccounts: tokenService.getTokenAccounts,
-  getTokenPrice: tokenService.getTokenPrice,
-  
-  // Transaction functionality
-  getRecentTransactions: transactionService.getRecentTransactions,
-  
-  // API Services
-  apis: apiServices,
-  
-  // Raydium Services
-  raydium: raydiumService,
-  
-  // API Configuration
-  apiConfig: {
-    endpointManager: ApiEndpointManager,
-    endpoints: SolanaApis
-  }
+  fetchTokenBalance,
+  fetchAllTokenBalances,
+  fetchSOLBalance,
+  fetchTransactionHistory,
+  fetchTokenPrices,
 };
