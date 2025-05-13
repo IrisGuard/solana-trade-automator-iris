@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AlertCircle } from "lucide-react";
+import { useErrorReporting } from "@/hooks/useErrorReporting";
 
 interface LogRecord {
   type: 'error' | 'warn' | 'info';
@@ -11,6 +12,7 @@ interface LogRecord {
 
 export function ConsoleMonitor() {
   const [logs, setLogs] = useState<LogRecord[]>([]);
+  const { reportError } = useErrorReporting();
 
   useEffect(() => {
     // Αποθηκεύστε τις αρχικές μεθόδους κονσόλας
@@ -24,9 +26,12 @@ export function ConsoleMonitor() {
       
       // Δημιουργήστε ένα μήνυμα για το σφάλμα
       let errorMessage = "";
+      let errorObject: Error | null = null;
+
       if (args.length > 0) {
         if (args[0] instanceof Error) {
           errorMessage = args[0].message;
+          errorObject = args[0];
         } else if (typeof args[0] === 'string') {
           errorMessage = args[0];
         } else {
@@ -52,6 +57,13 @@ export function ConsoleMonitor() {
         };
         
         setLogs(prev => [...prev, newLog]);
+        
+        // Αποστολή στο σύστημα αναφοράς σφαλμάτων
+        if (errorObject) {
+          reportError(errorObject, {showToast: false});
+        } else {
+          reportError(errorMessage, {showToast: false});
+        }
         
         // Εμφάνιση toast
         toast.error("Σφάλμα εφαρμογής", {
@@ -98,7 +110,7 @@ export function ConsoleMonitor() {
       console.error = originalConsoleError;
       console.warn = originalConsoleWarn;
     };
-  }, []);
+  }, [reportError]);
 
   // Αποθήκευση logs στο localStorage όταν αλλάζουν
   useEffect(() => {

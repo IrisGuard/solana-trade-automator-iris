@@ -5,27 +5,12 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { useErrorReporting } from '@/hooks/useErrorReporting';
 
 interface ErrorFallbackProps {
   error: Error;
   resetErrorBoundary: () => void;
 }
-
-// Χειριστής σφαλμάτων που καταγράφει τα σφάλματα
-const logError = (error: Error, info: { componentStack: string }) => {
-  console.error("Αυτόματη καταγραφή σφάλματος:", {
-    error: error.message,
-    stack: error.stack,
-    componentStack: info.componentStack,
-    location: window.location.href,
-    timestamp: new Date().toISOString(),
-    userAgent: navigator.userAgent,
-  });
-  
-  toast.error("Εντοπίστηκε σφάλμα στην εφαρμογή", {
-    description: "Το σφάλμα καταγράφηκε αυτόματα και θα επιλυθεί σύντομα."
-  });
-};
 
 // Component που εμφανίζεται σε περίπτωση σφάλματος
 const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetErrorBoundary }) => {
@@ -58,6 +43,17 @@ interface GlobalErrorHandlerProps {
 }
 
 export const GlobalErrorHandler: React.FC<GlobalErrorHandlerProps> = ({ children }) => {
+  const { reportError } = useErrorReporting();
+
+  // Χειριστής σφαλμάτων που καταγράφει τα σφάλματα
+  const logError = (error: Error, info: { componentStack: string }) => {
+    reportError(error, {
+      showToast: true,
+      logToConsole: true,
+      saveToDatabase: true
+    });
+  };
+
   return (
     <ErrorBoundary
       FallbackComponent={ErrorFallback}

@@ -240,6 +240,48 @@ export type Database = {
         }
         Relationships: []
       }
+      error_logs: {
+        Row: {
+          browser_info: Json | null
+          component: string | null
+          created_at: string
+          error_message: string
+          error_stack: string | null
+          id: string
+          resolution_notes: string | null
+          resolved: boolean | null
+          source: string
+          url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          browser_info?: Json | null
+          component?: string | null
+          created_at?: string
+          error_message: string
+          error_stack?: string | null
+          id?: string
+          resolution_notes?: string | null
+          resolved?: boolean | null
+          source: string
+          url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          browser_info?: Json | null
+          component?: string | null
+          created_at?: string
+          error_message?: string
+          error_stack?: string | null
+          id?: string
+          resolution_notes?: string | null
+          resolved?: boolean | null
+          source?: string
+          url?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -380,7 +422,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      log_error: {
+        Args: {
+          p_error_message: string
+          p_error_stack?: string
+          p_component?: string
+          p_source?: string
+          p_url?: string
+          p_browser_info?: Json
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
