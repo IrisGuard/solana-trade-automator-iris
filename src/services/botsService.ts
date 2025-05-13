@@ -1,9 +1,14 @@
 
 import { dbClient } from '@/integrations/supabase/client';
-import type { Tables } from '@/integrations/supabase/client';
+import type { BotRow, BotConfig } from '@/types/supabase-extensions';
 
 export const botsService = {
-  async createBot(userId: string, botData: any) {
+  async createBot(userId: string, botData: {
+    name: string;
+    strategy: string;
+    active?: boolean;
+    config?: BotConfig;
+  }) {
     const { data, error } = await dbClient
       .from('bots')
       .insert([{
@@ -23,10 +28,15 @@ export const botsService = {
       .eq('user_id', userId);
     
     if (error) throw error;
-    return data as Tables['bots'][];
+    return data as BotRow[];
   },
   
-  async updateBot(botId: string, updates: any) {
+  async updateBot(botId: string, updates: {
+    name?: string;
+    strategy?: string;
+    active?: boolean;
+    config?: BotConfig;
+  }) {
     const { data, error } = await dbClient
       .from('bots')
       .update({
