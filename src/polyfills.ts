@@ -31,6 +31,15 @@ if (typeof window !== 'undefined' && !window.process) {
     env: {},
     browser: true,
     version: '',
-    versions: { node: '0.0.0' }  // Changed from boolean to string
+    // Δημιουργούμε έναν σωστό τύπο ProcessVersions που απαιτεί τις ιδιότητες του Node
+    versions: {
+      node: '0.0.0',
+      http_parser: '0.0.0',
+      v8: '0.0.0',
+      ares: '0.0.0',
+      uv: '0.0.0',
+      zlib: '0.0.0',
+      modules: '0.0.0'
+    }
   };
 }
