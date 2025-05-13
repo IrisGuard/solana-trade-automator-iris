@@ -3,9 +3,13 @@ import { useState } from "react";
 import { ApiKey } from "../types";
 import { toast } from "sonner";
 import { saveKeysToStorage } from "../utils/storageUtils";
+import { demoKeys } from "../data/demoKeys";
 
 export function useApiKeyOperations(initialApiKeys: ApiKey[] = []) {
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>(initialApiKeys);
+  // If no initial keys provided, use demo keys
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>(
+    initialApiKeys.length > 0 ? initialApiKeys : demoKeys
+  );
   
   // Σημαία ασφαλείας που διασφαλίζει ότι μόνο διαγραφές που έχει ξεκινήσει ο χρήστης επιτρέπονται
   const [userInitiatedDelete, setUserInitiatedDelete] = useState(false);
