@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChevronDown, Settings, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { WalletButton } from "@/components/wallet/WalletButton";
+import { HeaderExtensions } from "./HeaderExtensions";
 
 interface HeaderProps {
   title: string;
@@ -23,6 +24,7 @@ export function Header({ title }: HeaderProps) {
       <div className="flex flex-1 items-center justify-between">
         <h1 className="text-xl font-bold">{title}</h1>
         <div className="flex items-center gap-4">
+          <HeaderExtensions />
           <WalletButton />
         </div>
       </div>
