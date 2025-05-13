@@ -17,29 +17,34 @@ interface ApiVaultDialogsContainerProps {
   setShowRecoveryDialog: (show: boolean) => void;
   isUnlocking: boolean;
   setIsUnlocking: (unlocking: boolean) => void;
+  isLocked?: boolean;
   
   // Key management
   apiKeys: ApiKey[];
   addNewKey: (key: ApiKey) => void;
   handleImport: (keys: ApiKey[]) => void;
   updateKey: (key: ApiKey) => void;
+  setApiKeys?: React.Dispatch<React.SetStateAction<ApiKey[]>>;
   
   // Security
-  handleUnlock: (password: string) => void;
-  savedMasterPassword: string;
-  isEncryptionEnabled: boolean;
-  setIsEncryptionEnabled: (enabled: boolean) => void;
-  isAutoLockEnabled: boolean;
-  setIsAutoLockEnabled: (enabled: boolean) => void;
-  autoLockTimeout: number;
-  setAutoLockTimeout: (timeout: number) => void;
-  setSavedMasterPassword: (password: string) => void;
+  handleUnlock?: (password: string) => void;
+  savedMasterPassword?: string;
+  isEncryptionEnabled?: boolean;
+  setIsEncryptionEnabled?: (enabled: boolean) => void;
+  isAutoLockEnabled?: boolean;
+  setIsAutoLockEnabled?: (enabled: boolean) => void;
+  autoLockTimeout?: number;
+  setAutoLockTimeout?: (timeout: number) => void;
+  setSavedMasterPassword?: (password: string) => void;
   
   // Recovery
-  recoveredKeys: ApiKey[];
-  recoveryLocations: { storageKey: string; count: number }[];
-  handleRecoveredImport: (keys: ApiKey[]) => void;
+  recoveredKeys?: ApiKey[];
+  recoveryLocations?: { storageKey: string; count: number }[];
+  handleRecoveredImport?: (keys: ApiKey[]) => void;
   recoverFromBackup?: () => Promise<ApiKey[]>;
+  
+  // Key testing
+  testKeyFunctionality?: any;
 }
 
 export const ApiVaultDialogsContainer: React.FC<ApiVaultDialogsContainerProps> = (props) => {

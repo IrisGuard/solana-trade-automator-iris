@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useApiVaultState } from "./hooks/useApiVaultState";
@@ -5,7 +6,7 @@ import { ApiVaultHeader } from "./components/ApiVaultHeader";
 import { ApiVaultContent } from "./components/ApiVaultContent";
 import { ApiVaultDialogsContainer } from "./components/ApiVaultDialogsContainer";
 import { ApiKeyStats } from "./types";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { calculateKeyStats, groupKeysByService } from "./hooks/useApiKeyFilters";
 import { HeliusIntegrationButton } from "./HeliusIntegrationButton";
 import { AddHeliusButton } from "./AddHeliusButton";
@@ -17,7 +18,7 @@ export function ApiVaultCard() {
     isLocked,
     setIsLocked,
     isRecovering,
-    setIsRecovering,
+    setIsRecovering: stateSetIsRecovering,
     isUnlocking,
     setIsUnlocking,
     showImportDialog,
@@ -28,6 +29,8 @@ export function ApiVaultCard() {
     setShowSettingsDialog,
     showDialogApiKey,
     setShowDialogApiKey,
+    showRecoveryDialog,
+    setShowRecoveryDialog,
     activeTab,
     setActiveTab,
     apiKeys,
@@ -48,6 +51,19 @@ export function ApiVaultCard() {
     handleRecoverClick,
     isTestingKeys,
     handleRefreshKeys,
+    testKeyFunctionality,
+    recoveredKeys,
+    recoveryLocations,
+    handleRecoveredImport,
+    savedMasterPassword,
+    setSavedMasterPassword,
+    isEncryptionEnabled,
+    setIsEncryptionEnabled,
+    isAutoLockEnabled,
+    setIsAutoLockEnabled,
+    autoLockTimeout,
+    setAutoLockTimeout,
+    handleUnlock
   } = useApiVaultState();
 
   const keyStats: ApiKeyStats = calculateKeyStats(apiKeys);
@@ -129,11 +145,26 @@ export function ApiVaultCard() {
         setShowSettingsDialog={setShowSettingsDialog}
         showDialogApiKey={showDialogApiKey}
         setShowDialogApiKey={setShowDialogApiKey}
+        showRecoveryDialog={showRecoveryDialog}
+        setShowRecoveryDialog={setShowRecoveryDialog}
         addNewKey={addNewKey}
         updateKey={updateKey}
         apiKeys={apiKeys}
         setApiKeys={setApiKeys}
-        testKeyFunctionality={state.testKeyFunctionality}
+        testKeyFunctionality={testKeyFunctionality}
+        handleImport={handleImport}
+        recoveredKeys={recoveredKeys}
+        recoveryLocations={recoveryLocations}
+        handleRecoveredImport={handleRecoveredImport}
+        savedMasterPassword={savedMasterPassword}
+        setSavedMasterPassword={setSavedMasterPassword}
+        isEncryptionEnabled={isEncryptionEnabled}
+        setIsEncryptionEnabled={setIsEncryptionEnabled}
+        isAutoLockEnabled={isAutoLockEnabled}
+        setIsAutoLockEnabled={setIsAutoLockEnabled}
+        autoLockTimeout={autoLockTimeout}
+        setAutoLockTimeout={setAutoLockTimeout}
+        handleUnlock={handleUnlock}
       />
     </Card>
   );
