@@ -22,4 +22,10 @@ interface Window {
       off: (event: string, callback: Function) => void;
     };
   };
+  process?: {
+    env: Record<string, string | undefined>;
+    browser?: boolean;
+    version?: string;
+    versions?: { node: boolean | string };
+  };
 }

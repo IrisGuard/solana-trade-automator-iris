@@ -4,7 +4,6 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
-import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill';
 import rollupNodePolyFill from 'rollup-plugin-node-polyfills';
 
 // https://vitejs.dev/config/
@@ -47,7 +46,6 @@ export default defineConfig(({ mode }) => ({
           buffer: true,
           process: true,
         }),
-        NodeModulesPolyfillPlugin(),
       ],
     },
     include: [

@@ -19,24 +19,103 @@
     
     <!-- Direct Buffer implementation to ensure it's available before anything else -->
     <script>
-      // Minimal Buffer polyfill for early availability
+      // Robust inline Buffer polyfill for earliest availability
       (function() {
-        if (typeof window !== 'undefined' && typeof window.Buffer === 'undefined') {
-          function MinBuffer(arg, encodingOrOffset, length) {
+        if (typeof window !== 'undefined' && (!window.Buffer || !window.Buffer.alloc)) {
+          // Save any existing partial implementation
+          const existingBuffer = window.Buffer;
+          
+          function EarlyBuffer(arg, encodingOrOffset, length) {
             // Basic implementation
-            this.length = typeof arg === 'number' ? arg : 0;
+            if (typeof arg === 'number') {
+              this.length = arg;
+              for (let i = 0; i < this.length; i++) {
+                this[i] = 0;
+              }
+            } else if (typeof arg === 'string') {
+              this.length = arg.length;
+              for (let i = 0; i < this.length; i++) {
+                this[i] = arg.charCodeAt(i) & 255;
+              }
+            } else if (Array.isArray(arg)) {
+              this.length = arg.length;
+              for (let i = 0; i < this.length; i++) {
+                this[i] = arg[i] & 255;
+              }
+            } else {
+              this.length = 0;
+            }
           }
           
-          // Required methods
-          MinBuffer.from = function() { return new MinBuffer(0); };
-          MinBuffer.alloc = function(size) { return new MinBuffer(size); };
-          MinBuffer.allocUnsafe = function(size) { return new MinBuffer(size); };
-          MinBuffer.isBuffer = function() { return false; };
-          MinBuffer.concat = function() { return new MinBuffer(0); };
-          MinBuffer.prototype = { };
+          // Critical static methods
+          EarlyBuffer.alloc = function(size, fill) {
+            const buf = new EarlyBuffer(size);
+            if (fill !== undefined) {
+              for (let i = 0; i < buf.length; i++) {
+                buf[i] = fill & 255;
+              }
+            }
+            return buf;
+          };
           
-          window.Buffer = MinBuffer;
-          console.log('Early MinBuffer polyfill initialized');
+          EarlyBuffer.from = function(value, encoding) {
+            if (typeof value === 'string') {
+              return new EarlyBuffer(value);
+            } else if (Array.isArray(value)) {
+              return new EarlyBuffer(value);
+            } else {
+              const buf = new EarlyBuffer(0);
+              return buf;
+            }
+          };
+          
+          EarlyBuffer.isBuffer = function(obj) {
+            return obj instanceof EarlyBuffer;
+          };
+          
+          EarlyBuffer.concat = function(list) {
+            let length = 0;
+            for (let i = 0; i < list.length; i++) {
+              length += list[i].length;
+            }
+            const result = new EarlyBuffer(length);
+            let offset = 0;
+            for (let i = 0; i < list.length; i++) {
+              const buf = list[i];
+              for (let j = 0; j < buf.length; j++) {
+                result[offset] = buf[j];
+                offset++;
+              }
+            }
+            return result;
+          };
+          
+          EarlyBuffer.byteLength = function(str) {
+            return str.length;
+          };
+          
+          // Instance methods
+          EarlyBuffer.prototype.toString = function() {
+            let result = '';
+            for (let i = 0; i < this.length; i++) {
+              result += String.fromCharCode(this[i]);
+            }
+            return result;
+          };
+          
+          // Merge with existing implementation if available
+          if (existingBuffer) {
+            if (!existingBuffer.alloc) existingBuffer.alloc = EarlyBuffer.alloc;
+            if (!existingBuffer.from) existingBuffer.from = EarlyBuffer.from;
+            if (!existingBuffer.isBuffer) existingBuffer.isBuffer = EarlyBuffer.isBuffer;
+            if (!existingBuffer.concat) existingBuffer.concat = EarlyBuffer.concat;
+            if (!existingBuffer.byteLength) existingBuffer.byteLength = EarlyBuffer.byteLength;
+            window.Buffer = existingBuffer;
+          } else {
+            window.Buffer = EarlyBuffer;
+          }
+          
+          console.log('Early Buffer polyfill initialized with critical methods');
         }
       })();
     </script>

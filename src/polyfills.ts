@@ -14,6 +14,7 @@ if (typeof window !== 'undefined') {
   if (!window.Buffer.allocUnsafe) window.Buffer.allocUnsafe = Buffer.allocUnsafe.bind(Buffer);
   if (!window.Buffer.isBuffer) window.Buffer.isBuffer = Buffer.isBuffer.bind(Buffer);
   if (!window.Buffer.concat) window.Buffer.concat = Buffer.concat.bind(Buffer);
+  if (!window.Buffer.byteLength) window.Buffer.byteLength = Buffer.byteLength.bind(Buffer);
   
   // Add debugging information
   console.log('Polyfills loaded');
