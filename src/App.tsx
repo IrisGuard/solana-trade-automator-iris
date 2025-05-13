@@ -21,12 +21,15 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
-      onError: (error) => {
-        console.error("Σφάλμα αιτήματος:", error);
-        toast.error(
-          "Σφάλμα αιτήματος δεδομένων",
-          { description: error instanceof Error ? error.message : "Παρουσιάστηκε σφάλμα κατά την ανάκτηση δεδομένων" }
-        );
+      meta: {
+        // Move error handling logic to the meta object
+        onError: (error: Error) => {
+          console.error("Σφάλμα αιτήματος:", error);
+          toast.error(
+            "Σφάλμα αιτήματος δεδομένων",
+            { description: error instanceof Error ? error.message : "Παρουσιάστηκε σφάλμα κατά την ανάκτηση δεδομένων" }
+          );
+        }
       }
     },
   },
