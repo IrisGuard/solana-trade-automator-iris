@@ -5,14 +5,14 @@ import 'process/browser';
 import 'stream-browserify';
 import 'util/';
 
-// Import React compatibility patches - fix import syntax
-import ensureReactCompatibility from './utils/reactPatches';
+// Import React compatibility patches
+import * as reactPatches from './utils/reactPatches';
 
 // Basic buffer polyfill for early access
 if (typeof window !== 'undefined' && !window.Buffer) {
   // Use type assertion to work around TypeScript errors with Buffer types
   window.Buffer = {
-    from: function(data: any, encoding?: string) {
+    from: function(data: any, encoding?: BufferEncoding) {
       if (typeof data === 'string') {
         return new Uint8Array([...data].map(c => c.charCodeAt(0)));
       }
@@ -35,19 +35,21 @@ if (typeof window !== 'undefined') {
   window.global = window;
   
   // Create kB alias for Buffer (used by some libraries)
-  if (!window.kB) {
-    window.kB = {
-      from: function(data: any, encoding?: string) {
-        return window.Buffer.from(data, encoding);
+  if (!('kB' in window)) {
+    (window as any).kB = {
+      from: function(data: any, encoding?: BufferEncoding) {
+        return (window.Buffer as any).from(data, encoding);
       },
       alloc: function(size: number, fill?: any) {
-        return window.Buffer.alloc(size, fill);
+        return (window.Buffer as any).alloc(size, fill);
       }
     };
   }
 }
 
 // Call React compatibility function
-ensureReactCompatibility();
+if (reactPatches && typeof reactPatches.ensureReactCompatibility === 'function') {
+  reactPatches.ensureReactCompatibility();
+}
 
 console.log('Polyfills loaded successfully');

@@ -6,6 +6,11 @@ interface Window {
   React: typeof import('react');
   require: NodeRequire;
   Buffer: typeof Buffer;
+  kB: {
+    from: (data: any, encoding?: string) => Uint8Array;
+    alloc: (size: number, fill?: any) => Uint8Array;
+  };
+  global: Window;
 }
 
 // Define global Buffer typing
