@@ -5,7 +5,6 @@ console.log("Polyfills loaded");
 // Process polyfill for browser environment
 if (typeof window !== 'undefined') {
   // Using 'as any' to bypass TypeScript's type checking for these polyfills
-  // since we're intentionally providing simplified versions
   if (!window.process) {
     window.process = { 
       env: {}, 
@@ -20,9 +19,9 @@ if (typeof window !== 'undefined') {
       exit: () => {},
       kill: () => {},
       cwd: () => '/',
-    } as typeof window.process;
+    } as any;
   } else if (!window.process.env) {
-    window.process.env = {} as Record<string, string | undefined>;
+    window.process.env = {} as any;
   }
   
   // Ensure browser property exists
@@ -65,15 +64,15 @@ if (typeof window !== 'undefined' && typeof window.Buffer === 'undefined') {
     }
   };
   
-  // Assign the polyfill to window.Buffer
-  window.Buffer = BufferPolyfill as unknown as typeof window.Buffer;
+  // Assign the polyfill to window.Buffer using type assertion
+  window.Buffer = BufferPolyfill as any;
   
   // Also create kB alias if it doesn't exist
   if (!window.kB) {
     window.kB = {
       from: (data: any, encoding?: string) => BufferPolyfill.from(data, encoding),
       alloc: (size: number, fill?: any) => BufferPolyfill.alloc(size, fill)
-    } as typeof window.kB;
+    } as any;
   }
 }
 
@@ -82,14 +81,14 @@ import('buffer')
   .then(bufferModule => {
     if (typeof window !== 'undefined' && bufferModule.Buffer) {
       // Replace our simplified Buffer implementation with the real one
-      window.Buffer = bufferModule.Buffer as unknown as typeof window.Buffer;
+      window.Buffer = bufferModule.Buffer as any;
       
       // Update kB as well
       if (window.kB) {
         window.kB = {
-          from: bufferModule.Buffer.from.bind(bufferModule.Buffer) as typeof window.kB.from,
-          alloc: bufferModule.Buffer.alloc.bind(bufferModule.Buffer) as typeof window.kB.alloc
-        } as typeof window.kB;
+          from: bufferModule.Buffer.from.bind(bufferModule.Buffer),
+          alloc: bufferModule.Buffer.alloc.bind(bufferModule.Buffer)
+        } as any;
       }
     }
   })

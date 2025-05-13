@@ -23,7 +23,8 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         "@": path.resolve(__dirname, "./src"),
         // Fix polyfill path issues - explicitly map each required polyfill
         buffer: 'buffer/',
-        process: 'process/browser',
+        // Fix the process polyfill path - important change
+        process: 'process', // Modified from 'process/browser' to just 'process'
         stream: 'stream-browserify',
         util: 'util/',
         crypto: 'crypto-browserify',
@@ -52,7 +53,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       },
       include: [
         'buffer', 
-        'process/browser', 
+        'process', // Changed from 'process/browser' to just 'process'
         'stream-browserify', 
         'util/', 
         'crypto-browserify',
@@ -66,12 +67,16 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     build: {
       commonjsOptions: {
         transformMixedEsModules: true,
+        // Add explicit includes for process module
+        include: [/node_modules\/process/, /node_modules\/buffer/],
       },
       rollupOptions: {
         plugins: [
           // Enable rollup polyfills plugin
           rollupNodePolyFill() as any,
         ],
+        // Add external to prevent Rollup from trying to bundle process
+        external: ['process/browser'],
         onwarn(warning, warn) {
           if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
             return;
