@@ -11,6 +11,9 @@ if (typeof window !== 'undefined' && typeof window.Buffer === 'undefined') {
   window.Buffer = require('buffer/').Buffer;
 }
 
+// Προσθήκη κώδικα για επαλήθευση φόρτωσης
+console.log("Εκκίνηση εφαρμογής Solana Trade Automator...");
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ThemeProvider>
