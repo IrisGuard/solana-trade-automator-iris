@@ -19,6 +19,7 @@ export function Routes() {
     <ReactRouterRoutes>
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<Auth />} />
+      <Route path="/index" element={<Index />} />
       <Route element={<Layout />}>
         <Route path="/home" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />
