@@ -37,7 +37,7 @@ export const NoKeysFound: React.FC<NoKeysFoundProps> = ({ onForceScan, onAddDemo
             className="gap-2"
           >
             <Plus className="h-4 w-4" />
-            Προσθήκη Δοκιμαστικών Κλειδιών
+            Επαναφορά Κλειδιών
           </Button>
         )}
       </div>

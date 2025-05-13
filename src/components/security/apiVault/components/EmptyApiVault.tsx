@@ -38,11 +38,11 @@ export const EmptyApiVault: React.FC<EmptyApiVaultProps> = ({
         
         <Button 
           variant="ghost" 
-          onClick={() => injectDemoKeys(6)}
+          onClick={() => injectDemoKeys(0)}
           className="gap-1"
         >
           <Database className="h-4 w-4" />
-          Προσθήκη δειγμάτων
+          Επαναφορά κλειδιών
         </Button>
       </div>
     </div>

@@ -61,66 +61,52 @@ export function extractAllKeysFromStorage(): ApiKey[] {
   return allKeys;
 }
 
-// Function to inject demo API keys for testing
+// Function to inject demo API keys for testing - modified to not add new keys
 export function injectDemoKeys(count: number = 3): void {
   try {
-    if (localStorage.getItem('demoKeysInjected') === 'true') {
-      toast.warning('Demo keys were already injected');
+    // Αφαίρεση του flag που δείχνει ότι έχουν εγχυθεί demo κλειδιά
+    localStorage.removeItem('demoKeysInjected');
+    
+    // Φόρτωση των υπαρχόντων κλειδιών
+    const existingKeysStr = localStorage.getItem('apiKeys');
+    if (!existingKeysStr) {
+      toast.warning('Δεν βρέθηκαν αποθηκευμένα κλειδιά');
       return;
     }
     
-    const now = new Date().toISOString();
-    const randomServices = ['solana', 'phantom', 'helius', 'quicknode', 'jupiter', 'solscan', 'vercel', 'supabase', 'openai', 'github'];
-    const randomStatuses = ['active', 'expired', 'revoked', 'active', 'active'];
-    
-    const demoKeys: ApiKey[] = [];
-    
-    // Add some predefined demo keys
-    demoKeys.push(...DEFAULT_API_KEYS);
-    
-    // Generate additional random keys
-    for (let i = 0; i < count - DEFAULT_API_KEYS.length; i++) {
-      const serviceIndex = Math.floor(Math.random() * randomServices.length);
-      const statusIndex = Math.floor(Math.random() * randomStatuses.length);
-      
-      const service = randomServices[serviceIndex];
-      
-      demoKeys.push({
-        id: `demo-${Date.now()}-${i}`,
-        name: `${service.charAt(0).toUpperCase() + service.slice(1)} Demo Key ${i + 1}`,
-        service: service,
-        key: `demo-key-${service}-${Math.random().toString(36).substring(2, 10)}`,
-        connected: Math.random() > 0.5,
-        createdAt: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
-        status: randomStatuses[statusIndex] as 'active' | 'expired' | 'revoked'
-      });
-    }
-    
-    // Save current keys
-    const existingKeysStr = localStorage.getItem('apiKeys');
-    let existingKeys: ApiKey[] = [];
-    
-    if (existingKeysStr) {
-      try {
-        existingKeys = JSON.parse(existingKeysStr);
-      } catch (e) {
-        console.error('Error parsing existing keys:', e);
+    try {
+      const existingKeys = JSON.parse(existingKeysStr);
+      if (!Array.isArray(existingKeys) || existingKeys.length === 0) {
+        toast.warning('Άδεια λίστα κλειδιών');
+        return;
       }
+      
+      // Αφαιρούμε τυχόν κλειδιά που έχουν προστεθεί ως demo
+      const userKeys = existingKeys.filter((key: ApiKey) => 
+        !key.id.toString().includes('demo-') && !key.key.includes('demo-key')
+      );
+      
+      if (userKeys.length === 0) {
+        // Εάν δεν βρέθηκαν κλειδιά του χρήστη, κρατάμε τα υπάρχοντα demo κλειδιά
+        toast.info('Επαναφορά των αρχικών κλειδιών');
+        return;
+      }
+      
+      // Αποθηκεύουμε μόνο τα κλειδιά του χρήστη
+      localStorage.setItem('apiKeys', JSON.stringify(userKeys));
+      toast.success(`Επαναφέρθηκαν ${userKeys.length} κλειδιά χρήστη`);
+      
+      // Επαναφόρτωση της σελίδας για να δούμε τις αλλαγές
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      
+    } catch (e) {
+      console.error('Σφάλμα επεξεργασίας κλειδιών:', e);
+      toast.error('Σφάλμα επαναφοράς κλειδιών');
     }
-    
-    // Merge keys
-    const allKeys = [...existingKeys, ...demoKeys];
-    localStorage.setItem('apiKeys', JSON.stringify(allKeys));
-    localStorage.setItem('demoKeysInjected', 'true');
-    
-    toast.success(`Added ${demoKeys.length} demo keys successfully`);
-    
-    // Force a page reload to see the changes
-    setTimeout(() => {
-      window.location.reload();
-    }, 1500);
   } catch (e) {
-    console.error('Error injecting demo keys:', e);
-    toast.error('Failed to inject demo keys');
+    console.error('Γενικό σφάλμα:', e);
+    toast.error('Αποτυχία επεξεργασίας κλειδιών');
   }
 }

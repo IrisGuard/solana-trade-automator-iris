@@ -38,11 +38,11 @@ export const ApiVaultActions: React.FC<ApiVaultActionsProps> = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => injectDemoKeys(26)}
+              onClick={() => injectDemoKeys()}
               className="flex items-center gap-1"
             >
               <PlusCircle className="h-4 w-4" />
-              <span>Προσθήκη 26 κλειδιών επίδειξης</span>
+              <span>Επαναφορά κλειδιών χρήστη</span>
             </Button>
           )}
         </>
