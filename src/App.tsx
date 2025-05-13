@@ -1,9 +1,8 @@
 
 import React, { useEffect } from "react";
-import { SolanaWalletProvider } from "./providers/SolanaWalletProvider";
 import { SupabaseAuthProvider } from "./providers/SupabaseAuthProvider";
 import { Routes } from "./routes";
-import { Toaster } from "sonner"; // Άμεση χρήση του Toaster από το sonner
+import { Toaster } from "sonner"; 
 
 function App() {
   useEffect(() => {
@@ -20,14 +19,12 @@ function App() {
   }, []);
 
   return (
-    <SolanaWalletProvider>
-      <SupabaseAuthProvider>
-        <div className="app-container">
-          <Routes />
-          <Toaster position="top-right" richColors closeButton />
-        </div>
-      </SupabaseAuthProvider>
-    </SolanaWalletProvider>
+    <SupabaseAuthProvider>
+      <div className="app-container">
+        <Routes />
+        <Toaster position="top-right" richColors closeButton />
+      </div>
+    </SupabaseAuthProvider>
   );
 }
 

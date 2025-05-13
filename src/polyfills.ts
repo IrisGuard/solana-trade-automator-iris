@@ -5,3 +5,4 @@ import { Buffer } from 'buffer';
 window.Buffer = Buffer;
 
 // Add other polyfills here as needed
+console.log('Buffer polyfill loaded:', typeof window.Buffer);
