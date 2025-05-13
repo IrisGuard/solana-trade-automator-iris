@@ -24,6 +24,7 @@ interface ApiVaultDialogsProps {
   apiKeys: ApiKey[];
   addNewKey: (key: ApiKey) => void;
   handleImport: (keys: ApiKey[]) => void;
+  updateKey: (key: ApiKey) => void;
   handleUnlock: (password: string) => void;
   savedMasterPassword: string;
   isEncryptionEnabled: boolean;
@@ -54,6 +55,7 @@ export const ApiVaultDialogs: React.FC<ApiVaultDialogsProps> = ({
   apiKeys,
   addNewKey,
   handleImport,
+  updateKey,
   handleUnlock,
   savedMasterPassword,
   isEncryptionEnabled,

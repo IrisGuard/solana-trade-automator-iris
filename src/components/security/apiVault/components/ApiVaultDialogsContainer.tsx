@@ -22,6 +22,7 @@ interface ApiVaultDialogsContainerProps {
   apiKeys: ApiKey[];
   addNewKey: (key: ApiKey) => void;
   handleImport: (keys: ApiKey[]) => void;
+  updateKey: (key: ApiKey) => void;
   
   // Security
   handleUnlock: (password: string) => void;
