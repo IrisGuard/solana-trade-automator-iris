@@ -22,9 +22,11 @@ export default defineConfig(({ mode }) => ({
     },
   },
   define: {
-    // Βελτιωμένα polyfills για Node.js built-ins
+    // Node.js polyfills
     global: 'globalThis',
     'process.env': {},
+    // Add Buffer to the global scope
+    Buffer: ['buffer', 'Buffer'],
   },
   optimizeDeps: {
     esbuildOptions: {
@@ -39,7 +41,7 @@ export default defineConfig(({ mode }) => ({
       transformMixedEsModules: true,
     },
     rollupOptions: {
-      // Εξασφάλιση ότι τα πακέτα με προβλήματα εξαρτήσεων αντιμετωπίζονται σωστά
+      // Ensure problematic dependency packages are handled correctly
       onwarn(warning, warn) {
         if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
           return;
