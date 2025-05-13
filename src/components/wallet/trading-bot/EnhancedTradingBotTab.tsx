@@ -6,12 +6,14 @@ import { PerformanceHistoryCard } from "./PerformanceHistoryCard";
 import { useTradingBot } from "@/hooks/useTradingBot";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Loader } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SettingsTab } from "./SettingsTab";
 import { StatusCard } from "./StatusCard";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 export function EnhancedTradingBotTab() {
+  const { connected } = useWallet();
   const {
     config,
     updateConfig,
@@ -23,7 +25,6 @@ export function EnhancedTradingBotTab() {
     activeOrders,
     selectedTokenPrice,
     selectedTokenDetails,
-    connected,
     tokens
   } = useTradingBot();
 
@@ -56,6 +57,7 @@ export function EnhancedTradingBotTab() {
                     onClick={startBot}
                     disabled={isLoading || botStatus === 'running' || !config.selectedToken}
                   >
+                    {isLoading && <Loader className="mr-2 h-4 w-4 animate-spin" />}
                     Εκκίνηση Bot
                   </Button>
                   <Button
@@ -64,6 +66,7 @@ export function EnhancedTradingBotTab() {
                     onClick={stopBot}
                     disabled={isLoading || botStatus !== 'running'}
                   >
+                    {isLoading && <Loader className="mr-2 h-4 w-4 animate-spin" />}
                     Διακοπή Bot
                   </Button>
                 </div>

@@ -105,6 +105,7 @@ export function useSolanaWallet() {
         setConnectionError(null);
         toast.loading('Σύνδεση με το πορτοφόλι...');
         await connect();
+        toast.success('Επιτυχής σύνδεση με το πορτοφόλι');
         return true;
       } else {
         const errorMessage = 'Επιλέξτε ένα πορτοφόλι πρώτα';
