@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { SolanaWalletProvider } from "./providers/SolanaWalletProvider";
 import { SupabaseAuthProvider } from "./providers/SupabaseAuthProvider";
 import { Routes } from "./routes";
-import { Toaster } from "./components/ui/toaster";
+import { Toaster } from "sonner"; // Άμεση χρήση του Toaster από το sonner
 
 function App() {
   useEffect(() => {
@@ -24,7 +24,7 @@ function App() {
       <SupabaseAuthProvider>
         <div className="app-container">
           <Routes />
-          <Toaster />
+          <Toaster position="top-right" richColors closeButton />
         </div>
       </SupabaseAuthProvider>
     </SolanaWalletProvider>

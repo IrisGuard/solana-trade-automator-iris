@@ -1,3 +1,3 @@
 
-// Re-export from the main hooks location for backward compatibility
+// Απλή προώθηση από το κύριο hooks location για συμβατότητα
 export { toast, useToast } from "@/hooks/use-toast";

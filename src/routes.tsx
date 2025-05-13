@@ -12,6 +12,7 @@ import NotFound from "@/pages/NotFound";
 
 console.log("Routes module loaded");
 
+// Δημιουργία του router με έλεγχο
 const router = createBrowserRouter([
   {
     path: "/",
