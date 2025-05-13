@@ -1,9 +1,10 @@
 
 import { ReactNode, useMemo } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl } from '@solana/web3.js';
+import { SolanaProviderFallback } from '@/components/wallet/SolanaProviderFallback';
 
 // Import the styles here to make sure they're loaded
 import '@solana/wallet-adapter-react-ui/styles.css';
@@ -22,6 +23,7 @@ export function SolanaWalletProvider({ children }: SolanaWalletProviderProps) {
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
+      new SolflareWalletAdapter(),
     ],
     []
   );
@@ -30,7 +32,9 @@ export function SolanaWalletProvider({ children }: SolanaWalletProviderProps) {
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          {children}
+          <SolanaProviderFallback>
+            {children}
+          </SolanaProviderFallback>
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
