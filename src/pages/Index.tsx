@@ -5,17 +5,15 @@ import { WalletDisconnectedContent } from "@/components/home/WalletDisconnectedC
 import { FaqSection } from "@/components/home/FaqSection";
 import { FooterSection } from "@/components/home/FooterSection";
 import { BotExplanationSection } from "@/components/home/BotExplanationSection";
+import { useWalletStatus } from "@/hooks/useWalletStatus";
 
 const Index = () => {
-  // Απλοποιημένη έκδοση που δεν εξαρτάται από το wallet
-  const isConnecting = false;
-  const isPhantomInstalled = false;
+  const { 
+    isConnecting, 
+    isPhantomInstalled,
+    connectWallet
+  } = useWalletStatus();
   
-  const handleConnectWallet = () => {
-    // Προσωρινή συνάρτηση
-    console.log("Connect wallet button clicked");
-  };
-
   return (
     <div className="container mx-auto space-y-8 pb-8">
       {/* Hero Section */}
@@ -25,7 +23,7 @@ const Index = () => {
       <WalletDisconnectedContent 
         isConnecting={isConnecting}
         isPhantomInstalled={isPhantomInstalled}
-        handleConnectWallet={handleConnectWallet}
+        handleConnectWallet={connectWallet}
       />
       
       {/* Bot Explanation Section */}

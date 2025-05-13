@@ -16,7 +16,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   }
 });
 
-// Type assertion helper for database tables
+// Types for database tables
 export type Tables = {
   profiles: {
     id: string;
@@ -72,5 +72,4 @@ export type Tables = {
 };
 
 // Create a version of the supabase client that has "any" type for database operations
-// This allows us to bypass TypeScript's strict checking until we set up the actual database schema
 export const dbClient = supabase as any;

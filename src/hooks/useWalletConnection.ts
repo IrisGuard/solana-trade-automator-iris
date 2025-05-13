@@ -4,8 +4,12 @@ import { useWalletStatus } from './useWalletStatus';
 import { useWalletBalance } from './useWalletBalance';
 import { useTokens } from './useTokens';
 import { useTransactions } from './useTransactions';
+import { useAuth } from '@/providers/SupabaseAuthProvider';
+import { walletService } from '@/services/walletService';
 
 export function useWalletConnection() {
+  const { user } = useAuth();
+  
   const {
     walletAddress,
     balance,
@@ -35,6 +39,17 @@ export function useWalletConnection() {
     isLoadingTransactions,
     refreshTransactions 
   } = useTransactions(walletAddress);
+
+  // Save wallet to database when connected and user is logged in
+  useEffect(() => {
+    const saveWalletIfLoggedIn = async () => {
+      if (isConnected && walletAddress && user?.id) {
+        await walletService.saveWalletToDatabase(user.id, walletAddress, tokens);
+      }
+    };
+    
+    saveWalletIfLoggedIn();
+  }, [isConnected, walletAddress, user?.id, tokens]);
 
   // Load token prices when connected
   useEffect(() => {

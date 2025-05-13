@@ -1,295 +1,74 @@
 
 import React from "react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Search } from "lucide-react";
 
-interface CommandCategory {
-  title: string;
-  commands: {
-    name: string;
-    description: string;
-    example?: string;
-  }[];
-}
+const commands = [
+  {
+    category: "Γενικές Εντολές",
+    items: [
+      { command: "/help", description: "Εμφάνιση διαθέσιμων εντολών και βοήθειας" },
+      { command: "/connect", description: "Σύνδεση με το Phantom Wallet" },
+      { command: "/disconnect", description: "Αποσύνδεση από το Phantom Wallet" },
+      { command: "/balance", description: "Έλεγχος υπολοίπου πορτοφολιού" }
+    ]
+  },
+  {
+    category: "Trading Bot",
+    items: [
+      { command: "/start-bot", description: "Εκκίνηση του trading bot" },
+      { command: "/stop-bot", description: "Σταμάτημα του trading bot" },
+      { command: "/status", description: "Έλεγχος κατάστασης του bot" },
+      { command: "/settings", description: "Προβολή και αλλαγή ρυθμίσεων του bot" }
+    ]
+  },
+  {
+    category: "Συναλλαγές",
+    items: [
+      { command: "/buy [ποσό]", description: "Αγορά token με το συγκεκριμένο ποσό" },
+      { command: "/sell [ποσό]", description: "Πώληση token με το συγκεκριμένο ποσό" },
+      { command: "/history", description: "Προβολή ιστορικού συναλλαγών" }
+    ]
+  },
+  {
+    category: "Ανάλυση",
+    items: [
+      { command: "/price [token]", description: "Έλεγχος τρέχουσας τιμής του token" },
+      { command: "/chart [token]", description: "Προβολή γραφήματος για το token" },
+      { command: "/trend [token]", description: "Ανάλυση τάσης για το συγκεκριμένο token" }
+    ]
+  }
+];
 
 export function CommandList() {
-  const commandCategories: CommandCategory[] = [
-    {
-      title: "Σύνδεση και Πορτοφόλι",
-      commands: [
-        {
-          name: "Σύνδεση Πορτοφολιού",
-          description: "Συνδέστε το πορτοφόλι Phantom για να αποκτήσετε πρόσβαση σε όλες τις λειτουργίες της πλατφόρμας.",
-          example: "Πατήστε το κουμπί 'Σύνδεση Πορτοφολιού' στην επάνω δεξιά γωνία."
-        },
-        {
-          name: "Προβολή Υπολοίπου",
-          description: "Δείτε το υπόλοιπο του SOL και άλλων tokens στο πορτοφόλι σας."
-        },
-        {
-          name: "Αποσύνδεση Πορτοφολιού",
-          description: "Αποσυνδέστε το πορτοφόλι σας από την πλατφόρμα για λόγους ασφαλείας όταν έχετε τελειώσει."
-        }
-      ]
-    },
-    {
-      title: "Trading Bot",
-      commands: [
-        {
-          name: "Ρύθμιση Trading Bot",
-          description: "Ρυθμίστε τις παραμέτρους του bot όπως το επιλεγμένο token, το ποσό συναλλαγής, το stop loss και το take profit.",
-          example: "Μεταβείτε στην καρτέλα Trading Bot, επιλέξτε token και ρυθμίστε τις παραμέτρους πριν ξεκινήσετε το bot."
-        },
-        {
-          name: "Εκκίνηση Bot",
-          description: "Ξεκινήστε τη λειτουργία του trading bot με τις επιλεγμένες ρυθμίσεις. Το bot θα παρακολουθεί τις τιμές και θα εκτελεί συναλλαγές αυτόματα.",
-          example: "Αφού ρυθμίσετε τις παραμέτρους, πατήστε το κουμπί 'Εκκίνηση Bot'."
-        },
-        {
-          name: "Διακοπή Bot",
-          description: "Σταματήστε τη λειτουργία του trading bot. Όλες οι ενεργές εντολές θα ακυρωθούν.",
-          example: "Πατήστε το κουμπί 'Διακοπή Bot' για να σταματήσετε όλες τις αυτοματοποιημένες συναλλαγές."
-        },
-        {
-          name: "Ρύθμιση Stop Loss",
-          description: "Ορίστε το ποσοστό μείωσης της τιμής στο οποίο θα ενεργοποιηθεί το stop loss για να περιορίσετε τις απώλειες.",
-          example: "Χρησιμοποιήστε το slider για να ορίσετε το Stop Loss σε ποσοστό π.χ. 5% κάτω από την τρέχουσα τιμή."
-        },
-        {
-          name: "Ρύθμιση Take Profit",
-          description: "Ορίστε το ποσοστό αύξησης της τιμής στο οποίο θα ενεργοποιηθεί το take profit για να κατοχυρώσετε κέρδη.",
-          example: "Χρησιμοποιήστε το slider για να ορίσετε το Take Profit σε ποσοστό π.χ. 10% πάνω από την τρέχουσα τιμή."
-        },
-        {
-          name: "Προβολή Ενεργών Εντολών",
-          description: "Δείτε όλες τις ενεργές εντολές του trading bot (stop loss και take profit).",
-          example: "Στην καρτέλα 'Εντολές' του Trading Bot μπορείτε να δείτε και να διαχειριστείτε τις ενεργές εντολές."
-        },
-        {
-          name: "Ακύρωση Εντολής",
-          description: "Ακυρώστε μια συγκεκριμένη εντολή stop loss ή take profit χωρίς να σταματήσετε πλήρως το bot.",
-          example: "Πατήστε το κουμπί 'Ακύρωση' δίπλα στην εντολή που θέλετε να ακυρώσετε."
-        },
-        {
-          name: "Προβολή Κατάστασης Bot",
-          description: "Δείτε πληροφορίες σχετικά με την κατάσταση του bot, το επιλεγμένο token και τις τρέχουσες τιμές.",
-          example: "Στην καρτέλα 'Κατάσταση' μπορείτε να δείτε πληροφορίες για την τρέχουσα λειτουργία του bot."
-        }
-      ]
-    },
-    {
-      title: "Maker Bot",
-      commands: [
-        {
-          name: "Ενεργοποίηση Προσομοίωσης",
-          description: "Ενεργοποιήστε τη λειτουργία προσομοίωσης για να δοκιμάσετε το Maker Bot χωρίς πραγματικά κεφάλαια.",
-          example: "Ενεργοποιήστε το διακόπτη 'Προσομοίωση' στις ρυθμίσεις του Maker Bot."
-        },
-        {
-          name: "Ρύθμιση Makers",
-          description: "Ορίστε τον αριθμό των makers που θα χρησιμοποιεί το bot για τις συναλλαγές.",
-          example: "Αυξομειώστε την τιμή στο πεδίο 'Makers' ανάλογα με τις ανάγκες σας."
-        },
-        {
-          name: "Ρύθμιση Καθυστέρησης",
-          description: "Ορίστε την ελάχιστη και μέγιστη καθυστέρηση μεταξύ των συναλλαγών σε δευτερόλεπτα.",
-          example: "Προσαρμόστε τις τιμές στα πεδία 'Ελάχιστη καθυστέρηση' και 'Μέγιστη καθυστέρηση'."
-        },
-        {
-          name: "Ρύθμιση Ποσών Συναλλαγών",
-          description: "Ορίστε τα ποσά tokens και SOL για κάθε συναλλαγή του Maker Bot.",
-          example: "Εισάγετε τις επιθυμητές τιμές στα πεδία 'Token amount' και 'SOL amount'."
-        },
-        {
-          name: "Επιλογή DEX",
-          description: "Επιλέξτε το αποκεντρωμένο χρηματιστήριο (DEX) που θα χρησιμοποιηθεί για τις συναλλαγές.",
-          example: "Επιλέξτε από τη λίστα 'DEX' την επιλογή που προτιμάτε, π.χ. Jupiter, Raydium, κλπ."
-        },
-        {
-          name: "Εκκίνηση Maker Bot",
-          description: "Ξεκινήστε τη λειτουργία του Maker Bot με τις επιλεγμένες ρυθμίσεις.",
-          example: "Πατήστε το κουμπί 'Start Bot' αφού έχετε ορίσει όλες τις παραμέτρους."
-        },
-        {
-          name: "Διακοπή Maker Bot",
-          description: "Σταματήστε τη λειτουργία του Maker Bot.",
-          example: "Πατήστε το κουμπί 'Stop Bot' για να τερματίσετε τη λειτουργία του bot."
-        },
-        {
-          name: "Ρύθμιση Price Boost",
-          description: "Ορίστε το ποσοστό αύξησης της τιμής για τη λειτουργία Price Boost.",
-          example: "Χρησιμοποιήστε το slider για να ορίσετε το ποσοστό αύξησης, π.χ. 5%."
-        },
-        {
-          name: "Εκτέλεση Price Boost",
-          description: "Ενεργοποιήστε τη λειτουργία Price Boost για να αυξήσετε την τιμή του token μέσω στοχευμένων συναλλαγών.",
-          example: "Αφού ορίσετε το ποσοστό, πατήστε το κουμπί 'Boost Price Now'."
-        }
-      ]
-    },
-    {
-      title: "API Vault",
-      commands: [
-        {
-          name: "Ξεκλείδωμα Vault",
-          description: "Ξεκλειδώστε το API Vault για να αποκτήσετε πρόσβαση στα αποθηκευμένα API κλειδιά.",
-          example: "Πατήστε το κουμπί 'Unlock Vault' και εισάγετε τον κύριο κωδικό πρόσβασης."
-        },
-        {
-          name: "Κλείδωμα Vault",
-          description: "Κλειδώστε το API Vault για να προστατέψετε τα αποθηκευμένα API κλειδιά από μη εξουσιοδοτημένη πρόσβαση.",
-          example: "Πατήστε το κουμπί 'Lock Vault' για να κλειδώσετε την κλειδοθήκη."
-        },
-        {
-          name: "Προσθήκη API Key",
-          description: "Προσθέστε ένα νέο API κλειδί στο vault για ασφαλή αποθήκευση.",
-          example: "Πατήστε '+' και συμπληρώστε τις πληροφορίες του νέου API κλειδιού."
-        },
-        {
-          name: "Σύνδεση/Αποσύνδεση API",
-          description: "Συνδέστε ή αποσυνδέστε ένα API κλειδί για χρήση στην πλατφόρμα.",
-          example: "Πατήστε το κουμπί 'Connect' ή 'Disconnect' δίπλα στο API που επιθυμείτε."
-        },
-        {
-          name: "Εξαγωγή Κλειδιών",
-          description: "Εξάγετε τα αποθηκευμένα API κλειδιά σε ασφαλές αρχείο.",
-          example: "Πατήστε το κουμπί 'Export Keys' και επιλέξτε τη μορφή εξαγωγής."
-        },
-        {
-          name: "Εισαγωγή Κλειδιών",
-          description: "Εισάγετε API κλειδιά από εξωτερικό αρχείο στο vault.",
-          example: "Πατήστε το κουμπί 'Import Keys' και επιλέξτε το αρχείο προς εισαγωγή."
-        },
-        {
-          name: "Ρυθμίσεις API Vault",
-          description: "Διαχειριστείτε τις ρυθμίσεις ασφαλείας του API vault, όπως την κρυπτογράφηση και το αυτόματο κλείδωμα.",
-          example: "Πατήστε το εικονίδιο ρυθμίσεων για να ανοίξετε τις ρυθμίσεις ασφαλείας."
-        }
-      ]
-    },
-    {
-      title: "Συναλλαγές και Ιστορικό",
-      commands: [
-        {
-          name: "Προβολή Ιστορικού Συναλλαγών",
-          description: "Δείτε το πλήρες ιστορικό των συναλλαγών σας στο Solana blockchain.",
-          example: "Μεταβείτε στη σελίδα 'Transactions' από το μενού."
-        },
-        {
-          name: "Φιλτράρισμα Συναλλαγών",
-          description: "Φιλτράρετε το ιστορικό συναλλαγών βάσει διαφόρων κριτηρίων όπως ημερομηνία, τύπος, ποσό κλπ.",
-          example: "Χρησιμοποιήστε τα διαθέσιμα φίλτρα στη σελίδα Συναλλαγών."
-        },
-        {
-          name: "Προβολή Λεπτομερειών Συναλλαγής",
-          description: "Δείτε αναλυτικές πληροφορίες για μια συγκεκριμένη συναλλαγή.",
-          example: "Κάντε κλικ σε μια συναλλαγή για να δείτε όλες τις λεπτομέρειές της."
-        },
-        {
-          name: "Προβολή Token Activity",
-          description: "Δείτε τη δραστηριότητα ενός συγκεκριμένου token στο πορτοφόλι σας.",
-          example: "Επιλέξτε ένα token για να δείτε όλες τις σχετικές συναλλαγές."
-        }
-      ]
-    },
-    {
-      title: "Διαχείριση Tokens",
-      commands: [
-        {
-          name: "Προβολή Όλων των Tokens",
-          description: "Δείτε όλα τα tokens στο πορτοφόλι σας με τα αντίστοιχα υπόλοιπα.",
-          example: "Μεταβείτε στη σελίδα 'Tokens' για να δείτε όλα τα διαθέσιμα tokens."
-        },
-        {
-          name: "Προβολή Πληροφοριών Token",
-          description: "Δείτε αναλυτικές πληροφορίες για ένα συγκεκριμένο token, όπως τρέχουσα τιμή και 24ωρη μεταβολή.",
-          example: "Επιλέξτε ένα token για να δείτε αναλυτικά στοιχεία."
-        },
-        {
-          name: "Παρακολούθηση Τιμής Token",
-          description: "Παρακολουθήστε την τιμή ενός token σε πραγματικό χρόνο.",
-          example: "Στο Trading Bot, επιλέξτε ένα token για να βλέπετε την τρέχουσα τιμή του."
-        }
-      ]
-    },
-    {
-      title: "Ασφάλεια",
-      commands: [
-        {
-          name: "Ενεργοποίηση Two-Factor Authentication",
-          description: "Προσθέστε ένα επιπλέον επίπεδο ασφάλειας στον λογαριασμό σας με το 2FA.",
-          example: "Μεταβείτε στις ρυθμίσεις ασφάλειας και επιλέξτε 'Ενεργοποίηση 2FA'."
-        },
-        {
-          name: "Ρύθμιση Ορίων Συναλλαγών",
-          description: "Ορίστε όρια για τις συναλλαγές σας για μεγαλύτερη ασφάλεια.",
-          example: "Στις ρυθμίσεις ασφάλειας συναλλαγών, ορίστε το μέγιστο ποσό ανά συναλλαγή και ανά ημέρα."
-        },
-        {
-          name: "Διαχείριση Εγκεκριμένων Διευθύνσεων",
-          description: "Προσθέστε και διαχειριστείτε εγκεκριμένες διευθύνσεις για αυξημένη ασφάλεια στις συναλλαγές.",
-          example: "Στις ρυθμίσεις ασφάλειας συναλλαγών, προσθέστε διευθύνσεις στη λίστα εγκεκριμένων διευθύνσεων."
-        },
-        {
-          name: "Ρύθμιση Καθυστέρησης Συναλλαγών",
-          description: "Ορίστε μια καθυστέρηση για τις συναλλαγές ως πρόσθετο μέτρο ασφαλείας.",
-          example: "Ενεργοποιήστε την καθυστέρηση συναλλαγών και ορίστε τον επιθυμητό χρόνο καθυστέρησης."
-        },
-        {
-          name: "Διαχείριση Συνεδριών",
-          description: "Προβολή και τερματισμός ενεργών συνεδριών του λογαριασμού σας.",
-          example: "Στη διαχείριση συνεδριών, δείτε όλες τις ενεργές συνεδρίες και τερματίστε όσες δεν αναγνωρίζετε."
-        }
-      ]
-    },
-    {
-      title: "Γενικές Λειτουργίες",
-      commands: [
-        {
-          name: "Προβολή Dashboard",
-          description: "Δείτε μια συνολική εικόνα της δραστηριότητάς σας στην πλατφόρμα.",
-          example: "Επιλέξτε 'Dashboard' από το μενού πλοήγησης."
-        },
-        {
-          name: "Ρυθμίσεις Ειδοποιήσεων",
-          description: "Διαχειριστείτε τις προτιμήσεις ειδοποιήσεων για την πλατφόρμα.",
-          example: "Μεταβείτε στη σελίδα 'Notifications' για να ρυθμίσετε τις προτιμήσεις σας."
-        },
-        {
-          name: "Βοήθεια & Υποστήριξη",
-          description: "Αποκτήστε πρόσβαση σε οδηγίες χρήσης και υποστήριξη.",
-          example: "Πατήστε το εικονίδιο βοήθειας στην κάτω δεξιά γωνία της οθόνης."
-        },
-        {
-          name: "Προσθήκη Εντολής",
-          description: "Προσθέστε μια νέα προσαρμοσμένη εντολή στον βοηθό πλατφόρμας.",
-          example: "Στο παράθυρο βοήθειας, πατήστε το κουμπί 'Προσθήκη εντολής' και συμπληρώστε τα απαιτούμενα πεδία."
-        }
-      ]
-    }
-  ];
-
   return (
-    <div className="p-4">
-      <Accordion type="single" collapsible className="w-full">
-        {commandCategories.map((category, idx) => (
-          <AccordionItem key={idx} value={`category-${idx}`}>
-            <AccordionTrigger className="font-medium">{category.title}</AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-4 pl-2">
-                {category.commands.map((command, cmdIdx) => (
-                  <div key={cmdIdx} className="space-y-1">
-                    <h4 className="text-sm font-medium">{command.name}</h4>
-                    <p className="text-sm text-muted-foreground">{command.description}</p>
-                    {command.example && (
-                      <p className="text-xs text-muted-foreground italic mt-1">Παράδειγμα: {command.example}</p>
-                    )}
+    <ScrollArea className="h-full">
+      <div className="p-4 space-y-6">
+        <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
+          <Search className="h-4 w-4" />
+          <span>Λίστα διαθέσιμων εντολών</span>
+        </div>
+        
+        {commands.map((category, categoryIndex) => (
+          <div key={categoryIndex}>
+            <h3 className="font-medium mb-2">{category.category}</h3>
+            <div className="space-y-1">
+              {category.items.map((item, itemIndex) => (
+                <div key={itemIndex} className="grid grid-cols-3 text-sm py-1">
+                  <div className="font-mono bg-muted px-2 py-1 rounded">
+                    {item.command}
                   </div>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
+                  <div className="col-span-2 py-1 pl-2">
+                    {item.description}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {categoryIndex < commands.length - 1 && <Separator className="my-4" />}
+          </div>
         ))}
-      </Accordion>
-    </div>
+      </div>
+    </ScrollArea>
   );
 }

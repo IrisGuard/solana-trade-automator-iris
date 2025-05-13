@@ -1,23 +1,23 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { HelpCircle } from "lucide-react";
 import { HelpPanel } from "./HelpPanel";
+import { HelpCircle } from "lucide-react";
 
 export function HelpButton() {
-  const [isOpen, setIsOpen] = useState(false);
-
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  
   return (
     <>
       <Button
-        className="fixed bottom-4 right-4 rounded-full h-12 w-12 shadow-lg flex items-center justify-center p-0 bg-primary text-primary-foreground hover:bg-primary/90 z-50"
-        onClick={() => setIsOpen(true)}
-        aria-label="Βοήθεια"
+        className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg"
+        size="icon"
+        onClick={() => setIsHelpOpen(true)}
       >
         <HelpCircle className="h-6 w-6" />
       </Button>
       
-      <HelpPanel isOpen={isOpen} onClose={() => setIsOpen(false)} />
+      <HelpPanel isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
     </>
   );
 }
