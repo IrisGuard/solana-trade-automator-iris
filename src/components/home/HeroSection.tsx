@@ -3,10 +3,10 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, LayoutDashboard, TrendingUp } from "lucide-react";
-import { useWalletConnection } from "@/hooks/useWalletConnection";
+import { useWalletStatus } from "@/hooks/useWalletStatus";
 
 export function HeroSection() {
-  const { isConnected } = useWalletConnection();
+  const { isConnected } = useWalletStatus();
   
   return (
     <section className="py-12 md:py-16 text-center space-y-6 max-w-3xl mx-auto">

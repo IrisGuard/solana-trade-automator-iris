@@ -3,17 +3,16 @@ import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Wallet, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { WalletConnectButton } from "@/components/wallet/WalletConnectButton";
 
 interface ConnectWalletCardProps {
   isConnecting?: boolean;
   isPhantomInstalled?: boolean;
-  handleConnectWallet?: () => void;
 }
 
 export function ConnectWalletCard({ 
   isConnecting = false, 
   isPhantomInstalled = true,
-  handleConnectWallet = () => {}
 }: ConnectWalletCardProps) {
   return (
     <Card className="border-dashed border-2 border-primary transition-all hover:shadow-md">
@@ -27,13 +26,12 @@ export function ConnectWalletCard({
         </div>
         
         <div className="flex justify-center">
-          <Button 
-            onClick={handleConnectWallet}
-            disabled={isConnecting || !isPhantomInstalled} 
-            className="bg-primary text-white hover:bg-primary/90 flex items-center gap-2"
-          >
-            {isConnecting ? 'Σύνδεση...' : 'Σύνδεση με Phantom Wallet'}
-          </Button>
+          <WalletConnectButton 
+            isLoading={isConnecting}
+            variant="default" 
+            size="lg" 
+            className="bg-primary text-white hover:bg-primary/90 px-6 py-5 h-auto text-base"
+          />
         </div>
         
         {!isPhantomInstalled && (

@@ -5,14 +5,11 @@ import { WalletDisconnectedContent } from "@/components/home/WalletDisconnectedC
 import { FaqSection } from "@/components/home/FaqSection";
 import { FooterSection } from "@/components/home/FooterSection";
 import { BotExplanationSection } from "@/components/home/BotExplanationSection";
-import { useWalletStatus } from "@/hooks/useWalletStatus";
+import { useWallet } from '@solana/wallet-adapter-react';
+import { Toaster } from "sonner";
 
 const Index = () => {
-  const { 
-    isConnecting, 
-    isPhantomInstalled,
-    connectWallet
-  } = useWalletStatus();
+  const { connected, connecting } = useWallet();
   
   return (
     <div className="container mx-auto space-y-8 pb-8">
@@ -20,11 +17,12 @@ const Index = () => {
       <HeroSection />
 
       {/* Main Content */}
-      <WalletDisconnectedContent 
-        isConnecting={isConnecting}
-        isPhantomInstalled={isPhantomInstalled}
-        handleConnectWallet={connectWallet}
-      />
+      {!connected && (
+        <WalletDisconnectedContent 
+          isConnecting={connecting}
+          isPhantomInstalled={true}
+        />
+      )}
       
       {/* Bot Explanation Section */}
       <BotExplanationSection />
@@ -34,6 +32,8 @@ const Index = () => {
       
       {/* Footer */}
       <FooterSection />
+      
+      <Toaster position="top-center" richColors closeButton />
     </div>
   );
 };
