@@ -30,7 +30,7 @@ export function WalletButton() {
   };
 
   // Αν δεν έχει συνδεθεί ακόμα, εμφάνισε το κουμπί σύνδεσης
-  if (!connected) {
+  if (!connected || !publicKey) {
     return <WalletConnectButton isLoading={isLoading} />;
   }
 

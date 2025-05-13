@@ -1,12 +1,7 @@
 
-import { toast as sonnerToast } from "sonner";
+import { useToast as useToastOriginal } from "@/components/ui/toast";
 
-// Re-export toast function from sonner
-export const toast = sonnerToast;
+export const useToast = useToastOriginal;
 
-// Compatibility hook for useToast
-export function useToast() {
-  return {
-    toast: sonnerToast
-  };
-}
+// Re-export the toast function from sonner for easier use
+export { toast } from "sonner";

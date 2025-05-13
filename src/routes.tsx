@@ -1,5 +1,5 @@
 
-import { Routes as ReactRouterRoutes, Route } from "react-router-dom";
+import { Routes as ReactRouterRoutes, Route, Navigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import Dashboard from "@/pages/Dashboard"; 
 import Wallet from "@/pages/Wallet";
