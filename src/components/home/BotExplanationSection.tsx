@@ -9,61 +9,59 @@ export function BotExplanationSection() {
   
   return (
     <section className="py-6">
-      <h2 className="text-3xl font-bold text-center mb-8">{t("botExplanation.title", "Πώς Λειτουργεί το Trading Bot")}</h2>
+      <h2 className="text-3xl font-bold text-center mb-8">{t("botExplanation.title")}</h2>
       
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid grid-cols-3 mb-8">
-          <TabsTrigger value="overview">{t("botExplanation.tabs.overview", "Επισκόπηση")}</TabsTrigger>
-          <TabsTrigger value="features">{t("botExplanation.tabs.features", "Δυνατότητες")}</TabsTrigger>
-          <TabsTrigger value="security">{t("botExplanation.tabs.security", "Ασφάλεια")}</TabsTrigger>
+          <TabsTrigger value="overview">{t("botExplanation.tabs.overview")}</TabsTrigger>
+          <TabsTrigger value="features">{t("botExplanation.tabs.features")}</TabsTrigger>
+          <TabsTrigger value="security">{t("botExplanation.tabs.security")}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview">
           <div className="grid md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>{t("botExplanation.overview.title", "Εισαγωγή στο Solana Trading Bot")}</CardTitle>
-                <CardDescription>{t("botExplanation.overview.subtitle", "Αυτοματοποιημένο trading στο Solana blockchain")}</CardDescription>
+                <CardTitle>{t("botExplanation.overview.title")}</CardTitle>
+                <CardDescription>{t("botExplanation.overview.subtitle")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p>{t("botExplanation.overview.p1", "Το Solana Trading Bot είναι ένα ισχυρό εργαλείο που σχεδιάστηκε για να απλοποιήσει τις συναλλαγές στο Solana blockchain, επιτρέποντάς σας να εκτελείτε αυτοματοποιημένες στρατηγικές συναλλαγών με βάση προκαθορισμένες παραμέτρους.")}</p>
-                
-                <p>{t("botExplanation.overview.p2", "Σε αντίθεση με τα παραδοσιακά χρηματιστήρια που κλείνουν, το Solana blockchain λειτουργεί 24/7, επιτρέποντας στο bot να εκμεταλλευτεί ευκαιρίες συναλλαγών οποιαδήποτε στιγμή της ημέρας.")}</p>
-                
-                <p>{t("botExplanation.overview.p3", "Με την ενσωμάτωση προηγμένων αλγορίθμων και πρόσβαση σε δεδομένα πραγματικού χρόνου, το bot παρακολουθεί συνεχώς την αγορά και εκτελεί συναλλαγές βάσει των κριτηρίων που έχετε ορίσει.")}</p>
+                <p>{t("botExplanation.overview.p1")}</p>
+                <p>{t("botExplanation.overview.p2")}</p>
+                <p>{t("botExplanation.overview.p3")}</p>
               </CardContent>
             </Card>
             
             <Card>
               <CardHeader>
-                <CardTitle>{t("botExplanation.features.title", "Βασικά Χαρακτηριστικά")}</CardTitle>
-                <CardDescription>{t("botExplanation.features.subtitle", "Τι καθιστά το Solana Trading Bot ξεχωριστό")}</CardDescription>
+                <CardTitle>{t("botExplanation.features.title")}</CardTitle>
+                <CardDescription>{t("botExplanation.features.subtitle")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
                   <li className="flex items-start gap-2">
                     <span className="bg-primary/10 text-primary p-1 rounded-full mt-1">✓</span>
-                    <span>{t("botExplanation.features.feature1", "Ολοκληρωμένη παρακολούθηση τιμών με δεδομένα πραγματικού χρόνου")}</span>
+                    <span>{t("botExplanation.features.feature1")}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="bg-primary/10 text-primary p-1 rounded-full mt-1">✓</span>
-                    <span>{t("botExplanation.features.feature2", "Προσαρμοζόμενες στρατηγικές συναλλαγών με πολλαπλές παραμέτρους")}</span>
+                    <span>{t("botExplanation.features.feature2")}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="bg-primary/10 text-primary p-1 rounded-full mt-1">✓</span>
-                    <span>{t("botExplanation.features.feature3", "Λειτουργία προσομοίωσης για δοκιμή στρατηγικών χωρίς κίνδυνο")}</span>
+                    <span>{t("botExplanation.features.feature3")}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="bg-primary/10 text-primary p-1 rounded-full mt-1">✓</span>
-                    <span>{t("botExplanation.features.feature4", "Ενσωμάτωση με Phantom Wallet για ασφαλείς συναλλαγές")}</span>
+                    <span>{t("botExplanation.features.feature4")}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="bg-primary/10 text-primary p-1 rounded-full mt-1">✓</span>
-                    <span>{t("botExplanation.features.feature5", "Αναλυτικά ιστορικά δεδομένα και αναφορές απόδοσης")}</span>
+                    <span>{t("botExplanation.features.feature5")}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="bg-primary/10 text-primary p-1 rounded-full mt-1">✓</span>
-                    <span>{t("botExplanation.features.feature6", "Ασφαλής διαχείριση κλειδιών API μέσω του API Vault")}</span>
+                    <span>{t("botExplanation.features.feature6")}</span>
                   </li>
                 </ul>
               </CardContent>

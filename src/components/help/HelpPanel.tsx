@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { X, Search, Plus, BookOpen, ListChecks, Info, FileText } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { CommandList } from "./CommandList";
 import { PlatformGuide } from "./PlatformGuide";
 import { HelpSearch } from "./HelpSearch";

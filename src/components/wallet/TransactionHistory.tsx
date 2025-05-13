@@ -1,81 +1,101 @@
 
-import React from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Loader } from "lucide-react";
-import { useTransactions } from "@/hooks/useTransactions";
+import { Calendar } from "lucide-react";
+import { TransactionList } from "./transaction/TransactionList";
+import { TransactionItem } from "./transaction/TransactionItem";
+import { TransactionFooter } from "./transaction/TransactionFooter";
 
-interface TransactionHistoryProps {
-  walletAddress: string;
-  limit?: number; // Added limit as an optional prop
-}
-
-export function TransactionHistory({ walletAddress, limit = 5 }: TransactionHistoryProps) {
-  const { transactions, isLoadingTransactions } = useTransactions(walletAddress);
-
-  // Use the limit prop to restrict the number of transactions shown
-  const displayedTransactions = limit ? transactions.slice(0, limit) : transactions;
-
-  const formatDate = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return date.toLocaleString();
-  };
+export function TransactionHistory() {
+  const [isLoading] = useState(false);
+  const transactions = []; // Εδώ θα μπορούσαν να φορτωθούν δεδομένα
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Πρόσφατες Συναλλαγές</CardTitle>
-        <CardDescription>Τελευταίες δραστηριότητες στο πορτοφόλι σας</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {isLoadingTransactions ? (
-          <div className="py-6 text-center text-muted-foreground">
-            <Loader className="h-6 w-6 animate-spin mx-auto mb-2" />
-            <p>Φόρτωση συναλλαγών...</p>
-          </div>
-        ) : displayedTransactions.length > 0 ? (
-          <>
-            {displayedTransactions.map((tx, i) => (
-              <div key={i} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium">{tx.type}</p>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-6 px-2 text-xs"
-                      onClick={() => window.open(`https://solscan.io/tx/${tx.signature}`, '_blank')}
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {formatDate(tx.blockTime)}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className={`font-medium ${tx.amount?.startsWith('+') ? 'text-green-500' : ''}`}>{tx.amount || '-'}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {tx.status}
-                  </p>
-                </div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Ιστορικό Συναλλαγών</CardTitle>
+          <CardDescription>Προβολή όλων των δραστηριοτήτων συναλλαγών σας</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-6">
+            <Input
+              className="w-full mb-4"
+              placeholder="Αναζήτηση συναλλαγών..."
+            />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label htmlFor="transaction-type" className="text-sm font-medium mb-1 block">
+                  Τύπος Συναλλαγής:
+                </label>
+                <Select>
+                  <SelectTrigger id="transaction-type">
+                    <SelectValue placeholder="Όλοι οι τύποι" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Όλοι οι τύποι</SelectItem>
+                    <SelectItem value="buy">Αγορά</SelectItem>
+                    <SelectItem value="sell">Πώληση</SelectItem>
+                    <SelectItem value="swap">Ανταλλαγή</SelectItem>
+                    <SelectItem value="transfer">Μεταφορά</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            ))}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full"
-              onClick={() => window.open(`https://solscan.io/account/${walletAddress}?cluster=mainnet`, '_blank')}
-            >
-              Προβολή Όλων των Συναλλαγών <ExternalLink className="ml-2 h-3 w-3" />
-            </Button>
-          </>
-        ) : (
-          <div className="py-6 text-center text-muted-foreground">
-            <p>Δεν βρέθηκαν συναλλαγές</p>
+              
+              <div>
+                <label htmlFor="token-filter" className="text-sm font-medium mb-1 block">
+                  Token:
+                </label>
+                <Select>
+                  <SelectTrigger id="token-filter">
+                    <SelectValue placeholder="Όλα τα Tokens" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Όλα τα Tokens</SelectItem>
+                    <SelectItem value="sol">SOL</SelectItem>
+                    <SelectItem value="usdc">USDC</SelectItem>
+                    <SelectItem value="eth">ETH</SelectItem>
+                    <SelectItem value="btc">BTC</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label htmlFor="date-filter" className="text-sm font-medium mb-1 block">
+                  Ημερομηνία:
+                </label>
+                <Button variant="outline" className="w-full justify-start" id="date-filter">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Επιλογή ημερομηνίας
+                </Button>
+              </div>
+            </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+          
+          {isLoading ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : transactions.length > 0 ? (
+            <TransactionList>
+              {transactions.map((transaction, index) => (
+                <TransactionItem key={index} transaction={transaction} />
+              ))}
+              <TransactionFooter />
+            </TransactionList>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Δεν βρέθηκαν συναλλαγές</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Συνδέστε το πορτοφόλι σας και πραγματοποιήστε κάποια συναλλαγή για να εμφανιστεί εδώ
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
