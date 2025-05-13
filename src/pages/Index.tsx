@@ -8,7 +8,6 @@ import { ThemeToggleHeader } from "@/components/layout/ThemeToggleHeader";
 import { WalletConnectButtonSafe } from "@/components/wallet/WalletConnectButtonSafe";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/hooks/use-language";
-import { LanguageToggle } from "@/components/layout/LanguageToggle";
 
 export default function Index() {
   const { t } = useLanguage();
@@ -23,7 +22,6 @@ export default function Index() {
             <Link to="/bot-control" className="text-primary hover:underline">{t("makerBot.botSettings")}</Link>
             <WalletConnectButtonSafe variant="outline" size="sm" />
             <ThemeToggleHeader />
-            <LanguageToggle />
           </div>
         </div>
       </header>

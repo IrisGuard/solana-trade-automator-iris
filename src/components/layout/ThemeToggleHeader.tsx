@@ -1,7 +1,6 @@
 
 import React from "react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { LanguageToggle } from "./LanguageToggle";
 import { Link } from "@/lib/router-exports";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { Wallet } from "lucide-react";
@@ -16,7 +15,6 @@ export function ThemeToggleHeader() {
         <span className="ml-2 font-semibold text-primary">SolApp</span>
       </Link>
       <div className="ml-auto flex items-center gap-2">
-        <LanguageToggle />
         <ThemeToggle />
       </div>
     </header>
