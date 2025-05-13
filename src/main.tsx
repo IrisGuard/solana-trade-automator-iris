@@ -14,9 +14,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 // Create a client
 const queryClient = new QueryClient();
 
-// Debug Buffer availability
-console.log('Main.tsx loaded, application starting');
-
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
