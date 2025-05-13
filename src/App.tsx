@@ -7,15 +7,6 @@ import { Toaster } from "sonner";
 function App() {
   useEffect(() => {
     console.log("App component mounted successfully!");
-    
-    // Έλεγχος αν το DOM έχει φορτωθεί πλήρως
-    if (document.readyState === 'complete') {
-      console.log("Document fully loaded");
-    } else {
-      window.addEventListener('load', () => {
-        console.log("Window load event triggered");
-      });
-    }
   }, []);
 
   return (
