@@ -6,7 +6,7 @@ import { ApiVaultHeader } from "./components/ApiVaultHeader";
 import { ApiVaultContent } from "./components/ApiVaultContent";
 import { ApiVaultDialogsContainer } from "./components/ApiVaultDialogsContainer";
 import { ApiKeyStats } from "./types";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner"; // Import directly from sonner instead
 import { calculateKeyStats, groupKeysByService } from "./hooks/useApiKeyFilters";
 import { HeliusIntegrationButton } from "./HeliusIntegrationButton";
 import { AddHeliusButton } from "./AddHeliusButton";
