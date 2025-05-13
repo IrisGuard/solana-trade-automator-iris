@@ -31,7 +31,9 @@ export function ConnectWalletCard({
             variant="default" 
             size="lg" 
             className="bg-primary text-white hover:bg-primary/90 px-6 py-5 h-auto text-base"
-          />
+          >
+            Σύνδεση με Phantom Wallet
+          </WalletConnectButton>
         </div>
         
         {!isPhantomInstalled && (
