@@ -19,4 +19,3 @@ export type ToastProps = {
 };
 
 export type ToastActionElement = React.ReactElement;
-
