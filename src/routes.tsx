@@ -18,7 +18,8 @@ const PageLoader = () => (
   </div>
 );
 
-export const AppRoutes = () => {
+// Export the Routes component for use in AppContent
+export const Routes = () => {
   return (
     <BrowserRouter>
       <RouterRoutes>

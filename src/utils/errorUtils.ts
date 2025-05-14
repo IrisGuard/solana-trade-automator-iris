@@ -1,70 +1,66 @@
+import { toast } from "sonner";
+import { errorCollector } from "./error-handling/collector";
 
-/**
- * Βασικές λειτουργίες χειρισμού σφαλμάτων για την εφαρμογή.
- */
-
-// Μορφή καταγραφής σφαλμάτων
-interface ErrorLogFormat {
-  timestamp: string;
-  message: string;
-  component?: string;
-  details?: any;
+interface DisplayErrorOptions {
+  title?: string;
+  duration?: number;
+  showToast?: boolean;
+  logToConsole?: boolean;
+  sendToChat?: boolean;
+  useCollector?: boolean;
 }
 
-// Συλλογή των σφαλμάτων σε μνήμη
-const errorLogs: ErrorLogFormat[] = [];
-
 /**
- * Καταγράφει ένα σφάλμα με δομημένο τρόπο.
+ * Displays an error message using toast and logs it to the console.
+ * Also sends the error to the chat if sendToChat is true.
  * 
- * @param message Το μήνυμα σφάλματος
- * @param component Το συστατικό ή η υπηρεσία που παρήγαγε το σφάλμα
- * @param details Προαιρετικές λεπτομέρειες σφάλματος
+ * @param error The error to display
+ * @param options Options for displaying the error
  */
-export function logError(message: string, component?: string, details?: any) {
-  const errorLog: ErrorLogFormat = {
-    timestamp: new Date().toISOString(),
-    message,
-    component,
-    details
-  };
-  
-  // Προσθήκη στη συλλογή σφαλμάτων
-  errorLogs.push(errorLog);
-  
-  // Καταγραφή στην κονσόλα
-  console.error(`[${component || 'Unknown'}]`, message, details || '');
-  
-  return errorLog;
-}
+export function displayError(
+  error: Error | string,
+  options: DisplayErrorOptions = {}
+) {
+  const {
+    title = "Παρουσιάστηκε σφάλμα",
+    duration = 5000,
+    showToast = true,
+    logToConsole = true,
+    sendToChat = false,
+    useCollector = false
+  } = options;
 
-/**
- * Λήψη όλων των καταγεγραμμένων σφαλμάτων.
- */
-export function getErrorLogs(): ErrorLogFormat[] {
-  return [...errorLogs];
-}
+  // Convert string errors to Error objects
+  const errorObject = typeof error === "string" ? new Error(error) : error;
+  const errorMessage = errorObject.message || "Άγνωστο σφάλμα";
 
-/**
- * Καθαρισμός όλων των καταγεγραμμένων σφαλμάτων.
- */
-export function clearErrorLogs(): void {
-  errorLogs.length = 0;
-}
+  // Log to console if needed
+  if (logToConsole) {
+    console.error(`${title}:`, errorObject);
+    console.error("Stack:", errorObject.stack);
+  }
 
-/**
- * Εμφανίζει ένα σφάλμα στο UI (Toast notification).
- */
-export function displayError(error: Error | string, options?: any) {
-  const errorMessage = error instanceof Error ? error.message : error;
-  
-  // Καταγραφή στην κονσόλα
-  logError(errorMessage, options?.component);
-  
-  // Άλλες ενέργειες όπως εμφάνιση toast θα προστεθούν εδώ
-  return {
-    message: errorMessage,
-    timestamp: new Date().toISOString(),
-    component: options?.component
-  };
+  // Show toast if needed
+  if (showToast) {
+    toast.error(title, {
+      description: errorMessage,
+      duration: duration
+    });
+  }
+
+  // Collect error if needed
+  if (useCollector) {
+    errorCollector.addError({
+      name: errorObject.name,
+      message: errorMessage,
+      stack: errorObject.stack,
+      date: new Date(),
+      source: "client"
+    });
+  }
+
+  // Send to chat would be implemented here
+  if (sendToChat) {
+    // Implementation for sending to chat
+  }
 }

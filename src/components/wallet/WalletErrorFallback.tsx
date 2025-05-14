@@ -1,74 +1,40 @@
 
-import React, { useEffect } from "react";
-import { Routes } from "@/routes";
-import { Toaster } from "@/components/ui/toaster";
-import { SolanaProviderFallback } from "@/components/wallet/SolanaProviderFallback";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { useErrorReporting } from "@/hooks/useErrorReporting";
-import { isPhantomInstalled } from "@/utils/phantomWallet";
+import React from 'react';
+import { FallbackProps } from 'react-error-boundary';
+import { Button } from '@/components/ui/button';
 
-export function WalletErrorFallback({ error }: { error?: Error }) {
-  const { reportError } = useErrorReporting();
-  const phantomInstalled = isPhantomInstalled();
-  
-  useEffect(() => {
-    // Αναφορά του σφάλματος όταν εμφανίζεται το fallback
-    if (error) {
-      reportError(error, {
-        component: "WalletErrorFallback",
-        details: { operation: "fallback" },
-        source: "client"
-      });
-      
-      console.error("Wallet provider error:", error);
-    }
-    
-    // Έλεγχος για το Phantom Wallet
-    if (!phantomInstalled) {
-      toast.error("Το Phantom Wallet δεν είναι εγκατεστημένο", {
-        description: "Ορισμένες λειτουργίες της εφαρμογής δεν θα είναι διαθέσιμες",
-        duration: 10000,
-        action: {
-          label: "Εγκατάσταση",
-          onClick: () => window.open("https://phantom.app", "_blank")
-        }
-      });
-    }
-  }, [error, reportError, phantomInstalled]);
-  
-  const handleRefresh = () => {
-    window.location.href = "/"; // Ανακατεύθυνση στην αρχική σελίδα
-  };
-
+export function WalletErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
   return (
-    <SolanaProviderFallback>
-      <div className="relative">
-        {error && (
-          <Alert variant="destructive" className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-lg w-full shadow-lg">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Πρόβλημα φόρτωσης του Solana wallet provider</AlertTitle>
-            <AlertDescription className="mt-2">
-              <p className="mb-2">
-                {error.message || "Δεν ήταν δυνατή η σύνδεση στο Solana wallet provider."}
-              </p>
-              <div className="flex gap-2 mt-2">
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={handleRefresh}
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" /> Επαναφόρτωση
-                </Button>
-              </div>
-            </AlertDescription>
-          </Alert>
-        )}
-        <Routes />
-        <Toaster />
+    <div className="flex items-center justify-center min-h-screen p-6 bg-background">
+      <div className="w-full max-w-md p-6 space-y-6 border rounded-lg shadow-lg">
+        <div className="space-y-2 text-center">
+          <h2 className="text-2xl font-bold tracking-tight">Πρόβλημα με το Wallet</h2>
+          <p className="text-sm text-muted-foreground">
+            Παρουσιάστηκε ένα σφάλμα κατά τη σύνδεση με το wallet.
+          </p>
+        </div>
+        
+        <div className="p-4 border border-red-200 bg-red-50 dark:bg-red-900/20 rounded-md text-sm">
+          <p className="font-medium text-red-800 dark:text-red-300">Σφάλμα: {error.message}</p>
+        </div>
+        
+        <div className="space-y-4">
+          <Button className="w-full" onClick={resetErrorBoundary}>
+            Προσπάθεια Επανασύνδεσης
+          </Button>
+          <Button 
+            variant="outline" 
+            className="w-full"
+            onClick={() => window.location.href = '/'}
+          >
+            Επιστροφή στην Αρχική
+          </Button>
+        </div>
+        
+        <p className="text-xs text-center text-muted-foreground">
+          Αν το πρόβλημα παραμένει, επικοινωνήστε με την υποστήριξη.
+        </p>
       </div>
-    </SolanaProviderFallback>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { useState } from "react";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { syncAllHeliusData } from "@/utils/syncHeliusKeys";
@@ -8,15 +8,11 @@ import { Server } from "lucide-react";
 
 export function HeliusSyncButton() {
   const [isSyncing, setIsSyncing] = useState(false);
-  const { toast } = useToast();
   const { user } = useAuth();
 
   const handleSyncHelius = async () => {
     if (!user) {
-      toast({
-        description: "Πρέπει να συνδεθείτε για να συγχρονίσετε τα κλειδιά Helius",
-        variant: "destructive"
-      });
+      toast("Πρέπει να συνδεθείτε για να συγχρονίσετε τα κλειδιά Helius");
       return;
     }
 
@@ -25,21 +21,13 @@ export function HeliusSyncButton() {
       const result = await syncAllHeliusData(user.id);
       
       if (result) {
-        toast({
-          description: "Τα κλειδιά και endpoints Helius συγχρονίστηκαν επιτυχώς"
-        });
+        toast("Τα κλειδιά και endpoints Helius συγχρονίστηκαν επιτυχώς");
       } else {
-        toast({
-          description: "Υπήρξε πρόβλημα κατά τον συγχρονισμό των κλειδιών Helius",
-          variant: "destructive"
-        });
+        toast("Υπήρξε πρόβλημα κατά τον συγχρονισμό των κλειδιών Helius");
       }
     } catch (error) {
       console.error("Error syncing Helius keys:", error);
-      toast({
-        description: "Σφάλμα κατά τον συγχρονισμό των κλειδιών Helius",
-        variant: "destructive"
-      });
+      toast("Σφάλμα κατά τον συγχρονισμό των κλειδιών Helius");
     } finally {
       setIsSyncing(false);
     }

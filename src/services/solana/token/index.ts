@@ -1,13 +1,13 @@
 
-// Export token related functions
-import { fetchTokenBalance, fetchAllTokenBalances } from '../wallet/balance';
-export { fetchTokenBalance, fetchAllTokenBalances };
-export { fetchTokenPrices } from './prices';
-export type { Token } from './types';
+import type { Token } from '@/types/wallet';
+import { fetchSOLBalance } from '../wallet/balance';
+import { fetchTokenPrices } from './prices';
 
-// Create a tokenService object for compatibility
+// Re-export token types
+export type { Token };
+
+// Export token-related functions
 export const tokenService = {
-  getTokenBalance: fetchTokenBalance,
-  getAllTokens: fetchAllTokenBalances,
+  fetchSOLBalance,
   fetchTokenPrices
 };
