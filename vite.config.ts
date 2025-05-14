@@ -5,6 +5,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
 import rollupNodePolyFill from 'rollup-plugin-node-polyfills';
+import { createRequire } from 'module';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }: ConfigEnv) => {
@@ -15,7 +16,11 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       port: 8080,
     },
     plugins: [
-      react(),
+      react({
+        // Configure React plugin to properly handle imports
+        jsxRuntime: 'automatic',
+        tsDecorators: true,
+      }),
       mode === 'development' && componentTagger(),
     ].filter(Boolean) as PluginOption[],
     resolve: {
@@ -78,6 +83,8 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     build: {
       commonjsOptions: {
         transformMixedEsModules: true,
+        // Improve CommonJS handling for React
+        requireReturnsDefault: 'auto',
         // Add explicit includes for process module
         include: [/node_modules\/process/, /node_modules\/buffer/, /node_modules\/react-router-dom/],
       },

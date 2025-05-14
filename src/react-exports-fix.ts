@@ -1,6 +1,6 @@
 
 // Re-export React hooks and functions properly
-import React from 'react';
+import * as React from 'react';
 
 // Use namespace access instead of direct imports
 export const useState = React.useState;
@@ -19,5 +19,5 @@ export const useMemo = React.useMemo;
 export const useReducer = React.useReducer;
 export const useLayoutEffect = React.useLayoutEffect;
 
-// Export React itself as default
+// Export React itself for compatibility
 export default React;
