@@ -6,6 +6,7 @@ import { SupabaseAuthProvider } from '@/providers/SupabaseAuthProvider';
 import { SolanaWalletProvider } from '@/providers/SolanaWalletProvider';
 import { WalletErrorFallback } from '@/components/wallet/WalletErrorFallback';
 import { ErrorBoundary } from 'react-error-boundary';
+import { LanguageProvider } from '@/providers/LanguageProvider';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -24,21 +25,23 @@ interface AppProvidersProps {
 export function AppProviders({ children }: AppProvidersProps) {
   return (
     <ThemeProvider defaultTheme="system" attribute="class">
-      <QueryClientProvider client={queryClient}>
-        <SupabaseAuthProvider>
-          <ErrorBoundary 
-            FallbackComponent={WalletErrorFallback}
-            onError={(error, info) => {
-              console.error("Error in Solana Provider:", error);
-              console.error("Component Stack:", info.componentStack);
-            }}
-          >
-            <SolanaWalletProvider>
-              {children}
-            </SolanaWalletProvider>
-          </ErrorBoundary>
-        </SupabaseAuthProvider>
-      </QueryClientProvider>
+      <LanguageProvider>
+        <QueryClientProvider client={queryClient}>
+          <SupabaseAuthProvider>
+            <ErrorBoundary 
+              FallbackComponent={WalletErrorFallback}
+              onError={(error, info) => {
+                console.error("Error in Solana Provider:", error);
+                console.error("Component Stack:", info.componentStack);
+              }}
+            >
+              <SolanaWalletProvider>
+                {children}
+              </SolanaWalletProvider>
+            </ErrorBoundary>
+          </SupabaseAuthProvider>
+        </QueryClientProvider>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

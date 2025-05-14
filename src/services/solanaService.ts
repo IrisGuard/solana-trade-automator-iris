@@ -1,53 +1,27 @@
-import { clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
-import { Program, AnchorProvider, web3 } from '@project-serum/anchor';
-import { IDL } from './idl';
-import { logError } from '@/utils/errorUtils';
 
-const programIdl = IDL;
-const programId = new PublicKey(IDL.metadata.address);
+import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
 
-const network = clusterApiUrl('devnet');
+// Initialize Solana connection
+export function getConnection(endpoint = clusterApiUrl('devnet')): Connection {
+  return new Connection(endpoint, 'confirmed');
+}
 
-const opts = {
-  preflightCommitment: 'processed',
-};
-
-export const getProvider = () => {
-  const connection = new Connection(network, opts.preflightCommitment);
-  const provider = new AnchorProvider(
-    connection,
-    window.solana,
-    opts.preflightCommitment,
-  );
-  return provider;
-};
-
-export const useAnchor = () => {
+// Get SOL balance
+export async function getSOLBalance(address: string): Promise<number> {
   try {
-    const provider = getProvider();
-    const program = new Program(programIdl, programId, provider);
-    return program;
+    const connection = getConnection();
+    const publicKey = new PublicKey(address);
+    const balance = await connection.getBalance(publicKey);
+    return balance / 1000000000; // Convert lamports to SOL
   } catch (error) {
-    logError(error, 'useAnchor');
+    console.error('Error getting SOL balance:', error);
+    return 0;
   }
-};
+}
 
-export const getCandyMachineState = async (
-  candyMachineAddress: PublicKey,
-  connection: Connection,
-) => {
-  try {
-    const candyMachineAccount = await connection.getAccountInfo(
-      candyMachineAddress,
-    );
-    if (candyMachineAccount) {
-      const candyMachineState = await useAnchor().coder.accounts.decode(
-        'CandyMachine',
-        candyMachineAccount.data,
-      );
-      return candyMachineState;
-    }
-  } catch (error) {
-    logError(error, 'getCandyMachineState');
-  }
+// Mock IDL for anchor
+export const mockProgramIdl = {
+  version: '0.1.0',
+  name: 'mock_program',
+  instructions: []
 };

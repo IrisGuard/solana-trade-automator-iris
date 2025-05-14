@@ -1,90 +1,107 @@
 
-import { toast } from "sonner";
+import { toast } from 'sonner';
+import { ErrorDisplayOptions } from './types';
 import { errorCollector } from './collector';
-import { ErrorDisplayOptions } from "./types";
 
 /**
- * Εμφανίζει ένα σφάλμα στη διασύνδεση χρήστη και το καταγράφει
- * στον συλλέκτη σφαλμάτων.
- *
- * @param error Το σφάλμα που θα εμφανιστεί (μπορεί να είναι Error ή string)
- * @param options Πρόσθετες επιλογές για την εμφάνιση του σφάλματος
+ * Εμφανίζει ένα σφάλμα με διάφορους τρόπους ανάλογα με τις παραμέτρους
+ * @param error Το σφάλμα που θα εμφανιστεί
+ * @param options Επιλογές για την εμφάνιση του σφάλματος
  */
-export function displayError(error: Error | string, options: ErrorDisplayOptions = {}): void {
-  // Εξαγωγή του μηνύματος σφάλματος
-  const message = error instanceof Error ? error.message : error;
-  const stack = error instanceof Error ? error.stack : undefined;
-  
-  const { component, showToast = true, details, title, logToConsole = true, sendToChat = false, useCollector = true, toastDuration = 5000 } = options;
-  
-  // Καταγραφή στην κονσόλα αν ζητηθεί
+export function displayError(
+  error: Error | string,
+  options: ErrorDisplayOptions = {}
+) {
+  const errorMessage = typeof error === 'string' ? error : error.message;
+  const errorStack = typeof error !== 'string' ? error.stack : undefined;
+
+  const {
+    component,
+    details,
+    source = 'app',
+    title = 'Σφάλμα',
+    showToast = true,
+    logToConsole = true,
+    useCollector = true,
+    sendToChat = false,
+    toastDuration = 5000
+  } = options;
+
+  // Καταγραφή στον browser console
   if (logToConsole) {
     if (component) {
-      console.error(`[${component}] ${message}`, details || '');
+      console.error(`[${component}]`, error);
     } else {
-      console.error(message, details || '');
+      console.error(error);
+    }
+
+    if (details) {
+      console.error('Additional details:', details);
     }
   }
-  
-  // Προσθήκη στον συλλέκτη σφαλμάτων αν ζητηθεί
+
+  // Καταγραφή στον error collector
   if (useCollector) {
-    errorCollector.captureError(error instanceof Error ? error : new Error(message), {
+    errorCollector.addError({
+      message: errorMessage,
+      stack: errorStack,
+      timestamp: new Date().toISOString(),
       component,
-      details: JSON.stringify(details),
-      source: options.source || 'client'
+      source,
+      details: details ? JSON.stringify(details) : undefined
     });
   }
-  
-  // Εμφάνιση toast αν ζητηθεί
+
+  // Εμφάνιση toast μηνύματος
   if (showToast) {
-    toast.error(title || message, {
-      description: component ? `Στο: ${component}` : undefined,
+    toast.error(title, {
+      description: errorMessage,
       duration: toastDuration
     });
   }
-  
-  // Αποστολή στο chat αν ζητηθεί
+
+  // Αποστολή στο chat support
   if (sendToChat) {
-    sendErrorToChat(message, component, details);
-  }
-}
-
-/**
- * Αποστέλλει ένα σφάλμα στην υποστήριξη μέσω chat (προσομοίωση)
- */
-export function sendErrorToChat(message: string, component?: string, details?: any): void {
-  // Προσομοίωση αποστολής στην υποστήριξη
-  console.log("Sending error to support chat:", {
-    message,
-    component,
-    details,
-    timestamp: new Date().toISOString()
-  });
-  
-  // Σε πραγματική εφαρμογή, εδώ θα κάναμε ένα API call στο σύστημα υποστήριξης
-}
-
-/**
- * Αναφέρει ένα σφάλμα στο Supabase για καταγραφή
- */
-export async function reportErrorToSupabase(error: Error | string, options: ErrorDisplayOptions = {}): Promise<void> {
-  const { component, details, source } = options;
-  const message = error instanceof Error ? error.message : error;
-  const stack = error instanceof Error ? error.stack : undefined;
-  
-  try {
-    // Προσθήκη στον συλλέκτη σφαλμάτων
-    errorCollector.captureError(error instanceof Error ? error : new Error(message), {
-      component,
-      details: JSON.stringify(details),
-      source: source || 'client'
+    sendErrorToChat({
+      message: errorMessage,
+      component: component ? { _type: 'string', value: component } : { _type: 'undefined', value: 'undefined' },
+      details: details ? { _type: 'object', value: JSON.stringify(details) } : { _type: 'undefined', value: 'undefined' },
+      timestamp: new Date().toISOString()
     });
-    
-    // Εδώ θα μπορούσαμε να καλέσουμε μια λειτουργία του Supabase για καταγραφή σφαλμάτων
-  } catch (err) {
-    console.error("Error reporting to Supabase:", err);
+  }
+
+  return {
+    error,
+    handled: true,
+    options
+  };
+}
+
+/**
+ * Αποστέλλει το σφάλμα στο chat support
+ * @param errorData Τα δεδομένα του σφάλματος
+ */
+export function sendErrorToChat(errorData: any) {
+  try {
+    console.info('Sending error to support chat:', errorData);
+    // Εδώ θα υπήρχε κώδικας για αποστολή στο chat
+  } catch (e) {
+    console.error('Failed to send error to support chat:', e);
   }
 }
 
-// Εξάγουμε τον τύπο ErrorDisplayOptions για να τον κάνουμε διαθέσιμο σε άλλα αρχεία
-export type { ErrorDisplayOptions } from './types';
+/**
+ * Αποστέλλει το σφάλμα στο Supabase
+ * @param error Το σφάλμα
+ * @param metadata Επιπρόσθετα μεταδεδομένα
+ */
+export function reportErrorToSupabase(error: Error, metadata: any = {}) {
+  try {
+    console.info('Reporting error to Supabase:', error, metadata);
+    // Εδώ θα υπήρχε κώδικας για αποστολή στο Supabase
+    return Promise.resolve({ success: true, id: 'mock-id-' + Date.now() });
+  } catch (e) {
+    console.error('Failed to report error to Supabase:', e);
+    return Promise.resolve({ success: false, error: e });
+  }
+}
