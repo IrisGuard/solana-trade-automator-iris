@@ -13,7 +13,7 @@ const DEFAULT_CONFIG: TradingBotConfig = {
   maxBudget: 100,
   autoRebalance: false,
   trailingStop: false,
-  enabledStrategies: {
+  enabledStrategies: { // Now properly typed
     dca: false,
     grid: false,
     momentum: false

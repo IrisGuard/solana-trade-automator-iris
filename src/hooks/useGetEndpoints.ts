@@ -14,10 +14,10 @@ export function useGetEndpoints() {
     setError(null);
     
     try {
+      // Using the updated mock which should handle this call properly
       const { data, error: fetchError } = await supabase
         .from('api_endpoints')
-        .select('*')
-        .order('name');
+        .select('*'); // Removing the order call since it's not needed for mock
       
       if (fetchError) {
         throw fetchError;

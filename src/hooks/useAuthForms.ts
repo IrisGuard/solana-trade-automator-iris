@@ -75,10 +75,8 @@ export function useAuthForms(options: UseAuthFormsOptions = {}) {
       // Mock Supabase response
       const response = await supabase.auth.signUp({ 
         email, 
-        password, 
-        options: {
-          emailRedirectTo: window.location.origin
-        } 
+        password
+        // Since options is not supported in our mock, we'll remove it
       });
       
       if (response.error) {

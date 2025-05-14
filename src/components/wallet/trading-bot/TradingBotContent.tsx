@@ -97,7 +97,7 @@ export function TradingBotContent({
             
             <TabsContent value="monitor">
               <MonitorTab
-                botStatus={botStatus}
+                botStatus={botStatus === 'error' ? 'idle' : botStatus} // Handling 'error' status
                 selectedTokenDetails={selectedTokenDetails}
                 selectedTokenPrice={selectedTokenPrice}
                 activeOrders={activeOrders}

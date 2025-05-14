@@ -1,218 +1,151 @@
 
-// Προσωρινό mock για το Supabase client
-// Αυτό θα εξασφαλίσει ότι δεν θα σπάει η εφαρμογή αν δεν είναι ρυθμισμένο το Supabase
-
-// Create a mock dbClient that mirrors the supabase client functionality
-export const dbClient = {
-  // Βασικές μέθοδοι που χρησιμοποιούνται στον κώδικα
-  rpc: (functionName: string, params: any) => {
-    console.log(`Mock Supabase RPC call to ${functionName}:`, params);
-    return {
-      data: null,
-      error: null
-    };
-  },
-  from: (table: string) => ({
-    select: (columns = '*') => ({
-      eq: (column: string, value: any) => ({
-        single: () => ({
-          data: null,
-          error: null
-        }),
-        order: (column: string, { ascending }: { ascending: boolean }) => ({
-          data: [],
-          error: null
-        }),
-        match: (criteria: any) => ({
-          data: [],
-          error: null
-        }),
-        data: [],
-        error: null
-      }),
-      order: (column: string, { ascending }: { ascending: boolean }) => ({
-        data: [],
-        error: null
-      }),
-      match: (criteria: any) => ({
-        data: [],
-        error: null
-      }),
-      data: [],
-      error: null
-    }),
-    insert: (data: any) => ({
-      select: () => ({
-        data: null,
-        error: null
-      }),
-      data: null,
-      error: null
-    }),
-    update: (data: any) => ({
-      eq: (column: string, value: any) => ({
-        data: null,
-        error: null
-      }),
-      match: (criteria: any) => ({
-        data: null,
-        error: null
-      }),
-      data: null,
-      error: null
-    }),
-    delete: () => ({
-      eq: (column: string, value: any) => ({
-        data: null,
-        error: null
-      }),
-      match: (criteria: any) => ({
-        data: null,
-        error: null
-      }),
-      data: null,
-      error: null
-    })
-  })
-};
+// Mock supabase client for development
+// In a real app, this would be replaced with the actual Supabase client
 
 export const supabase = {
-  // Βασικές μέθοδοι που χρησιμοποιούνται στον κώδικα
-  rpc: (functionName: string, params: any) => {
-    console.log(`Mock Supabase RPC call to ${functionName}:`, params);
-    return {
-      data: null,
-      error: null
-    };
-  },
   auth: {
-    getUser: () => Promise.resolve({ data: { user: null }, error: null }),
-    getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-    signIn: () => Promise.resolve({ data: { user: null }, error: null }),
-    signInWithPassword: ({ email, password }: { email: string; password: string }) => 
-      Promise.resolve({ data: { user: null, session: null }, error: null }),
-    signUp: ({ email, password }: { email: string; password: string }) =>
-      Promise.resolve({ data: { user: null, session: null }, error: null }),
-    signOut: () => Promise.resolve({ error: null }),
-    // Adding the missing onAuthStateChange method
+    getUser: async () => ({ data: { user: null }, error: null }),
+    getSession: async () => ({ data: { session: null }, error: null }),
+    signInWithPassword: async ({ email, password }: { email: string; password: string }) => {
+      console.log('Mock sign in with:', email, password);
+      return { data: { user: null, session: null }, error: null };
+    },
+    signUp: async ({ email, password, options }: { email: string; password: string; options?: any }) => {
+      console.log('Mock sign up with:', email, password, options);
+      return { data: { user: null, session: null }, error: null };
+    },
+    signOut: async () => {
+      console.log('Mock sign out');
+      return { error: null };
+    },
     onAuthStateChange: (callback: (event: string, session: any) => void) => {
       console.log('Mock onAuthStateChange registered');
+      // Return a mock subscription
       return {
-        data: { 
+        data: {
           subscription: {
             unsubscribe: () => {
               console.log('Mock unsubscribe from auth state change');
             }
-          } 
+          }
         }
       };
     }
   },
-  from: (table: string) => ({
-    select: (columns = '*') => ({
-      eq: (column: string, value: any) => ({
-        single: () => ({
+  from: (table: string) => {
+    return {
+      select: (columns?: string) => {
+        return {
+          eq: (column: string, value: any) => {
+            console.log(`Mock select ${columns || '*'} from ${table} where ${column} = ${value}`);
+            return {
+              data: [],
+              error: null,
+              single: () => ({ data: null, error: null }),
+              order: (column: string, { ascending }: { ascending: boolean }) => ({ data: [], error: null }),
+              match: (criteria: any) => ({ data: [], error: null }),
+              limit: (limit: number) => ({ data: [], error: null }),
+              in: (column: string, values: any[]) => ({ data: [], error: null }),
+            };
+          },
+          order: (column: string, { ascending }: { ascending: boolean }) => {
+            console.log(`Mock select ${columns || '*'} from ${table} order by ${column} ${ascending ? 'asc' : 'desc'}`);
+            return { data: [], error: null };
+          },
+          match: (criteria: any) => {
+            console.log(`Mock select ${columns || '*'} from ${table} match criteria`, criteria);
+            return { data: [], error: null };
+          },
+          data: [],
+          error: null,
+          limit: (limit: number) => {
+            console.log(`Mock select ${columns || '*'} from ${table} limit ${limit}`);
+            return { data: [], error: null };
+          },
+          eq: (column: string, value: any) => {
+            console.log(`Mock select ${columns || '*'} from ${table} where ${column} = ${value}`);
+            return {
+              data: [],
+              error: null,
+              single: () => ({ data: null, error: null }),
+              order: () => ({ data: [], error: null }),
+              limit: (limit: number) => ({ data: [], error: null }),
+            };
+          },
+          single: () => {
+            console.log(`Mock select ${columns || '*'} from ${table} single`);
+            return { data: null, error: null };
+          },
+          in: (column: string, values: any[]) => {
+            console.log(`Mock select ${columns || '*'} from ${table} where ${column} in [${values.join(', ')}]`);
+            return { data: [], error: null };
+          }
+        };
+      },
+      insert: (data: any) => {
+        console.log(`Mock insert into ${table}`, data);
+        return {
+          select: (columns?: string) => ({
+            data: null,
+            error: null,
+            single: () => ({ data: null, error: null }),
+          }),
           data: null,
-          error: null
-        }),
-        order: (column: string, { ascending }: { ascending: boolean }) => ({
-          data: [],
-          error: null
-        }),
-        match: (criteria: any) => ({
-          data: [],
-          error: null
-        }),
-        data: [],
-        error: null
-      }),
-      order: (column: string, { ascending }: { ascending: boolean }) => ({
-        data: [],
-        error: null
-      }),
-      match: (criteria: any) => ({
-        data: [],
-        error: null
-      }),
-      data: [],
-      error: null
-    }),
-    insert: (data: any) => ({
-      select: () => ({
-        data: null,
-        error: null
-      }),
-      data: null,
-      error: null
-    }),
-    update: (data: any) => ({
-      eq: (column: string, value: any) => ({
-        data: null,
-        error: null
-      }),
-      match: (criteria: any) => ({
-        data: null,
-        error: null
-      }),
-      data: null,
-      error: null
-    }),
-    delete: () => ({
-      eq: (column: string, value: any) => ({
-        data: null,
-        error: null
-      }),
-      match: (criteria: any) => ({
-        data: null,
-        error: null
-      }),
-      data: null,
-      error: null
+          error: null,
+        };
+      },
+      update: (data: any) => {
+        console.log(`Mock update ${table}`, data);
+        return {
+          eq: (column: string, value: any) => {
+            console.log(`where ${column} = ${value}`);
+            return { data: null, error: null };
+          },
+          match: (criteria: any) => {
+            console.log(`match criteria`, criteria);
+            return { data: null, error: null };
+          },
+          data: null,
+          error: null,
+        };
+      },
+      delete: () => {
+        console.log(`Mock delete from ${table}`);
+        return {
+          eq: (column: string, value: any) => {
+            console.log(`where ${column} = ${value}`);
+            return { data: null, error: null };
+          },
+          data: null,
+          error: null,
+        };
+      },
+      upsert: (data: any) => {
+        console.log(`Mock upsert into ${table}`, data);
+        return { data: null, error: null };
+      }
+    };
+  },
+  storage: {
+    from: (bucket: string) => ({
+      upload: async (path: string, data: any) => {
+        console.log(`Mock upload to ${bucket}/${path}`);
+        return { data: { path }, error: null };
+      },
+      download: async (path: string) => {
+        console.log(`Mock download from ${bucket}/${path}`);
+        return { data: null, error: null };
+      },
+      getPublicUrl: (path: string) => {
+        return { data: { publicUrl: `https://mock-storage/${bucket}/${path}` } };
+      }
     })
-  })
+  },
+  rpc: (method: string, params?: any) => {
+    console.log(`Mock RPC call to ${method}`, params);
+    return Promise.resolve(null);
+  }
 };
 
-// Add Types for Tables to prevent type errors
-export type Tables = {
-  profiles: {
-    id: string;
-    full_name?: string;
-    avatar_url?: string;
-    created_at?: string;
-    updated_at?: string;
-  };
-  wallets: {
-    id: string;
-    user_id: string;
-    address: string;
-    blockchain: string;
-    is_primary: boolean;
-    last_connected?: string;
-    created_at?: string;
-    updated_at?: string;
-  };
-  tokens: {
-    id: string;
-    user_id: string;
-    token_address: string;
-    name: string;
-    symbol: string;
-    amount: number;
-    logo?: string;
-    created_at?: string;
-    updated_at?: string;
-  };
-  transactions: {
-    id: string;
-    user_id: string;
-    wallet_address: string;
-    signature: string;
-    type: string;
-    status: string;
-    amount: string;
-    source?: string;
-    destination?: string;
-    block_time?: string;
-    created_at?: string;
-  };
-};
+// Re-export dbClient for compatibility
+export const dbClient = supabase;

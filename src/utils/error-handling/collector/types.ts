@@ -18,13 +18,17 @@ export interface ErrorOptions {
   source?: string;
   url?: string;
   errorType?: string;
-  title?: string; // Adding missing property
+  title?: string;
   browserInfo?: Record<string, any>;
+  details?: any; // Added missing property
 }
 
 export interface TestErrorOptions {
   simulateDelay?: number;
-  errorType?: string; // Adding missing property
+  errorType?: string;
+  message?: string; // Added missing property
+  component?: string; // Added missing property
+  details?: any; // Added missing property
 }
 
 export interface ErrorDisplayOptions {
@@ -33,14 +37,14 @@ export interface ErrorDisplayOptions {
   sendToChat?: boolean;
   useCollector?: boolean;
   notifyUser?: boolean;
-  title?: string; // Adding missing property
+  title?: string;
 }
 
 export interface ErrorCollector {
   addError: (errorData: ErrorData) => string;
   getErrors: () => ErrorData[];
-  getAllErrors: () => ErrorData[]; // Add missing method
+  getAllErrors: () => ErrorData[];
   clearErrors: () => void;
-  clearAllErrors: () => void; // Add missing method
-  captureError: (error: Error, options?: ErrorOptions) => string; // Add missing method
+  clearAllErrors: () => void;
+  captureError: (error: Error, options?: ErrorOptions) => string;
 }

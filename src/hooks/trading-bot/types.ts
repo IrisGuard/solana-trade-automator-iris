@@ -16,6 +16,11 @@ export interface TradingBotConfig {
   maxBudget: number;
   trailingStop: boolean;
   autoRebalance: boolean;
+  enabledStrategies?: {  // Added missing property
+    dca: boolean;
+    grid: boolean;
+    momentum: boolean;
+  };
 }
 
 export interface ActiveOrder {
@@ -25,7 +30,8 @@ export interface ActiveOrder {
   amount: number;
   price: number;
   status: 'pending' | 'executed' | 'cancelled';
-  createdAt: string;
+  createdAt: string | Date;
+  tokenAddress?: string; // Added missing property
 }
 
 export interface TradingOrder {
@@ -35,7 +41,8 @@ export interface TradingOrder {
   amount: number;
   price: number;
   status: 'pending' | 'executed' | 'cancelled';
-  createdAt: string;
+  createdAt: string | Date;
+  tokenAddress?: string; // Added missing property
 }
 
 export interface TokenPriceInfo {

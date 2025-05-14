@@ -76,27 +76,25 @@ export function useTradingBot() {
       const mockOrders = [
         { 
           id: `order-${Date.now()}-1`,
-          type: 'stop-loss',
+          type: 'stop-loss' as const,
           price: selectedTokenPrice?.price ? selectedTokenPrice.price * 0.9 : 0,
           amount: 0.5,
-          tokenAddress: config.selectedToken || '',
-          token: config.selectedToken || '',  // Added to match ActiveOrder
-          status: 'pending',
+          token: config.selectedToken || '',
+          status: 'pending' as const,
           createdAt: new Date()
         },
         { 
           id: `order-${Date.now()}-2`,
-          type: 'take-profit', 
+          type: 'take-profit' as const, 
           price: selectedTokenPrice?.price ? selectedTokenPrice.price * 1.2 : 0,
           amount: 0.5,
-          tokenAddress: config.selectedToken || '',
-          token: config.selectedToken || '',  // Added to match ActiveOrder
-          status: 'pending',
+          token: config.selectedToken || '',
+          status: 'pending' as const,
           createdAt: new Date()
         }
-      ] as TradingOrder[];
+      ];
       
-      setActiveOrders(mockOrders);
+      setActiveOrders(mockOrders as TradingOrder[]);
       setBotStatus('running');
       
       // Show success message
