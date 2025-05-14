@@ -16,6 +16,14 @@ export class HeliusKeyManager {
   // Default demo key for fallback
   private readonly DEFAULT_KEY = "ddb32813-1f4b-459d-8964-310b1b73a053";
   
+  // Service types for different Helius endpoints
+  private readonly HELIUS_SERVICES = [
+    'helius', 
+    'helius-rpc', 
+    'helius-api-v0', 
+    'helius-websocket'
+  ];
+  
   // Key switch cool-down period (3 seconds)
   private readonly KEY_SWITCH_COOLDOWN = 3000;
 
@@ -37,22 +45,24 @@ export class HeliusKeyManager {
    * Initialize the key manager by loading keys from Supabase
    */
   public async initialize(): Promise<void> {
-    if (this.isLoading || this.keys.length > 0) return;
+    if (this.isLoading) return;
     
     this.isLoading = true;
     try {
-      // Load keys from Supabase
+      // Load keys from Supabase for all Helius service types
       const { data, error } = await supabase
         .from('api_keys_storage')
         .select('key_value')
-        .eq('service', 'helius')
+        .in('service', this.HELIUS_SERVICES)
         .eq('status', 'active');
         
       if (error) throw error;
       
       // Extract keys from the results
       if (data && data.length > 0) {
-        this.keys = data.map(item => item.key_value).filter(Boolean);
+        this.keys = data.map(item => item.key_value)
+                       .filter(Boolean)
+                       .filter((value, index, self) => self.indexOf(value) === index); // Unique keys only
         console.log(`Loaded ${this.keys.length} Helius API keys`);
       } else {
         console.warn("No Helius API keys found in database, using default key");
@@ -110,14 +120,14 @@ export class HeliusKeyManager {
   /**
    * Add a new Helius API key to the database and key manager
    */
-  public async addHeliusKey(key: string, userId: string): Promise<boolean> {
+  public async addHeliusKey(key: string, userId: string, service: string = 'helius'): Promise<boolean> {
     try {
       // Check if key already exists
       const { data: existingKeys, error: checkError } = await supabase
         .from('api_keys_storage')
         .select('*')
         .eq('key_value', key)
-        .eq('service', 'helius');
+        .in('service', this.HELIUS_SERVICES);
       
       if (checkError) throw checkError;
       
@@ -133,7 +143,7 @@ export class HeliusKeyManager {
         .insert({
           name: `Helius API Key ${this.keys.length + 1}`,
           key_value: key,
-          service: 'helius',
+          service: service,
           description: 'Added via key rotation system',
           status: 'active',
           user_id: userId,
@@ -166,6 +176,25 @@ export class HeliusKeyManager {
    */
   public getKeyCount(): number {
     return this.keys.length;
+  }
+
+  /**
+   * Get the proper endpoint URL with key
+   */
+  public getEndpointWithKey(baseUrl: string): string {
+    const key = this.getCurrentKey();
+    
+    // Check if the URL already contains an API key parameter
+    if (baseUrl.includes('api-key=')) {
+      return baseUrl;
+    }
+    
+    // Determine how to append the API key
+    if (baseUrl.includes('?')) {
+      return `${baseUrl}&api-key=${key}`;
+    } else {
+      return `${baseUrl}?api-key=${key}`;
+    }
   }
 }
 

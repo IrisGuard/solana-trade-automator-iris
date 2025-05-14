@@ -4,6 +4,7 @@ import { ApiVaultCard } from "@/components/security/apiVault/ApiVaultCard";
 import { ApiEndpointsCard } from "@/components/security/ApiEndpointsCard";
 import { ApiEndpointsManager } from "@/components/security/endpoints/ApiEndpointsManager";
 import { AddHeliusButton } from "@/components/security/apiVault/AddHeliusButton";
+import { RegisterHeliusKeysButton } from "@/components/security/apiVault/RegisterHeliusKeysButton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Separator } from "@/components/ui/separator";
@@ -66,6 +67,7 @@ export default function ApiVault() {
             Ανανέωση
           </Button>
           <AddHeliusButton />
+          <RegisterHeliusKeysButton />
         </div>
       </div>
       
@@ -88,7 +90,7 @@ export default function ApiVault() {
             </div>
             <div className="rounded-lg border p-3">
               <div className="text-sm font-medium text-muted-foreground mb-1">Ενεργά Endpoints</div>
-              <div className="text-2xl font-bold">3</div>
+              <div className="text-2xl font-bold">5</div>
             </div>
             <div className="rounded-lg border p-3">
               <div className="text-sm font-medium text-muted-foreground mb-1">Κατάσταση</div>
