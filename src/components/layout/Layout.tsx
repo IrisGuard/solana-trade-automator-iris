@@ -5,7 +5,7 @@ import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { cn } from "@/lib/utils";
 import { HelpButton } from "@/components/help/HelpButton";
-import { useLanguage } from "@/providers/LanguageProvider";
+import { useLanguage } from "@/hooks/use-language";
 
 export function Layout() {
   const location = useLocation();

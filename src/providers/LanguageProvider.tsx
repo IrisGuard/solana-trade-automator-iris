@@ -8,7 +8,7 @@ type Translations = {
 };
 
 export type LanguageContextType = {
-  t: (key: string) => string;
+  t: (key: string, fallback?: string) => string;
   language: string;
   setLanguage: (lang: string) => void;
 };
@@ -28,7 +28,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState('el'); // Default to Greek
 
   // Function to translate keys
-  const t = (key: string): string => {
+  const t = (key: string, fallback?: string): string => {
     const parts = key.split('.');
     if (parts.length === 2) {
       const category = parts[0];
@@ -80,8 +80,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       }
     }
     
-    // Return the key itself as fallback if no translation is found
-    return key;
+    // Return the provided fallback or the key itself as final fallback
+    return fallback || key;
   };
 
   // Effect to load any saved language preference

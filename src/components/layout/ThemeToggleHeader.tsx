@@ -2,7 +2,7 @@
 import React from "react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Link } from "react-router-dom";
-import { useLanguage } from "@/providers/LanguageProvider";
+import { useLanguage } from "@/hooks/use-language";
 import { Wallet } from "lucide-react";
 
 export function ThemeToggleHeader() {
