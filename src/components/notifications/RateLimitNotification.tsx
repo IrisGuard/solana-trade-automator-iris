@@ -8,13 +8,15 @@ interface RateLimitNotificationProps {
   onClose: () => void;
   position?: 'top' | 'center';
   className?: string;
+  message?: string;
 }
 
 export function RateLimitNotification({
   isVisible,
   onClose,
   position = 'top',
-  className
+  className,
+  message = 'Solana API rate limit exceeded'
 }: RateLimitNotificationProps) {
   if (!isVisible) return null;
 
@@ -33,7 +35,7 @@ export function RateLimitNotification({
           </div>
           <div className="ml-3 flex-1">
             <h3 className="text-sm font-medium text-rose-800">
-              Solana API rate limit exceeded
+              {message}
             </h3>
             <div className="mt-1 text-sm text-rose-700">
               <p>
@@ -57,21 +59,40 @@ export function RateLimitNotification({
   );
 }
 
-// Context to manage rate limit notifications globally
+// Context για τη διαχείριση των rate limit notifications σε επίπεδο εφαρμογής
 export const RateLimitContext = React.createContext({
-  showRateLimitNotification: () => {},
+  showRateLimitNotification: (_message?: string) => {},
   hideRateLimitNotification: () => {},
   isRateLimitNotificationVisible: false
 });
 
 export function RateLimitProvider({ children }: { children: React.ReactNode }) {
   const [isVisible, setIsVisible] = React.useState(false);
+  const [message, setMessage] = React.useState('Solana API rate limit exceeded');
   const [autoHideTimer, setAutoHideTimer] = React.useState<NodeJS.Timeout | null>(null);
   
-  const showNotification = React.useCallback(() => {
+  // Αποφυγή πολλαπλών ειδοποιήσεων σε σύντομο χρονικό διάστημα
+  const lastNotificationTime = React.useRef<number>(0);
+  const MIN_NOTIFICATION_INTERVAL = 5000; // 5 δευτερόλεπτα
+  
+  const showNotification = React.useCallback((customMessage?: string) => {
+    const now = Date.now();
+    
+    // Έλεγχος αν έχει περάσει αρκετός χρόνος από την τελευταία ειδοποίηση
+    if (now - lastNotificationTime.current < MIN_NOTIFICATION_INTERVAL) {
+      console.log("Throttling rate limit notification");
+      return;
+    }
+    
+    lastNotificationTime.current = now;
+    
+    if (customMessage) {
+      setMessage(customMessage);
+    }
+    
     setIsVisible(true);
     
-    // Auto-hide after 5 seconds
+    // Αυτόματη απόκρυψη μετά από 5 δευτερόλεπτα
     if (autoHideTimer) clearTimeout(autoHideTimer);
     const timer = setTimeout(() => setIsVisible(false), 5000);
     setAutoHideTimer(timer);
@@ -88,6 +109,21 @@ export function RateLimitProvider({ children }: { children: React.ReactNode }) {
     };
   }, [autoHideTimer]);
   
+  // Προσθήκη global event listener για rate limit errors
+  React.useEffect(() => {
+    const handleRateLimitError = (e: CustomEvent) => {
+      if (e.detail && e.detail.errorType === 'rate-limit') {
+        showNotification(e.detail.message);
+      }
+    };
+    
+    window.addEventListener('rate-limit-error' as any, handleRateLimitError as EventListener);
+    
+    return () => {
+      window.removeEventListener('rate-limit-error' as any, handleRateLimitError as EventListener);
+    };
+  }, [showNotification]);
+  
   return (
     <RateLimitContext.Provider
       value={{
@@ -100,12 +136,14 @@ export function RateLimitProvider({ children }: { children: React.ReactNode }) {
       <RateLimitNotification
         isVisible={isVisible}
         onClose={hideNotification}
+        message={message}
       />
     </RateLimitContext.Provider>
   );
 }
 
-// Hook to use the rate limit context
+// Hook για τη χρήση του rate limit context
 export function useRateLimitNotification() {
   return React.useContext(RateLimitContext);
 }
+

@@ -1,7 +1,7 @@
 
 import { TokenPriceData } from './types';
 
-// Mock price data - in a real app, this would fetch from APIs like CoinGecko
+// Mock price data για γνωστά tokens
 export const MOCK_PRICE_DATA: Record<string, TokenPriceData> = {
   'So11111111111111111111111111111111111111112': { // SOL
     price: 122.45,
@@ -10,11 +10,13 @@ export const MOCK_PRICE_DATA: Record<string, TokenPriceData> = {
     marketCap: 52000000000,
     lastUpdated: new Date()
   },
+  // Προσθήκη περισσότερων mock τιμών για άλλα γνωστά tokens αν χρειάζεται
 };
 
-// Add some price volatility to make the demo more realistic
+// Προσθήκη μεταβλητότητας στην τιμή για πιο ρεαλιστικό demo
 export function getVolatilePrice(basePrice: number): number {
-  const volatilityPercent = 0.5; // 0.5% volatility
+  const volatilityPercent = 0.5; // 0.5% μεταβλητότητα
   const randomFactor = 1 + (Math.random() * volatilityPercent * 2 - volatilityPercent) / 100;
   return basePrice * randomFactor;
 }
+

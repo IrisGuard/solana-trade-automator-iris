@@ -1,11 +1,11 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useWalletBalance } from './useWalletBalance';
 import { useWalletTokens } from './useWalletTokens';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 
 /**
- * Hook to manage combined wallet data (balance + tokens)
+ * Hook για τη διαχείριση των συνδυασμένων δεδομένων wallet (balance + tokens)
  */
 export function useWalletData() {
   const { solBalance, loadSolBalance } = useWalletBalance();
@@ -13,16 +13,31 @@ export function useWalletData() {
   const [error, setError] = useState<string | null>(null);
   const { reportError } = useErrorReporting();
   
-  // Load all wallet data in one call
+  // Θα παρακολουθούμε τον χρόνο του τελευταίου αιτήματος για να αποφύγουμε πολύ συχνές κλήσεις
+  const lastRequest = useRef<number>(0);
+  
+  // Ελάχιστο διάστημα μεταξύ διαδοχικών αιτημάτων (10 δευτ)
+  const MIN_REQUEST_INTERVAL = 10000;
+  
+  // Φόρτωση όλων των δεδομένων wallet σε μία κλήση
   const loadWalletData = useCallback(async (address: string) => {
     if (!address) return;
     
+    const now = Date.now();
+    // Έλεγχος αν έχει περάσει αρκετός χρόνος από το τελευταίο αίτημα
+    if (now - lastRequest.current < MIN_REQUEST_INTERVAL) {
+      console.log("Throttling wallet data requests, skipping this request");
+      return;
+    }
+    
+    lastRequest.current = now;
     console.log("Loading wallet data for address:", address);
+    
     try {
-      // Load SOL balance
+      // Φόρτωση SOL balance
       await loadSolBalance(address);
       
-      // Load tokens
+      // Φόρτωση tokens
       await loadWalletTokens(address);
       
       setError(null);
@@ -34,9 +49,18 @@ export function useWalletData() {
     }
   }, [loadSolBalance, loadWalletTokens, reportError]);
 
-  // Refresh wallet data
+  // Ανανέωση δεδομένων wallet
   const refreshWalletData = useCallback(async (walletAddress: string, isConnected: boolean) => {
     if (!isConnected || !walletAddress) return;
+    
+    const now = Date.now();
+    // Έλεγχος αν έχει περάσει αρκετός χρόνος από το τελευταίο αίτημα
+    if (now - lastRequest.current < MIN_REQUEST_INTERVAL) {
+      console.log("Throttling refresh requests, skipping this refresh");
+      return;
+    }
+    
+    lastRequest.current = now;
     console.log("Refreshing wallet data...");
     await loadWalletData(walletAddress);
   }, [loadWalletData]);
@@ -52,3 +76,4 @@ export function useWalletData() {
     selectTokenForTrading
   };
 }
+

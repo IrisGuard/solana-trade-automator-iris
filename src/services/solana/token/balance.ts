@@ -1,3 +1,4 @@
+
 import { PublicKey } from '@solana/web3.js';
 import { connection, TOKEN_PROGRAM_ID, KNOWN_TOKEN_ADDRESSES } from '../config';
 import { Token } from './types';
@@ -6,36 +7,54 @@ import { toast } from 'sonner';
 import { errorCollector } from '@/utils/error-handling/collector';
 import { withRateLimitRetry, isRateLimitError } from '@/utils/error-handling/rateLimitHandler';
 
-// Cache for token balances to use as fallback when API is rate limited
-const tokenBalanceCache: Record<string, Token[]> = {};
+// Cache για token balances που θα χρησιμοποιηθεί ως fallback όταν το API έχει rate limit
+const tokenBalanceCache: Record<string, { tokens: Token[], timestamp: number }> = {};
 
-// Get token balance for a specific token and wallet
+// Χρονικό διάστημα εγκυρότητας του cache (5 λεπτά)
+const CACHE_VALIDITY_PERIOD = 5 * 60 * 1000;
+
+// Έλεγχος αν το cache είναι ακόμα έγκυρο
+function isCacheValid(address: string): boolean {
+  const cachedData = tokenBalanceCache[address];
+  if (!cachedData) return false;
+  
+  const now = Date.now();
+  return (now - cachedData.timestamp) < CACHE_VALIDITY_PERIOD;
+}
+
+// Get token balance για ένα συγκεκριμένο token και wallet
 export const fetchTokenBalance = async (tokenAddress: string, walletAddress: string): Promise<number> => {
   try {
     return await withRateLimitRetry(async () => {
       // Implementation for getting balance of a specific token
-      // This is a placeholder, actual implementation would depend on specific requirements
+      // Αυτό είναι ένα placeholder, η πραγματική υλοποίηση θα εξαρτηθεί από τις συγκεκριμένες απαιτήσεις
       return 0;
-    }, { maxRetries: 3 });
+    }, { endpoint: `token-balance-${tokenAddress.substring(0, 8)}` });
   } catch (error) {
     console.error('Error fetching token balance:', error);
     return 0;
   }
 };
 
-// Get all token balances for a wallet
+// Λήψη όλων των token balances για ένα wallet
 export const fetchAllTokenBalances = async (address: string): Promise<Token[]> => {
+  // Πρώτα ελέγχουμε αν έχουμε έγκυρο cache για να αποφύγουμε άσκοπα API calls
+  if (isCacheValid(address)) {
+    console.log('Using cached token balances for', address);
+    return tokenBalanceCache[address].tokens;
+  }
+  
   try {
     return await withRateLimitRetry(async () => {
       const publicKey = new PublicKey(address);
       
-      // Get user's token accounts
+      // Λήψη των token accounts του χρήστη
       const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
         publicKey,
         { programId: TOKEN_PROGRAM_ID }
       );
 
-      // Transform data to Token[]
+      // Μετατροπή δεδομένων σε Token[]
       const tokens: Token[] = [];
       
       for (const { account } of tokenAccounts.value) {
@@ -43,10 +62,10 @@ export const fetchAllTokenBalances = async (address: string): Promise<Token[]> =
         const mintAddress = parsedInfo.mint;
         const amount = parsedInfo.tokenAmount.uiAmount;
         
-        // Skip tokens with zero balance
+        // Παραλείπουμε tokens με μηδενικό balance
         if (amount === 0) continue;
         
-        // Find info for known tokens
+        // Βρίσκουμε πληροφορίες για γνωστά tokens
         const knownToken = KNOWN_TOKEN_ADDRESSES[mintAddress];
         
         tokens.push({
@@ -59,7 +78,7 @@ export const fetchAllTokenBalances = async (address: string): Promise<Token[]> =
       }
       
       try {
-        // Add native SOL to the token list - handle errors separately
+        // Προσθήκη native SOL στη λίστα token - χειριζόμαστε τα σφάλματα ξεχωριστά
         const solBalance = await fetchSOLBalance(address);
         if (solBalance > 0) {
           tokens.unshift({
@@ -72,36 +91,38 @@ export const fetchAllTokenBalances = async (address: string): Promise<Token[]> =
         }
       } catch (solError) {
         console.log('Could not add SOL balance to tokens list:', solError);
-        // Continue without SOL balance
+        // Συνεχίζουμε χωρίς SOL balance
       }
       
-      // Cache successful results
-      tokenBalanceCache[address] = [...tokens];
+      // Αποθήκευση στο cache με χρονοσήμανση
+      tokenBalanceCache[address] = { 
+        tokens: [...tokens],
+        timestamp: Date.now() 
+      };
       
       return tokens;
-    });
+    }, { endpoint: `token-accounts-${address.substring(0, 8)}` });
   } catch (error) {
-    // Check for rate limit errors
+    // Έλεγχος για rate limit errors
     if (isRateLimitError(error)) {
       console.warn('Rate limit encountered when fetching tokens, using cached data if available');
       
-      // Use cached data if available
-      if (tokenBalanceCache[address] && tokenBalanceCache[address].length > 0) {
-        toast.info('Using cached token data due to API rate limits', {
-          description: 'Data may not be up-to-date'
-        });
-        return tokenBalanceCache[address];
+      // Χρήση cached data αν υπάρχει, ακόμη κι αν δεν είναι εντελώς έγκυρο
+      if (address in tokenBalanceCache) {
+        console.log('Using cached token data due to API rate limits');
+        return tokenBalanceCache[address].tokens;
       }
       
-      // If no cached data, show error and return empty array
-      toast.error('Solana API rate limit exceeded. Please try again in a moment.');
+      // Το μήνυμα toast έχει ήδη εμφανιστεί από τη συνάρτηση withRateLimitRetry
     } else {
-      // Other errors
+      // Άλλα σφάλματα
       console.error('Error loading tokens:', error);
-      toast.error('Failed to load tokens');
+      toast.error('Failed to load tokens', {
+        id: 'tokens-load-error'
+      });
     }
     
-    // Add to error collector
+    // Προσθήκη στο error collector
     errorCollector.addError({
       message: 'Failed to load tokens',
       source: 'client',
@@ -109,6 +130,8 @@ export const fetchAllTokenBalances = async (address: string): Promise<Token[]> =
       details: { address }
     });
     
-    return [];
+    // Επιστροφή κενού array ή cached δεδομένων αν υπάρχουν
+    return address in tokenBalanceCache ? tokenBalanceCache[address].tokens : [];
   }
 };
+

@@ -1,22 +1,45 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { fetchSOLBalance } from '@/services/solana/wallet';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 
 /**
- * Hook to manage wallet SOL balance
+ * Hook για τη διαχείριση του SOL balance του wallet
  */
 export function useWalletBalance() {
-  // Initialize state outside of render path
+  // Αρχικοποίηση state εκτός της διαδρομής render
   const [solBalance, setSolBalance] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { reportError } = useErrorReporting();
+  
+  // Θα παρακολουθούμε τον χρόνο του τελευταίου αιτήματος
+  const lastBalanceRequest = useRef<number>(0);
+  
+  // Ελάχιστο διάστημα μεταξύ διαδοχικών αιτημάτων (10 δευτ)
+  const MIN_REQUEST_INTERVAL = 10000;
 
-  // Load SOL balance
+  // Φόρτωση SOL balance
   const loadSolBalance = useCallback(async (address: string) => {
     if (!address) return 0;
     
+    const now = Date.now();
+    // Έλεγχος αν έχει περάσει αρκετός χρόνος από το τελευταίο αίτημα
+    if (now - lastBalanceRequest.current < MIN_REQUEST_INTERVAL) {
+      console.log("Throttling balance request, using existing balance");
+      return solBalance;
+    }
+    
+    lastBalanceRequest.current = now;
     console.log("Loading SOL balance for address:", address);
+    
+    if (isLoading) {
+      console.log("Balance loading already in progress, skipping duplicate request");
+      return solBalance;
+    }
+    
+    setIsLoading(true);
+    
     try {
       const balance = await fetchSOLBalance(address);
       setSolBalance(balance);
@@ -25,14 +48,25 @@ export function useWalletBalance() {
     } catch (err) {
       console.error('Error loading SOL balance:', err);
       const errorMessage = err instanceof Error ? err.message : String(err);
-      toast.error('Αποτυχία φόρτωσης υπολοίπου SOL');
+      
+      // Αποφεύγουμε να εμφανίζουμε πολλά toast μηνύματα για σφάλματα balance
+      if (!errorMessage.includes('rate limit') && !errorMessage.includes('Παραλείπεται το αίτημα')) {
+        toast.error('Αποτυχία φόρτωσης υπολοίπου SOL', {
+          id: 'sol-balance-load-error'
+        });
+      }
+      
       reportError(new Error(`Σφάλμα φόρτωσης υπολοίπου SOL: ${errorMessage}`));
-      return 0;
+      return solBalance; // Επιστρέφουμε την τρέχουσα τιμή
+    } finally {
+      setIsLoading(false);
     }
-  }, [reportError]);
+  }, [reportError, solBalance, isLoading]);
 
   return {
     solBalance,
+    isLoading,
     loadSolBalance
   };
 }
+

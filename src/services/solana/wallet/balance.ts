@@ -5,41 +5,65 @@ import { connection } from '../config';
 import { errorCollector } from '@/utils/error-handling/collector';
 import { withRateLimitRetry, isRateLimitError } from '@/utils/error-handling/rateLimitHandler';
 
-// Cache for SOL balances to use as fallback when API is rate limited
-const solBalanceCache: Record<string, number> = {};
+// Cache για τα SOL balances που θα χρησιμοποιηθεί ως fallback όταν το API έχει rate limit
+const solBalanceCache: Record<string, { balance: number, timestamp: number }> = {};
 
-// Fetch SOL balance for a wallet address
+// Χρονικό διάστημα εγκυρότητας του cache (5 λεπτά)
+const CACHE_VALIDITY_PERIOD = 5 * 60 * 1000;
+
+// Έλεγχος αν το cache είναι ακόμα έγκυρο
+function isCacheValid(address: string): boolean {
+  const cachedData = solBalanceCache[address];
+  if (!cachedData) return false;
+  
+  const now = Date.now();
+  return (now - cachedData.timestamp) < CACHE_VALIDITY_PERIOD;
+}
+
+// Fetch SOL balance για ένα wallet address
 export const fetchSOLBalance = async (address: string): Promise<number> => {
+  // Αν έχουμε έγκυρο cache, επιστρέφουμε το από εκεί για να αποφύγουμε άσκοπα API calls
+  if (isCacheValid(address)) {
+    console.log('Using cached SOL balance for', address);
+    return solBalanceCache[address].balance;
+  }
+  
   try {
     return await withRateLimitRetry(async () => {
       const publicKey = new PublicKey(address);
       const balance = await connection.getBalance(publicKey);
       const solBalance = balance / LAMPORTS_PER_SOL;
       
-      // Cache the result
-      solBalanceCache[address] = solBalance;
+      // Αποθήκευση στο cache με χρονοσήμανση
+      solBalanceCache[address] = { 
+        balance: solBalance, 
+        timestamp: Date.now() 
+      };
       
       return solBalance;
-    });
+    }, { endpoint: `sol-balance-${address.substring(0, 8)}` });
   } catch (error) {
-    // Check for rate limit errors
+    // Έλεγχος για rate limit errors
     if (isRateLimitError(error)) {
       console.warn('Rate limit encountered when fetching SOL balance, using cached data if available');
       
-      // Use cached balance if available
+      // Χρήση cached balance αν υπάρχει, ακόμη κι αν δεν είναι εντελώς έγκυρο
       if (address in solBalanceCache) {
-        toast.info('Using cached SOL balance due to API rate limits');
-        return solBalanceCache[address];
+        console.log('Using cached SOL balance due to API rate limits');
+        return solBalanceCache[address].balance;
       }
       
-      toast.error('Solana API rate limit exceeded. Please try again in a moment.');
+      // Αποφεύγουμε να εμφανίζουμε πολλά toast μηνύματα
+      // Το withRateLimitRetry έχει ήδη εμφανίσει σχετικό μήνυμα
     } else {
-      // General error for other cases
+      // Γενικό σφάλμα για άλλες περιπτώσεις
       console.error('Error getting SOL balance:', error);
-      toast.error('Failed to get SOL balance');
+      toast.error('Failed to get SOL balance', {
+        id: 'sol-balance-error' // Unique ID για να αποφύγουμε διπλά μηνύματα
+      });
     }
     
-    // Add to error collector for further analysis
+    // Προσθήκη στο error collector για περαιτέρω ανάλυση
     errorCollector.addError({
       message: 'Failed to get SOL balance',
       source: 'client',
@@ -47,6 +71,8 @@ export const fetchSOLBalance = async (address: string): Promise<number> => {
       details: { address }
     });
     
-    return 0;
+    // Επιστροφή 0 ή cached τιμής αν υπάρχει (ακόμη κι αν δεν είναι έγκυρη)
+    return address in solBalanceCache ? solBalanceCache[address].balance : 0;
   }
 };
+
