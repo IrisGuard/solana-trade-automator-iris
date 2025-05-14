@@ -1,17 +1,20 @@
 
 // This file now re-exports from the modularized structure
 // for backwards compatibility
-
-// Export the individual functions for direct access
-export { fetchSOLBalance } from './solana/wallet';
-export { fetchTokenBalance, fetchAllTokenBalances, fetchTokenPrices } from './solana/token';
-export { fetchTransactionHistory } from './solana/transaction';
+import { fetchSOLBalance } from './solana/wallet';
+import { fetchTokenBalance, fetchAllTokenBalances, fetchTokenPrices } from './solana/token';
+import { fetchTransactionHistory } from './solana/transaction';
+import { walletService } from './solana/walletService';
+import { tokenService } from './solana/token';
+import { priceService } from './solana/price';
+import { tradingService } from './solana';
 
 // Create and export a combined solanaService object for backwards compatibility
 export const solanaService = {
-  fetchSOLBalance: fetchSOLBalance,
-  fetchTokenBalance: fetchTokenBalance,
-  fetchAllTokenBalances: fetchAllTokenBalances,
-  fetchTokenPrices: fetchTokenPrices,
-  fetchTransactionHistory: fetchTransactionHistory
+  fetchSOLBalance,
+  fetchTokenBalance,
+  fetchAllTokenBalances,
+  fetchTokenPrices,
+  fetchTransactionHistory
 };
+

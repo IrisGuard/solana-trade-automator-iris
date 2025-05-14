@@ -1,54 +1,56 @@
+
+/**
+ * Setup global error handling for the application
+ * This includes window.onerror, unhandled promises, etc.
+ */
+
 import { errorCollector } from "./collector";
 
-export function setupGlobalErrorHandling(): () => void {
-  // Χειρισμός μη επεξεργασμένων εξαιρέσεων
-  const originalOnError = window.onerror;
-  
+// Setup error handling for the application
+export const setupGlobalErrorHandling = () => {
+  // Handle window errors
   window.onerror = (message, source, lineno, colno, error) => {
-    if (error instanceof Error) {
-      errorCollector.collect(error, { source: "GlobalErrorHandler" });
-    } else {
-      const genericError = new Error(String(message));
-      errorCollector.collect(genericError, { source: "GlobalErrorHandler" });
-    }
-    
-    // Κλήση του προηγούμενου χειριστή αν υπάρχει
-    if (typeof originalOnError === 'function') {
-      return originalOnError(message, source, lineno, colno, error);
-    }
-    
-    // Επιστρέφουμε false για να επιτρέψουμε την εκτέλεση των προεπιλεγμένων χειριστών σφαλμάτων
-    return false;
+    errorCollector.logErrorAndNotify(error || String(message), {
+      source: 'window.onerror',
+      location: { source, lineno, colno }
+    });
+    return false; // Let the default handler run too
   };
-  
-  // Χειρισμός μη επεξεργασμένων ασύγχρονων εξαιρέσεων
-  const originalUnhandledRejection = window.onunhandledrejection;
-  
-  // Fix: Use addEventListener instead of direct assignment to maintain correct context
-  const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-    let error: Error;
-    
-    if (event.reason instanceof Error) {
-      error = event.reason;
-    } else {
-      error = new Error(String(event.reason));
+
+  // Handle unhandled promise rejections
+  window.addEventListener('unhandledrejection', (event) => {
+    errorCollector.logErrorAndNotify(
+      event.reason instanceof Error ? event.reason : new Error(String(event.reason)),
+      { source: 'unhandledrejection' }
+    );
+  });
+
+  // Handle React errors that happen outside of error boundaries
+  const originalConsoleError = console.error;
+  console.error = (...args) => {
+    // Call the original console.error
+    originalConsoleError.apply(console, args);
+
+    // Check if this is a React error
+    const errorMessage = args.join(' ');
+    if (
+      errorMessage.includes('React') ||
+      errorMessage.includes('react-dom') ||
+      errorMessage.includes('Uncaught')
+    ) {
+      errorCollector.logErrorAndNotify(
+        new Error(errorMessage),
+        { source: 'console.error', isReactError: true }
+      );
     }
-    
-    errorCollector.collect(error, { source: "UnhandledRejectionHandler" });
   };
-  
-  // Add event listener for unhandled rejections
-  window.addEventListener("unhandledrejection", handleUnhandledRejection);
-  
-  // Store original handler for cleanup if it exists
-  if (typeof originalUnhandledRejection === 'function') {
-    // Keep reference but don't use direct assignment
-  }
-  
-  // Επιστρέφουμε μια συνάρτηση για την απενεργοποίηση των global handlers
-  return () => {
-    window.onerror = originalOnError;
-    window.removeEventListener("unhandledrejection", handleUnhandledRejection);
-    // Don't need to restore original since we're using addEventListener
+
+  return {
+    // Clean up function to restore original handlers
+    cleanup: () => {
+      window.onerror = null;
+      window.removeEventListener('unhandledrejection', () => {});
+      console.error = originalConsoleError;
+    }
   };
-}
+};
