@@ -6,3 +6,4 @@ export { walletService } from './walletService';
 export { tokensService } from './tokensService';
 export { transactionsService } from './transactionsService';
 export { botsService } from './botsService';
+export { securityService } from './securityService';

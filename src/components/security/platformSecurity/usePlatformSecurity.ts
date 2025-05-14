@@ -1,6 +1,8 @@
 
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { securityService, SecuritySettings } from "@/services/securityService";
 
 export interface SecuritySetting {
   id: string;
@@ -11,6 +13,9 @@ export interface SecuritySetting {
 
 export function usePlatformSecurity() {
   const [expanded, setExpanded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [dbSecuritySettings, setDbSecuritySettings] = useState<SecuritySettings[]>([]);
+  
   const [securitySettings, setSecuritySettings] = useState<SecuritySetting[]>([
     {
       id: "rowLevelSecurity",
@@ -74,37 +79,176 @@ export function usePlatformSecurity() {
     }
   ]);
 
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user?.id) {
+      loadSettings();
+    }
+  }, [user?.id]);
+
+  const loadSettings = async () => {
+    if (!user?.id) return;
+    setIsLoading(true);
+    
+    try {
+      const settings = await securityService.getSecuritySettings(user.id);
+      setDbSecuritySettings(settings);
+      
+      // Ενημέρωση καταστάσεων από τη βάση δεδομένων
+      if (settings.length > 0) {
+        setSecuritySettings(prevSettings => 
+          prevSettings.map(setting => {
+            const dbSetting = settings.find(s => s.setting_name === setting.id);
+            return {
+              ...setting,
+              isEnabled: dbSetting ? dbSetting.is_enabled : setting.isEnabled
+            };
+          })
+        );
+      }
+    } catch (error) {
+      console.error("Error loading security settings:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const toggleExpanded = useCallback(() => {
     setExpanded((prev) => !prev);
   }, []);
 
-  const handleToggle = useCallback((id: string) => {
+  const handleToggle = useCallback(async (id: string, enabled: boolean) => {
+    if (!user?.id) return;
+    
+    // Ενημέρωση του UI άμεσα
     setSecuritySettings((prev) => 
       prev.map(setting => 
-        setting.id === id ? {...setting, isEnabled: !setting.isEnabled} : setting
+        setting.id === id ? {...setting, isEnabled: enabled} : setting
       )
     );
-  }, []);
+    
+    // Έλεγχος αν η ρύθμιση υπάρχει στη βάση
+    const existingSetting = dbSecuritySettings.find(s => s.setting_name === id);
+    
+    try {
+      if (existingSetting) {
+        // Ενημέρωση υπάρχουσας ρύθμισης
+        await securityService.updateSecuritySetting(existingSetting.id!, enabled);
+      } else {
+        // Δημιουργία νέας ρύθμισης
+        const newSetting = await securityService.createSecuritySetting({
+          user_id: user.id,
+          setting_name: id,
+          is_enabled: enabled
+        });
+        
+        if (newSetting) {
+          setDbSecuritySettings(prev => [...prev, newSetting]);
+        }
+      }
+    } catch (error) {
+      console.error("Error updating security setting:", error);
+      
+      // Επαναφορά του UI σε περίπτωση σφάλματος
+      setSecuritySettings((prev) => 
+        prev.map(setting => 
+          setting.id === id ? {...setting, isEnabled: !enabled} : setting
+        )
+      );
+      
+      toast.error("Σφάλμα κατά την ενημέρωση της ρύθμισης");
+    }
+  }, [user?.id, dbSecuritySettings]);
 
-  const handleEnableAll = useCallback(() => {
+  const handleEnableAll = useCallback(async () => {
+    if (!user?.id) return;
+    
+    setIsLoading(true);
+    
+    // Ενημέρωση του UI άμεσα
     setSecuritySettings((prev) => 
       prev.map(setting => ({...setting, isEnabled: true}))
     );
-    toast.info("Όλες οι λειτουργίες ασφαλείας ενεργοποιήθηκαν");
-  }, []);
+    
+    try {
+      // Δημιουργία ή ενημέρωση όλων των ρυθμίσεων στη βάση
+      for (const setting of securitySettings) {
+        const existingSetting = dbSecuritySettings.find(s => s.setting_name === setting.id);
+        
+        if (existingSetting) {
+          // Ενημέρωση μόνο αν δεν είναι ήδη ενεργοποιημένη
+          if (!existingSetting.is_enabled) {
+            await securityService.updateSecuritySetting(existingSetting.id!, true);
+          }
+        } else {
+          // Δημιουργία νέας ρύθμισης
+          const newSetting = await securityService.createSecuritySetting({
+            user_id: user.id,
+            setting_name: setting.id,
+            is_enabled: true
+          });
+          
+          if (newSetting) {
+            setDbSecuritySettings(prev => [...prev, newSetting]);
+          }
+        }
+      }
+      
+      toast.success("Όλες οι λειτουργίες ασφαλείας ενεργοποιήθηκαν");
+    } catch (error) {
+      console.error("Error enabling all security settings:", error);
+      toast.error("Σφάλμα κατά την ενεργοποίηση όλων των λειτουργιών");
+      
+      // Επαναφορτώνουμε τις ρυθμίσεις σε περίπτωση σφάλματος
+      loadSettings();
+    } finally {
+      setIsLoading(false);
+    }
+  }, [securitySettings, user?.id, dbSecuritySettings]);
 
-  const handleDisableAll = useCallback(() => {
+  const handleDisableAll = useCallback(async () => {
+    if (!user?.id) return;
+    
+    setIsLoading(true);
+    
+    // Ενημέρωση του UI άμεσα
     setSecuritySettings((prev) => 
       prev.map(setting => ({...setting, isEnabled: false}))
     );
-    toast.info("Όλες οι λειτουργίες ασφαλείας απενεργοποιήθηκαν");
-  }, []);
+    
+    try {
+      // Ενημέρωση όλων των ρυθμίσεων στη βάση
+      for (const dbSetting of dbSecuritySettings) {
+        if (dbSetting.is_enabled) {
+          await securityService.updateSecuritySetting(dbSetting.id!, false);
+        }
+      }
+      
+      toast.success("Όλες οι λειτουργίες ασφαλείας απενεργοποιήθηκαν");
+    } catch (error) {
+      console.error("Error disabling all security settings:", error);
+      toast.error("Σφάλμα κατά την απενεργοποίηση όλων των λειτουργιών");
+      
+      // Επαναφορτώνουμε τις ρυθμίσεις σε περίπτωση σφάλματος
+      loadSettings();
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.id, dbSecuritySettings]);
 
-  const handleSaveSettings = useCallback(() => {
-    // Εδώ θα μπορούσατε να αποθηκεύσετε τις ρυθμίσεις στο Supabase όταν είναι έτοιμο
+  const handleSaveSettings = useCallback(async () => {
+    if (!user?.id) {
+      toast.error("Πρέπει να συνδεθείτε για να αποθηκεύσετε τις ρυθμίσεις");
+      return;
+    }
+    
+    // Αποθήκευση των ρυθμίσεων στην τοπική αποθήκευση για offline χρήση
     localStorage.setItem('securitySettings', JSON.stringify(securitySettings));
+    
+    // Τα δεδομένα έχουν ήδη αποθηκευτεί στο Supabase σε κάθε toggle
     toast.success("Οι ρυθμίσεις ασφαλείας αποθηκεύτηκαν");
-  }, [securitySettings]);
+  }, [securitySettings, user?.id]);
 
   return {
     expanded,
@@ -113,6 +257,7 @@ export function usePlatformSecurity() {
     handleToggle,
     handleEnableAll,
     handleDisableAll,
-    handleSaveSettings
+    handleSaveSettings,
+    isLoading
   };
 }

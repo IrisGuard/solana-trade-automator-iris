@@ -1,75 +1,119 @@
 
-/**
- * Συλλογή σφαλμάτων για ομαδική επεξεργασία και αναφορά
- */
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { generateErrorCode } from '@/components/debug/error-dialog/errorCodeUtils';
+
+export interface ErrorData {
+  message: string;
+  stack?: string;
+  component?: string;
+  source?: string;
+  url?: string;
+  browserInfo?: Record<string, any>;
+  timestamp?: number;
+  code?: string;
+}
+
 export class ErrorCollector {
-  private errors: Error[] = [];
-  private maxErrors: number = 20;
-  
+  private errors: ErrorData[] = [];
+  private userId: string | null = null;
+  private isSubmitting = false;
+  private maxErrors = 10;
+
   constructor() {
     this.errors = [];
   }
-  
-  /**
-   * Προσθέτει ένα σφάλμα στη συλλογή
-   */
-  public addError(error: Error): void {
-    this.errors.push(error);
-    
-    // Διατήρηση περιορισμένου αριθμού σφαλμάτων για αποφυγή διαρροής μνήμης
-    if (this.errors.length > this.maxErrors) {
-      this.errors.shift();
-    }
-    
-    console.error("Error collected:", error);
+
+  setUserId(userId: string | null) {
+    this.userId = userId;
   }
-  
-  /**
-   * Επιστρέφει όλα τα συλλεγμένα σφάλματα
-   */
-  public getErrors(): Error[] {
+
+  addError(error: ErrorData) {
+    // Προσθήκη κωδικού σφάλματος και timestamp αν δεν υπάρχουν
+    const errorWithMetadata = {
+      ...error,
+      timestamp: error.timestamp || Date.now(),
+      code: error.code || generateErrorCode()
+    };
+
+    // Περιορισμός του αριθμού των αποθηκευμένων σφαλμάτων
+    if (this.errors.length >= this.maxErrors) {
+      this.errors.shift(); // Αφαίρεση του παλαιότερου σφάλματος
+    }
+
+    this.errors.push(errorWithMetadata);
+    console.error('Error added to collector:', errorWithMetadata);
+
+    return errorWithMetadata.code;
+  }
+
+  getErrors() {
     return [...this.errors];
   }
-  
-  /**
-   * Καθαρίζει τη συλλογή σφαλμάτων
-   */
-  public clearErrors(): void {
+
+  clearErrors() {
     this.errors = [];
   }
-  
-  /**
-   * Επιστρέφει ένα συγκεκριμένο σφάλμα με βάση τον δείκτη
-   */
-  public getErrorAt(index: number): Error | undefined {
-    return this.errors[index];
-  }
-  
-  /**
-   * Επιστρέφει τον αριθμό των συλλεγμένων σφαλμάτων
-   */
-  public getErrorCount(): number {
-    return this.errors.length;
-  }
-  
-  /**
-   * Αποστολή όλων των σφαλμάτων για αναφορά
-   */
-  public reportErrors(): void {
-    if (this.errors.length === 0) {
+
+  async submitToSupabase() {
+    if (this.isSubmitting || this.errors.length === 0) {
       return;
     }
-    
-    console.log(`Reporting ${this.errors.length} collected errors`);
-    
-    // Εδώ θα μπορούσαμε να προσθέσουμε κώδικα για αποστολή σφαλμάτων σε κάποιο σύστημα παρακολούθησης
-    // For compatibility with previous code that might call sendCollectedErrors
+
+    this.isSubmitting = true;
+
+    try {
+      const errorsToSubmit = this.errors.map(error => ({
+        user_id: this.userId,
+        error_message: error.message,
+        error_stack: error.stack,
+        component: error.component,
+        source: error.source || 'client',
+        url: error.url || window.location.href,
+        browser_info: {
+          userAgent: navigator.userAgent,
+          platform: navigator.platform,
+          language: navigator.language,
+          timestamp: error.timestamp,
+          code: error.code,
+          ...(error.browserInfo || {})
+        }
+      }));
+
+      const { error } = await supabase.from('error_logs').insert(errorsToSubmit);
+
+      if (error) {
+        console.error('Error submitting to Supabase:', error);
+        return false;
+      }
+
+      // Καθαρισμός της λίστας μετά από επιτυχή αποστολή
+      this.clearErrors();
+      return true;
+    } catch (err) {
+      console.error('Exception in submitToSupabase:', err);
+      return false;
+    } finally {
+      this.isSubmitting = false;
+    }
   }
-  
-  /**
-   * Alias for reportErrors for backward compatibility
-   */
-  public sendCollectedErrors(): void {
-    this.reportErrors();
+
+  async logErrorAndNotify(error: Error, component?: string) {
+    const errorCode = this.addError({
+      message: error.message,
+      stack: error.stack,
+      component,
+      url: window.location.href
+    });
+
+    toast.error(`Παρουσιάστηκε σφάλμα (${errorCode})`, {
+      description: "Το σφάλμα έχει καταγραφεί και θα διορθωθεί σύντομα.",
+      duration: 5000,
+    });
+
+    await this.submitToSupabase();
   }
 }
+
+// Singleton instance
+export const errorCollector = new ErrorCollector();
