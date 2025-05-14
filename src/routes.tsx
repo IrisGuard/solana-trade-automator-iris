@@ -12,6 +12,11 @@ const Security = React.lazy(() => import("@/pages/Security"));
 const Settings = React.lazy(() => import("@/pages/Settings"));
 const Help = React.lazy(() => import("@/pages/Help"));
 const NotFound = React.lazy(() => import("@/pages/NotFound"));
+const Dashboard = React.lazy(() => import("@/pages/Dashboard"));
+const Wallet = React.lazy(() => import("@/pages/Wallet"));
+const Portfolio = React.lazy(() => import("@/pages/Portfolio"));
+const Transactions = React.lazy(() => import("@/pages/Transactions"));
+const ApiVault = React.lazy(() => import("@/pages/ApiVault"));
 
 // Loading component for Suspense
 const PageLoader = () => (
@@ -33,6 +38,31 @@ export const Routes = () => {
         <Route path="home" element={
           <Suspense fallback={<PageLoader />}>
             <Home />
+          </Suspense>
+        } />
+        <Route path="dashboard" element={
+          <Suspense fallback={<PageLoader />}>
+            <Dashboard />
+          </Suspense>
+        } />
+        <Route path="wallet" element={
+          <Suspense fallback={<PageLoader />}>
+            <Wallet />
+          </Suspense>
+        } />
+        <Route path="portfolio" element={
+          <Suspense fallback={<PageLoader />}>
+            <Portfolio />
+          </Suspense>
+        } />
+        <Route path="transactions" element={
+          <Suspense fallback={<PageLoader />}>
+            <Transactions />
+          </Suspense>
+        } />
+        <Route path="api-vault" element={
+          <Suspense fallback={<PageLoader />}>
+            <ApiVault />
           </Suspense>
         } />
         <Route path="auth" element={
@@ -68,4 +98,4 @@ export const Routes = () => {
       </Route>
     </RouterRoutes>
   );
-};
+}
