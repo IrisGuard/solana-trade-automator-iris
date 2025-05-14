@@ -1,136 +1,145 @@
 
-import { errorCollector } from '@/utils/error-handling/collector';
-import { TestErrorOptions } from '@/utils/error-handling/collector/types';
+import { toast } from "sonner";
+import { errorCollector } from "./error-handling/collector";
+import { TestErrorOptions } from "./error-handling/types";
 
-// Export functions needed by other files
-export function clearAllErrors(): void {
-  errorCollector.clearAllErrors();
-}
+/**
+ * Creates a test error with the specified options
+ */
+export function createTestError(options: TestErrorOptions = {}) {
+  const {
+    message = "This is a test error",
+    errorType = "Error",
+    component = "ErrorTestComponent",
+    details = null,
+    simulateDelay = 0
+  } = options;
 
-export function getAllErrors() {
-  return errorCollector.getAllErrors();
-}
+  let error: Error;
 
-export function triggerTestError(type: string, options?: TestErrorOptions): void {
-  switch (type) {
-    case 'js':
-      triggerJsError(options);
+  // Create different types of errors for testing
+  switch (errorType) {
+    case "TypeError":
+      error = new TypeError(message);
       break;
-    case 'async':
-      triggerAsyncError(options);
+    case "ReferenceError":
+      error = new ReferenceError(message);
       break;
-    case 'network':
-      triggerNetworkError(options);
-      break;
-    case 'ui':
-      triggerUIError(options);
+    case "SyntaxError":
+      error = new SyntaxError(message);
       break;
     default:
-      console.error('Unknown error type:', type);
+      error = new Error(message);
   }
-}
 
-export function generateVariousErrors(count: number = 1): void {
-  const errorTypes = ['js', 'async', 'network', 'ui'];
-  for (let i = 0; i < count; i++) {
-    const randomType = errorTypes[Math.floor(Math.random() * errorTypes.length)];
+  // Add stack trace if not present
+  if (!error.stack) {
     try {
-      triggerTestError(randomType);
+      throw error;
     } catch (e) {
-      // Catch and ignore to prevent test errors from stopping execution
-      console.log(`Generated test error: ${randomType}`);
+      error = e as Error;
     }
   }
-}
 
-function triggerJsError(options?: TestErrorOptions): void {
-  try {
-    const errorType = options?.errorType || 'reference';
-    
-    if (errorType === 'reference') {
-      // @ts-ignore - Intentionally causing an error
-      const nonExistentVar = undefinedVariable?.property;
-    } else if (errorType === 'type') {
-      // Create an intentional type error that won't be caught by TS compiler
-      // @ts-ignore - Intentionally causing an error
-      const num: any = 42;
-      console.log(num.doesNotExist());
-    } else if (errorType === 'syntax') {
-      try {
-        // @ts-ignore - Intentionally causing an error
-        eval('const x = {,};');
-      } catch (e) {
-        throw new SyntaxError('Test syntax error');
-      }
-    }
-  } catch (error) {
-    errorCollector.captureError(error instanceof Error ? error : new Error('Unknown JavaScript Error'), {
-      source: 'test',
-      component: 'ErrorTestUtils'
+  const captureError = () => {
+    // Capture the error in the collector
+    const errorId = errorCollector.captureError(error, {
+      component,
+      details,
+      source: "test"
     });
-    throw error;
+
+    // Optionally show toast notification
+    toast.error(`Test error: ${message}`);
+
+    return errorId;
+  };
+
+  // Either capture immediately or after delay
+  if (simulateDelay > 0) {
+    return new Promise<string>(resolve => {
+      setTimeout(() => {
+        const errorId = captureError();
+        resolve(errorId);
+      }, simulateDelay);
+    });
+  } else {
+    return captureError();
   }
 }
 
-function triggerAsyncError(options?: TestErrorOptions): void {
-  setTimeout(() => {
-    try {
-      const errorType = options?.errorType || 'promise';
+/**
+ * Creates an async test error
+ */
+export function createAsyncTestError(options: TestErrorOptions = {}) {
+  return new Promise<string>((_, reject) => {
+    setTimeout(() => {
+      const error = new Error(options.message || "Async test error");
       
-      if (errorType === 'promise') {
-        Promise.reject(new Error('Test Promise Rejection'));
-      } else {
-        throw new Error('Test Async Error');
-      }
-    } catch (error) {
-      errorCollector.captureError(error instanceof Error ? error : new Error('Unknown Async Error'), {
-        source: 'test',
-        component: 'ErrorTestUtils'
+      // Add the error to the collector before rejecting
+      const errorId = errorCollector.captureError(error, {
+        component: options.component || "AsyncTestComponent",
+        details: options.details,
+        source: "test"
       });
-    }
-  }, 100);
+      
+      // Attach the ID to the error
+      (error as any).id = errorId;
+      
+      reject(error);
+    }, options.simulateDelay || 100);
+  });
 }
 
-function triggerNetworkError(options?: TestErrorOptions): void {
-  const errorType = options?.errorType || 'fetch';
+/**
+ * Simulates a network error
+ */
+export function createNetworkTestError(options: TestErrorOptions = {}) {
+  return new Promise<Response>((_, reject) => {
+    setTimeout(() => {
+      const error = new Error(options.message || "Network request failed");
+      error.name = "NetworkError";
+      
+      // Add the error to the collector before rejecting
+      const errorId = errorCollector.captureError(error, {
+        component: options.component || "NetworkTestComponent",
+        details: options.details || { request: { url: "https://api.example.com/test" } },
+        source: "test"
+      });
+      
+      // Attach the ID to the error
+      (error as any).id = errorId;
+      
+      reject(error);
+    }, options.simulateDelay || 100);
+  });
+}
+
+/**
+ * Simulates a UI error
+ */
+export function createUITestError(options: TestErrorOptions = {}) {
+  const error = new Error(options.message || "UI rendering error");
+  error.name = "UIError";
   
-  if (errorType === 'fetch') {
-    fetch('https://non-existent-domain-123456.xyz')
-      .then(response => response.json())
-      .catch(error => {
-        errorCollector.captureError(error, {
-          source: 'test',
-          component: 'ErrorTestUtils'
-        });
-      });
-  } else if (errorType === 'timeout') {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 100);
-    
-    fetch('https://httpstat.us/200?sleep=5000', { signal: controller.signal })
-      .then(response => {
-        clearTimeout(timeoutId);
-        return response.json();
-      })
-      .catch(error => {
-        errorCollector.captureError(error, {
-          source: 'test',
-          component: 'ErrorTestUtils'
-        });
-      });
-  }
+  // Add the error to the collector
+  const errorId = errorCollector.captureError(error, {
+    component: options.component || "UITestComponent",
+    details: options.details || { element: "Button", props: { disabled: true } },
+    source: "test"
+  });
+  
+  // Optionally display in UI
+  toast.error(`UI Test Error: ${error.message}`);
+  
+  return errorId;
 }
 
-function triggerUIError(options?: TestErrorOptions): void {
-  try {
-    const errorType = options?.errorType || 'render';
-    
-    throw new Error(`Test UI Error: ${errorType}`);
-  } catch (error) {
-    errorCollector.captureError(error instanceof Error ? error : new Error('Unknown UI Error'), {
-      source: 'test',
-      component: 'ErrorTestUtils'
-    });
-    throw error;
-  }
+/**
+ * Clears all errors from the collector
+ */
+export function clearAllErrors() {
+  errorCollector.clearErrors();
+  toast.success("All errors cleared");
+  return true;
 }

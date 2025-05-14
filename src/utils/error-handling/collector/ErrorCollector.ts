@@ -1,132 +1,122 @@
+import { createHash } from 'crypto';
+import { ErrorCollector, ErrorOptions, ErrorData } from './types';
 
-import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '@/integrations/supabase/client';
-import { 
-  ErrorCollector as IErrorCollector,
-  ErrorData, 
-  ErrorOptions, 
-  ErrorSource 
-} from './types';
+const MAX_ERRORS = 50;
 
 /**
- * Error collector implementation that captures and logs errors
+ * Implementation of the ErrorCollector interface
+ * Collects errors for later analysis and reporting
  */
-class ErrorCollectorImpl implements IErrorCollector {
+export class ErrorCollectorImpl implements ErrorCollector {
   private errors: ErrorData[] = [];
-  private readonly maxErrors = 50;
   
   /**
-   * Capture an error with additional context
+   * Captures an error into the collector
+   * @param error - The error to capture
+   * @param options - Additional options for error context
+   * @returns The ID of the captured error
    */
-  captureError(error: Error | unknown, options: ErrorOptions = {}): string {
-    const errorObj = error instanceof Error ? error : new Error(String(error));
-    
-    // Generate unique ID for this error
-    const errorId = uuidv4();
-    
-    // Create error data object
-    const errorData: ErrorData = {
-      id: errorId,
-      message: errorObj.message,
-      stack: errorObj.stack,
-      component: options.component,
-      source: options.source || 'client',
-      url: options.url || (typeof window !== 'undefined' ? window.location.href : undefined),
-      browserInfo: options.browserInfo || this.getBrowserInfo(),
-      timestamp: new Date()
-    };
-    
-    // Add to in-memory collection (with limit)
-    this.errors.unshift(errorData);
-    if (this.errors.length > this.maxErrors) {
-      this.errors.pop();
-    }
-    
-    // Log the error to console
-    console.error('[ERROR]:', errorData.message, errorData);
-    
-    // Log to backend if available
-    this.logError(errorData).catch((logError) => {
-      console.error('Failed to log error to backend:', logError);
-    });
-    
-    return errorId;
+  captureError(error: Error | string, options: ErrorOptions = {}): string {
+    return this.collectError(error, options);
   }
   
   /**
-   * Get all captured errors
+   * Collects an error into the collector (alias for captureError)
+   * @param error - The error to collect
+   * @param options - Additional options for error context
+   * @returns The ID of the collected error
+   */
+  collectError(error: Error | string, options: ErrorOptions = {}): string {
+    const timestamp = new Date();
+    
+    // Generate a unique ID for the error
+    const id = `err_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    
+    // Create the error data object
+    const errorData: ErrorData = {
+      id,
+      error,
+      timestamp,
+      component: options.component,
+      source: options.source,
+      url: options.url,
+      browserInfo: options.browserInfo,
+      details: options.details
+    };
+    
+    // If the error is an Error object, extract the stack trace
+    if (error instanceof Error) {
+      errorData.stack = error.stack;
+    }
+    
+    // Add the error to the collection, keeping only the most recent errors
+    this.errors.unshift(errorData);
+    
+    // Limit the number of stored errors to prevent memory issues
+    if (this.errors.length > MAX_ERRORS) {
+      this.errors = this.errors.slice(0, MAX_ERRORS);
+    }
+    
+    // Log the error to the console for debugging
+    console.error('[ErrorCollector]', errorData);
+    
+    return id;
+  }
+  
+  /**
+   * Gets all collected errors
+   * @returns Array of error data
    */
   getErrors(): ErrorData[] {
     return [...this.errors];
   }
   
   /**
-   * Clear all captured errors
+   * Gets the most recent errors
+   * @param count - Number of recent errors to retrieve
+   * @returns Array of most recent error data
+   */
+  getRecentErrors(count: number = 10): ErrorData[] {
+    return this.errors.slice(0, Math.min(count, this.errors.length));
+  }
+  
+  /**
+   * Checks if there are any critical errors
+   * @returns True if critical errors exist
+   */
+  hasCriticalErrors(): boolean {
+    // For now, consider any error as critical
+    // This could be enhanced to check for specific error types or conditions
+    return this.errors.length > 0;
+  }
+  
+  /**
+   * Creates a hash for an error to help with grouping similar errors
+   * @param errorData - The error data to hash
+   * @returns Hash string
+   */
+  private createErrorHash(errorData: ErrorData): string {
+    const hashInput = [
+      errorData.error instanceof Error ? errorData.error.message : errorData.error,
+      errorData.stack,
+      errorData.component,
+      errorData.source,
+      errorData.url,
+      errorData.browserInfo ? JSON.stringify(errorData.browserInfo) : '',
+    ]
+      .filter(Boolean)
+      .join('|');
+    
+    return createHash('sha256').update(hashInput).digest('hex').substring(0, 8);
+  }
+  
+  /**
+   * Clears all collected errors
    */
   clearErrors(): void {
     this.errors = [];
   }
-  
-  /**
-   * Log the error to the backend
-   */
-  async logError(errorData: ErrorData): Promise<string | null> {
-    try {
-      // Use Supabase to log the error
-      const { data, error } = await supabase.rpc('log_error', {
-        p_error_message: errorData.message,
-        p_error_stack: errorData.stack || null,
-        p_component: errorData.component || null,
-        p_source: errorData.source || 'client',
-        p_url: errorData.url || null,
-        p_browser_info: errorData.browserInfo || null
-      });
-      
-      if (error) {
-        console.error('Failed to log error to Supabase:', error);
-        return null;
-      }
-      
-      return data;
-    } catch (error) {
-      console.error('Exception logging error to backend:', error);
-      return null;
-    }
-  }
-  
-  /**
-   * Get browser and environment information
-   */
-  private getBrowserInfo(): Record<string, any> {
-    if (typeof window === 'undefined') {
-      return { environment: 'server' };
-    }
-    
-    return {
-      userAgent: navigator.userAgent,
-      language: navigator.language,
-      viewport: {
-        width: window.innerWidth,
-        height: window.innerHeight,
-      },
-      timestamp: new Date().toISOString()
-    };
-  }
-
-  // For backward compatibility
-  addError(error: Error | unknown, options: ErrorOptions = {}): string {
-    return this.captureError(error, options);
-  }
-
-  getAllErrors(): ErrorData[] {
-    return this.getErrors();
-  }
-
-  clearAllErrors(): void {
-    this.clearErrors();
-  }
 }
 
-// Create singleton instance
+// Singleton instance of the error collector
 export const errorCollector = new ErrorCollectorImpl();
-export type { ErrorData, ErrorOptions };

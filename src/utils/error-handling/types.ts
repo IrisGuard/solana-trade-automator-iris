@@ -40,8 +40,22 @@ export interface GroupedError {
 }
 
 export interface ErrorData {
+  id?: string;
   error: Error | string;
   component?: string;
   details?: any;
   timestamp?: Date;
+  source?: string;
+  stack?: string;
+  url?: string;
+  browserInfo?: any;
+}
+
+export interface ErrorOptions {
+  component?: string;
+  source?: string;
+  url?: string;
+  details?: any;
+  browserInfo?: any;
+  useCollector?: boolean;
 }
