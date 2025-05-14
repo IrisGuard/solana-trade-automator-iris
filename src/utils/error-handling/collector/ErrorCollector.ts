@@ -1,111 +1,156 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { generateErrorCode } from '@/components/debug/error-dialog/errorCodeUtils';
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { generateErrorCode } from "@/components/debug/error-dialog/errorCodeUtils";
 
-export interface ErrorData {
+export interface ErrorDetails {
   message: string;
   stack?: string;
   component?: string;
-  source?: string;
+  source?: 'client' | 'server' | 'network';
   url?: string;
-  browserInfo?: Record<string, any>;
-  timestamp?: number;
+  browserInfo?: {
+    userAgent?: string;
+    language?: string;
+    platform?: string;
+    [key: string]: any;
+  };
+  timestamp?: Date;
   code?: string;
 }
 
+/**
+ * Κλάση για τη συλλογή και αποθήκευση σφαλμάτων για μαζική υποβολή
+ */
 export class ErrorCollector {
-  private errors: ErrorData[] = [];
-  private userId: string | null = null;
-  private isSubmitting = false;
-  private maxErrors = 10;
+  private errors: ErrorDetails[] = [];
+  private maxErrorsToStore: number = 50;
+  private readonly persistenceKey = 'stored_errors';
 
   constructor() {
-    this.errors = [];
+    this.loadFromStorage();
   }
 
-  setUserId(userId: string | null) {
-    this.userId = userId;
-  }
-
-  addError(error: ErrorData) {
-    // Προσθήκη κωδικού σφάλματος και timestamp αν δεν υπάρχουν
-    const errorWithMetadata = {
+  /**
+   * Προσθέτει ένα σφάλμα στη συλλογή
+   */
+  addError(error: Omit<ErrorDetails, 'timestamp' | 'code'>): string {
+    const errorCode = generateErrorCode();
+    
+    const errorWithDetails: ErrorDetails = {
       ...error,
-      timestamp: error.timestamp || Date.now(),
-      code: error.code || generateErrorCode()
+      timestamp: new Date(),
+      code: errorCode
     };
-
-    // Περιορισμός του αριθμού των αποθηκευμένων σφαλμάτων
-    if (this.errors.length >= this.maxErrors) {
+    
+    // Προσθήκη στην τοπική συλλογή
+    this.errors.push(errorWithDetails);
+    
+    // Διασφάλιση ότι δεν ξεπερνάμε το μέγιστο αριθμό
+    if (this.errors.length > this.maxErrorsToStore) {
       this.errors.shift(); // Αφαίρεση του παλαιότερου σφάλματος
     }
-
-    this.errors.push(errorWithMetadata);
-    console.error('Error added to collector:', errorWithMetadata);
-
-    return errorWithMetadata.code;
+    
+    // Αποθήκευση στο localStorage
+    this.saveToStorage();
+    
+    return errorCode;
   }
 
-  getErrors() {
+  /**
+   * Επιστρέφει τη λίστα με όλα τα σφάλματα που έχουν συλλεχθεί
+   */
+  getErrors(): ErrorDetails[] {
     return [...this.errors];
   }
 
-  clearErrors() {
-    this.errors = [];
+  /**
+   * Αποθηκεύει τα σφάλματα στο localStorage
+   */
+  private saveToStorage(): void {
+    try {
+      localStorage.setItem(this.persistenceKey, JSON.stringify(this.errors));
+    } catch (error) {
+      console.error('Αδυναμία αποθήκευσης σφαλμάτων στο localStorage:', error);
+    }
   }
 
-  async submitToSupabase() {
-    if (this.isSubmitting || this.errors.length === 0) {
-      return;
-    }
-
-    this.isSubmitting = true;
-
+  /**
+   * Φορτώνει τα αποθηκευμένα σφάλματα από το localStorage
+   */
+  private loadFromStorage(): void {
     try {
-      const errorsToSubmit = this.errors.map(error => ({
-        user_id: this.userId,
-        error_message: error.message,
-        error_stack: error.stack,
-        component: error.component,
-        source: error.source || 'client',
-        url: error.url || window.location.href,
-        browser_info: {
-          userAgent: navigator.userAgent,
-          platform: navigator.platform,
-          language: navigator.language,
-          timestamp: error.timestamp,
-          code: error.code,
-          ...(error.browserInfo || {})
-        }
-      }));
+      const storedErrors = localStorage.getItem(this.persistenceKey);
+      if (storedErrors) {
+        this.errors = JSON.parse(storedErrors);
+        
+        // Μετατροπή των timestamp strings σε Date objects
+        this.errors.forEach(error => {
+          if (typeof error.timestamp === 'string') {
+            error.timestamp = new Date(error.timestamp);
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Αδυναμία φόρτωσης σφαλμάτων από το localStorage:', error);
+      this.errors = [];
+    }
+  }
 
-      const { error } = await supabase.from('error_logs').insert(errorsToSubmit);
+  /**
+   * Καθαρίζει όλα τα αποθηκευμένα σφάλματα
+   */
+  clearErrors(): void {
+    this.errors = [];
+    this.saveToStorage();
+  }
 
-      if (error) {
-        console.error('Error submitting to Supabase:', error);
+  /**
+   * Υποβάλλει τα σφάλματα στο Supabase
+   */
+  async submitToSupabase(): Promise<boolean> {
+    try {
+      if (this.errors.length === 0) {
+        console.log('Δεν υπάρχουν σφάλματα για υποβολή');
         return false;
       }
-
-      // Καθαρισμός της λίστας μετά από επιτυχή αποστολή
+      
+      // Μετατροπή σε μορφή κατάλληλη για μαζικές εισαγωγές
+      const errorsToSubmit = this.errors.map(err => ({
+        error_message: err.message,
+        error_stack: err.stack || null,
+        component: err.component || null,
+        source: err.source || 'client',
+        url: err.url || null,
+        browser_info: err.browserInfo || null
+      }));
+      
+      // Υποβολή με μαζική εισαγωγή
+      const { error } = await supabase
+        .rpc('log_error', errorsToSubmit);
+      
+      if (error) {
+        console.error('Σφάλμα κατά την υποβολή σφαλμάτων στο Supabase:', error);
+        return false;
+      }
+      
+      // Καθαρισμός μετά την επιτυχή υποβολή
       this.clearErrors();
       return true;
-    } catch (err) {
-      console.error('Exception in submitToSupabase:', err);
+    } catch (error) {
+      console.error('Σφάλμα κατά την υποβολή σφαλμάτων:', error);
       return false;
-    } finally {
-      this.isSubmitting = false;
     }
   }
 
-  // Προσθήκη της μεθόδου reportErrors που λείπει
-  async reportErrors() {
+  // Προσθήκη της μεθόδου reportErrors
+  async reportErrors(): Promise<boolean> {
     if (this.errors.length === 0) {
-      console.log('No errors to report');
-      return;
+      console.log('Δεν υπάρχουν σφάλματα για αναφορά');
+      return true;
     }
     
-    console.log(`Reporting ${this.errors.length} errors to Supabase`);
+    console.log(`Αναφορά ${this.errors.length} σφαλμάτων στο Supabase`);
     const result = await this.submitToSupabase();
     
     if (result) {
@@ -117,22 +162,27 @@ export class ErrorCollector {
     return result;
   }
 
-  async logErrorAndNotify(error: Error, component?: string) {
+  async logErrorAndNotify(error: Error, component?: string): Promise<string> {
     const errorCode = this.addError({
       message: error.message,
       stack: error.stack,
       component,
-      url: window.location.href
+      source: 'client',
+      url: window.location.href,
+      browserInfo: {
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        platform: navigator.platform
+      }
     });
-
-    toast.error(`Παρουσιάστηκε σφάλμα (${errorCode})`, {
-      description: "Το σφάλμα έχει καταγραφεί και θα διορθωθεί σύντομα.",
-      duration: 5000,
+    
+    toast.error(`Σφάλμα: ${error.message}`, {
+      description: `Κωδικός σφάλματος: ${errorCode}`
     });
-
-    await this.submitToSupabase();
+    
+    return errorCode;
   }
 }
 
-// Singleton instance
+// Εξαγωγή singleton instance για όλη την εφαρμογή
 export const errorCollector = new ErrorCollector();

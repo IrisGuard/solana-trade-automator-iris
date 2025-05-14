@@ -1,194 +1,171 @@
 
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { useAuth } from "@/hooks/useAuth";
-import { securityService, TransactionSettings, ApprovedAddress } from "@/services/securityService";
+import { useState, useEffect, useCallback } from 'react';
+import { transactionSecurityService, TransactionSettings, ApprovedAddress } from '@/services/transactionSecurityService';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 export function useTransactionSecurity() {
-  const [confirmationEnabled, setConfirmationEnabled] = useState(true);
-  const [approvedAddressesEnabled, setApprovedAddressesEnabled] = useState(false);
-  const [delayEnabled, setDelayEnabled] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [geoRestrictionsEnabled, setGeoRestrictionsEnabled] = useState(false);
+  const { user } = useAuth();
+  
   const [transactionSettings, setTransactionSettings] = useState<TransactionSettings | null>(null);
   const [approvedAddresses, setApprovedAddresses] = useState<ApprovedAddress[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   
-  const { user } = useAuth();
-
+  const [approvedAddressesEnabled, setApprovedAddressesEnabled] = useState(false);
+  const [transactionDelaysEnabled, setTransactionDelaysEnabled] = useState(false);
+  
+  // Φόρτωση ρυθμίσεων κατά την αρχικοποίηση
   useEffect(() => {
     if (user?.id) {
       loadSettings();
-      loadApprovedAddresses();
     }
   }, [user?.id]);
-
+  
   const loadSettings = async () => {
     if (!user?.id) return;
-    setIsLoading(true);
     
-    try {
-      const settings = await securityService.getTransactionSettings(user.id);
-      if (settings) {
-        setTransactionSettings(settings);
-        setApprovedAddressesEnabled(settings.whitelist_only);
-        setDelayEnabled(settings.delay_seconds > 0);
-        setNotificationsEnabled(settings.notification_email || settings.notification_app);
-      }
-    } catch (error) {
-      console.error("Error loading transaction settings:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const loadApprovedAddresses = async () => {
-    if (!user?.id) return;
     setIsLoading(true);
-    
     try {
-      const addresses = await securityService.getApprovedAddresses(user.id);
+      // Φόρτωση ρυθμίσεων συναλλαγών
+      const settings = await transactionSecurityService.getTransactionSettings(user.id);
+      setTransactionSettings(settings);
+      setApprovedAddressesEnabled(settings.whitelist_only);
+      setTransactionDelaysEnabled(settings.delay_seconds > 0);
+      
+      // Φόρτωση εγκεκριμένων διευθύνσεων
+      const addresses = await transactionSecurityService.getApprovedAddresses(user.id);
       setApprovedAddresses(addresses);
     } catch (error) {
-      console.error("Error loading approved addresses:", error);
+      console.error('Error loading security settings:', error);
+      toast.error('Σφάλμα φόρτωσης ρυθμίσεων ασφαλείας');
     } finally {
       setIsLoading(false);
     }
   };
-
-  const saveTransactionLimits = async (maxDaily: number, maxTransaction: number) => {
+  
+  // Αποθήκευση ορίων συναλλαγών
+  const saveTransactionLimits = useCallback(async (maxDailyAmount: number, maxTransactionAmount: number) => {
     if (!user?.id || !transactionSettings) return;
     
+    setIsLoading(true);
     try {
-      const updatedSettings = await securityService.updateTransactionSettings({
-        ...transactionSettings,
-        max_daily_amount: maxDaily,
-        max_transaction_amount: maxTransaction
+      const updatedSettings = await transactionSecurityService.updateTransactionSettings(user.id, {
+        max_daily_amount: maxDailyAmount,
+        max_transaction_amount: maxTransactionAmount
       });
       
-      if (updatedSettings) {
-        setTransactionSettings(updatedSettings);
-        toast.success("Τα όρια συναλλαγών αποθηκεύτηκαν");
-      }
+      setTransactionSettings(updatedSettings);
+      toast.success('Τα όρια συναλλαγών αποθηκεύτηκαν με επιτυχία');
     } catch (error) {
-      console.error("Error saving transaction limits:", error);
-      toast.error("Σφάλμα κατά την αποθήκευση των ορίων συναλλαγών");
+      console.error('Error saving transaction limits:', error);
+      toast.error('Σφάλμα κατά την αποθήκευση των ορίων συναλλαγών');
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [user?.id, transactionSettings]);
   
-  const updateWhitelistOnly = async (enabled: boolean) => {
+  // Ενημέρωση της ρύθμισης whitelist_only
+  const updateWhitelistOnly = useCallback(async (enabled: boolean) => {
     if (!user?.id || !transactionSettings) return;
     
+    setApprovedAddressesEnabled(enabled);
+    setIsLoading(true);
+    
     try {
-      const updatedSettings = await securityService.updateTransactionSettings({
-        ...transactionSettings,
+      const updatedSettings = await transactionSecurityService.updateTransactionSettings(user.id, {
         whitelist_only: enabled
       });
       
-      if (updatedSettings) {
-        setTransactionSettings(updatedSettings);
-        setApprovedAddressesEnabled(enabled);
-      }
+      setTransactionSettings(updatedSettings);
+      toast.success(enabled 
+        ? 'Ενεργοποιήθηκε ο περιορισμός συναλλαγών σε εγκεκριμένες διευθύνσεις'
+        : 'Απενεργοποιήθηκε ο περιορισμός συναλλαγών σε εγκεκριμένες διευθύνσεις'
+      );
     } catch (error) {
-      console.error("Error updating whitelist setting:", error);
+      console.error('Error updating whitelist setting:', error);
+      setApprovedAddressesEnabled(!enabled); // Επαναφορά σε περίπτωση σφάλματος
+      toast.error('Σφάλμα κατά την ενημέρωση της ρύθμισης εγκεκριμένων διευθύνσεων');
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [user?.id, transactionSettings]);
   
-  const updateDelaySettings = async (enabled: boolean, seconds: number = 0) => {
-    if (!user?.id || !transactionSettings) return;
+  // Προσθήκη εγκεκριμένης διεύθυνσης
+  const addApprovedAddress = useCallback(async (address: string, description?: string) => {
+    if (!user?.id) return false;
     
+    setIsLoading(true);
     try {
-      const updatedSettings = await securityService.updateTransactionSettings({
-        ...transactionSettings,
-        delay_seconds: enabled ? seconds : 0
-      });
-      
-      if (updatedSettings) {
-        setTransactionSettings(updatedSettings);
-        setDelayEnabled(enabled && updatedSettings.delay_seconds > 0);
-      }
-    } catch (error) {
-      console.error("Error updating delay settings:", error);
-    }
-  };
-  
-  const updateNotificationSettings = async (email: boolean, app: boolean) => {
-    if (!user?.id || !transactionSettings) return;
-    
-    try {
-      const updatedSettings = await securityService.updateTransactionSettings({
-        ...transactionSettings,
-        notification_email: email,
-        notification_app: app
-      });
-      
-      if (updatedSettings) {
-        setTransactionSettings(updatedSettings);
-        setNotificationsEnabled(email || app);
-      }
-    } catch (error) {
-      console.error("Error updating notification settings:", error);
-    }
-  };
-
-  const addApprovedAddress = async (address: string, description: string) => {
-    if (!user?.id) return;
-    
-    try {
-      const newAddress = await securityService.addApprovedAddress({
+      const newAddress = await transactionSecurityService.addApprovedAddress({
         user_id: user.id,
         address,
         description,
-        blockchain: 'solana'
+        blockchain: 'solana' // Προεπιλεγμένη τιμή για το blockchain
       });
       
-      if (newAddress) {
-        setApprovedAddresses(prevAddresses => [...prevAddresses, newAddress]);
-        return true;
-      }
-      return false;
+      setApprovedAddresses(prev => [...prev, newAddress]);
+      toast.success('Η διεύθυνση προστέθηκε με επιτυχία');
+      return true;
     } catch (error) {
-      console.error("Error adding approved address:", error);
+      console.error('Error adding approved address:', error);
+      toast.error('Σφάλμα κατά την προσθήκη της διεύθυνσης');
       return false;
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [user?.id]);
   
-  const removeApprovedAddress = async (addressId: string) => {
+  // Αφαίρεση εγκεκριμένης διεύθυνσης
+  const removeApprovedAddress = useCallback(async (addressId: string) => {
+    setIsLoading(true);
     try {
-      const success = await securityService.removeApprovedAddress(addressId);
-      
-      if (success) {
-        setApprovedAddresses(prevAddresses => 
-          prevAddresses.filter(addr => addr.id !== addressId)
-        );
-        return true;
-      }
-      return false;
+      await transactionSecurityService.removeApprovedAddress(addressId);
+      setApprovedAddresses(prev => prev.filter(addr => addr.id !== addressId));
+      toast.success('Η διεύθυνση αφαιρέθηκε με επιτυχία');
     } catch (error) {
-      console.error("Error removing approved address:", error);
-      return false;
+      console.error('Error removing approved address:', error);
+      toast.error('Σφάλμα κατά την αφαίρεση της διεύθυνσης');
+    } finally {
+      setIsLoading(false);
     }
-  };
-
+  }, []);
+  
+  // Ενημέρωση της ρύθμισης καθυστέρησης συναλλαγών
+  const updateTransactionDelay = useCallback(async (enabled: boolean, delaySeconds: number = 30) => {
+    if (!user?.id || !transactionSettings) return;
+    
+    setTransactionDelaysEnabled(enabled);
+    setIsLoading(true);
+    
+    try {
+      const updatedSettings = await transactionSecurityService.updateTransactionSettings(user.id, {
+        delay_seconds: enabled ? delaySeconds : 0
+      });
+      
+      setTransactionSettings(updatedSettings);
+      toast.success(enabled 
+        ? `Ενεργοποιήθηκε η καθυστέρηση συναλλαγών (${delaySeconds} δευτερόλεπτα)`
+        : 'Απενεργοποιήθηκε η καθυστέρηση συναλλαγών'
+      );
+    } catch (error) {
+      console.error('Error updating delay setting:', error);
+      setTransactionDelaysEnabled(!enabled); // Επαναφορά σε περίπτωση σφάλματος
+      toast.error('Σφάλμα κατά την ενημέρωση της ρύθμισης καθυστέρησης συναλλαγών');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.id, transactionSettings]);
+  
   return {
-    confirmationEnabled,
-    setConfirmationEnabled,
-    approvedAddressesEnabled,
-    setApprovedAddressesEnabled,
-    delayEnabled,
-    setDelayEnabled,
-    notificationsEnabled,
-    setNotificationsEnabled,
-    geoRestrictionsEnabled,
-    setGeoRestrictionsEnabled,
     transactionSettings,
     approvedAddresses,
     isLoading,
+    approvedAddressesEnabled,
+    transactionDelaysEnabled,
     saveTransactionLimits,
+    updateWhitelistOnly,
     addApprovedAddress,
     removeApprovedAddress,
-    updateWhitelistOnly,
-    updateDelaySettings,
-    updateNotificationSettings
+    updateTransactionDelay
   };
 }

@@ -1,6 +1,84 @@
 
-// Re-export functions from their new modules
-export { displayError } from './error-handling/displayError';
-export { sendErrorToChat } from './error-handling/sendErrorToChat';
-export { displayGroupedErrors } from './error-handling/groupedErrors';
-export { setupGlobalErrorHandling } from './error-handling/setupGlobalErrorHandling';
+import { toast } from "sonner";
+import { errorCollector } from "./error-handling/collector";
+
+interface ErrorDisplayOptions {
+  title?: string;
+  showToast?: boolean;
+  logToConsole?: boolean;
+  useCollector?: boolean;
+  sendToChat?: boolean;
+  component?: string;
+}
+
+const DEFAULT_OPTIONS: ErrorDisplayOptions = {
+  title: "Σφάλμα",
+  showToast: true,
+  logToConsole: true,
+  useCollector: true,
+  sendToChat: false,
+  component: undefined
+};
+
+/**
+ * Κεντρική συνάρτηση για εμφάνιση και διαχείριση σφαλμάτων
+ */
+export function displayError(error: Error, options?: ErrorDisplayOptions): string {
+  const opts = { ...DEFAULT_OPTIONS, ...options };
+  const errorMessage = error.message || "Άγνωστο σφάλμα";
+  
+  // Καταγραφή στην κονσόλα
+  if (opts.logToConsole) {
+    console.error(`${opts.title}: ${errorMessage}`, error);
+  }
+  
+  let errorCode = '';
+  
+  // Προσθήκη στο συλλέκτη σφαλμάτων
+  if (opts.useCollector) {
+    errorCode = errorCollector.addError({
+      message: errorMessage,
+      stack: error.stack,
+      component: opts.component,
+      source: 'client',
+      url: window.location.href,
+      browserInfo: {
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        platform: navigator.platform
+      }
+    });
+  }
+  
+  // Εμφάνιση toast
+  if (opts.showToast) {
+    toast.error(`${opts.title}`, {
+      description: errorMessage,
+      ...(errorCode ? { id: errorCode } : {})
+    });
+  }
+  
+  // Αποστολή στο chat support (μελλοντική λειτουργία)
+  if (opts.sendToChat) {
+    // Προς υλοποίηση μελλοντικά
+    console.log("Αποστολή σφάλματος στο chat support");
+  }
+  
+  return errorCode;
+}
+
+export function formatErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  
+  if (typeof error === 'string') {
+    return error;
+  }
+  
+  if (typeof error === 'object' && error !== null) {
+    return JSON.stringify(error);
+  }
+  
+  return 'Άγνωστο σφάλμα';
+}
