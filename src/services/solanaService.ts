@@ -8,17 +8,17 @@ import { transactionService } from './solana/transaction';
 // Create a combined service for easier access
 export const solanaService = {
   // Wallet Methods
-  connectWallet: walletService.connectWallet,
-  disconnectWallet: walletService.disconnectWallet,
-  fetchSOLBalance: walletService.fetchSOLBalance,
+  connectWallet: walletService.getConnection,
+  disconnectWallet: () => Promise.resolve(true), // No explicit disconnect in walletService
+  fetchSOLBalance: walletService.getSolBalance,
   
   // Token Methods
-  fetchTokenBalance: tokenService.fetchTokenBalance,
-  fetchAllTokenBalances: tokenService.fetchAllTokenBalances,
-  fetchTokenPrices: priceService.fetchTokenPrices,
+  fetchTokenBalance: tokenService.getTokenAccounts,
+  fetchAllTokenBalances: tokenService.getTokenAccounts,
+  fetchTokenPrices: priceService.getTokenPrice,
   
   // Transaction Methods
-  fetchTransactionHistory: transactionService.fetchTransactions,
+  fetchTransactionHistory: transactionService.getRecentTransactions,
   parseTransaction: transactionService.parseTransaction,
   
   // Re-export individual services for direct access if needed

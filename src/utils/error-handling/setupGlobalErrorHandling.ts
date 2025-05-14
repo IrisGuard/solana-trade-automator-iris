@@ -10,7 +10,8 @@ import { errorCollector } from "./collector";
 export const setupGlobalErrorHandling = () => {
   // Handle window errors
   window.onerror = (message, source, lineno, colno, error) => {
-    errorCollector.logErrorAndNotify(error || String(message), {
+    const errorObj = error || new Error(String(message));
+    errorCollector.logErrorAndNotify(errorObj, {
       source: 'window.onerror',
       location: { source, lineno, colno }
     });
@@ -19,10 +20,10 @@ export const setupGlobalErrorHandling = () => {
 
   // Handle unhandled promise rejections
   window.addEventListener('unhandledrejection', (event) => {
-    errorCollector.logErrorAndNotify(
-      event.reason instanceof Error ? event.reason : new Error(String(event.reason)),
-      { source: 'unhandledrejection' }
-    );
+    const errorObj = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
+    errorCollector.logErrorAndNotify(errorObj, { 
+      source: 'unhandledrejection' 
+    });
   });
 
   // Handle React errors that happen outside of error boundaries
@@ -40,7 +41,10 @@ export const setupGlobalErrorHandling = () => {
     ) {
       errorCollector.logErrorAndNotify(
         new Error(errorMessage),
-        { source: 'console.error', isReactError: true }
+        { 
+          source: 'console.error', 
+          isReactError: true 
+        }
       );
     }
   };

@@ -6,7 +6,7 @@ import { PerformanceHistoryCard } from "./PerformanceHistoryCard";
 import { Separator } from "@/components/ui/separator";
 
 interface EnhancedStatusPanelProps {
-  botStatus: string;
+  botStatus: "running" | "idle" | "paused";
   selectedTokenDetails: any;
   selectedTokenPrice: any;
   activeOrders: any[];

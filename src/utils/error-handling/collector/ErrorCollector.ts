@@ -47,22 +47,45 @@ export class ErrorCollector {
   /**
    * Log error and notify systems
    * @param error The error object
-   * @param component Optional component name
+   * @param options Additional options or context
    */
-  logErrorAndNotify(error: Error, component?: string): string {
-    return this.addError({
+  logErrorAndNotify(error: Error, options?: string | { [key: string]: any }): string {
+    const errorData: ErrorData = {
       message: error.message,
       stack: error.stack,
-      source: 'client',
-      component,
-      details: {
-        browserInfo: {
-          userAgent: navigator.userAgent,
-          language: navigator.language
-        },
-        url: window.location.href
-      }
-    });
+      source: 'client'
+    };
+    
+    // Handle options
+    if (typeof options === 'string') {
+      // If options is a string, treat it as a component name
+      errorData.component = options;
+    } else if (options && typeof options === 'object') {
+      // Otherwise, merge the options object
+      Object.assign(errorData, options);
+    }
+    
+    return this.addError(errorData);
+  }
+
+  /**
+   * Report all collected errors to server or monitoring service
+   */
+  async reportErrors(): Promise<void> {
+    try {
+      const errors = this.getAllErrors();
+      if (errors.length === 0) return;
+      
+      console.log("Reporting errors:", errors);
+      
+      // In a real app, this would send errors to a server
+      // For now, we just simulate an API call with a delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      console.log(`${errors.length} errors reported successfully`);
+    } catch (e) {
+      console.error("Error reporting collected errors:", e);
+    }
   }
 
   /**
