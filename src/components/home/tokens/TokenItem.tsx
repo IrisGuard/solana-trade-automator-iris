@@ -1,94 +1,111 @@
 
 import React from "react";
-import { Button } from "@/components/ui/button";
 import { Token } from "@/types/wallet";
-import { formatTokenAmount } from "@/utils/tokenUtils";
+import { Button } from "@/components/ui/button";
+import { ChevronRight, Bot } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface TokenItemProps {
   token: Token;
   price?: number;
   isSelected?: boolean;
-  disabled?: boolean;
-  onSelect?: (tokenAddress: string) => void;
-  onTradingClick?: (tokenAddress: string) => void;
+  isLoading?: boolean;
+  onSelect?: () => void;
+  onTradingClick?: () => void;
 }
 
 export function TokenItem({ 
   token, 
   price, 
   isSelected = false,
-  disabled = false,
+  isLoading = false,
   onSelect,
   onTradingClick
 }: TokenItemProps) {
-  // Handle token selection
-  const handleClick = () => {
-    if (onSelect && !disabled) {
-      onSelect(token.address);
-    }
-  };
-  
-  // Handle trading button click
-  const handleTradingClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onTradingClick && !disabled) {
-      onTradingClick(token.address);
-    }
-  };
-  
-  // Format token amount
-  const formattedAmount = formatTokenAmount(token);
-  
   // Calculate token value if price is available
-  const tokenValue = price ? (token.amount / Math.pow(10, token.decimals)) * price : undefined;
+  const tokenValue = price ? Number(token.amount) * price : undefined;
+
+  // Format token amount based on decimals
+  const formatTokenAmount = (amount: number, decimals: number = 9) => {
+    if (amount === 0) return '0';
+    
+    // For very small numbers, show more decimals
+    if (amount < 0.001) {
+      return amount.toFixed(6);
+    }
+    
+    // For larger numbers, show fewer decimals
+    return amount.toLocaleString(undefined, { 
+      maximumFractionDigits: 4,
+    });
+  };
+  
+  // Format dollar value
+  const formatUSD = (value: number) => {
+    return new Intl.NumberFormat('el-GR', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
+  };
   
   return (
-    <div 
-      className={`flex items-center justify-between p-3 border rounded-md transition-colors ${
-        isSelected ? 'border-primary bg-primary/5' : 'hover:bg-accent/50 cursor-pointer'
-      } ${disabled ? 'opacity-70 cursor-not-allowed' : ''}`}
-      onClick={handleClick}
+    <div
+      className={cn(
+        "flex items-center justify-between p-3 rounded-lg transition-colors",
+        isSelected ? "bg-primary/10 border-primary" : "hover:bg-accent",
+        isSelected ? "border" : "border border-transparent"
+      )}
+      onClick={onSelect}
     >
-      <div className="flex items-center">
-        {token.logo ? (
-          <img 
-            src={token.logo} 
-            alt={`${token.symbol} logo`} 
-            className="w-8 h-8 rounded-full mr-3"
-          />
-        ) : (
-          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mr-3">
-            <span className="text-xs font-medium text-primary">{token.symbol.substring(0, 2)}</span>
-          </div>
-        )}
+      <div className="flex items-center gap-3">
+        <div className="bg-primary/10 rounded-full h-10 w-10 flex items-center justify-center">
+          {token.logo ? (
+            <img src={token.logo} alt={token.symbol} className="h-6 w-6" />
+          ) : (
+            <span className="text-xs font-medium">{token.symbol}</span>
+          )}
+        </div>
         
         <div>
-          <h4 className="font-medium text-sm">{token.name}</h4>
-          <p className="text-xs text-muted-foreground">{token.symbol}</p>
+          <div className="flex items-center gap-1">
+            <p className="font-medium">{token.name}</p>
+            <span className="text-xs px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground">
+              {token.symbol}
+            </span>
+          </div>
+          
+          <p className="text-sm text-muted-foreground">
+            {formatTokenAmount(token.amount, token.decimals)} {token.symbol}
+            {tokenValue && (
+              <span className="ml-1">
+                ({formatUSD(tokenValue)})
+              </span>
+            )}
+          </p>
         </div>
       </div>
       
-      <div className="flex flex-col items-end">
-        <span className="font-medium">{formattedAmount}</span>
-        
-        {tokenValue !== undefined && (
-          <span className="text-xs text-muted-foreground">
-            ≈ ${tokenValue.toFixed(2)}
-          </span>
-        )}
-      </div>
-      
-      {onTradingClick && (
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="ml-2"
-          onClick={handleTradingClick}
-          disabled={disabled}
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          disabled={isLoading}
+          onClick={(e) => {
+            e.stopPropagation();
+            onTradingClick?.();
+          }}
         >
-          Trade
+          <Bot className="h-4 w-4" />
+          <span className="sr-only">Trading Bot</span>
         </Button>
-      )}
+        
+        <ChevronRight className={cn(
+          "h-5 w-5 text-muted-foreground transition-transform",
+          isSelected ? "transform rotate-90" : ""
+        )} />
+      </div>
     </div>
   );
 }

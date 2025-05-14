@@ -9,5 +9,19 @@ export const platform = {
   feature3: "Identifies buying/selling opportunities based on your parameters",
   feature4: "Suggests transactions that require your approval",
   feature5: "Provides detailed statistics and performance reports",
-  createBot: "Create your first bot"
+  createBot: "Create your first bot",
+  welcomeMessage: "Welcome to Solana Trade Automator!",
+  welcomeDescription: "Connect your Phantom Wallet to start automating your Solana blockchain trades.",
+  gettingStarted: "Getting Started:",
+  step1Title: "Connect Wallet",
+  step1Desc: "Connect your Phantom Wallet to access all features",
+  step2Title: "Configure Bot",
+  step2Desc: "Set up your trading bot parameters according to your strategy",
+  step3Title: "Monitor",
+  step3Desc: "Track transactions and performance from the dashboard",
+  automationTitle: "Benefits of Automation",
+  benefit1: "24/7 market monitoring without human intervention",
+  benefit2: "Automatic opportunity recognition based on predefined parameters",
+  benefit3: "Quick transaction execution when opportunities are detected",
+  benefit4: "Detailed reports and analytics to optimize your strategy"
 };

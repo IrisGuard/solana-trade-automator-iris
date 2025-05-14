@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Wallet } from "lucide-react";
 import { usePhantomConnection } from "@/hooks/usePhantomConnection";
 import { TokenBot } from "@/components/wallet/TokenBot";
+import { useLanguage } from "@/hooks/use-language";
 
 export default function Home() {
   const { 
@@ -23,6 +24,8 @@ export default function Home() {
     refreshWalletData,
     selectTokenForTrading
   } = usePhantomConnection();
+  
+  const { t } = useLanguage();
   
   console.log("WalletConnection hook loaded, connection status:", isConnected);
   
@@ -100,40 +103,40 @@ export default function Home() {
         <Card>
           <CardHeader>
             <CardTitle>Αρχίστε με το Solana Trading</CardTitle>
-            <CardDescription>Βήματα για να ξεκινήσετε με την πλατφόρμα</CardDescription>
+            <CardDescription>{t("platform.gettingStarted")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-4 border rounded-lg">
-                  <h3 className="text-lg font-medium mb-2">1. Σύνδεση Πορτοφολιού</h3>
+                  <h3 className="text-lg font-medium mb-2">1. {t("platform.step1Title")}</h3>
                   <p className="text-sm text-muted-foreground">
-                    Συνδέστε το Phantom Wallet σας για να αποκτήσετε πρόσβαση σε όλες τις λειτουργίες της πλατφόρμας.
+                    {t("platform.step1Desc")}
                   </p>
                 </div>
                 
                 <div className="p-4 border rounded-lg">
-                  <h3 className="text-lg font-medium mb-2">2. Ρύθμιση Bot</h3>
+                  <h3 className="text-lg font-medium mb-2">2. {t("platform.step2Title")}</h3>
                   <p className="text-sm text-muted-foreground">
-                    Διαμορφώστε τις παραμέτρους του trading bot σας σύμφωνα με τη στρατηγική σας.
+                    {t("platform.step2Desc")}
                   </p>
                 </div>
                 
                 <div className="p-4 border rounded-lg">
-                  <h3 className="text-lg font-medium mb-2">3. Παρακολούθηση</h3>
+                  <h3 className="text-lg font-medium mb-2">3. {t("platform.step3Title")}</h3>
                   <p className="text-sm text-muted-foreground">
-                    Παρακολουθήστε τις συναλλαγές και την απόδοση από το dashboard της πλατφόρμας.
+                    {t("platform.step3Desc")}
                   </p>
                 </div>
               </div>
               
               <div className="mt-4 p-4 bg-primary/10 rounded-lg">
-                <h3 className="text-lg font-medium mb-2">Πλεονεκτήματα της Αυτοματοποίησης</h3>
+                <h3 className="text-lg font-medium mb-2">{t("platform.automationTitle")}</h3>
                 <ul className="list-disc pl-5 space-y-2">
-                  <li>24/7 παρακολούθηση της αγοράς χωρίς ανθρώπινη παρέμβαση</li>
-                  <li>Αυτόματη αναγνώριση ευκαιριών με βάση προκαθορισμένες παραμέτρους</li>
-                  <li>Γρήγορη εκτέλεση συναλλαγών όταν εντοπίζονται ευκαιρίες</li>
-                  <li>Λεπτομερείς αναφορές και αναλύσεις για τη βελτιστοποίηση της στρατηγικής σας</li>
+                  <li>{t("platform.benefit1")}</li>
+                  <li>{t("platform.benefit2")}</li>
+                  <li>{t("platform.benefit3")}</li>
+                  <li>{t("platform.benefit4")}</li>
                 </ul>
               </div>
             </div>

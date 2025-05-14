@@ -2,7 +2,10 @@
 import React from "react";
 import { Token } from "@/types/wallet";
 import { TokenItem } from "./TokenItem";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { AlertCircle, Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useLanguage } from "@/hooks/use-language";
 
 interface TokensListProps {
   tokens: Token[];
@@ -16,7 +19,7 @@ interface TokensListProps {
   onTradingClick?: (tokenAddress: string) => void;
 }
 
-export function TokensList({
+export function TokensList({ 
   tokens,
   filteredTokens,
   selectedToken,
@@ -27,58 +30,77 @@ export function TokensList({
   onSelectToken,
   onTradingClick
 }: TokensListProps) {
+  const { t } = useLanguage();
+
+  // Loading state
   if (isLoadingTokens) {
     return (
-      <div className="space-y-3">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="flex items-center p-3 border rounded-md">
-            <Skeleton className="h-8 w-8 rounded-full" />
-            <div className="ml-3 space-y-2 flex-1">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-3 w-16" />
-            </div>
-            <Skeleton className="h-6 w-20" />
-          </div>
-        ))}
+      <div className="py-8 flex flex-col items-center justify-center text-center">
+        <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
+        <p className="text-muted-foreground">Φόρτωση tokens...</p>
       </div>
     );
   }
 
+  // Error state
   if (connectionError) {
     return (
-      <div className="p-4 border border-red-200 rounded-md bg-red-50">
-        <p className="text-red-600">Σφάλμα φόρτωσης tokens: {connectionError}</p>
-      </div>
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>{connectionError}</AlertDescription>
+      </Alert>
     );
   }
 
+  // Empty state - no tokens at all
   if (tokens.length === 0) {
     return (
-      <div className="text-center p-6 border border-dashed rounded-md">
-        <p className="text-muted-foreground">Δεν βρέθηκαν tokens στο πορτοφόλι σας.</p>
+      <div className="py-8 text-center">
+        <div className="bg-primary/10 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-4">
+          <AlertCircle className="h-8 w-8 text-primary" />
+        </div>
+        <h3 className="text-lg font-medium mb-1">Δεν βρέθηκαν tokens</h3>
+        <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+          Δεν έχετε καθόλου tokens στο πορτοφόλι σας. Για να χρησιμοποιήσετε την πλατφόρμα μας, 
+          χρειάζεστε tokens SOL ή άλλα SPL tokens.
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => window.open("https://solana.com/ecosystem/exchangeswap", "_blank")}
+        >
+          Αγορά SOL
+        </Button>
       </div>
     );
   }
 
+  // Empty search results
   if (filteredTokens.length === 0) {
     return (
-      <div className="text-center p-6 border border-dashed rounded-md">
-        <p className="text-muted-foreground">Δεν βρέθηκαν tokens που να ταιριάζουν με την αναζήτησή σας.</p>
+      <div className="py-8 text-center">
+        <p className="text-muted-foreground">Δεν βρέθηκαν αποτελέσματα για την αναζήτησή σας.</p>
+        <Button 
+          variant="link" 
+          onClick={() => document.querySelector<HTMLInputElement>('input[type="search"]')?.focus()}
+        >
+          Καθαρισμός αναζήτησης
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {filteredTokens.map((token) => (
         <TokenItem
           key={token.address}
           token={token}
           price={tokenPrices?.[token.address]}
-          isSelected={token.address === selectedToken}
-          onSelect={onSelectToken}
-          onTradingClick={onTradingClick}
-          disabled={isLoading}
+          isSelected={selectedToken === token.address}
+          isLoading={isLoading && selectedToken === token.address}
+          onSelect={() => onSelectToken?.(token.address)}
+          onTradingClick={() => onTradingClick?.(token.address)}
         />
       ))}
     </div>

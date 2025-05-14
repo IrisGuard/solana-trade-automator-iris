@@ -1,7 +1,7 @@
 
 import React from "react";
-import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface TokensHeaderProps {
   searchQuery: string;
@@ -10,15 +10,19 @@ interface TokensHeaderProps {
 
 export function TokensHeader({ searchQuery, onSearchChange }: TokensHeaderProps) {
   return (
-    <div className="flex flex-col space-y-2">
-      <div className="text-lg font-medium">Tokens</div>
-      <div className="relative">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+    <div className="space-y-1.5">
+      <h2 className="text-2xl font-semibold tracking-tight">Τα Tokens σας</h2>
+      <p className="text-sm text-muted-foreground">
+        Διαχειριστείτε τα Solana SPL tokens σας και δημιουργήστε trading bots
+      </p>
+      <div className="relative mt-2">
+        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Αναζήτηση token..."
+          placeholder="Αναζήτηση tokens..."
+          className="pl-8"
+          type="search" 
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-9"
         />
       </div>
     </div>
