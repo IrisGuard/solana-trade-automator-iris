@@ -9,19 +9,19 @@ import { WalletProviderWrapper } from "@/components/wallet/WalletProviderWrapper
 import { ErrorBoundary } from "react-error-boundary";
 import { errorCollector } from "@/utils/error-handling/collector";
 import { captureException } from "@/utils/error-handling/errorReporting";
-import { TooltipProvider } from "@/components/ui/tooltip"; 
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 // Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
-      retry: 1,
-    },
-  },
+      retry: 1
+    }
+  }
 });
 
-function logWalletError(error: Error, info: { componentStack: string }) {
+function logWalletError(error: Error, info: React.ErrorInfo) {
   // Capture error for debugging
   console.error("[unknown]", error, info);
   
