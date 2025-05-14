@@ -27,7 +27,7 @@ export const solanaService = {
   getConnection: () => connection,
   getSolBalance: walletService.getSolBalance,
   getTokenAccounts: tokenService.getTokenAccounts,
-  getTokenPrice: tokenService.getTokenPrice,
+  getTokenPrice: priceService.getTokenPrice,
   getRecentTransactions: transactionService.getRecentTransactions,
   raydium: raydiumService,
   trading: tradingService

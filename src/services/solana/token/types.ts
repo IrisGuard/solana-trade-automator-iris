@@ -1,5 +1,5 @@
 
 import { Token } from '@/types/wallet';
 
-// Re-export with proper syntax
+// Re-export with proper syntax for isolated modules
 export type { Token };
