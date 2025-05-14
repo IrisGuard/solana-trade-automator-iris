@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useLanguage } from "@/providers/LanguageProvider";
+import { useLanguage } from "@/hooks/use-language";
 
 export function SolanaResourceList() {
   const { t } = useLanguage();

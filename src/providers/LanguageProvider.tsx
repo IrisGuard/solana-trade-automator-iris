@@ -4,8 +4,10 @@ import en from '@/locales/en';
 import el from '@/locales/el';
 import { TranslationKeys } from '@/types/language';
 
+// Supported languages
 type Language = 'en' | 'el';
 
+// Context type definition
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
@@ -13,6 +15,7 @@ interface LanguageContextType {
   translations: TranslationKeys;
 }
 
+// Create the context with a default value
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 interface LanguageProviderProps {
@@ -34,36 +37,56 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   const translations = language === 'en' 
     ? en as unknown as TranslationKeys
     : el as unknown as TranslationKeys;
-
+  
+  // Function to get a translated string by key
+  const t = (key: string, defaultValue?: string): string => {
+    try {
+      // Split the key by dots to access nested properties
+      const keys = key.split('.');
+      let result: any = translations;
+      
+      // Traverse the translations object
+      for (const k of keys) {
+        if (result && result[k]) {
+          result = result[k];
+        } else {
+          // If key not found, return default value or key
+          return defaultValue || key;
+        }
+      }
+      
+      return result || defaultValue || key;
+    } catch (error) {
+      console.error(`Translation error for key: ${key}`, error);
+      return defaultValue || key;
+    }
+  };
+  
+  // Update localStorage when language changes
   const handleSetLanguage = (lang: Language) => {
     setLanguage(lang);
     localStorage.setItem('language', lang);
   };
-
-  // Helper function to get a nested value from an object with string path
-  const getNestedValue = (obj: any, path: string) => {
-    return path.split('.').reduce((prev, curr) => {
-      return prev && prev[curr] !== undefined ? prev[curr] : undefined;
-    }, obj);
-  };
-
-  // Translate function
-  const t = (key: string, defaultValue: string = key) => {
-    const value = getNestedValue(translations, key);
-    return value !== undefined ? value : defaultValue;
+  
+  const value: LanguageContextType = {
+    language,
+    setLanguage: handleSetLanguage,
+    t,
+    translations
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t, translations }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );
 }
 
-export const useLanguage = () => {
+// Custom hook to use the language context
+export function useLanguage(): LanguageContextType {
   const context = useContext(LanguageContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
   return context;
-};
+}
