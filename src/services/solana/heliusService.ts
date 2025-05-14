@@ -1,4 +1,4 @@
-import type { ErrorCollector, ErrorData } from '@/utils/error-handling/collector/types';
+import type { ErrorCollector } from '@/utils/error-handling/collector/types';
 import { apiKeys } from './apiConfig';
 import { errorCollector } from '@/utils/error-handling/collector';
 
@@ -17,18 +17,16 @@ const getHeliusApiKey = (): string => {
 };
 
 const handleHeliusError = (error: unknown, source: string) => {
-  const errorData: ErrorData = {
-    message: error instanceof Error ? error.message : String(error),
-    timestamp: new Date(),
-    component: 'HeliusService',
-    source,
-    stack: error instanceof Error ? error.stack : undefined
-  };
+  // Create a proper error object
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const errorStack = error instanceof Error ? error.stack : undefined;
+  const errorObj = error instanceof Error ? error : new Error(errorMessage);
   
-  errorCollector.captureError(errorData.message, {
+  errorCollector.captureError(errorObj, {
     component: 'HeliusService',
     source,
-    details: error
+    details: error,
+    severity: 'high'
   });
   
   throw error;

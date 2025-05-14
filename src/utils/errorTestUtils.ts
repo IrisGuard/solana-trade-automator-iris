@@ -1,8 +1,8 @@
 
-import { TestErrorOptions } from './error-handling/collector/types';
+import { ErrorOptions } from './error-handling/collector/types';
 import { errorCollector } from './error-handling/collector';
 
-export const triggerTestError = async (errorType: string, options: TestErrorOptions = {}) => {
+export const triggerTestError = async (errorType: string, options: ErrorOptions = {}) => {
   const { message = 'Test error', component, details, simulateDelay } = options;
 
   if (simulateDelay) {
@@ -14,7 +14,8 @@ export const triggerTestError = async (errorType: string, options: TestErrorOpti
     component,
     source: 'test',
     details,
-    severity: 'low'
+    severity: 'low',
+    errorType
   });
 
   throw error;

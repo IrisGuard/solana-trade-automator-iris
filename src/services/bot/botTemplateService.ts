@@ -1,4 +1,3 @@
-import { Database } from "@/types/supabase-extensions";
 import { supabase } from "@/lib/supabase";
 import { botCoreService } from './botCoreService';
 

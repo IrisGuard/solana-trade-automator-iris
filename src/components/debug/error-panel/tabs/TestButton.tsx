@@ -5,32 +5,54 @@ import { errorCollector } from '@/utils/error-handling/collector';
 
 interface TestButtonProps {
   label: string;
-  onClick: () => void;
+  options?: {
+    errorType?: string;
+    component?: string;
+    details?: any;
+    message?: string;
+    simulateDelay?: number;
+  };
+  onClick?: () => void;
   disabled?: boolean;
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
   size?: 'default' | 'sm' | 'lg' | 'icon';
-  type?: string; // Allow any string type for errors
-  errorType?: string; // Allow any string type for error categorization
+  type?: string;
 }
 
 export const TestButton: React.FC<TestButtonProps> = ({
   label,
+  options = {},
   onClick,
   disabled = false,
   variant = 'default',
   size = 'default',
-  type,
-  errorType
+  type
 }) => {
   const handleClick = () => {
     try {
-      onClick();
+      if (onClick) {
+        onClick();
+      } else {
+        // Generate error based on options
+        const error = new Error(options.message || `Test error: ${label}`);
+        errorCollector.captureError(error, {
+          type,
+          errorType: options.errorType,
+          source: 'ErrorTestPanel',
+          component: options.component || 'TestButton',
+          details: options.details,
+          message: options.message || `Error triggered by test button: ${label}`
+        });
+
+        // For test purposes, throw the error
+        throw error;
+      }
     } catch (error) {
       errorCollector.captureError(error as Error, {
         type,
-        errorType,
+        errorType: options.errorType,
         source: 'ErrorTestPanel',
-        component: 'TestButton',
+        component: options.component || 'TestButton',
         message: `Error triggered by test button: ${label}`
       });
     }
