@@ -98,6 +98,25 @@ export class ErrorCollector {
     }
   }
 
+  // Προσθήκη της μεθόδου reportErrors που λείπει
+  async reportErrors() {
+    if (this.errors.length === 0) {
+      console.log('No errors to report');
+      return;
+    }
+    
+    console.log(`Reporting ${this.errors.length} errors to Supabase`);
+    const result = await this.submitToSupabase();
+    
+    if (result) {
+      toast.success(`${this.errors.length} σφάλματα υποβλήθηκαν επιτυχώς`);
+    } else {
+      toast.error('Σφάλμα κατά την αναφορά των σφαλμάτων');
+    }
+    
+    return result;
+  }
+
   async logErrorAndNotify(error: Error, component?: string) {
     const errorCode = this.addError({
       message: error.message,
