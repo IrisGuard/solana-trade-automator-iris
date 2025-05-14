@@ -37,6 +37,12 @@ export default function Home() {
     tokenPrices[token.address] = Math.random() * 10; // Mock prices for demo
   });
   
+  // Wrapper for connectWallet to match expected return type
+  const handleConnectWallet = async () => {
+    await connectWallet();
+    return; // explicitly return void
+  };
+  
   useEffect(() => {
     console.log("Home page loaded. Connection status:", isConnected ? "Connected" : "Not connected");
   }, [isConnected]);
@@ -89,7 +95,7 @@ export default function Home() {
         <TokenBot 
           tokens={tokens}
           isConnected={isConnected}
-          onConnectWallet={connectWallet}
+          onConnectWallet={handleConnectWallet}
         />
         
         <Card>

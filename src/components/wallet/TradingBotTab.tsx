@@ -4,10 +4,11 @@ import { TabsContent } from "@/components/ui/tabs";
 import { ConnectPrompt } from "./maker-bot/ConnectPrompt";
 import { useTradingBot } from "@/hooks/useTradingBot";
 import { TradingBotContent } from "./trading-bot/TradingBotContent";
+import { useWalletConnection } from "@/hooks/useWalletConnection";
 
 export function TradingBotTab() {
+  const { isConnected } = useWalletConnection();
   const tradingBotState = useTradingBot();
-  const { connected } = tradingBotState;
   
   const [tab, setTab] = useState("settings");
   
@@ -16,7 +17,7 @@ export function TradingBotTab() {
     // This is handled by the WalletMultiButton component
   };
   
-  if (!connected) {
+  if (!isConnected) {
     return (
       <TabsContent value="trading-bot" className="space-y-4">
         <ConnectPrompt 

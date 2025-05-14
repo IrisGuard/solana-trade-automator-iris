@@ -10,8 +10,14 @@ const DEFAULT_CONFIG: TradingBotConfig = {
   sellThreshold: 2.0,
   stopLoss: 5.0,
   takeProfit: 10.0,
+  maxBudget: 100,
   autoRebalance: false,
-  trailingStop: false
+  trailingStop: false,
+  enabledStrategies: {
+    dca: false,
+    grid: false,
+    momentum: false
+  }
 };
 
 /**

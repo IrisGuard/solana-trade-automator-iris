@@ -5,7 +5,7 @@ import { errorCollector } from '@/utils/error-handling/collector';
 import { ErrorData } from '@/utils/error-handling/collector/types';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, X } from 'lucide-react';
-import { displayError } from '@/utils/errorUtils';
+import { displayError } from '@/utils/error-handling/displayError';
 import { sendErrorToChat } from '@/utils/error-handling/displayError';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 
@@ -54,13 +54,13 @@ export function GlobalErrorHandler() {
       sendErrorToChat(error.message);
       
       // Ενημέρωση του χρήστη
-      displayError("Το σφάλμα στάλθηκε στην υποστήριξη", { 
+      displayError(new Error("Το σφάλμα στάλθηκε στην υποστήριξη"), { 
         showToast: true
       });
       
     } catch (e) {
       console.error("Σφάλμα κατά την αποστολή του σφάλματος:", e);
-      reportError("Αποτυχία αποστολής σφάλματος στην υποστήριξη");
+      reportError(e instanceof Error ? e : new Error("Αποτυχία αποστολής σφάλματος στην υποστήριξη"));
     }
   };
 

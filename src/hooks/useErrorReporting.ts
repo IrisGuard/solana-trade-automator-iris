@@ -63,8 +63,13 @@ export function useErrorReporting() {
     }
   }, []);
 
+  const clearAllErrors = useCallback(() => {
+    errorCollector.clearAllErrors();
+  }, []);
+
   return {
     reportError,
-    reportMessage
+    reportMessage,
+    clearAllErrors
   };
 }
