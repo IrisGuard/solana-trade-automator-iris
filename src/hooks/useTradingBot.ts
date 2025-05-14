@@ -80,6 +80,7 @@ export function useTradingBot() {
           price: selectedTokenPrice?.price ? selectedTokenPrice.price * 0.9 : 0,
           amount: 0.5,
           tokenAddress: config.selectedToken || '',
+          token: config.selectedToken || '',  // Added to match ActiveOrder
           status: 'pending',
           createdAt: new Date()
         },
@@ -89,10 +90,11 @@ export function useTradingBot() {
           price: selectedTokenPrice?.price ? selectedTokenPrice.price * 1.2 : 0,
           amount: 0.5,
           tokenAddress: config.selectedToken || '',
+          token: config.selectedToken || '',  // Added to match ActiveOrder
           status: 'pending',
           createdAt: new Date()
         }
-      ] as any;
+      ] as TradingOrder[];
       
       setActiveOrders(mockOrders);
       setBotStatus('running');

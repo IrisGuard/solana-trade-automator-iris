@@ -1,19 +1,20 @@
 
 import React from "react";
 import { TabsContent } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function ApiVaultTab() {
   return (
-    <TabsContent value="api-vault">
+    <TabsContent value="api-vault" className="space-y-4">
       <Card>
         <CardHeader>
           <CardTitle>API Vault</CardTitle>
+          <CardDescription>
+            Ασφαλής αποθήκευση και διαχείριση των API keys σας
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center h-40 text-muted-foreground">
-            API Vault functionality will be implemented soon
-          </div>
+          <p>Το API Vault είναι υπό κατασκευή.</p>
         </CardContent>
       </Card>
     </TabsContent>

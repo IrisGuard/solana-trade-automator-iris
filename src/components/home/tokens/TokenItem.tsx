@@ -1,88 +1,73 @@
 
 import React from "react";
-import { formatTokenAmount } from "@/utils/tokenUtils";
 import { Token } from "@/types/wallet";
-import { cn } from "@/lib/utils";
+import { formatTokenAmount } from "@/utils/token";
 
 interface TokenItemProps {
   token: Token;
-  isSelected?: boolean;
-  tokenPrice?: number;
-  onSelect?: (tokenAddress: string) => void;
+  onSelectToken?: (tokenAddress: string) => void;
   onTradingClick?: (tokenAddress: string) => void;
   isLoading?: boolean;
+  isSelected?: boolean;
 }
 
 export function TokenItem({
   token,
-  isSelected = false,
-  tokenPrice,
-  onSelect,
+  onSelectToken,
   onTradingClick,
   isLoading = false,
+  isSelected = false,
 }: TokenItemProps) {
   const handleClick = () => {
-    if (onSelect) {
-      onSelect(token.address);
+    if (onSelectToken) {
+      onSelectToken(token.address);
     }
   };
-  
+
   const handleTradingClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onTradingClick) {
       onTradingClick(token.address);
     }
   };
-  
-  // Format the token amount with proper decimals
-  const formattedAmount = formatTokenAmount(token, token.decimals);
-  
-  // Calculate USD value if price is available
-  const usdValue = tokenPrice ? (token.amount * tokenPrice).toFixed(2) : undefined;
-  
-  // Default token logo if not provided
-  const tokenLogo = token.logo || `https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/${token.address}/logo.png`;
-  
+
   return (
-    <div 
-      className={cn(
-        "flex items-center justify-between p-3 rounded-lg transition-colors cursor-pointer",
-        isSelected ? "bg-primary/10" : "hover:bg-muted",
-        isLoading && "opacity-70 pointer-events-none"
-      )}
+    <div
+      className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
+        isSelected ? "bg-primary/10 hover:bg-primary/20" : "hover:bg-muted"
+      }`}
       onClick={handleClick}
     >
-      <div className="flex items-center space-x-3">
-        <div className="w-8 h-8 overflow-hidden rounded-full bg-muted flex items-center justify-center">
-          {token.logo ? (
-            <img 
-              src={tokenLogo}
-              alt={token.symbol}
-              className="object-cover"
-              onError={(e) => {
-                e.currentTarget.onerror = null; 
-                e.currentTarget.src = '';
-                e.currentTarget.parentElement!.innerHTML = token.symbol.substring(0, 2);
-              }}
-            />
-          ) : (
-            <div className="flex items-center justify-center w-full h-full bg-primary/5 text-primary font-medium">
+      <div className="flex items-center gap-3">
+        {token.logo ? (
+          <img
+            src={token.logo}
+            alt={token.name}
+            className="w-8 h-8 rounded-full"
+          />
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <span className="text-sm font-semibold">
               {token.symbol.substring(0, 2)}
-            </div>
-          )}
-        </div>
-        
+            </span>
+          </div>
+        )}
         <div>
-          <div className="font-medium">{token.symbol}</div>
-          <div className="text-sm text-muted-foreground">{token.name || token.symbol}</div>
+          <div className="font-medium">{token.name}</div>
+          <div className="text-sm text-muted-foreground">{token.symbol}</div>
         </div>
       </div>
-      
       <div className="text-right">
-        <div>{formattedAmount}</div>
-        {usdValue && (
-          <div className="text-sm text-muted-foreground">${usdValue}</div>
-        )}
+        <div className="font-medium">
+          {formatTokenAmount(token)}
+        </div>
+        <button
+          className="text-xs text-primary hover:underline"
+          onClick={handleTradingClick}
+          disabled={isLoading}
+        >
+          {isLoading ? "Loading..." : "Trade"}
+        </button>
       </div>
     </div>
   );
