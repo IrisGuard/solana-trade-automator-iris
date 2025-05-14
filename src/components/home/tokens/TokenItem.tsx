@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Token } from "@/types/wallet";
-import { formatTokenAmount } from "@/utils/token";
+import { formatTokenAmount } from "@/utils/tokenUtils";
 
 interface TokenItemProps {
   token: Token;

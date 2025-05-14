@@ -6,4 +6,7 @@ export interface Token {
   amount: number;
   decimals: number;
   logo?: string;
+  balance?: number;
+  uiBalance?: number;
+  mint?: string;
 }
