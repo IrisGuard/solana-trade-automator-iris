@@ -30,6 +30,7 @@ export function useTradingBot(): TradingBotHook {
   const [selectedTokenDetails, setSelectedTokenDetails] = useState<Token | null>(null);
   const [selectedTokenPrice, setSelectedTokenPrice] = useState<TokenPriceInfo | null>(null);
   const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
   
   // Initialize with first token if available
   useEffect(() => {
@@ -71,7 +72,7 @@ export function useTradingBot(): TradingBotHook {
       const mockOrder: ActiveOrder = {
         id: uuidv4(),
         type: Math.random() > 0.5 ? 'buy' : 'sell',
-        amount: config.amount,
+        amount: config.amount || 0,
         price: selectedTokenPrice?.price || 0,
         token: selectedTokenDetails,
         status: 'pending',
@@ -94,9 +95,10 @@ export function useTradingBot(): TradingBotHook {
   }, [botStatus, selectedTokenPrice]);
   
   // Select a token for trading
-  const selectToken = (token: Token) => {
+  const selectToken = async (token: Token) => {
     setSelectedTokenDetails(token);
     setSelectedTokenPrice(null); // Reset price to trigger a new fetch
+    return Promise.resolve();
   };
   
   // Update bot configuration
@@ -108,7 +110,7 @@ export function useTradingBot(): TradingBotHook {
   };
   
   // Start the trading bot
-  const startBot = () => {
+  const startBot = async () => {
     if (!selectedTokenDetails) return;
     
     setIsLoading(true);
@@ -122,7 +124,7 @@ export function useTradingBot(): TradingBotHook {
       const buyOrder: ActiveOrder = {
         id: uuidv4(),
         type: 'buy',
-        amount: config.amount,
+        amount: config.amount || 0,
         price: selectedTokenPrice?.price || 0,
         token: selectedTokenDetails,
         status: 'pending',
@@ -131,10 +133,12 @@ export function useTradingBot(): TradingBotHook {
       
       setActiveOrders(prev => [...prev, buyOrder]);
     }, 1500);
+
+    return Promise.resolve();
   };
   
   // Stop the trading bot
-  const stopBot = () => {
+  const stopBot = async () => {
     setIsLoading(true);
     
     // Simulate bot shutdown
@@ -147,7 +151,7 @@ export function useTradingBot(): TradingBotHook {
         const sellOrder: ActiveOrder = {
           id: uuidv4(),
           type: 'sell',
-          amount: config.amount,
+          amount: config.amount || 0,
           price: selectedTokenPrice?.price || 0,
           token: selectedTokenDetails,
           status: 'pending',
@@ -157,10 +161,25 @@ export function useTradingBot(): TradingBotHook {
         setActiveOrders(prev => [...prev, sellOrder]);
       }
     }, 1500);
+
+    return Promise.resolve();
   };
   
   return {
-    config,
+    config: {
+      selectedToken: selectedTokenDetails?.address || null,
+      quoteToken: 'SOL',
+      tradingAmount: config.amount || 0,
+      maxTrade: 10,
+      stopLoss: config.stopLoss || 5,
+      takeProfit: config.takeProfit || 8,
+      strategy: 'simple',
+      autoRebalance: false,
+      trailingStop: false,
+      buyThreshold: config.buyThreshold || 5,
+      sellThreshold: config.sellThreshold || 5,
+      tradeAmount: 10
+    },
     updateConfig,
     startBot,
     stopBot,
@@ -171,6 +190,7 @@ export function useTradingBot(): TradingBotHook {
     selectedTokenPrice,
     selectedTokenDetails,
     tokens: walletTokens,
-    connected: isConnected
+    connected: isConnected,
+    transactions: []
   };
 }

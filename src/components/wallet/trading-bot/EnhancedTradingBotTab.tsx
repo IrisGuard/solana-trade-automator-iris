@@ -30,7 +30,7 @@ export function EnhancedTradingBotTab() {
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Παρακαλώ συνδέστε το πορτοφόλι σας για να χρησιμοποιήσετε το Trading Bot
+            Please connect your wallet to use the Trading Bot
           </AlertDescription>
         </Alert>
       ) : (
@@ -45,14 +45,14 @@ export function EnhancedTradingBotTab() {
                 selectedTokenDetails={selectedTokenDetails}
                 tokens={tokens}
                 isLoading={isLoading}
-                botStatus={botStatus}
+                botStatus={botStatus === 'error' ? 'idle' : botStatus}
                 startBot={startBot}
                 stopBot={stopBot}
               />
             </div>
             
             <EnhancedStatusPanel 
-              botStatus={botStatus}
+              botStatus={botStatus === 'error' ? 'idle' : botStatus}
               selectedTokenDetails={selectedTokenDetails}
               selectedTokenPrice={selectedTokenPrice}
               activeOrders={activeOrders}

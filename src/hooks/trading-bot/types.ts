@@ -11,15 +11,19 @@ export type BotStatus = 'idle' | 'running' | 'paused' | 'error';
 
 export interface TradingBotConfig {
   selectedToken: string | null;
-  quoteToken: string;
+  quoteToken?: string;
   tradingAmount: number;
-  maxTrade: number;
-  stopLoss: number | null;
-  takeProfit: number | null;
+  maxTrade?: number;
+  stopLoss: number;
+  takeProfit: number;
+  buyThreshold: number;    // Added missing property
+  sellThreshold: number;   // Added missing property
   strategy: 'simple' | 'advanced' | 'custom';
   autoRebalance: boolean;
-  riskLevel: 'low' | 'medium' | 'high';
-  autoCompound: boolean;
+  riskLevel?: 'low' | 'medium' | 'high';
+  autoCompound?: boolean;
+  tradeAmount: number;     // Added missing property
+  trailingStop: boolean;   // Added missing property
 }
 
 export interface TradingOrder {
@@ -53,6 +57,9 @@ export interface BotConfig {
   autoRebalance?: boolean;
   riskLevel?: 'low' | 'medium' | 'high';
   autoCompound?: boolean;
+  buyThreshold?: number;    // Added missing property
+  sellThreshold?: number;   // Added missing property
+  amount?: number;
 }
 
 export interface TradingBotHook {
@@ -69,4 +76,6 @@ export interface TradingBotHook {
   isLoading: boolean;
   transactions: TradingOrder[];
   orders: ActiveOrder[];
+  activeOrders: ActiveOrder[];  // Added missing property
+  tokens: any[];               // Added missing property
 }
