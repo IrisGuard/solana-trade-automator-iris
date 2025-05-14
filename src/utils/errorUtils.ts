@@ -12,6 +12,7 @@ export interface ErrorDisplayOptions {
   useCollector?: boolean;
   details?: Record<string, any>;
   source?: string;
+  component?: string;
 }
 
 /**
@@ -25,7 +26,8 @@ export function displayError(error: Error | string, options: ErrorDisplayOptions
     sendToChat = false,
     useCollector = true,
     details = {},
-    source = 'client'
+    source = 'client',
+    component = 'unknown'
   } = options;
   
   const errorMessage = typeof error === 'string' ? error : error.message;
@@ -52,13 +54,10 @@ export function displayError(error: Error | string, options: ErrorDisplayOptions
   
   // Add to error collector
   if (useCollector) {
-    errorCollector.addError({
-      message: errorMessage,
-      stack: errorStack,
-      timestamp: new Date().toISOString(),
-      details: JSON.stringify(details),
-      source
-    });
+    errorCollector.captureError(
+      typeof error === 'string' ? new Error(error) : error, 
+      { component, details, source }
+    );
   }
   
   return errorMessage;
@@ -74,11 +73,9 @@ export function logError(
 ) {
   console.error(`[${component}] ${message}`, details);
   
-  errorCollector.addError({
-    message,
-    stack: new Error().stack,
-    timestamp: new Date().toISOString(),
+  errorCollector.captureError(new Error(message), {
+    component,
     details: typeof details === 'string' ? details : JSON.stringify(details),
-    source: component
+    source: 'client'
   });
 }

@@ -1,37 +1,60 @@
 
-import { Routes as ReactRouterRoutes, Route, Outlet } from "./lib/router-exports";
-import { Layout } from "@/components/layout/Layout";
-import Dashboard from "@/pages/Dashboard"; 
-import Wallet from "@/pages/Wallet";
-import Security from "@/pages/Security";
-import Transactions from "@/pages/Transactions";
-import Settings from "@/pages/Settings";
-import Help from "@/pages/Help";
-import NotFound from "@/pages/NotFound";
-import ApiVault from "@/pages/ApiVault";
-import BotControl from "@/pages/BotControl";
-import Index from "@/pages/Index";
-import Home from "@/pages/Home";
-import Auth from "@/pages/Auth";
+import React, { Suspense } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AppLayout } from "@/components/layout/AppLayout";
 
-export function Routes() {
+// Lazy-loaded pages
+const Home = React.lazy(() => import("@/pages/Home"));
+const Index = React.lazy(() => import("@/pages/Index"));
+const BotControl = React.lazy(() => import("@/pages/BotControl"));
+const Security = React.lazy(() => import("@/pages/Security"));
+const Settings = React.lazy(() => import("@/pages/Settings"));
+const NotFound = React.lazy(() => import("@/pages/NotFound"));
+
+// Loading component for Suspense
+const PageLoader = () => (
+  <div className="flex items-center justify-center h-full">
+    <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
+  </div>
+);
+
+export const Routes = () => {
   return (
-    <ReactRouterRoutes>
-      <Route path="/" element={<Index />} />
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/index" element={<Index />} />
-      <Route element={<Layout />}>
-        <Route path="/home" element={<Home />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/wallet" element={<Wallet />} />
-        <Route path="/security" element={<Security />} />
-        <Route path="/transactions" element={<Transactions />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/help" element={<Help />} />
-        <Route path="/api-vault" element={<ApiVault />} />
-        <Route path="/bot-control" element={<BotControl />} />
-        <Route path="*" element={<NotFound />} />
-      </Route>
-    </ReactRouterRoutes>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<AppLayout />}>
+          <Route index element={
+            <Suspense fallback={<PageLoader />}>
+              <Index />
+            </Suspense>
+          } />
+          <Route path="home" element={
+            <Suspense fallback={<PageLoader />}>
+              <Home />
+            </Suspense>
+          } />
+          <Route path="bot-control" element={
+            <Suspense fallback={<PageLoader />}>
+              <BotControl />
+            </Suspense>
+          } />
+          <Route path="security" element={
+            <Suspense fallback={<PageLoader />}>
+              <Security />
+            </Suspense>
+          } />
+          <Route path="settings" element={
+            <Suspense fallback={<PageLoader />}>
+              <Settings />
+            </Suspense>
+          } />
+          <Route path="*" element={
+            <Suspense fallback={<PageLoader />}>
+              <NotFound />
+            </Suspense>
+          } />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
-}
+};

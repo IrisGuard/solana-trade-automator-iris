@@ -7,6 +7,7 @@ import { useWalletConnection } from "@/hooks/useWalletConnection";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Wallet } from "lucide-react";
 import { useLanguage } from "@/hooks/use-language";
+import { HeliusSyncButton } from "@/components/HeliusSyncButton";
 
 export default function Home() {
   console.log("Home component initialized");
@@ -54,12 +55,13 @@ export default function Home() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Wallet className="h-5 w-5 text-primary" />
-            <div>
+            <div className="flex-1">
               <CardTitle>{t("general.welcome", "Καλώς ήρθατε στο Solana Trade Automator")}</CardTitle>
               <CardDescription>
                 {t("general.description", "Αυτοματοποιήστε τις συναλλαγές σας και διαχειριστείτε τα περιουσιακά σας στοιχεία με ασφάλεια")}
               </CardDescription>
             </div>
+            <HeliusSyncButton />
           </div>
         </CardHeader>
         <CardContent>

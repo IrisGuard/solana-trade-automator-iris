@@ -1,28 +1,37 @@
 
-import { Connection } from '@solana/web3.js';
-import { fetchTransactionsByAddress } from './fetchTransactions';
-import { ParsedTransaction } from './parseTransaction';
+import { Transaction } from '@/types/transaction';
+import { parseTransaction } from './parseTransaction';
+import { errorCollector } from '@/utils/error-handling/collector';
 
 /**
- * Service for handling Solana transaction operations
+ * Υπηρεσία διαχείρισης συναλλαγών Solana
  */
 export class TransactionService {
-  private connection: Connection;
-
-  constructor(connection: Connection) {
-    this.connection = connection;
-  }
-
   /**
-   * Get transactions for a wallet address
-   * @param address Wallet address
-   * @param limit Maximum number of transactions to return
+   * Λήψη των συναλλαγών για μια διεύθυνση wallet
    */
-  async getTransactions(address: string, limit: number = 10): Promise<any[]> {
+  static async getTransactions(walletAddress: string): Promise<Transaction[]> {
     try {
-      return await fetchTransactionsByAddress(address, limit);
+      // Υλοποίηση για λήψη συναλλαγών
+      const parsedTransactions = await parseTransaction(walletAddress);
+      
+      // Μετατροπή των ParsedTransaction σε Transaction
+      return parsedTransactions.map(tx => ({
+        id: tx.id || Math.random().toString(36).substring(2, 15),
+        signature: tx.signature || '',
+        blockTime: tx.blockTime,
+        status: tx.status || 'confirmed',
+        amount: tx.amount || '0',
+        type: tx.type || 'unknown',
+        source: tx.source,
+        destination: tx.destination
+      }));
     } catch (error) {
-      console.error('Error in TransactionService.getTransactions:', error);
+      console.error("Error fetching transactions:", error);
+      errorCollector.captureError(error instanceof Error ? error : new Error('Failed to get transactions'), {
+        component: 'TransactionService',
+        source: 'client'
+      });
       return [];
     }
   }

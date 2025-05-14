@@ -1,26 +1,33 @@
 
-import { TokenPriceData } from '../price/types';
+import type { TokenPriceMap } from "@/types/wallet";
+import { errorCollector } from "@/utils/error-handling/collector";
 
 /**
- * Fetches price data for a specific token
- * @param tokenAddress The token's mint address
- * @returns Price data including current price and 24h change
+ * Fetches current market prices for tokens
  */
-export async function fetchTokenPrices(tokenAddress: string): Promise<TokenPriceData> {
+export async function fetchTokenPrices(tokenAddresses: string[]): Promise<TokenPriceMap> {
   try {
-    // In a real implementation, this would call a price API
-    // This is a placeholder implementation for now
-    return {
-      price: Math.random() * 100, 
-      priceChange24h: (Math.random() * 20) - 10,
-      lastUpdated: new Date()
-    };
+    // For now, return placeholder data
+    const priceMap: TokenPriceMap = {};
+    
+    // Add demo prices for common tokens
+    tokenAddresses.forEach(address => {
+      priceMap[address] = {
+        price: Math.random() * 100, // Random price between 0-100
+        change24h: (Math.random() * 20) - 10, // Random change -10% to +10%
+        volume24h: Math.random() * 1000000,
+        marketCap: Math.random() * 10000000,
+        lastUpdated: new Date().toISOString()
+      };
+    });
+    
+    return priceMap;
   } catch (error) {
-    console.error('Error fetching token price:', error);
-    return {
-      price: 0,
-      priceChange24h: 0,
-      lastUpdated: new Date()
-    };
+    console.error("Error fetching token prices:", error);
+    errorCollector.captureError(error instanceof Error ? error : new Error('Failed to fetch token prices'), {
+      component: 'tokenService',
+      source: 'client'
+    });
+    return {};
   }
 }

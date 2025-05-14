@@ -8,7 +8,7 @@ export interface ErrorData {
   source?: string;
   url?: string;
   browserInfo?: Record<string, any>;
-  timestamp: number;
+  timestamp: string | number;
 }
 
 export interface ErrorOptions {

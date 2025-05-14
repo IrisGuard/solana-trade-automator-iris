@@ -1,49 +1,63 @@
 
-import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
-import { toast } from "sonner";
 import { syncAllHeliusData } from "@/utils/syncHeliusKeys";
-import { Loader2, Database } from "lucide-react";
+import { Server } from "lucide-react";
 
 export function HeliusSyncButton() {
   const [isSyncing, setIsSyncing] = useState(false);
+  const { toast } = useToast();
   const { user } = useAuth();
 
-  const handleSync = async () => {
+  const handleSyncHelius = async () => {
     if (!user) {
-      toast.error("Πρέπει να συνδεθείτε για να συγχρονίσετε τα κλειδιά Helius");
+      toast({
+        variant: "destructive",
+        title: "Σφάλμα",
+        description: "Πρέπει να συνδεθείτε για να συγχρονίσετε τα κλειδιά Helius"
+      });
       return;
     }
-    
+
     setIsSyncing(true);
     try {
-      const success = await syncAllHeliusData(user.id);
-      if (success) {
-        toast.success("Όλα τα δεδομένα Helius συγχρονίστηκαν επιτυχώς!");
+      const result = await syncAllHeliusData(user.id);
+      
+      if (result) {
+        toast({
+          title: "Επιτυχία",
+          description: "Τα κλειδιά και endpoints Helius συγχρονίστηκαν επιτυχώς"
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Προειδοποίηση",
+          description: "Υπήρξε πρόβλημα κατά τον συγχρονισμό των κλειδιών Helius"
+        });
       }
     } catch (error) {
-      console.error("Σφάλμα συγχρονισμού:", error);
-      toast.error("Σφάλμα κατά τον συγχρονισμό των δεδομένων Helius");
+      console.error("Error syncing Helius keys:", error);
+      toast({
+        variant: "destructive",
+        title: "Σφάλμα",
+        description: "Σφάλμα κατά τον συγχρονισμό των κλειδιών Helius"
+      });
     } finally {
       setIsSyncing(false);
     }
   };
-  
+
   return (
     <Button
+      onClick={handleSyncHelius}
+      disabled={isSyncing || !user}
       variant="outline"
       size="sm"
-      onClick={handleSync}
-      disabled={isSyncing || !user}
-      className="gap-2"
     >
-      {isSyncing ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : (
-        <Database className="h-4 w-4" />
-      )}
-      {isSyncing ? "Συγχρονισμός..." : "Συγχρονισμός Helius"}
+      <Server className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-pulse' : ''}`} />
+      {isSyncing ? "Συγχρονισμός..." : "Συγχρονισμός Helius API"}
     </Button>
   );
 }

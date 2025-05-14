@@ -6,6 +6,7 @@ export interface ErrorData {
   timestamp: string;
   details?: string;
   source?: string;
+  component?: string;
   resolved?: boolean;
 }
 
@@ -32,6 +33,20 @@ class ErrorCollector {
     
     // Log to console for immediate feedback
     console.log(`[ErrorCollector] Added error: ${error.message}`);
+  }
+
+  /**
+   * Capture an error with additional metadata
+   */
+  captureError(error: Error, metadata: any = {}): void {
+    this.addError({
+      message: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString(),
+      details: JSON.stringify(metadata),
+      source: metadata.source || 'unknown',
+      component: metadata.component || 'unknown'
+    });
   }
 
   /**
@@ -67,16 +82,10 @@ class ErrorCollector {
   }
 
   /**
-   * Report a new error (alias for addError)
+   * Report a new error (alias for captureError)
    */
   reportError(error: Error, metadata: any = {}): void {
-    this.addError({
-      message: error.message,
-      stack: error.stack,
-      timestamp: new Date().toISOString(),
-      details: JSON.stringify(metadata),
-      source: metadata.component || 'unknown'
-    });
+    this.captureError(error, metadata);
   }
 }
 
