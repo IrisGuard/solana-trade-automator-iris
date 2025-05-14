@@ -27,7 +27,7 @@ export function EnhancedTransactionHistory({
     limit
   });
 
-  // Helper function for badge styling
+  // Helper function for badge styling - now using the new badge variant
   const getStatusBadgeClass = (status: string) => {
     return status === 'Success' 
       ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"

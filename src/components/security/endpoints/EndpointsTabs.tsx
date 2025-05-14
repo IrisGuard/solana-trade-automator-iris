@@ -1,138 +1,116 @@
 
-import React, { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React from 'react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ApiEndpoint } from "@/utils/supabaseEndpoints";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Check, Edit, Trash2, Globe, Plus } from "lucide-react";
+import { Copy, Code, Server, Database, Globe, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/providers/SupabaseAuthProvider";
 
-type EndpointsTabsProps = {
-  groupedEndpoints: Record<string, ApiEndpoint[]>;
-  categories: string[];
-  onEdit: (endpoint: ApiEndpoint) => void;
-  onDelete: (id: string) => void;
-  loading: boolean;
-  onAddNew: () => void;
+const mockEndpoints = [
+  { id: 1, name: 'Solana RPC Endpoint', url: 'https://api.mainnet-beta.solana.com', category: 'rpc', status: 'active' },
+  { id: 2, name: 'Helius Mainnet', url: 'https://mainnet.helius-rpc.com/?api-key={API_KEY}', category: 'rpc', status: 'active' },
+  { id: 3, name: 'NFT Metadata API', url: 'https://api.helius.xyz/v1/nfts/metadata?api-key={API_KEY}', category: 'nft', status: 'inactive' },
+  { id: 4, name: 'Solscan API', url: 'https://public-api.solscan.io/transaction/{TX_ID}', category: 'explorer', status: 'active' },
+];
+
+const getCategoryIcon = (category: string) => {
+  switch (category.toLowerCase()) {
+    case 'rpc':
+      return <Server className="h-4 w-4 mr-2" />;
+    case 'api':
+      return <Code className="h-4 w-4 mr-2" />;
+    case 'database':
+      return <Database className="h-4 w-4 mr-2" />;
+    default:
+      return <Globe className="h-4 w-4 mr-2" />;
+  }
 };
 
-export const EndpointsTabs = ({
-  groupedEndpoints,
-  categories,
-  onEdit,
-  onDelete,
-  loading,
-  onAddNew
-}: EndpointsTabsProps) => {
-  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
-  const { user } = useAuth();
+export function EndpointsTabs() {
+  const [copied, setCopied] = React.useState<string | null>(null);
 
-  const handleCopy = (url: string) => {
-    navigator.clipboard.writeText(url);
-    setCopiedUrl(url);
-    toast.success('URL Αντιγράφηκε');
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(text);
+    toast.success('Αντιγράφηκε στο πρόχειρο!');
     
     setTimeout(() => {
-      setCopiedUrl(null);
+      setCopied(null);
     }, 2000);
   };
 
   return (
-    <Tabs defaultValue={categories[0] || "solana"} className="w-full">
-      <TabsList className="mb-4 overflow-auto">
-        {categories.map(category => (
-          <TabsTrigger key={category} value={category} className="capitalize">
-            {category}
-            <Badge variant="outline" className="ml-2">
-              {groupedEndpoints[category].length}
-            </Badge>
-          </TabsTrigger>
-        ))}
+    <Tabs defaultValue="all" className="w-full">
+      <TabsList className="grid grid-cols-4 mb-4">
+        <TabsTrigger value="all">Όλα</TabsTrigger>
+        <TabsTrigger value="rpc">RPC</TabsTrigger>
+        <TabsTrigger value="nft">NFT</TabsTrigger>
+        <TabsTrigger value="explorer">Explorer</TabsTrigger>
       </TabsList>
-
-      {categories.map(category => (
-        <TabsContent key={category} value={category}>
-          <div className="border rounded-md">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[200px]">Όνομα</TableHead>
-                  <TableHead>URL</TableHead>
-                  <TableHead className="w-[120px]">Κατάσταση</TableHead>
-                  <TableHead className="text-right w-[150px]">Ενέργειες</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {groupedEndpoints[category].map((endpoint) => (
-                  <TableRow key={endpoint.id}>
-                    <TableCell className="font-medium">{endpoint.name}</TableCell>
-                    <TableCell className="font-mono text-xs truncate max-w-[300px]">
-                      {endpoint.url}
-                    </TableCell>
-                    <TableCell>
-                      {endpoint.is_active ? 
-                        <Badge variant="success">Ενεργό</Badge> : 
-                        <Badge variant="secondary">Ανενεργό</Badge>
-                      }
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleCopy(endpoint.url)}
-                        >
-                          {copiedUrl === endpoint.url ? 
-                            <Check className="h-4 w-4" /> : 
-                            <Copy className="h-4 w-4" />
-                          }
-                        </Button>
-                        {user && (
-                          <>
+      
+      {['all', 'rpc', 'nft', 'explorer'].map((tab) => (
+        <TabsContent key={tab} value={tab}>
+          <Card>
+            <CardHeader>
+              <CardTitle>API Endpoints</CardTitle>
+              <CardDescription>Διαθέσιμα endpoints για χρήση στην εφαρμογή</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Όνομα</TableHead>
+                      <TableHead>URL</TableHead>
+                      <TableHead>Κατηγορία</TableHead>
+                      <TableHead>Κατάσταση</TableHead>
+                      <TableHead className="text-right">Ενέργειες</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {mockEndpoints
+                      .filter(endpoint => tab === 'all' || endpoint.category === tab)
+                      .map((endpoint) => (
+                        <TableRow key={endpoint.id}>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center">
+                              {getCategoryIcon(endpoint.category)}
+                              {endpoint.name}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-mono text-xs truncate max-w-[200px]">
+                            {endpoint.url}
+                          </TableCell>
+                          <TableCell className="capitalize">{endpoint.category}</TableCell>
+                          <TableCell>
+                            <Badge variant={endpoint.status === 'active' ? 'default' : 'outline'}>
+                              {endpoint.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
                             <Button
                               variant="ghost"
-                              size="sm"
-                              onClick={() => onEdit(endpoint)}
+                              size="icon"
+                              onClick={() => handleCopy(endpoint.url)}
+                              title="Αντιγραφή URL"
                             >
-                              <Edit className="h-4 w-4" />
+                              {copied === endpoint.url ? 
+                                <RefreshCw className="h-4 w-4 text-green-500" /> : 
+                                <Copy className="h-4 w-4" />
+                              }
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => endpoint.id && onDelete(endpoint.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {groupedEndpoints[category].length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8">
-                      <div className="flex flex-col items-center justify-center text-muted-foreground">
-                        <Globe className="h-12 w-12 mb-2 opacity-50" />
-                        <p>Δεν υπάρχουν endpoints σε αυτή την κατηγορία</p>
-                        <Button 
-                          variant="link"
-                          onClick={onAddNew}
-                          className="mt-2"
-                        >
-                          Προσθήκη νέου endpoint
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       ))}
     </Tabs>
   );
-};
+}

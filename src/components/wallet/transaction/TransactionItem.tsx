@@ -40,7 +40,7 @@ export function TransactionItem({
     const amount = parseFloat(String(transaction.amount || 0));
     
     if (transaction.type.toLowerCase().includes('receive') || 
-        (transaction.fromAddress && transaction.toAddress === walletAddress)) {
+        (transaction.from && transaction.to === walletAddress)) {
       return <span className="text-green-600 dark:text-green-400">+{amount.toFixed(4)}</span>;
     } else {
       return <span className="text-red-600 dark:text-red-400">-{amount.toFixed(4)}</span>;
@@ -59,7 +59,7 @@ export function TransactionItem({
       <TableCell>{displayAmount()}</TableCell>
       <TableCell>{transaction.token || 'SOL'}</TableCell>
       <TableCell className="hidden md:table-cell">
-        <Badge className={getStatusBadgeClass(transaction.status || 'Success')}>
+        <Badge variant="default" className={getStatusBadgeClass(transaction.status || 'Success')}>
           {transaction.status || 'Success'}
         </Badge>
       </TableCell>
