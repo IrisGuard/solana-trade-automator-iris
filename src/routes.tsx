@@ -17,6 +17,7 @@ const Wallet = React.lazy(() => import("@/pages/Wallet"));
 const Portfolio = React.lazy(() => import("@/pages/Portfolio"));
 const Transactions = React.lazy(() => import("@/pages/Transactions"));
 const ApiVault = React.lazy(() => import("@/pages/ApiVault"));
+const ChangeApproval = React.lazy(() => import("@/pages/ChangeApproval"));
 
 // Loading component for Suspense
 const PageLoader = () => (
@@ -63,6 +64,11 @@ export const Routes = () => {
         <Route path="api-vault" element={
           <Suspense fallback={<PageLoader />}>
             <ApiVault />
+          </Suspense>
+        } />
+        <Route path="change-approval" element={
+          <Suspense fallback={<PageLoader />}>
+            <ChangeApproval />
           </Suspense>
         } />
         <Route path="auth" element={
