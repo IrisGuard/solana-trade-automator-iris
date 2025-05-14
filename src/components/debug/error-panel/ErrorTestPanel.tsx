@@ -70,6 +70,7 @@ export function ErrorTestPanel() {
   };
 
   const reportCollectedErrors = async () => {
+    // Use the newly added reportErrors method
     await errorCollector.reportErrors();
   };
 

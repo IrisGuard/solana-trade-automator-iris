@@ -1,7 +1,7 @@
 
 import { toast } from "sonner";
 import { sendErrorToChat } from "./sendErrorToChat";
-import { errorCollector } from "../error-handling/collector";
+import { errorCollector, type ErrorData } from "../error-handling/collector";
 
 interface ErrorOptions {
   title?: string;
@@ -58,7 +58,13 @@ export function displayError(
   
   // Χρήση του collector αν ζητηθεί
   if (useCollector) {
-    errorCollector.addError(errorObj);
+    // Convert to ErrorData format before adding
+    const errorData: ErrorData = {
+      message: errorObj.message,
+      source: 'client', // Default source
+      stack: errorObj.stack
+    };
+    errorCollector.addError(errorData);
   }
   
   return errorObj;

@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
-import { errorCollector } from '@/utils/error-handling/collector';
+import { errorCollector, type ErrorData } from '@/utils/error-handling/collector';
 import { sendErrorToChat } from '@/utils/error-handling/sendErrorToChat';
 
 interface ReportOptions {
@@ -28,8 +28,13 @@ export function useErrorReporting() {
       console.error("Reported error:", error);
     }
     
-    // Προσθήκη στον συλλέκτη σφαλμάτων
-    errorCollector.addError(error);
+    // Προσθήκη στον συλλέκτη σφαλμάτων με μετατροπή σε ErrorData
+    const errorData: ErrorData = {
+      message: error.message,
+      source: 'client',
+      stack: error.stack
+    };
+    errorCollector.addError(errorData);
     
     // Εμφάνιση toast
     if (showToast) {

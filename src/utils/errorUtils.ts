@@ -1,6 +1,6 @@
 
 import { toast } from "sonner";
-import { errorCollector } from "./error-handling/collector";
+import { errorCollector, type ErrorData } from "./error-handling/collector";
 import { setupGlobalErrorHandling } from "./error-handling/setupGlobalErrorHandling";
 
 interface ErrorDisplayOptions {
@@ -33,22 +33,23 @@ export function displayError(error: Error, options?: ErrorDisplayOptions): strin
     console.error(`${opts.title}: ${errorMessage}`, error);
   }
   
-  let errorCode = '';
-  
   // Προσθήκη στο συλλέκτη σφαλμάτων
+  const errorData: ErrorData = {
+    message: errorMessage,
+    stack: error.stack,
+    source: 'client',
+    url: window.location.href,
+    component: opts.component, // Now part of ErrorData interface
+    browserInfo: {
+      userAgent: navigator.userAgent,
+      language: navigator.language,
+      platform: navigator.platform
+    }
+  };
+  
+  let errorCode = '';
   if (opts.useCollector) {
-    errorCode = errorCollector.addError({
-      message: errorMessage,
-      stack: error.stack,
-      component: opts.component,
-      source: 'client',
-      url: window.location.href,
-      browserInfo: {
-        userAgent: navigator.userAgent,
-        language: navigator.language,
-        platform: navigator.platform
-      }
-    });
+    errorCode = errorCollector.addError(errorData);
   }
   
   // Εμφάνιση toast

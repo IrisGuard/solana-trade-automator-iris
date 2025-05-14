@@ -4,7 +4,7 @@
  */
 import { useState, useCallback } from 'react';
 import { toast } from "sonner";
-import { errorCollector } from './error-handling/collector';
+import { errorCollector, type ErrorData } from './error-handling/collector';
 import { sendErrorToChat } from './error-handling/sendErrorToChat';
 import { displayError } from './error-handling/displayError';
 
@@ -34,7 +34,12 @@ export function generateTestError(message: string = "Δοκιμαστικό σφ
     
     // Add to collector if requested
     if (useCollector) {
-      errorCollector.addError(error);
+      const errorData: ErrorData = {
+        message: error.message,
+        source: 'client',
+        stack: error.stack
+      };
+      errorCollector.addError(errorData);
     }
     
     // Display toast if requested
@@ -81,7 +86,12 @@ export function generateVariousErrors() {
   
   // Add to collector
   errors.forEach(error => {
-    errorCollector.addError(error);
+    const errorData: ErrorData = {
+      message: error.message,
+      source: 'client',
+      stack: error.stack
+    };
+    errorCollector.addError(errorData);
   });
   
   toast.error("Δημιουργήθηκαν πολλαπλά σφάλματα", {
