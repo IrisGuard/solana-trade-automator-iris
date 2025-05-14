@@ -1,7 +1,7 @@
 
 import React from "react";
 import { BrowserRouter } from "react-router-dom";
-import { AppRoutes } from "@/routes";
+import { Routes } from "@/routes";
 import { Toaster } from "sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SolanaWalletProvider } from "@/providers/SolanaWalletProvider";
@@ -30,7 +30,8 @@ function logWalletError(error: Error, info: { componentStack: string }) {
     message: error.message,
     stack: error.stack,
     timestamp: new Date().toISOString(),
-    url: window.location.href,
+    component: "WalletProvider",
+    source: "wallet",
   });
   
   // Send to error reporting service if available
@@ -53,7 +54,7 @@ export function AppContent() {
           <WalletProviderWrapper>
             <QueryClientProvider client={queryClient}>
               <TooltipProvider>
-                <AppRoutes />
+                <Routes />
                 <Toaster position="top-right" />
               </TooltipProvider>
             </QueryClientProvider>
