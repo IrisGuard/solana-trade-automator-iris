@@ -6,7 +6,6 @@ import {
   BarChart3, 
   Bot, 
   FileText, 
-  Home, 
   HelpCircle, 
   Key, 
   Layers, 
@@ -15,34 +14,31 @@ import {
   Coins
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useLanguage } from "@/hooks/use-language";
 
 export function Sidebar() {
-  const { t } = useLanguage();
-
   const mainNavItems = [
     {
-      title: t("general.dashboard"),
+      title: "Πίνακας Ελέγχου",
       href: "/dashboard",
       icon: BarChart3,
     },
     {
-      title: t("general.wallet"),
+      title: "Πορτοφόλι",
       href: "/wallet",
       icon: Wallet,
     },
     {
-      title: t("general.portfolio"),
+      title: "Χαρτοφυλάκιο",
       href: "/portfolio",
       icon: Activity,
     },
     {
-      title: t("general.transactions"),
+      title: "Συναλλαγές",
       href: "/transactions",
       icon: FileText,
     },
     {
-      title: t("general.tokens"),
+      title: "Tokens",
       href: "/tokens",
       icon: Coins,
     }
@@ -50,12 +46,12 @@ export function Sidebar() {
 
   const botNavItems = [
     {
-      title: t("makerBot.botSettings"),
+      title: "Ρυθμίσεις Bot",
       href: "/bot-control",
       icon: Settings,
     },
     {
-      title: t("general.bots"),
+      title: "Τα Bots μου",
       href: "/bots",
       icon: Bot,
     }
@@ -63,12 +59,12 @@ export function Sidebar() {
 
   const extraNavItems = [
     {
-      title: t("api.title"),
+      title: "API Vault",
       href: "/api-vault",
       icon: Key,
     },
     {
-      title: t("general.help"),
+      title: "Βοήθεια",
       href: "/help",
       icon: HelpCircle,
     }
@@ -90,7 +86,7 @@ export function Sidebar() {
           <nav className="space-y-6">
             <div className="space-y-2">
               <div className="hidden sm:block text-xs text-muted-foreground mb-2 px-2">
-                {t("general.main")}
+                Κύριο Μενού
               </div>
               {mainNavItems.map((item) => (
                 <NavLink
@@ -113,7 +109,7 @@ export function Sidebar() {
 
             <div className="space-y-2">
               <div className="hidden sm:block text-xs text-muted-foreground mb-2 px-2">
-                {t("general.bots")}
+                Trading Bots
               </div>
               {botNavItems.map((item) => (
                 <NavLink
@@ -136,7 +132,7 @@ export function Sidebar() {
 
             <div className="space-y-2">
               <div className="hidden sm:block text-xs text-muted-foreground mb-2 px-2">
-                {t("general.extra")}
+                Επιπλέον
               </div>
               {extraNavItems.map((item) => (
                 <NavLink

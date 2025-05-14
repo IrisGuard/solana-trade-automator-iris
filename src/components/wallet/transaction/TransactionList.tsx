@@ -1,13 +1,14 @@
 
 import React from "react";
-import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/components/ui/table";
-import { Transaction } from "@/types/transaction";
-import { TransactionItem } from "./TransactionItem";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatDistanceToNow } from "date-fns";
+import { el } from "date-fns/locale";
+import type { Transaction } from "@/types/transaction";
 
 interface TransactionListProps {
   transactions: Transaction[];
   isLoading: boolean;
-  walletAddress: string | null;
+  walletAddress: string | null; 
   limit: number;
   getStatusBadgeClass: (status: string) => string;
   getTypeIcon: (type: string) => string;
@@ -21,45 +22,56 @@ export function TransactionList({
   getStatusBadgeClass,
   getTypeIcon
 }: TransactionListProps) {
+  if (isLoading) {
+    return (
+      <div className="space-y-3 mb-6">
+        {Array.from({ length: limit }).map((_, i) => (
+          <Skeleton key={i} className="h-12 w-full" />
+        ))}
+      </div>
+    );
+  }
+  
+  if (transactions.length === 0) {
+    return (
+      <div className="py-6 text-center text-muted-foreground mb-6">
+        <p>Δεν βρέθηκαν συναλλαγές</p>
+      </div>
+    );
+  }
+  
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Ημερομηνία</TableHead>
-            <TableHead>Τύπος</TableHead>
-            <TableHead>Ποσό</TableHead>
-            <TableHead>Token</TableHead>
-            <TableHead className="hidden md:table-cell">Κατάσταση</TableHead>
-            <TableHead className="text-right">Ενέργειες</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {transactions.length > 0 ? (
-            transactions.slice(0, limit).map((tx) => (
-              <TransactionItem 
-                key={tx.signature || tx.id} 
-                transaction={tx} 
-                walletAddress={walletAddress}
-                getStatusBadgeClass={getStatusBadgeClass}
-                getTypeIcon={getTypeIcon}
-              />
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={6} className="h-24 text-center">
-                {isLoading ? (
-                  <div className="flex justify-center items-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                  </div>
-                ) : (
-                  <span className="text-muted-foreground">Δεν βρέθηκαν συναλλαγές</span>
-                )}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+    <div className="space-y-2 mb-6">
+      {transactions.map((tx, i) => (
+        <div
+          key={tx.signature || i}
+          className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+              <span className="text-sm font-bold">{getTypeIcon(tx.type)}</span>
+            </div>
+            
+            <div>
+              <div className="font-medium">{tx.type}</div>
+              <div className="text-xs text-muted-foreground">
+                {tx.timestamp
+                  ? formatDistanceToNow(new Date(tx.timestamp), { addSuffix: true, locale: el })
+                  : "Άγνωστη ημερομηνία"}
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex flex-col items-end gap-1">
+            <div className="font-medium">
+              {tx.amount ? `${Number(tx.amount).toFixed(4)} SOL` : ""}
+            </div>
+            <span className={`px-2 py-0.5 rounded-full text-xs ${getStatusBadgeClass(tx.status)}`}>
+              {tx.status}
+            </span>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

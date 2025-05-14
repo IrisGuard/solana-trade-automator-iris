@@ -2,11 +2,11 @@
 import React from "react";
 import { WalletConnectButtonSafe } from "@/components/wallet/WalletConnectButtonSafe";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Bell } from "lucide-react";
+import { RefreshCw, Bell, User } from "lucide-react";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useNavigate } from "react-router-dom";
-import { useLanguage } from "@/hooks/use-language";
+import { useUser } from "@/hooks/useUser";
 
 interface HeaderProps {
   title?: string;
@@ -14,8 +14,8 @@ interface HeaderProps {
 
 export function Header({ title = "Solana Trade" }: HeaderProps) {
   const { isConnected, refreshWalletData } = useWalletConnection();
+  const { user } = useUser();
   const navigate = useNavigate();
-  const { t } = useLanguage();
   
   const handleRefresh = () => {
     refreshWalletData();
@@ -24,16 +24,24 @@ export function Header({ title = "Solana Trade" }: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex flex-1 items-center justify-between">
-        <h1 className="text-xl font-semibold">{title}</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl font-semibold">{title}</h1>
+          {user?.username && (
+            <div className="hidden md:flex items-center gap-2 ml-4 text-sm text-muted-foreground">
+              <User className="h-4 w-4" />
+              <span>{user.username}</span>
+            </div>
+          )}
+        </div>
         
         <div className="flex items-center gap-2">
           {isConnected && (
-            <Button variant="ghost" size="icon" onClick={handleRefresh} title={t("general.refresh")}>
+            <Button variant="ghost" size="icon" onClick={handleRefresh} title="Ανανέωση δεδομένων">
               <RefreshCw className="h-4 w-4" />
             </Button>
           )}
           
-          <Button variant="ghost" size="icon" title={t("notifications.title")}>
+          <Button variant="ghost" size="icon" title="Ειδοποιήσεις">
             <Bell className="h-4 w-4" />
           </Button>
           

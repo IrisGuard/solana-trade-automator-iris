@@ -4,22 +4,16 @@ export interface Token {
   name: string;
   symbol: string;
   amount: number;
-  decimals: number;
+  decimals?: number;
   logo?: string;
-  balance?: number;
-  uiBalance?: number;
-  mint?: string;
 }
 
-export interface TokenBalance {
-  mint: string;
-  owner: string;
-  amount: string;
-  decimals: number;
+export interface TokenPrice {
+  price: number;
+  priceChange24h: number;
+  volume24h?: number;
+  marketCap?: number;
+  lastUpdated: Date;
 }
 
-export interface TokenDetails extends Token {
-  price?: number;
-  value?: number;
-  change24h?: number;
-}
+export type TokenPrices = Record<string, TokenPrice>;

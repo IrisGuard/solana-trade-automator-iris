@@ -1,9 +1,9 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Transaction } from "@/types/transaction";
+import { ArrowRight } from "lucide-react";
+import type { Transaction } from "@/types/transaction";
 
 interface TransactionFooterProps {
   walletAddress: string | null;
@@ -11,28 +11,26 @@ interface TransactionFooterProps {
   transactions: Transaction[];
 }
 
-export function TransactionFooter({
-  walletAddress,
-  showViewAll,
-  transactions
+export function TransactionFooter({ 
+  walletAddress, 
+  showViewAll, 
+  transactions 
 }: TransactionFooterProps) {
-  if (!showViewAll || transactions.length === 0) {
-    return null;
+  if (!walletAddress) return null;
+  
+  if (transactions.length === 0) return null;
+  
+  if (showViewAll) {
+    return (
+      <div className="text-right">
+        <Link to="/transactions">
+          <Button variant="ghost" size="sm" className="gap-1">
+            Προβολή όλων <ArrowRight className="h-3.5 w-3.5" />
+          </Button>
+        </Link>
+      </div>
+    );
   }
   
-  return (
-    <div className="mt-4">
-      <Link to="/transactions">
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full flex items-center justify-center"
-          disabled={!walletAddress}
-        >
-          <span>Προβολή όλων των συναλλαγών</span>
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-      </Link>
-    </div>
-  );
+  return null;
 }

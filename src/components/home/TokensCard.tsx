@@ -1,89 +1,81 @@
 
-import React, { useState } from "react";
-import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
+import React from "react";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Token } from "@/types/wallet";
-import { TokensHeader } from "./tokens/TokensHeader";
 import { TokensList } from "./tokens/TokensList";
-import { TokensFooter } from "./tokens/TokensFooter";
 
 interface TokensCardProps {
-  tokens: Token[];
-  tokenPrices?: Record<string, number>;
-  onSelectToken?: (tokenAddress: string) => Token | null;
-  isLoadingTokens?: boolean;
-  connectionError?: string | null;
+  walletAddress: string | null;
+  tokens?: Token[];
+  tokenPrices?: Record<string, { price: number, priceChange24h: number }>;
+  isLoading: boolean;
 }
 
 export function TokensCard({ 
-  tokens, 
-  tokenPrices,
-  onSelectToken,
-  isLoadingTokens = false,
-  connectionError = null
+  walletAddress, 
+  tokens = [], 
+  tokenPrices = {},
+  isLoading 
 }: TokensCardProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedToken, setSelectedToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // If there's no wallet address, show placeholder
+  if (!walletAddress) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Τα Tokens μου</CardTitle>
+          <CardDescription>Συνδεθείτε για να δείτε τα tokens σας</CardDescription>
+        </CardHeader>
+        <CardContent className="py-6 text-center text-muted-foreground">
+          <p>Δεν έχετε συνδέσει πορτοφόλι</p>
+        </CardContent>
+      </Card>
+    );
+  }
   
-  // Filter tokens based on search query
-  const filteredTokens = tokens.filter(token => 
-    token.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    token.symbol.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  // Handle token selection
-  const handleSelectToken = (tokenAddress: string) => {
-    setSelectedToken(tokenAddress === selectedToken ? null : tokenAddress);
-  };
-
-  // Handle trading button click
-  const handleTradingClick = (tokenAddress: string) => {
-    if (onSelectToken) {
-      setIsLoading(true);
-      try {
-        onSelectToken(tokenAddress);
-        // Navigate to bot control page after a brief delay
-        setTimeout(() => {
-          window.location.href = `/bot-control?token=${tokenAddress}`;
-          setIsLoading(false);
-        }, 500);
-      } catch (error) {
-        console.error("Error selecting token:", error);
-        setIsLoading(false);
-      }
-    }
-  };
-
   return (
     <Card>
-      <CardHeader>
-        <TokensHeader 
-          searchQuery={searchQuery} 
-          onSearchChange={setSearchQuery} 
-        />
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <div>
+          <CardTitle>Τα Tokens μου</CardTitle>
+          <CardDescription>
+            {tokens.length > 0
+              ? `${tokens.length} διαθέσιμα tokens`
+              : "Δεν βρέθηκαν tokens"}
+          </CardDescription>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <TokensList
-          tokens={tokens}
-          filteredTokens={filteredTokens}
-          selectedToken={selectedToken}
-          tokenPrices={tokenPrices}
-          isLoadingTokens={isLoadingTokens}
-          isLoading={isLoading}
-          connectionError={connectionError}
-          onSelectToken={handleSelectToken}
-          onTradingClick={handleTradingClick}
-        />
+      <CardContent>
+        {isLoading ? (
+          <div className="space-y-3">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
+        ) : tokens.length === 0 ? (
+          <div className="py-6 text-center text-muted-foreground">
+            <p>Δεν βρέθηκαν tokens στο πορτοφόλι σας</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <TokensList 
+              tokens={tokens.slice(0, 5)} 
+              tokenPrices={tokenPrices} 
+            />
+            
+            <div className="mt-4 text-right">
+              <Link to="/wallet">
+                <Button variant="ghost" size="sm" className="gap-1">
+                  Προβολή όλων <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
       </CardContent>
-      {selectedToken && (
-        <CardFooter className="pt-2 pb-4 border-t">
-          <TokensFooter 
-            selectedToken={selectedToken}
-            isLoading={isLoading}
-            onTradingClick={handleTradingClick}
-          />
-        </CardFooter>
-      )}
     </Card>
   );
 }
