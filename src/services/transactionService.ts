@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Transaction } from '@/types/wallet';
+import { Transaction } from '@/types/transaction';
 import { toast } from 'sonner';
 import { transactionsService } from './transactionsService';
 
@@ -28,6 +28,7 @@ export const transactionService = {
         return data.map(dbTx => ({
           signature: dbTx.signature,
           blockTime: dbTx.block_time ? new Date(dbTx.block_time).getTime() : Date.now(),
+          timestamp: dbTx.block_time ? new Date(dbTx.block_time).getTime() : Date.now(), // Προσθήκη υποχρεωτικού timestamp
           type: dbTx.type,
           status: dbTx.status,
           amount: dbTx.amount,
@@ -61,7 +62,7 @@ export const transactionService = {
           user_id: userId,
           type: transaction.type,
           status: transaction.status,
-          amount: transaction.amount || '',
+          amount: String(transaction.amount || ''), // Μετατροπή σε string
           source: transaction.from,
           destination: transaction.to,
           block_time: transaction.blockTime ? new Date(transaction.blockTime).toISOString() : new Date().toISOString()

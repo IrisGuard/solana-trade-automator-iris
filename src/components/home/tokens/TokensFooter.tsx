@@ -1,34 +1,31 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Loader } from "lucide-react";
+import { ChevronRight, Loader2 } from "lucide-react";
 
 interface TokensFooterProps {
-  selectedToken: string | null;
+  selectedToken: string;
   isLoading: boolean;
   onTradingClick: (tokenAddress: string) => void;
 }
 
-export function TokensFooter({ selectedToken, isLoading, onTradingClick }: TokensFooterProps) {
-  if (!selectedToken) return null;
-  
+export function TokensFooter({
+  selectedToken,
+  isLoading,
+  onTradingClick
+}: TokensFooterProps) {
   return (
-    <Button 
-      className="w-full"
-      disabled={isLoading}
-      onClick={() => onTradingClick(selectedToken)}
-    >
-      {isLoading ? (
-        <>
-          <Loader className="h-4 w-4 mr-2 animate-spin" /> 
-          Επεξεργασία...
-        </>
-      ) : (
-        <>
-          Δημιουργία Trading Bot για το επιλεγμένο token
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </>
-      )}
-    </Button>
+    <div className="w-full flex justify-end">
+      <Button 
+        onClick={() => onTradingClick(selectedToken)}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+        ) : null}
+        Ρύθμιση Trading Bot
+        <ChevronRight className="h-4 w-4 ml-1" />
+      </Button>
+    </div>
   );
 }

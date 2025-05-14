@@ -1,14 +1,53 @@
 
-import React from "react";
-import { Routes } from "@/routes";
-import { Toaster } from "@/components/ui/toaster";
-import { SolanaProviderFallback } from "@/components/wallet/SolanaProviderFallback";
+import React from 'react';
+import { FallbackProps } from 'react-error-boundary';
+import { Button } from '@/components/ui/button';
 
-export function WalletErrorFallback() {
+export function WalletErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
+  // Έλεγχος για το συγκεκριμένο σφάλμα substring
+  const isSubstringError = error.message.includes('substring is not a function');
+  const isPublicKeyError = error.message.includes('Objects are not valid as a React child') && 
+                          error.message.includes('PublicKey');
+  
   return (
-    <SolanaProviderFallback>
-      <Routes />
-      <Toaster />
-    </SolanaProviderFallback>
+    <div className="flex items-center justify-center min-h-screen p-6 bg-background">
+      <div className="w-full max-w-md p-6 space-y-6 border rounded-lg shadow-lg">
+        <div className="space-y-2 text-center">
+          <h2 className="text-2xl font-bold tracking-tight">Πρόβλημα με το Wallet</h2>
+          <p className="text-sm text-muted-foreground">
+            Παρουσιάστηκε ένα σφάλμα κατά τη σύνδεση με το wallet.
+          </p>
+        </div>
+        
+        <div className="p-4 border border-red-200 bg-red-50 dark:bg-red-900/20 rounded-md text-sm">
+          <p className="font-medium text-red-800 dark:text-red-300">
+            Σφάλμα: {
+              isSubstringError 
+                ? 'Προέκυψε πρόβλημα με την επεξεργασία της διεύθυνσης του πορτοφολιού'
+                : isPublicKeyError
+                ? 'Προέκυψε πρόβλημα με την επεξεργασία του αντικειμένου PublicKey'
+                : error.message
+            }
+          </p>
+        </div>
+        
+        <div className="space-y-4">
+          <Button className="w-full" onClick={resetErrorBoundary}>
+            Προσπάθεια Επανασύνδεσης
+          </Button>
+          <Button 
+            variant="outline" 
+            className="w-full"
+            onClick={() => window.location.href = '/'}
+          >
+            Επιστροφή στην Αρχική
+          </Button>
+        </div>
+        
+        <p className="text-xs text-center text-muted-foreground">
+          Αν το πρόβλημα παραμένει, επικοινωνήστε με την υποστήριξη.
+        </p>
+      </div>
+    </div>
   );
 }

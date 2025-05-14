@@ -4,26 +4,22 @@ export interface Token {
   name: string;
   symbol: string;
   amount: number;
+  decimals: number;
   logo?: string;
+  balance?: number;
+  uiBalance?: number;
+  mint?: string;
+}
+
+export interface TokenBalance {
+  mint: string;
+  owner: string;
+  amount: string;
+  decimals: number;
+}
+
+export interface TokenDetails extends Token {
   price?: number;
-}
-
-export interface Transaction {
-  signature: string;
-  blockTime: number;
-  type: string;
-  status: string;
-  amount?: string;
-  from?: string;
-  to?: string;
-  tokenAddress?: string;
-}
-
-export interface WalletState {
-  isConnected: boolean;
-  walletAddress: string;
-  balance: number | null;
-  error: string | null;
-  isConnecting: boolean;
-  tokens: Token[];
+  value?: number;
+  change24h?: number;
 }

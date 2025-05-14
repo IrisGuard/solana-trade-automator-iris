@@ -3,64 +3,43 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useWallet } from "@/hooks/useWallet";
+import { useWalletConnection } from "@/hooks/useWalletConnection";
 import { WalletOverview } from "@/components/wallet/WalletOverview";
 import { TokensTab } from "@/components/wallet/TokensTab";
+import { EnhancedTradingBotTab } from "@/components/wallet/trading-bot/EnhancedTradingBotTab";
 import { MakerBotTab } from "@/components/wallet/MakerBotTab";
 import { ApiVaultTab } from "@/components/wallet/ApiVaultTab";
 import { SimulationTab } from "@/components/wallet/SimulationTab";
-import { TradingBotTab } from "@/components/wallet/TradingBotTab";
 
 export default function WalletPage() {
   const {
     isConnected,
-    isSimulation,
-    activeTab,
-    setActiveTab,
-    makers,
-    setMakers,
-    minDelay,
-    setMinDelay,
-    maxDelay,
-    setMaxDelay,
-    priceBoost,
-    setPriceBoost,
-    botActive,
-    tokenAmount,
-    setTokenAmount,
-    solAmount,
-    setSolAmount,
-    apiKeys,
-    isUnlocked,
-    apiSettings,
-    setApiSettings,
     walletAddress,
     solBalance,
-    tokenBalance,
-    handleConnectWallet,
-    handleDisconnectWallet,
-    toggleSimulation,
-    handleStartBot,
-    handleStopBot,
-    handleBoostPrice,
-    handleApiConnect,
-    handleUnlockVault,
-    handleLockVault,
-    handleSaveApiSettings,
-    handleExportKeys,
-    handleImportKeys
-  } = useWallet();
+    tokens,
+    tokenPrices,
+    isLoadingTokens,
+    error,
+    connectWallet,
+    disconnectWallet,
+    refreshWalletData,
+    selectTokenForTrading,
+    isPhantomInstalled
+  } = useWalletConnection();
+
+  // Default tab
+  const [activeTab, setActiveTab] = React.useState("overview");
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Wallet & Trading Bot</h2>
         {isConnected ? (
-          <Button variant="outline" onClick={handleDisconnectWallet}>
+          <Button variant="outline" onClick={disconnectWallet}>
             Disconnect Wallet
           </Button>
         ) : (
-          <Button onClick={handleConnectWallet}>
+          <Button onClick={connectWallet}>
             Connect Wallet
           </Button>
         )}
@@ -80,46 +59,24 @@ export default function WalletPage() {
           isConnected={isConnected}
           walletAddress={walletAddress}
           solBalance={solBalance}
-          handleConnectWallet={handleConnectWallet}
-          handleDisconnectWallet={handleDisconnectWallet}
+          handleConnectWallet={connectWallet}
+          handleDisconnectWallet={disconnectWallet}
         />
 
         <TokensTab 
           isConnected={isConnected}
-          tokenBalance={tokenBalance}
+          tokenBalance={tokens && tokens.length > 0 ? tokens[0].amount : 0}
           solBalance={solBalance}
-          handleConnectWallet={handleConnectWallet}
+          handleConnectWallet={connectWallet}
         />
         
-        <TradingBotTab />
+        <EnhancedTradingBotTab />
 
         <MakerBotTab 
           isConnected={isConnected}
-          isSimulation={isSimulation}
-          makers={makers}
-          minDelay={minDelay}
-          maxDelay={maxDelay}
-          priceBoost={priceBoost}
-          botActive={botActive}
-          tokenAmount={tokenAmount}
-          solAmount={solAmount}
-          handleConnectWallet={handleConnectWallet}
-          toggleSimulation={toggleSimulation}
-          setMakers={setMakers}
-          setMinDelay={setMinDelay}
-          setMaxDelay={setMaxDelay}
-          setPriceBoost={setPriceBoost}
-          setTokenAmount={setTokenAmount}
-          setSolAmount={setSolAmount}
-          handleStartBot={handleStartBot}
-          handleStopBot={handleStopBot}
-          handleBoostPrice={handleBoostPrice}
         />
 
-        <ApiVaultTab 
-          apiKeys={apiKeys}
-          handleApiConnect={handleApiConnect}
-        />
+        <ApiVaultTab />
 
         <SimulationTab />
       </Tabs>

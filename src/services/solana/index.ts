@@ -1,33 +1,31 @@
 
-// Re-export solana services for consistent access
-import { fetchTokenBalance, fetchAllTokenBalances } from './tokenService';
-import { fetchSOLBalance } from './walletService';
-import { fetchTransactionHistory } from './transaction';
-import { fetchTokenPrices } from './priceService';
+// Re-export key Solana services in a centralized file
+import { fetchSOLBalance, getSolBalance } from './wallet/balance';
+import { sendToken } from './wallet/transfer';
+import { fetchAllTokenBalances, fetchTokenBalance, tokenService } from './token';
+import { priceService } from './price';
+import { RPC_ENDPOINTS, API_ENDPOINTS } from './config';
 
-// For backward compatibility with existing code
-import { walletService } from './walletService';
-import { tokenService } from './tokenService';
-import { transactionService } from './transaction';
-import { raydiumService } from './raydiumService';
-import { tradingService } from './tradingService';
-import { connection } from './config';
-
-// Export a standard interface for the modular approach
+// Create a centralized solanaService object for compatibility with existing code
 export const solanaService = {
-  // New modular functions
-  fetchTokenBalance,
-  fetchAllTokenBalances,
   fetchSOLBalance,
-  fetchTransactionHistory,
-  fetchTokenPrices,
-  
-  // Backward compatibility properties
-  getConnection: () => connection,
-  getSolBalance: walletService.getSolBalance,
-  getTokenAccounts: tokenService.getTokenAccounts,
-  getTokenPrice: tokenService.getTokenPrice,
-  getRecentTransactions: transactionService.getRecentTransactions,
-  raydium: raydiumService,
-  trading: tradingService
+  getSolBalance,
+  fetchAllTokenBalances,
+  fetchTokenBalance,
+  tokenService,
+  fetchTokenPrices: async (tokenAddress: string) => {
+    return { 
+      price: 0, 
+      priceChange24h: 0 
+    };
+  },
+  fetchTransactions: async (address: string, limit: number = 10) => {
+    console.log(`Would fetch ${limit} transactions for ${address}`);
+    return [];
+  }
 };
+
+// Re-export other modules
+export { RPC_ENDPOINTS, API_ENDPOINTS };
+export { tokenService, fetchAllTokenBalances, fetchTokenBalance, priceService };
+

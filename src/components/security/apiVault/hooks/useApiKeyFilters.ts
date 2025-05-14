@@ -1,6 +1,6 @@
 
 import { useState, useMemo } from "react";
-import { ApiKey, ApiKeyStats } from "../types";
+import { ApiKey, ApiKeyStats, ServiceInfo } from "../types";
 
 export function useApiKeyFilters() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -45,9 +45,13 @@ export const calculateKeyStats = (apiKeys: ApiKey[]): ApiKeyStats => ({
   active: apiKeys.filter(key => key.status === "active" || !key.status).length,
   expired: apiKeys.filter(key => key.status === "expired").length,
   revoked: apiKeys.filter(key => key.status === "revoked").length,
+  servicesBreakdown: groupKeysByService(apiKeys).map(service => ({
+    name: service.name,
+    count: service.count
+  }))
 });
 
-export const groupKeysByService = (apiKeys: ApiKey[]) => {
+export const groupKeysByService = (apiKeys: ApiKey[]): ServiceInfo[] => {
   const keysByService = apiKeys.reduce<Record<string, ApiKey[]>>((acc, key) => {
     const service = key.service || 'other';
     acc[service] = acc[service] || [];
@@ -55,8 +59,11 @@ export const groupKeysByService = (apiKeys: ApiKey[]) => {
     return acc;
   }, {});
   
-  return Object.entries(keysByService).map(([name, keys]) => ({
-    name,
+  return Object.entries(keysByService).map(([serviceName, keys]) => ({
+    name: serviceName,
+    service: serviceName,
     count: keys.length,
+    workingCount: keys.filter(k => k.isWorking).length,
+    expiredCount: keys.filter(k => k.status === 'expired').length
   }));
 };

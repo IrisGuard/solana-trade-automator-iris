@@ -1,59 +1,43 @@
 
 import React from "react";
-import { Button } from "@/components/ui/button";
-import { Wallet, Loader } from "lucide-react";
-import { useWallet } from '@solana/wallet-adapter-react';
-import { useWalletModal } from '@solana/wallet-adapter-react-ui';
-import { toast } from "sonner";
+import { Button, type ButtonProps } from "@/components/ui/button";
+import { Loader2, Wallet } from "lucide-react";
 
-interface WalletConnectButtonProps {
-  className?: string;
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
-  size?: "default" | "sm" | "lg" | "icon";
+interface WalletConnectButtonProps extends ButtonProps {
   isLoading?: boolean;
-  children?: React.ReactNode;
 }
 
-export const WalletConnectButton = ({ 
-  className = "",
+export function WalletConnectButton({
+  children,
+  isLoading = false,
   variant = "default",
   size = "default",
-  isLoading = false,
-  children
-}: WalletConnectButtonProps) => {
-  const { connected, connecting, publicKey, disconnect } = useWallet();
-  const { setVisible } = useWalletModal();
-
-  const handleClick = () => {
-    if (connecting) return;
-    
-    try {
-      if (connected && publicKey) {
-        disconnect();
-        toast.success("Το πορτοφόλι αποσυνδέθηκε");
-      } else {
-        setVisible(true);
-      }
-    } catch (error) {
-      console.error("Error handling wallet connection:", error);
-      toast.error("Παρουσιάστηκε σφάλμα κατά τη διαχείριση σύνδεσης");
-    }
-  };
-
+  className = "",
+  ...props
+}: WalletConnectButtonProps) {
+  const buttonContent = isLoading ? (
+    <>
+      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      <span>Σύνδεση...</span>
+    </>
+  ) : (
+    <>{children || 
+      <>
+        <Wallet className="mr-2 h-4 w-4" />
+        <span>Σύνδεση με Wallet</span>
+      </>
+    }</>
+  );
+  
   return (
     <Button 
-      onClick={handleClick}
+      className={className}
       variant={variant}
       size={size}
-      className={`flex items-center gap-2 ${className}`}
-      disabled={isLoading || connecting}
+      disabled={isLoading}
+      {...props}
     >
-      {(isLoading || connecting) ? (
-        <Loader className="h-4 w-4 animate-spin mr-2" />
-      ) : (
-        <Wallet className="h-4 w-4 mr-2" />
-      )}
-      {children || (connected ? "Αποσύνδεση Wallet" : "Σύνδεση με Wallet")}
+      {buttonContent}
     </Button>
   );
-};
+}

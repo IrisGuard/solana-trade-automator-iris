@@ -2,12 +2,12 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Token } from '@/types/wallet';
-import { solanaService } from '@/services/solanaService';
+import { solanaService } from '@/services/solana';
 
 export function useTokens() {
   const [tokens, setTokens] = useState<Token[]>([]);
   const [selectedToken, setSelectedToken] = useState<Token | null>(null);
-  const [tokenPrices, setTokenPrices] = useState<Record<string, number>>({});
+  const [tokenPrices, setTokenPrices] = useState<Record<string, { price: number, priceChange24h: number }>>({}); 
   const [isLoadingTokens, setIsLoadingTokens] = useState<boolean>(false);
 
   // Load tokens from the Phantom wallet
@@ -50,22 +50,18 @@ export function useTokens() {
     try {
       if (tokens.length === 0) return {};
       
-      // Use token addresses to fetch prices
-      const addresses = tokens.map(token => token.address);
-      const priceData = await solanaService.fetchTokenPrices(addresses);
+      // Fix: Convert array of addresses to a comma-separated string or handle individually
+      const pricesData: Record<string, { price: number, priceChange24h: number }> = {};
       
-      // Convert the TokenPriceData to simple price record for backward compatibility
-      const simplePrices: Record<string, number> = {};
-      
-      // Safely extract price values from the returned data
-      Object.entries(priceData).forEach(([address, data]) => {
-        if (data && typeof data === 'object' && 'price' in data) {
-          simplePrices[address] = data.price;
+      for (const token of tokens) {
+        const priceData = await solanaService.fetchTokenPrices(token.address);
+        if (priceData) {
+          pricesData[token.address] = priceData;
         }
-      });
+      }
       
-      setTokenPrices(simplePrices);
-      return simplePrices;
+      setTokenPrices(pricesData);
+      return pricesData;
     } catch (error) {
       console.error("Error fetching token prices:", error);
       return {};

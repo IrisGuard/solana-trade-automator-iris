@@ -7,7 +7,7 @@ import { SecuritySetting } from "./usePlatformSecurity";
 
 interface SecurityTableProps {
   securitySettings: SecuritySetting[];
-  handleToggle: (id: string) => void;
+  handleToggle: (id: string, enabled: boolean) => void;
   handleEnableAll: () => void;
   handleDisableAll: () => void;
 }
@@ -58,7 +58,7 @@ export function SecurityTable({
                 name={setting.name}
                 description={setting.description}
                 isEnabled={setting.isEnabled}
-                onToggle={() => handleToggle(setting.id)}
+                onToggle={() => handleToggle(setting.id, !setting.isEnabled)}
               />
             ))}
           </TableBody>

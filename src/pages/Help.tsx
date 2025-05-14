@@ -1,155 +1,89 @@
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { HelpCircle, FileText, MessageSquare, BookOpen, Link as LinkIcon } from "lucide-react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
-export default function Help() {
+export default function HelpPage() {
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <HelpCircle className="h-5 w-5 text-primary" />
-            Βοήθεια & Υποστήριξη
-          </CardTitle>
-          <CardDescription>Βρείτε απαντήσεις στις ερωτήσεις σας και υποστήριξη για την πλατφόρμα</CardDescription>
+          <CardTitle>Οδηγίες Χρήσης</CardTitle>
+          <CardDescription>
+            Χρήσιμες πληροφορίες για τη χρήση της πλατφόρμας
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="faq" className="space-y-4">
-            <TabsList className="grid grid-cols-4 w-full max-w-lg">
-              <TabsTrigger value="faq">Συχνές Ερωτήσεις</TabsTrigger>
-              <TabsTrigger value="guides">Οδηγοί Χρήσης</TabsTrigger>
-              <TabsTrigger value="support">Επικοινωνία</TabsTrigger>
-              <TabsTrigger value="resources">Πόροι</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="faq" className="space-y-4">
-              <div className="rounded-lg border p-4">
-                <h3 className="text-lg font-medium mb-2">Πώς συνδέω το πορτοφόλι μου;</h3>
-                <p className="text-muted-foreground">
-                  Για να συνδέσετε το πορτοφόλι σας, κάντε κλικ στο κουμπί "Σύνδεση Πορτοφολιού" 
-                  στην κεφαλίδα. Υποστηρίζουμε το Phantom Wallet για το Solana blockchain.
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="item-1">
+              <AccordionTrigger>Πώς συνδέομαι με το Phantom Wallet;</AccordionTrigger>
+              <AccordionContent>
+                <p>
+                  Για να συνδεθείτε με το Phantom Wallet, ακολουθήστε τα παρακάτω βήματα:
                 </p>
-              </div>
-              
-              <div className="rounded-lg border p-4">
-                <h3 className="text-lg font-medium mb-2">Πώς λειτουργεί το Trading Bot;</h3>
-                <p className="text-muted-foreground">
-                  Το Trading Bot παρακολουθεί τις τιμές των tokens σε πραγματικό χρόνο και εκτελεί συναλλαγές 
-                  βάσει των παραμέτρων που έχετε ορίσει. Δείτε περισσότερες πληροφορίες στη σελίδα Dashboard.
+                <ol className="list-decimal list-inside mt-2 space-y-2">
+                  <li>Εγκαταστήστε το Phantom Wallet από το <a href="https://phantom.app/" target="_blank" rel="noopener noreferrer" className="text-primary underline">phantom.app</a></li>
+                  <li>Δημιουργήστε ένα νέο πορτοφόλι ή εισάγετε ένα υπάρχον</li>
+                  <li>Επιστρέψτε στην εφαρμογή και πατήστε το κουμπί "Σύνδεση με Phantom Wallet"</li>
+                  <li>Εγκρίνετε τη σύνδεση στο παράθυρο του Phantom Wallet</li>
+                </ol>
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-2">
+              <AccordionTrigger>Πώς λειτουργεί το Trading Bot;</AccordionTrigger>
+              <AccordionContent>
+                <p>
+                  Το Trading Bot της πλατφόρμας μας χρησιμοποιεί προηγμένους αλγόριθμους για να εκτελεί
+                  αυτοματοποιημένες συναλλαγές στο δίκτυο Solana. Ακολουθεί τη στρατηγική που έχετε ορίσει
+                  και παρακολουθεί την αγορά 24/7 για να αναγνωρίσει ευκαιρίες.
                 </p>
-              </div>
-              
-              <div className="rounded-lg border p-4">
-                <h3 className="text-lg font-medium mb-2">Είναι ασφαλείς οι συναλλαγές μου;</h3>
-                <p className="text-muted-foreground">
-                  Όλες οι συναλλαγές εκτελούνται απευθείας από το πορτοφόλι σας και απαιτούν την έγκρισή σας. 
-                  Δεν έχουμε πρόσβαση στα ιδιωτικά κλειδιά σας και όλες οι επικοινωνίες είναι κρυπτογραφημένες.
+                <p className="mt-2">
+                  Για να ρυθμίσετε το Trading Bot:
                 </p>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="guides" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <FileText className="h-4 w-4" /> Ρύθμιση Trading Bot
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Οδηγίες για τη ρύθμιση και παραμετροποίηση του Trading Bot σας.
-                    </p>
-                    <Link to="/dashboard">
-                      <Button variant="outline" size="sm">Δείτε τον οδηγό</Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <FileText className="h-4 w-4" /> Διαχείριση Πορτοφολιού
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Πώς να διαχειριστείτε το πορτοφόλι και τα tokens σας αποτελεσματικά.
-                    </p>
-                    <Link to="/wallet">
-                      <Button variant="outline" size="sm">Δείτε τον οδηγό</Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="support" className="space-y-4">
-              <div className="space-y-4">
-                <div className="rounded-lg border p-4">
-                  <h3 className="text-lg font-medium mb-2">Επικοινωνία με Υποστήριξη</h3>
-                  <p className="text-muted-foreground mb-3">
-                    Στείλτε μας email στο <span className="font-medium">support@solanatrader.example</span> και θα σας απαντήσουμε εντός 24 ωρών.
-                  </p>
-                </div>
-                
-                <div className="rounded-lg border p-4">
-                  <h3 className="text-lg font-medium mb-2">Κοινότητα</h3>
-                  <p className="text-muted-foreground mb-3">
-                    Συνδεθείτε με άλλους traders και λάβετε βοήθεια από την κοινότητα.
-                  </p>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4" /> Discord
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4" /> Telegram
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="resources" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <BookOpen className="h-4 w-4" /> Solana Documentation
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Επίσημη τεκμηρίωση για το Solana blockchain και τις λειτουργίες του.
-                    </p>
-                    <Button variant="outline" size="sm" className="flex items-center gap-2" onClick={() => window.open("https://docs.solana.com", "_blank")}>
-                      <LinkIcon className="h-3 w-3" /> Άνοιγμα
-                    </Button>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <BookOpen className="h-4 w-4" /> Trading Strategies
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Οδηγός για αποτελεσματικές στρατηγικές trading στο Solana.
-                    </p>
-                    <Button variant="outline" size="sm" className="flex items-center gap-2">
-                      <LinkIcon className="h-3 w-3" /> Άνοιγμα
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-          </Tabs>
+                <ol className="list-decimal list-inside mt-2 space-y-2">
+                  <li>Μεταβείτε στην καρτέλα "Trading Bot"</li>
+                  <li>Επιλέξτε ένα token από τη λίστα</li>
+                  <li>Ορίστε τις παραμέτρους της στρατηγικής σας</li>
+                  <li>Πατήστε "Έναρξη Bot" για να ξεκινήσει η λειτουργία του</li>
+                </ol>
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-3">
+              <AccordionTrigger>Πώς μπορώ να δω το ιστορικό των συναλλαγών μου;</AccordionTrigger>
+              <AccordionContent>
+                <p>
+                  Για να δείτε το ιστορικό των συναλλαγών σας:
+                </p>
+                <ol className="list-decimal list-inside mt-2 space-y-2">
+                  <li>Συνδεθείτε με το wallet σας</li>
+                  <li>Στο κεντρικό dashboard, θα βρείτε την καρτέλα "Πρόσφατες Συναλλαγές"</li>
+                  <li>Για πιο αναλυτικό ιστορικό, επιλέξτε "Προβολή Όλων"</li>
+                </ol>
+                <p className="mt-2">
+                  Επίσης, μπορείτε να δείτε τις συναλλαγές που εκτελέστηκαν από το Trading Bot στην
+                  καρτέλα "Παρακολούθηση" του Trading Bot.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-4">
+              <AccordionTrigger>Πώς μπορώ να επικοινωνήσω με την υποστήριξη;</AccordionTrigger>
+              <AccordionContent>
+                <p>
+                  Για οποιαδήποτε βοήθεια ή απορία, μπορείτε να επικοινωνήσετε με την ομάδα υποστήριξης μέσω:
+                </p>
+                <ul className="list-disc list-inside mt-2 space-y-2">
+                  <li>Email: support@solanatrade.app</li>
+                  <li>Φόρμα επικοινωνίας στη σελίδα "Επικοινωνία"</li>
+                </ul>
+                <p className="mt-2">
+                  Η ομάδα υποστήριξης είναι διαθέσιμη καθημερινά από τις 9:00 έως τις 21:00.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </CardContent>
       </Card>
     </div>

@@ -6,7 +6,7 @@ import { ApiKeyList } from "./ApiKeyList";
 import { ApiKeysByService } from "./ApiKeysByService";
 import { EmptyApiVault } from "./components/EmptyApiVault";
 import { ApiKeyStats } from "./components/ApiKeyStats";
-import { ApiKey, ServiceInfo } from "./types";
+import { ApiKey, ApiKeyStats as ApiKeyStatsType, ServiceInfo } from "./types";
 
 interface ApiVaultContentProps {
   apiKeys: ApiKey[];
@@ -48,17 +48,27 @@ export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
   }
 
   // Calculate statistics for keys
-  const keyStats = {
+  const keyStats: ApiKeyStatsType = {
     total: apiKeys.length,
     active: apiKeys.filter(key => key.status === "active" || !key.status).length,
     expired: apiKeys.filter(key => key.status === "expired").length,
     revoked: apiKeys.filter(key => key.status === "revoked").length,
+    servicesBreakdown: []  // Initialize the servicesBreakdown array
   };
 
   // Get unique services and their counts
   const serviceStats: ServiceInfo[] = Object.entries(getKeysByService()).map(([name, keys]) => ({
     name,
+    service: name,
     count: keys.length,
+    workingCount: keys.filter(k => k.isWorking).length,
+    expiredCount: keys.filter(k => k.status === 'expired').length
+  }));
+
+  // Fill the servicesBreakdown property
+  keyStats.servicesBreakdown = serviceStats.map(s => ({
+    name: s.name,
+    count: s.count
   }));
 
   return (

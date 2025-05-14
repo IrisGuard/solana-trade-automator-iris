@@ -1,88 +1,49 @@
 
-import React from 'react';
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
-import { Loader2, Check, AlertCircle } from "lucide-react";
-import { addHeliusEndpoints, addHeliusKey } from "@/utils/addHeliusEndpoints";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { importHeliusKeys } from "@/utils/importHeliusKeys";
+import { Loader2 } from "lucide-react";
 
 export function AddHeliusButton() {
-  const [isAdding, setIsAdding] = React.useState(false);
-  const [isAdded, setIsAdded] = React.useState(false);
   const { user } = useAuth();
-
-  // Έλεγχος αν το κλειδί Helius έχει ήδη προστεθεί
-  React.useEffect(() => {
-    const checkHeliusKey = async () => {
-      if (!user) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from('api_keys_storage')
-          .select('*')
-          .eq('service', 'helius')
-          .eq('user_id', user.id);
-          
-        if (!error && data && data.length > 0) {
-          setIsAdded(true);
-        }
-      } catch (error) {
-        console.error("Error checking for Helius key:", error);
-      }
-    };
-    
-    checkHeliusKey();
-  }, [user]);
-
-  const handleAddHelius = async () => {
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const handleAddHeliusKeys = async () => {
     if (!user) {
-      toast.error("Πρέπει να συνδεθείτε για να προσθέσετε το Helius");
+      toast.error("Πρέπει να συνδεθείτε για να προσθέσετε τα κλειδιά Helius");
       return;
     }
-
-    setIsAdding(true);
+    
+    setIsLoading(true);
     try {
-      // Προσθήκη των endpoints
-      await addHeliusEndpoints();
-      
-      // Προσθήκη του κλειδιού στην κλειδοθήκη
-      const result = await addHeliusKey(user.id);
-      
+      const result = await importHeliusKeys(user.id);
       if (result) {
-        setIsAdded(true);
-        toast.success("Όλα τα κλειδιά και τα endpoints του Helius προστέθηκαν επιτυχώς!");
+        toast.success("Τα κλειδιά Helius προστέθηκαν επιτυχώς!");
       }
     } catch (error) {
-      console.error("Error adding Helius integration:", error);
-      toast.error("Σφάλμα κατά την προσθήκη του Helius");
+      console.error("Error adding Helius keys:", error);
+      toast.error("Σφάλμα κατά την προσθήκη των κλειδιών Helius");
     } finally {
-      setIsAdding(false);
+      setIsLoading(false);
     }
   };
-
-  if (isAdded) {
-    return (
-      <Button variant="outline" className="gap-2 bg-green-50 text-green-700 border-green-200" disabled>
-        <Check size={16} />
-        Το Helius προστέθηκε επιτυχώς
-      </Button>
-    );
-  }
-
+  
   return (
-    <Button
-      variant={isAdding ? "outline" : "default"}
-      onClick={handleAddHelius}
-      disabled={isAdding || !user}
+    <Button 
+      onClick={handleAddHeliusKeys}
+      disabled={isLoading || !user}
+      variant="outline"
+      size="sm"
       className="gap-2"
     >
-      {isAdding ? (
-        <Loader2 size={16} className="animate-spin" />
+      {isLoading ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
       ) : (
-        <AlertCircle size={16} />
+        <span className="h-4 w-4 text-green-500">+</span>
       )}
-      {isAdding ? "Προσθήκη σε εξέλιξη..." : "Προσθήκη κλειδιών Helius"}
+      Προσθήκη Helius
     </Button>
   );
 }

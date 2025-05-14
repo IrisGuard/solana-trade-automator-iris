@@ -1,62 +1,81 @@
 
-import { createContext, useContext, useEffect, useState } from "react";
+import React from "react";
 
 type Theme = "dark" | "light" | "system";
 
-type ThemeContextType = {
+interface ThemeProviderState {
   theme: Theme;
   toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
+}
+
+const initialState: ThemeProviderState = {
+  theme: "system",
+  toggleTheme: () => undefined,
+  setTheme: () => undefined,
 };
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+const ThemeContext = React.createContext<ThemeProviderState>(initialState);
+
+export function useTheme() {
+  const context = React.useContext(ThemeContext);
+  return context;
+}
+
+interface ThemeProviderProps {
+  children: React.ReactNode;
+  defaultTheme?: Theme;
+  storageKey?: string;
+}
 
 export function ThemeProvider({
   children,
   defaultTheme = "system",
+  storageKey = "vite-ui-theme",
   ...props
-}: {
-  children: React.ReactNode;
-  defaultTheme?: Theme;
-}) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem("theme") as Theme) || defaultTheme
+}: ThemeProviderProps) {
+  const [theme, setTheme] = React.useState<Theme>(
+    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
   );
 
-  useEffect(() => {
+  React.useEffect(() => {
     const root = window.document.documentElement;
+
     root.classList.remove("light", "dark");
 
     if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
         ? "dark"
         : "light";
+
       root.classList.add(systemTheme);
       return;
     }
 
     root.classList.add(theme);
-    localStorage.setItem("theme", theme);
   }, [theme]);
 
-  const toggleTheme = () => {
+  const toggleTheme = React.useCallback(() => {
     setTheme((prevTheme) => {
-      if (prevTheme === "light") return "dark";
-      if (prevTheme === "dark") return "system";
-      return "light";
+      const newTheme = prevTheme === "dark" ? "light" : "dark";
+      localStorage.setItem(storageKey, newTheme);
+      return newTheme;
     });
+  }, [storageKey]);
+
+  const value = {
+    theme,
+    toggleTheme,
+    setTheme: (newTheme: Theme) => {
+      localStorage.setItem(storageKey, newTheme);
+      setTheme(newTheme);
+    },
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }} {...props}>
+    <ThemeContext.Provider {...props} value={value}>
       {children}
     </ThemeContext.Provider>
   );
 }
-
-export const useTheme = (): ThemeContextType => {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider");
-  }
-  return context;
-};

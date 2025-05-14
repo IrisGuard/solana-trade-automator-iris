@@ -81,6 +81,33 @@ export type Database = {
         }
         Relationships: []
       }
+      approved_addresses: {
+        Row: {
+          address: string
+          blockchain: string
+          created_at: string | null
+          description: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          address: string
+          blockchain?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          blockchain?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bot_performance: {
         Row: {
           bot_id: string
@@ -306,6 +333,33 @@ export type Database = {
         }
         Relationships: []
       }
+      security_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_enabled: boolean | null
+          setting_name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          setting_name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          setting_name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       tokens: {
         Row: {
           amount: number | null
@@ -339,6 +393,45 @@ export type Database = {
           token_address?: string
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      transaction_settings: {
+        Row: {
+          created_at: string | null
+          delay_seconds: number | null
+          id: string
+          max_daily_amount: number | null
+          max_transaction_amount: number | null
+          notification_app: boolean | null
+          notification_email: boolean | null
+          updated_at: string | null
+          user_id: string
+          whitelist_only: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          delay_seconds?: number | null
+          id?: string
+          max_daily_amount?: number | null
+          max_transaction_amount?: number | null
+          notification_app?: boolean | null
+          notification_email?: boolean | null
+          updated_at?: string | null
+          user_id: string
+          whitelist_only?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          delay_seconds?: number | null
+          id?: string
+          max_daily_amount?: number | null
+          max_transaction_amount?: number | null
+          notification_app?: boolean | null
+          notification_email?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+          whitelist_only?: boolean | null
         }
         Relationships: []
       }
@@ -381,6 +474,39 @@ export type Database = {
           type?: string
           user_id?: string
           wallet_address?: string
+        }
+        Relationships: []
+      }
+      user_sessions: {
+        Row: {
+          device: string | null
+          id: string
+          ip_address: string | null
+          is_active: boolean | null
+          location: string | null
+          login_at: string | null
+          logout_at: string | null
+          user_id: string
+        }
+        Insert: {
+          device?: string | null
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean | null
+          location?: string | null
+          login_at?: string | null
+          logout_at?: string | null
+          user_id: string
+        }
+        Update: {
+          device?: string | null
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean | null
+          location?: string | null
+          login_at?: string | null
+          logout_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }

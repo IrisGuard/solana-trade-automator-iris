@@ -1,14 +1,8 @@
 
-import { useLanguage as useLanguageContext } from "@/providers/LanguageProvider";
+import { useLanguage as useLanguageHook } from "@/providers/LanguageProvider";
 
 /**
- * Hook για την πρόσβαση στο τρέχον context γλώσσας της εφαρμογής.
- * Επιτρέπει την αλλαγή γλώσσας και την πρόσβαση στις μεταφράσεις.
+ * Hook για χρήση του language context
+ * Re-export από τον provider για καλύτερη οργάνωση
  */
-export function useLanguage() {
-  const context = useLanguageContext();
-  if (!context) {
-    throw new Error("useLanguage πρέπει να χρησιμοποιείται μέσα σε LanguageProvider");
-  }
-  return context;
-}
+export const useLanguage = useLanguageHook;

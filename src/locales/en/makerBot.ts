@@ -19,4 +19,20 @@ export const makerBot = {
   successRate: "Success Rate",
   priceImpact: "Price Impact",
   connectToUse: "Connect to use the trading bot",
+  
+  // Bot Control section
+  botControl: {
+    title: "Bot Control",
+    activeBots: "Active Bots",
+    allBots: "All Bots",
+    botTemplates: "Bot Templates",
+    stopAll: "Stop All",
+    startAll: "Start All",
+    createNewBot: "Create New Bot",
+    botMetrics: "Bot Metrics",
+    profitLoss: "Profit/Loss",
+    runningTime: "Running Time",
+    tradingVolume: "Trading Volume",
+    tradingPairs: "Trading Pairs"
+  }
 };

@@ -3,13 +3,14 @@ import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Token } from "@/types/wallet";
+import { TradingOrder } from "@/hooks/trading-bot/types";
 import { Activity, TrendingUp, TrendingDown, Clock } from "lucide-react";
 
 interface StatusCardProps {
   botStatus: 'idle' | 'running' | 'paused';
   selectedTokenDetails: Token | undefined;
   selectedTokenPrice: { price: number; priceChange24h: number } | null;
-  activeOrders: Array<any>;
+  activeOrders: TradingOrder[];
 }
 
 export function StatusCard({ 
