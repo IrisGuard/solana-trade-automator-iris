@@ -35,8 +35,8 @@ export function useTransactions({ walletAddress, limit: initialLimit = 10 }: Use
       // Merge transactions from both sources
       const mergedTransactions = [...apiTxs, ...dbTxs];
       
-      // Sort transactions by timestamp in descending order
-      mergedTransactions.sort((a, b) => b.timestamp - a.timestamp);
+      // Sort transactions by blockTime in descending order (instead of timestamp)
+      mergedTransactions.sort((a, b) => b.blockTime - a.blockTime);
       
       setTransactions(mergedTransactions);
     } catch (error) {
