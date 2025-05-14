@@ -1,47 +1,29 @@
 
 export interface Token {
   address: string;
-  name?: string;
-  symbol?: string;
-  logo?: string;
-  decimals?: number;
-  amount?: number;
-  balance?: number;
-  uiBalance?: number;
-  mint?: string;
-}
-
-export interface TokenPrice {
-  price: number;
-  priceChange24h: number;
-  volume24h?: number;
-  marketCap?: number;
-  lastUpdated?: Date;
-}
-
-export interface WalletTransaction {
-  id: string;
-  type: 'send' | 'receive' | 'swap' | 'other';
+  name: string;
+  symbol: string;
   amount: number;
-  token: string;
-  timestamp: Date | string;
-  status: 'confirmed' | 'pending' | 'failed';
+  logo?: string;
+  price?: number;
+}
+
+export interface Transaction {
+  signature: string;
+  blockTime: number;
+  type: string;
+  status: string;
+  amount?: string;
   from?: string;
   to?: string;
-  signature?: string;
-  fee?: number;
+  tokenAddress?: string;
 }
 
-export interface WalletBalance {
-  sol: number;
-  tokens: Token[];
-}
-
-export type WalletProvider = 'phantom' | 'solflare' | 'slope' | 'sollet' | 'other';
-
-export interface WalletStatus {
+export interface WalletState {
   isConnected: boolean;
+  walletAddress: string;
+  balance: number | null;
+  error: string | null;
   isConnecting: boolean;
-  address?: string;
-  provider?: WalletProvider;
+  tokens: Token[];
 }

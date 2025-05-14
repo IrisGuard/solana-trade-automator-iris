@@ -1,13 +1,11 @@
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ApiKey } from "./api-vault/types";
 import { Badge } from "@/components/ui/badge";
 import { Database, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { heliusKeyManager } from "@/services/solana/HeliusKeyManager";
-import { HELIUS_API_KEYS, HELIUS_ENDPOINTS } from "@/utils/addHeliusApiKeys";
 
 interface ApiVaultTabProps {
   apiKeys: ApiKey[];
@@ -18,48 +16,6 @@ export function ApiVaultTab({
   apiKeys,
   handleApiConnect,
 }: ApiVaultTabProps) {
-  const [heliusKeyCount, setHeliusKeyCount] = useState(0);
-  
-  useEffect(() => {
-    const loadHeliusKeyCount = async () => {
-      await heliusKeyManager.initialize();
-      setHeliusKeyCount(heliusKeyManager.getKeyCount());
-    };
-    
-    loadHeliusKeyCount();
-  }, []);
-  
-  // Add Helius services to API Keys
-  const combinedApiKeys = [...apiKeys];
-  
-  // Current date for created timestamps
-  const currentDate = new Date().toISOString();
-  
-  // Add Helius RPC endpoint
-  if (HELIUS_ENDPOINTS.rpc) {
-    combinedApiKeys.push({
-      id: 'helius-rpc',
-      name: 'Helius RPC API',
-      service: 'helius-rpc',
-      connected: heliusKeyCount > 0,
-      key: HELIUS_API_KEYS.mainnet_rpc,
-      createdAt: currentDate,
-      status: 'active'
-    });
-  }
-  
-  // Add Helius API v0
-  if (HELIUS_ENDPOINTS.api_v0_transactions) {
-    combinedApiKeys.push({
-      id: 'helius-api-v0',
-      name: 'Helius API v0',
-      service: 'helius-api',
-      connected: heliusKeyCount > 0,
-      key: HELIUS_API_KEYS.api_v0,
-      createdAt: currentDate,
-      status: 'active'
-    });
-  }
   
   return (
     <TabsContent value="api-vault" className="space-y-4">
@@ -70,9 +26,9 @@ export function ApiVaultTab({
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {combinedApiKeys.length > 0 ? (
+            {apiKeys.length > 0 ? (
               <div className="space-y-3">
-                {combinedApiKeys.map((api, index) => (
+                {apiKeys.map((api, index) => (
                   <div key={index} className="flex items-center justify-between border-b pb-2 last:border-0">
                     <div className="flex items-center gap-2">
                       <div className={`rounded-full h-8 w-8 flex items-center justify-center ${

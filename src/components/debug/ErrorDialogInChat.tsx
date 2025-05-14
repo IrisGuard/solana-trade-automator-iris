@@ -3,6 +3,6 @@
 export { ErrorDialogInChat } from './error-dialog/ErrorDialog';
 export { useErrorDialogInChat } from './error-dialog/useErrorDialog';
 
-// Export for backward compatibility - using our newly created function
+// Export for backward compatibility
 import { clearAllErrors } from '@/utils/errorTestUtils';
 export { clearAllErrors };

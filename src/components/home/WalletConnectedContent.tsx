@@ -6,8 +6,6 @@ import { BotStatusCard } from "./BotStatusCard";
 import { PlatformInfoCard } from "./PlatformInfoCard";
 import { WalletInfoCard } from "./WalletInfoCard";
 import { Token } from "@/types/wallet";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { InfoIcon } from "lucide-react";
 
 interface WalletConnectedContentProps {
   walletAddress: string;
@@ -31,7 +29,7 @@ export function WalletConnectedContent({
   selectTokenForTrading
 }: WalletConnectedContentProps) {
   // Format wallet address for display if not provided
-  const shortAddress = displayAddress || (walletAddress && typeof walletAddress === 'string' ? 
+  const shortAddress = displayAddress || (walletAddress ? 
     `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}` : 
     '');
     
@@ -42,21 +40,11 @@ export function WalletConnectedContent({
         balance={solBalance || 0}
       />
       <PlatformInfoCard />
-      {tokens && tokens.length > 0 ? (
-        <TokensCard 
-          tokens={tokens}
-          isLoadingTokens={isLoadingTokens}
-          onSelectToken={selectTokenForTrading}
-        />
-      ) : (
-        <Alert>
-          <InfoIcon className="h-4 w-4" />
-          <AlertDescription>
-            Δεν βρέθηκαν tokens στο πορτοφόλι σας ή δεν έχουν φορτωθεί ακόμη. Αν η φόρτωση είναι σε εξέλιξη, 
-            παρακαλώ περιμένετε λίγο.
-          </AlertDescription>
-        </Alert>
-      )}
+      <TokensCard 
+        tokens={tokens || []}
+        isLoadingTokens={isLoadingTokens}
+        onSelectToken={selectTokenForTrading}
+      />
       <BotStatusCard />
       <div className="md:col-span-2">
         <TransactionsCard 

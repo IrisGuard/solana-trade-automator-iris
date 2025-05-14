@@ -26,7 +26,6 @@ export const parseImportData = (importData: string): ApiKey[] => {
           key: key.key,
           description: key.description || "",
           expires: key.expires || null,
-          status: key.status || "active",
           createdAt: key.createdAt || new Date().toISOString()
         }));
         
@@ -75,7 +74,6 @@ const parseTextData = (importData: string): ApiKey[] => {
             key,
             description,
             expires,
-            status: "active",
             createdAt: new Date().toISOString()
           });
         }

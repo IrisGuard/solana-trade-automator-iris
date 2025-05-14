@@ -1,82 +1,59 @@
 
-import React, { useState } from 'react';
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, Wallet } from "lucide-react";
-import { isPhantomInstalled, connectPhantomWallet } from '@/utils/phantomWallet';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { Wallet, Loader } from "lucide-react";
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
+import { toast } from "sonner";
 
 interface WalletConnectButtonProps {
-  onConnect?: (address: string) => void;
-  children?: React.ReactNode;
-  size?: "sm" | "default" | "lg" | null;
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" | null;
   className?: string;
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  size?: "default" | "sm" | "lg" | "icon";
   isLoading?: boolean;
+  children?: React.ReactNode;
 }
 
-export function WalletConnectButton({
-  onConnect,
-  children,
-  size = "default",
-  variant = "default",
+export const WalletConnectButton = ({ 
   className = "",
-  isLoading = false
-}: WalletConnectButtonProps) {
-  const [connecting, setConnecting] = useState<boolean>(false);
-  
-  const handleConnect = async () => {
+  variant = "default",
+  size = "default",
+  isLoading = false,
+  children
+}: WalletConnectButtonProps) => {
+  const { connected, connecting, publicKey, disconnect } = useWallet();
+  const { setVisible } = useWalletModal();
+
+  const handleClick = () => {
+    if (connecting) return;
+    
     try {
-      if (!isPhantomInstalled()) {
-        toast.error("Το Phantom Wallet δεν είναι εγκατεστημένο", {
-          description: "Παρακαλώ εγκαταστήστε το Phantom Wallet για να συνδεθείτε"
-        });
-        return;
-      }
-      
-      setConnecting(true);
-      
-      const address = await connectPhantomWallet();
-      if (address) {
-        toast.success("Επιτυχής σύνδεση με το Phantom Wallet");
-        if (onConnect) {
-          onConnect(address);
-        }
-        
-        // Αποθήκευση στο localStorage για γρήγορη επανασύνδεση
-        localStorage.setItem('walletConnected', 'true');
-        localStorage.removeItem('userDisconnected');
+      if (connected && publicKey) {
+        disconnect();
+        toast.success("Το πορτοφόλι αποσυνδέθηκε");
+      } else {
+        setVisible(true);
       }
     } catch (error) {
-      console.error("Σφάλμα σύνδεσης:", error);
-      if (error instanceof Error) {
-        toast.error("Σφάλμα σύνδεσης", {
-          description: error.message
-        });
-      } else {
-        toast.error("Απρόσμενο σφάλμα κατά τη σύνδεση");
-      }
-    } finally {
-      setConnecting(false);
+      console.error("Error handling wallet connection:", error);
+      toast.error("Παρουσιάστηκε σφάλμα κατά τη διαχείριση σύνδεσης");
     }
   };
-  
-  const isProcessing = isLoading || connecting;
-  
+
   return (
-    <Button
-      size={size}
+    <Button 
+      onClick={handleClick}
       variant={variant}
-      onClick={handleConnect}
-      disabled={isProcessing}
-      className={cn("gap-2", className)}
+      size={size}
+      className={`flex items-center gap-2 ${className}`}
+      disabled={isLoading || connecting}
     >
-      {isProcessing ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
+      {(isLoading || connecting) ? (
+        <Loader className="h-4 w-4 animate-spin mr-2" />
       ) : (
-        <Wallet className="h-4 w-4" />
+        <Wallet className="h-4 w-4 mr-2" />
       )}
-      {children || "Σύνδεση Wallet"}
+      {children || (connected ? "Αποσύνδεση Wallet" : "Σύνδεση με Wallet")}
     </Button>
   );
-}
+};

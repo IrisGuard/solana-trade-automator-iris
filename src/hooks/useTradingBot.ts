@@ -1,130 +1,191 @@
 
-import { useState, useEffect } from 'react';
-import { useWalletConnection } from './useWalletConnection';
-import { useErrorReporting } from './useErrorReporting';
+import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
+import { tradingService, StopLossParams, TakeProfitParams, OrderParams } from '@/services/solana/tradingService';
+import { priceService, TokenPriceData } from '@/services/solana/priceService';
+import { useSolanaWallet } from './useSolanaWallet';
 import { Token } from '@/types/wallet';
 
-export type BotStatus = 'idle' | 'running' | 'paused';
-
 export interface TradingBotConfig {
+  isActive: boolean;
   selectedToken: string | null;
-  buyThreshold: number;
-  sellThreshold: number;
-  stopLoss: number;
-  takeProfit: number;
-  maxBudget: number;
-  enabledStrategies: {
-    dca: boolean;
-    grid: boolean;
-    momentum: boolean;
-  };
+  stopLossPercent: number;
+  takeProfitPercent: number;
+  tradeAmount: number;
+  maxTrades: number;
 }
 
-const defaultConfig: TradingBotConfig = {
-  selectedToken: null,
-  buyThreshold: 3,
-  sellThreshold: 5,
-  stopLoss: 10,
-  takeProfit: 20,
-  maxBudget: 100,
-  enabledStrategies: {
-    dca: true,
-    grid: false,
-    momentum: false
-  }
-};
-
-export function useTradingBot() {
-  const { walletAddress, tokens } = useWalletConnection();
-  const [config, setConfig] = useState<TradingBotConfig>(defaultConfig);
-  const [botStatus, setBotStatus] = useState<BotStatus>('idle');
+export function useTradingBot(initialConfig?: Partial<TradingBotConfig>) {
+  const { walletAddress, connected, publicKey, tokens } = useSolanaWallet();
+  
+  // Bot configuration
+  const [config, setConfig] = useState<TradingBotConfig>({
+    isActive: false,
+    selectedToken: null,
+    stopLossPercent: 5, // 5% below entry price
+    takeProfitPercent: 10, // 10% above entry price
+    tradeAmount: 0.1, // Amount to trade in SOL
+    maxTrades: 3,
+    ...initialConfig
+  });
+  
+  // Trading state
   const [isLoading, setIsLoading] = useState(false);
-  const [activeOrders, setActiveOrders] = useState<any[]>([]);
-  const [selectedTokenPrice, setSelectedTokenPrice] = useState<{ price: number; priceChange24h: number } | null>(null);
-  const { reportError } = useErrorReporting();
-
-  // Get selected token details
-  const selectedTokenDetails = tokens.find(token => token.address === config.selectedToken);
-
-  // Update config
-  const updateConfig = (newConfig: Partial<TradingBotConfig>) => {
-    setConfig(prevConfig => ({ ...prevConfig, ...newConfig }));
-  };
-
-  // Select token
-  const selectToken = async (tokenAddress: string | null) => {
+  const [activeOrders, setActiveOrders] = useState<Array<any>>([]);
+  const [selectedTokenPrice, setSelectedTokenPrice] = useState<TokenPriceData | null>(null);
+  const [tradeHistory, setTradeHistory] = useState<Array<any>>([]);
+  const [botStatus, setBotStatus] = useState<'idle' | 'running' | 'paused'>('idle');
+  
+  // Load active orders
+  useEffect(() => {
+    if (connected) {
+      const orders = tradingService.getActiveOrders();
+      setActiveOrders(orders);
+    }
+  }, [connected]);
+  
+  // Subscribe to price updates for selected token
+  useEffect(() => {
+    let unsubscribe: (() => void) | null = null;
+    
+    if (config.selectedToken && connected) {
+      // Initial price fetch
+      priceService.getTokenPrice(config.selectedToken)
+        .then(price => setSelectedTokenPrice(price))
+        .catch(err => console.error('Error fetching initial price:', err));
+      
+      // Set up subscription
+      unsubscribe = priceService.subscribeToPriceUpdates(
+        config.selectedToken,
+        (price) => setSelectedTokenPrice(price)
+      );
+    }
+    
+    // Cleanup subscription
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [config.selectedToken, connected]);
+  
+  // Start the trading bot
+  const startBot = useCallback(async () => {
+    if (!connected || !config.selectedToken || !walletAddress) {
+      toast.error('Συνδέστε το πορτοφόλι σας πρώτα');
+      return false;
+    }
+    
     try {
-      if (tokenAddress) {
-        setIsLoading(true);
-        // Here we would fetch the latest price data for the token
-        // Simulating price data for demo
-        setSelectedTokenPrice({
-          price: Math.random() * 100,
-          priceChange24h: (Math.random() * 20) - 10
-        });
+      setIsLoading(true);
+      
+      // Get current price as entry price
+      const currentPrice = await priceService.getTokenPrice(config.selectedToken);
+      
+      // Calculate stop loss and take profit prices
+      const stopLossPrice = currentPrice.price * (1 - (config.stopLossPercent / 100));
+      const takeProfitPrice = currentPrice.price * (1 + (config.takeProfitPercent / 100));
+      
+      // Set stop loss
+      const stopLossId = await tradingService.setStopLoss({
+        tokenAddress: config.selectedToken,
+        triggerPrice: stopLossPrice,
+        amount: config.tradeAmount,
+        walletAddress
+      });
+      
+      // Set take profit
+      const takeProfitId = await tradingService.setTakeProfit({
+        tokenAddress: config.selectedToken,
+        targetPrice: takeProfitPrice,
+        amount: config.tradeAmount,
+        walletAddress
+      });
+      
+      // Update bot status
+      if (stopLossId && takeProfitId) {
+        setBotStatus('running');
+        setConfig(prev => ({...prev, isActive: true}));
         
-        updateConfig({ selectedToken: tokenAddress });
-      } else {
-        updateConfig({ selectedToken: null });
-        setSelectedTokenPrice(null);
+        // Get updated orders list
+        const orders = tradingService.getActiveOrders();
+        setActiveOrders(orders);
+        
+        toast.success('Το trading bot ξεκίνησε με επιτυχία');
+        return true;
       }
+      
+      throw new Error('Failed to set up orders');
     } catch (error) {
-      reportError(error as Error, { component: 'TradingBot', source: 'client' });
+      console.error('Error starting trading bot:', error);
+      toast.error('Αποτυχία εκκίνησης trading bot');
+      return false;
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Start bot
-  const startBot = () => {
+  }, [config, connected, walletAddress]);
+  
+  // Stop the trading bot
+  const stopBot = useCallback(async () => {
     try {
       setIsLoading(true);
       
-      // Generate some mock orders
-      const mockOrders = [
-        { type: 'stop-loss', price: selectedTokenPrice?.price ? selectedTokenPrice.price * 0.9 : 0 },
-        { type: 'take-profit', price: selectedTokenPrice?.price ? selectedTokenPrice.price * 1.2 : 0 }
-      ];
+      // Get all active orders
+      const orders = tradingService.getActiveOrders();
       
-      setActiveOrders(mockOrders);
-      setBotStatus('running');
+      // Cancel all orders
+      for (const order of orders) {
+        await tradingService.cancelOrder(order.id);
+      }
       
-      // Show success message
-      console.log("Bot started with config:", config);
-    } catch (error) {
-      reportError(error as Error, { component: 'TradingBot', source: 'client' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Stop bot
-  const stopBot = () => {
-    try {
-      setIsLoading(true);
-      setActiveOrders([]);
+      // Update bot status
       setBotStatus('idle');
+      setConfig(prev => ({...prev, isActive: false}));
+      setActiveOrders([]);
       
-      // Show success message
-      console.log("Bot stopped");
+      toast.success('Το trading bot σταμάτησε');
+      return true;
     } catch (error) {
-      reportError(error as Error, { component: 'TradingBot', source: 'client' });
+      console.error('Error stopping trading bot:', error);
+      toast.error('Αποτυχία διακοπής trading bot');
+      return false;
     } finally {
       setIsLoading(false);
     }
-  };
-
+  }, []);
+  
+  // Update bot configuration
+  const updateConfig = useCallback((newConfig: Partial<TradingBotConfig>) => {
+    setConfig(prev => ({...prev, ...newConfig}));
+  }, []);
+  
+  // Select a token for trading
+  const selectToken = useCallback((tokenAddress: string | null) => {
+    setConfig(prev => ({...prev, selectedToken: tokenAddress}));
+    
+    if (tokenAddress) {
+      priceService.getTokenPrice(tokenAddress)
+        .then(price => setSelectedTokenPrice(price))
+        .catch(err => console.error('Error fetching token price:', err));
+    } else {
+      setSelectedTokenPrice(null);
+    }
+  }, []);
+  
+  // Find selected token details
+  const selectedTokenDetails = tokens.find(token => token.address === config.selectedToken);
+  
   return {
     config,
     updateConfig,
-    selectToken,
     startBot,
     stopBot,
+    selectToken,
     isLoading,
     botStatus,
     activeOrders,
     selectedTokenPrice,
     selectedTokenDetails,
+    tradeHistory,
+    connected,
     tokens
   };
 }

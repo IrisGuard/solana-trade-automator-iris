@@ -1,101 +1,112 @@
 
-import { errorCollector } from './error-handling/collector';
-import { ErrorOptions, TestErrorOptions } from './error-handling/types';
+/**
+ * Βοηθητικές συναρτήσεις για δοκιμή των σφαλμάτων και του συστήματος καταγραφής
+ */
+import { displayError, displayGroupedErrors } from './errorUtils';
+import { errorCollector } from './errorCollector';
 
 /**
- * Παράγει ένα απλό σφάλμα για δοκιμές
+ * Δημιουργεί ένα προσομοιωμένο σφάλμα και το αποστέλλει στο σύστημα καταγραφής σφαλμάτων
+ * @param message Το μήνυμα του σφάλματος
+ * @param options Επιλογές για τον τρόπο εμφάνισης
  */
-export function generateTestError(message: string, options?: ErrorOptions): void {
-  const error = new Error(message);
-  error.name = "TestError";
+export function generateTestError(
+  message = "Δοκιμαστικό σφάλμα για έλεγχο του συστήματος καταγραφής", 
+  options = { showToast: true, logToConsole: true, sendToChat: true, useCollector: false }
+) {
+  // Καθαρισμός υπαρχόντων σφαλμάτων πρώτα
+  clearAllErrors();
   
-  // Καταγραφή του σφάλματος στον collector
-  errorCollector.captureError(error, {
-    component: options?.component || 'TestComponent',
-    details: options?.details
-  });
-  
-  // Εμφάνιση στην κονσόλα για εύκολη αναγνώριση
-  console.error("Test Error Generated:", message, options);
+  // Περιμένουμε λίγο πριν δημιουργήσουμε το νέο σφάλμα
+  setTimeout(() => {
+    // Δημιουργία του σφάλματος
+    const testError = new Error(message);
+    
+    if (options.useCollector) {
+      // Αποστολή στον συλλέκτη σφαλμάτων
+      errorCollector.addError(testError);
+    } else {
+      // Εμφάνιση του σφάλματος με τις επιλεγμένες επιλογές
+      displayError(testError, {
+        title: 'Δοκιμαστικό Σφάλμα',
+        ...options
+      });
+    }
+  }, 500);
 }
 
 /**
- * Παράγει διάφορους τύπους σφαλμάτων ανάλογα με τις επιλογές
+ * Καθαρίζει όλα τα υπάρχοντα σφάλματα από την εφαρμογή
  */
-export function generateVariousErrors(options?: TestErrorOptions): void {
-  const { errorType = 'reference', component = 'ErrorTestUtils', details = {}, source = 'test' } = options || {};
-  
-  let error: Error;
-  
-  // Δημιουργία διαφορετικών τύπων σφαλμάτων βάσει του errorType
-  switch (errorType) {
-    case 'reference':
-      error = new ReferenceError('Test ReferenceError - Undefined variable referenced');
-      break;
-    case 'type':
-      error = new TypeError('Test TypeError - Operation on incompatible type');
-      break;
-    case 'syntax':
-      error = new SyntaxError('Test SyntaxError - Invalid syntax');
-      break;
-    case 'promise':
-      Promise.reject(new Error('Test Promise Rejection'));
-      error = new Error('Test Promise Error - Uncaught promise rejection');
-      break;
-    case 'async':
-      setTimeout(() => {
-        const asyncError = new Error('Test Async Error - Error in async operation');
-        errorCollector.captureError(asyncError, { component, details: { ...details, async: true } });
-      }, 100);
-      return;
-    case 'timeout':
-      error = new Error('Test Timeout Error - Operation timed out');
-      break;
-    case 'render':
-      error = new Error('Test Render Error - Failed to render component');
-      break;
-    case 'prop':
-      error = new Error('Test Prop Error - Missing required prop');
-      break;
-    case 'state':
-      error = new Error('Test State Error - Invalid state update');
-      break;
-    case 'network':
-      const status = details.status || 500;
-      error = new Error(`Test Network Error - HTTP ${status}`);
-      error.name = 'NetworkError';
-      break;
-    default:
-      error = new Error('Test Generic Error');
+export function clearAllErrors() {
+  // Καθαρισμός του συλλέκτη σφαλμάτων
+  errorCollector.clearErrors();
+
+  // Καθαρισμός των σφαλμάτων που έχουν αποθηκευτεί στο localStorage
+  try {
+    localStorage.removeItem('lovable_chat_errors');
+  } catch (e) {
+    console.error('Σφάλμα κατά τον καθαρισμό των σφαλμάτων από το localStorage:', e);
   }
   
-  // Προσθήκη επιπλέον ιδιοτήτων στο σφάλμα
-  error.stack = `Error generated from: ${component}\n   at ErrorTestUtils.generateVariousErrors (errorTestUtils.ts:42)\n   at TestFunction (test.js:10)\n   at UserAction (app.js:25)`;
+  // Αποστολή event καθαρισμού
+  try {
+    const clearErrorsEvent = new CustomEvent('lovable-clear-errors');
+    window.dispatchEvent(clearErrorsEvent);
+  } catch (e) {
+    console.error('Σφάλμα κατά την αποστολή του event καθαρισμού:', e);
+  }
   
-  // Καταγραφή του σφάλματος
-  errorCollector.captureError(error, { component, details });
-  
-  // Εμφάνιση στην κονσόλα για εύκολη αναγνώριση
-  console.error(`Test ${errorType} Error Generated:`, error.message, { component, details, source });
+  // Απευθείας καθαρισμός μέσω του window object
+  if (window.lovableChat && typeof window.lovableChat.clearErrors === 'function') {
+    try {
+      window.lovableChat.clearErrors();
+    } catch (e) {
+      console.error('Σφάλμα κατά τον καθαρισμό από το lovableChat:', e);
+    }
+  }
 }
 
 /**
- * Καθαρίζει όλα τα σφάλματα από τον collector
+ * Δημιουργεί διάφορους τύπους σφαλμάτων για δοκιμές
  */
-export function clearAllErrors(): void {
-  errorCollector.clearAllErrors();
-  console.log("All errors cleared");
+export function generateVariousErrors() {
+  // Καθαρισμός υπαρχόντων σφαλμάτων
+  clearAllErrors();
+  
+  // Πίνακας με τα σφάλματα που θα δημιουργηθούν
+  const errors = [
+    new Error('Δοκιμαστικό σφάλμα 1: Απλό σφάλμα'),
+    'Δοκιμαστικό σφάλμα 2: Σφάλμα ως string χωρίς stack trace',
+    new Error('Δοκιμαστικό σφάλμα 3: Προσομοίωση σφάλματος Supabase'),
+    new Error('Δοκιμαστικό σφάλμα 4: Προσομοίωση σφάλματος δικτύου')
+  ];
+  
+  // Προσθήκη των σφαλμάτων στον συλλέκτη με μικρές καθυστερήσεις
+  errors.forEach((error, index) => {
+    setTimeout(() => {
+      errorCollector.addError(error);
+    }, index * 500);
+  });
+  
+  // Αποστολή μετά από 3 δευτερόλεπτα όλων των σφαλμάτων αν δεν έχουν σταλεί ακόμα
+  setTimeout(() => {
+    errorCollector.sendCollectedErrors();
+  }, 3000);
 }
 
 /**
- * Παράγει δεδομένα σφάλματος για δοκιμές
+ * Δημιουργεί δοκιμαστικά σφάλματα Supabase
  */
-export function generateTestErrorData(message: string, options?: any) {
-  return {
-    message,
-    stack: "Error: " + message + "\n    at TestFunction (test.js:10)\n    at UserAction (app.js:25)",
-    timestamp: Date.now(),
-    component: options?.component || "TestComponent",
-    details: options?.details || { source: "test" }
-  };
+export function generateSupabaseErrors() {
+  // Δοκιμαστικά σφάλματα Supabase
+  const supabaseErrors = [
+    new Error('Σφάλμα σύνδεσης με τη βάση δεδομένων Supabase'),
+    new Error('Σφάλμα αυθεντικοποίησης: Μη έγκυρο JWT token'),
+    new Error('Σφάλμα RLS: Δεν υπάρχουν δικαιώματα για την ενέργεια αυτή'),
+    new Error('Σφάλμα απόδοσης δεδομένων: Μη έγκυρη απάντηση από το Supabase API')
+  ];
+  
+  // Άμεση αποστολή των σφαλμάτων ως ομάδα
+  displayGroupedErrors(supabaseErrors);
 }

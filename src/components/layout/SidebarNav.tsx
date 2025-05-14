@@ -1,58 +1,102 @@
 
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { NavItem } from "@/types/nav";
+  Home,
+  Settings,
+  FileText,
+  BarChart2,
+  Wallet,
+  Shield,
+  HelpCircle,
+} from "lucide-react";
+
+interface NavItemProps {
+  to: string;
+  icon: React.ElementType;
+  children: React.ReactNode;
+  end?: boolean;
+}
+
+// Navigation items data
+const navItems = [
+  { to: "/", icon: Home, label: "Αρχική", end: true },
+  { to: "/dashboard", icon: BarChart2, label: "Dashboard" },
+  { to: "/wallet", icon: Wallet, label: "Πορτοφόλι" },
+  { to: "/transactions", icon: FileText, label: "Συναλλαγές" },
+  { to: "/security", icon: Shield, label: "Ασφάλεια" },
+  { to: "/settings", icon: Settings, label: "Ρυθμίσεις" },
+  { to: "/help", icon: HelpCircle, label: "Βοήθεια" }
+];
+
+const NavItem = ({ to, icon: Icon, children, end }: NavItemProps) => {
+  return (
+    <NavLink
+      to={to}
+      end={end}
+      className={({ isActive }) =>
+        cn(
+          "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
+          isActive ? "active-nav-link bg-accent text-accent-foreground font-medium" : "text-muted-foreground"
+        )
+      }
+    >
+      <Icon className="h-4 w-4" />
+      <span>{children}</span>
+    </NavLink>
+  );
+};
+
+const CollapsedNavItem = ({ to, icon: Icon, end }: Omit<NavItemProps, 'children'>) => {
+  return (
+    <NavLink
+      to={to}
+      end={end}
+      className={({ isActive }) =>
+        cn(
+          "flex items-center justify-center rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
+          isActive ? "active-nav-link bg-accent text-accent-foreground" : "text-muted-foreground"
+        )
+      }
+    >
+      <Icon className="h-4 w-4" />
+    </NavLink>
+  );
+};
 
 interface SidebarNavProps {
-  items: NavItem[];
   isCollapsed?: boolean;
 }
 
-export function SidebarNav({ items = [], isCollapsed = false }: SidebarNavProps) {
-  const location = useLocation();
-  
+export function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
+  if (isCollapsed) {
+    return (
+      <div className="flex flex-col gap-2 py-2">
+        {navItems.map((item) => (
+          <CollapsedNavItem 
+            key={item.to}
+            to={item.to} 
+            icon={item.icon}
+            end={item.end}
+          />
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <nav className="grid gap-2 px-2">
-      {items && items.map((item, index) => {
-        const Icon = item.icon;
-        return (
-          item.href && (
-            <TooltipProvider key={index}>
-              <Tooltip delayDuration={0}>
-                <TooltipTrigger asChild>
-                  <Link
-                    to={item.href}
-                    className={cn(
-                      buttonVariants({ variant: "ghost", size: "sm" }),
-                      location.pathname === item.href
-                        ? "bg-muted hover:bg-muted"
-                        : "hover:bg-transparent hover:underline",
-                      "justify-start",
-                      isCollapsed && "h-9 w-9 p-0 justify-center"
-                    )}
-                  >
-                    {Icon && <Icon className={cn("h-4 w-4", isCollapsed ? "mr-0" : "mr-2")} />}
-                    {!isCollapsed && <span>{item.title}</span>}
-                  </Link>
-                </TooltipTrigger>
-                {isCollapsed && (
-                  <TooltipContent side="right" className="flex items-center gap-4">
-                    {item.title}
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
-          )
-        );
-      })}
-    </nav>
+    <div className="flex flex-col gap-2 py-2">
+      {navItems.map((item) => (
+        <NavItem 
+          key={item.to}
+          to={item.to} 
+          icon={item.icon} 
+          end={item.end}
+        >
+          {item.label}
+        </NavItem>
+      ))}
+    </div>
   );
 }

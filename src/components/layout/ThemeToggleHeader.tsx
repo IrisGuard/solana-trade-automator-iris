@@ -1,7 +1,7 @@
 
 import React from "react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-exports";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { Wallet } from "lucide-react";
 

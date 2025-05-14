@@ -7,7 +7,6 @@ export interface ApiKey {
   connected: boolean;
   createdAt: string;
   status?: 'active' | 'expired' | 'revoked';
-  isWorking?: boolean;
 }
 
 export interface RecommendedApi {
