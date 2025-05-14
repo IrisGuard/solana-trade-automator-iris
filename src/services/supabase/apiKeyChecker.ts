@@ -10,6 +10,15 @@ interface ApiService {
   statusMessage: string;
 }
 
+// Result type definition
+interface CheckResults {
+  [service: string]: {
+    total: number;
+    working: number;
+    notWorking: number;
+  };
+}
+
 // Map of available API services by service ID
 const apiServices: Record<string, ApiService> = {
   helius: {
@@ -92,8 +101,8 @@ export class ApiKeyChecker {
   }
   
   // Check all stored API keys for a user
-  static async checkAllApiKeysForUser(userId: string): Promise<Record<string, { total: number, working: number, notWorking: number }>> {
-    const results: Record<string, { total: number, working: number, notWorking: number }> = {};
+  static async checkAllApiKeysForUser(userId: string): Promise<CheckResults> {
+    const results: CheckResults = {};
     
     try {
       // Get all API keys for the user
@@ -166,7 +175,7 @@ export class ApiKeyChecker {
   }
   
   // Get status badge text based on check results
-  static getStatusText(results: Record<string, { total: number, working: number, notWorking: number }>): string {
+  static getStatusText(results: CheckResults): string {
     const totals = Object.values(results).reduce(
       (acc, curr) => {
         acc.total += curr.total;

@@ -124,7 +124,7 @@ export class HeliusService {
         }
 
         return await response.json();
-      }, { endpoint: `helius-${endpoint.substring(0, 30)}` });
+      }, { endpoint });
     } catch (error) {
       // If rate limit error, try rotating the key and try again
       if (isRateLimitError(error)) {

@@ -10,7 +10,7 @@ interface ServiceCheckResults {
     total: number;
     working: number;
     notWorking: number;
-    keys: Array<{
+    keys?: Array<{
       id: string;
       name: string;
       service: string;
@@ -39,8 +39,8 @@ export function useApiKeyCheck() {
     toast.loading('Έλεγχος κλειδιών API...');
 
     try {
-      const results = await ApiKeyChecker.checkAllKeys(user.id);
-      setCheckResults(results);
+      const results = await ApiKeyChecker.checkAllApiKeysForUser(user.id);
+      setCheckResults(results as ServiceCheckResults);
 
       // Υπολογισμός συνολικών στατιστικών
       let totalKeys = 0;
