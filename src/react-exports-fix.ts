@@ -12,7 +12,7 @@ if (typeof window !== 'undefined') {
 // Re-export the React object with all its properties
 export default React;
 
-// Explicitly re-export the hooks that react-router-dom is looking for
+// Explicitly re-export the hooks and functions that react-router-dom is looking for
 export const {
   useState,
   useEffect,
@@ -31,11 +31,11 @@ export const {
   useTransition,
   // Add other React exports
   createContext,
+  createElement,
   forwardRef,
   Children,
   cloneElement,
   isValidElement,
-  createElement,
   Fragment,
   Component,
   PureComponent,
@@ -53,6 +53,7 @@ export const useContextExport = React.useContext;
 export const useRefExport = React.useRef;
 export const createContextExport = React.createContext;
 export const forwardRefExport = React.forwardRef;
+export const createElementExport = React.createElement;
 
 // Fix for React Router DOM - ensure it can access our React exports
 if (typeof window !== 'undefined') {
@@ -62,7 +63,8 @@ if (typeof window !== 'undefined') {
     useEffect: React.useEffect,
     useContext: React.useContext,
     useRef: React.useRef,
-    createContext: React.createContext
+    createContext: React.createContext,
+    createElement: React.createElement
   });
   
   // Create a reference to our patched React for module resolution
@@ -80,5 +82,6 @@ console.log('React exports fix loaded. Hooks available:', {
   useEffect: !!React.useEffect,
   useContext: !!React.useContext,
   useRef: !!React.useRef,
-  createContext: !!React.createContext
+  createContext: !!React.createContext,
+  createElement: !!React.createElement
 });
