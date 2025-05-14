@@ -1,27 +1,26 @@
 
+// Error data structure
 export interface ErrorData {
-  id?: string;
-  message: string;
-  component?: string;
-  details?: any;
+  id: string;
   timestamp: Date;
-  source?: string;
+  error: Error;
+  message: string;
   stack?: string;
-  url?: string;
-  browserInfo?: any;
-  severity?: 'low' | 'medium' | 'high' | 'critical';
-}
-
-export interface ErrorOptions {
-  component?: string;
   source?: string;
-  url?: string;
-  details?: any;
-  browserInfo?: any;
+  component?: string;
   severity?: 'low' | 'medium' | 'high' | 'critical';
+  type?: string; // Allow any string value for broad error type support
+  handled?: boolean;
+  details?: any;
+  retryCount?: number;
+  userId?: string;
 }
 
-export interface TestErrorOptions {
+// Error collection options
+export interface ErrorOptions {
+  source?: string;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+  type?: string; // Allow any string value for error type
   message?: string;
   component?: string;
   details?: any;
@@ -29,12 +28,12 @@ export interface TestErrorOptions {
   simulateDelay?: number;
 }
 
+// Error collector interface
 export interface ErrorCollector {
-  captureError(error: Error | string, options?: ErrorOptions): string;
-  getErrors(): ErrorData[];
-  clearErrors(): void;
-  getAllErrors(): ErrorData[]; // Add this method
-  clearAllErrors(): void; // Add this method
-  hasCriticalErrors(): boolean;
-  getRecentErrors(count?: number): ErrorData[];
+  captureError(error: Error | string, options?: ErrorOptions): void;
+  getErrors(type?: string): ErrorData[];
+  getAllErrors(type?: string): ErrorData[]; // Alias for getErrors
+  clearErrors(type?: string): void;
+  clearAllErrors(type?: string): void; // Alias for clearErrors
+  setErrorCallback(callback: (error: ErrorData) => void): void;
 }

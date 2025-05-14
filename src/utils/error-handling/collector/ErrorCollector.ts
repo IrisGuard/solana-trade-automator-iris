@@ -1,66 +1,68 @@
 
-import { ErrorCollector, ErrorData, ErrorOptions } from './types';
+import { ErrorData, ErrorOptions, ErrorCollector } from './types';
 
-class ErrorCollectorImpl implements ErrorCollector {
+// Implement the ErrorCollector interface
+export class ErrorCollectorImpl implements ErrorCollector {
   private errors: ErrorData[] = [];
-  private readonly MAX_ERRORS = 50;
+  private errorCallback: ((error: ErrorData) => void) | null = null;
+  private readonly maxErrors: number = 100;
 
-  captureError(error: Error | string, options: ErrorOptions = {}): string {
-    const timestamp = new Date();
-    const id = `err_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    
+  captureError(error: Error | string, options?: ErrorOptions): void {
     const errorData: ErrorData = {
-      id,
-      message: error instanceof Error ? error.message : error,
-      timestamp,
-      component: options.component,
-      source: options.source,
-      url: options.url,
-      browserInfo: options.browserInfo,
-      details: options.details,
-      severity: options.severity
+      id: this.generateErrorId(),
+      timestamp: new Date(),
+      error: typeof error === 'string' ? new Error(error) : error,
+      message: typeof error === 'string' ? error : error.message,
+      stack: typeof error === 'string' ? new Error(error).stack : error.stack,
+      ...options
     };
 
-    if (error instanceof Error) {
-      errorData.stack = error.stack;
-    }
-
-    this.errors.unshift(errorData);
+    this.errors.push(errorData);
+    this.trimErrors();
     
-    if (this.errors.length > this.MAX_ERRORS) {
-      this.errors = this.errors.slice(0, this.MAX_ERRORS);
+    if (this.errorCallback) {
+      this.errorCallback(errorData);
     }
-
-    console.error('[ErrorCollector]', errorData);
-    return id;
   }
 
-  getErrors(): ErrorData[] {
+  getErrors(type?: string): ErrorData[] {
+    if (type) {
+      return this.errors.filter(error => error.type === type);
+    }
     return [...this.errors];
   }
-  
-  // Add alias for getErrors to support existing code
-  getAllErrors(): ErrorData[] {
-    return this.getErrors();
+
+  // Alias for getErrors to maintain compatibility
+  getAllErrors(type?: string): ErrorData[] {
+    return this.getErrors(type);
   }
 
-  clearErrors(): void {
-    this.errors = [];
-  }
-  
-  // Add alias for clearErrors to support existing code
-  clearAllErrors(): void {
-    this.clearErrors();
-  }
-
-  hasCriticalErrors(): boolean {
-    return this.errors.some(err => err.severity === 'critical');
+  clearErrors(type?: string): void {
+    if (type) {
+      this.errors = this.errors.filter(error => error.type !== type);
+    } else {
+      this.errors = [];
+    }
   }
 
-  getRecentErrors(count: number = 10): ErrorData[] {
-    return this.errors.slice(0, Math.min(count, this.errors.length));
+  // Alias for clearErrors to maintain compatibility
+  clearAllErrors(type?: string): void {
+    this.clearErrors(type);
+  }
+
+  setErrorCallback(callback: (error: ErrorData) => void): void {
+    this.errorCallback = callback;
+  }
+
+  private generateErrorId(): string {
+    return `error-${new Date().getTime()}-${Math.floor(Math.random() * 10000)}`;
+  }
+
+  private trimErrors(): void {
+    if (this.errors.length > this.maxErrors) {
+      this.errors = this.errors.slice(-this.maxErrors);
+    }
   }
 }
 
 export const errorCollector = new ErrorCollectorImpl();
-export type { ErrorData, ErrorOptions };

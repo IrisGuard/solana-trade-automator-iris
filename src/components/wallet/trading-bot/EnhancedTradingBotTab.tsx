@@ -1,6 +1,6 @@
 
 import React from "react";
-import { TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useTradingBot } from "@/hooks/useTradingBot";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -28,41 +28,43 @@ export function EnhancedTradingBotTab() {
   const normalizedBotStatus = botStatus === 'error' ? 'idle' : botStatus;
 
   return (
-    <TabsContent value="trading-bot">
-      {!connected ? (
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Παρακαλώ συνδέστε το πορτοφόλι σας για να χρησιμοποιήσετε το Trading Bot
-          </AlertDescription>
-        </Alert>
-      ) : (
-        <>
-          <div className="grid gap-4 md:grid-cols-2 mb-6">
-            <div className="space-y-4">
-              <EnhancedPanel
-                config={config}
-                updateConfig={updateConfig}
-                selectToken={selectToken}
-                selectedTokenPrice={selectedTokenPrice}
-                selectedTokenDetails={selectedTokenDetails}
-                tokens={tokens}
-                isLoading={isLoading}
+    <Tabs defaultValue="trading">
+      <TabsContent value="trading">
+        {!connected ? (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Παρακαλώ συνδέστε το πορτοφόλι σας για να χρησιμοποιήσετε το Trading Bot
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <>
+            <div className="grid gap-4 md:grid-cols-2 mb-6">
+              <div className="space-y-4">
+                <EnhancedPanel
+                  config={config}
+                  updateConfig={updateConfig}
+                  selectToken={selectToken}
+                  selectedTokenPrice={selectedTokenPrice}
+                  selectedTokenDetails={selectedTokenDetails}
+                  tokens={tokens}
+                  isLoading={isLoading}
+                  botStatus={normalizedBotStatus}
+                  startBot={startBot}
+                  stopBot={stopBot}
+                />
+              </div>
+              
+              <EnhancedStatusPanel 
                 botStatus={normalizedBotStatus}
-                startBot={startBot}
-                stopBot={stopBot}
+                selectedTokenDetails={selectedTokenDetails}
+                selectedTokenPrice={selectedTokenPrice}
+                activeOrders={activeOrders}
               />
             </div>
-            
-            <EnhancedStatusPanel 
-              botStatus={normalizedBotStatus}
-              selectedTokenDetails={selectedTokenDetails}
-              selectedTokenPrice={selectedTokenPrice}
-              activeOrders={activeOrders}
-            />
-          </div>
-        </>
-      )}
-    </TabsContent>
+          </>
+        )}
+      </TabsContent>
+    </Tabs>
   );
 }

@@ -1,5 +1,5 @@
-
-import { supabase } from '@/lib/supabase';
+import { Database } from "@/types/supabase-extensions";
+import { supabase } from "@/lib/supabase";
 import { botCoreService } from './botCoreService';
 
 export interface BotTemplate {

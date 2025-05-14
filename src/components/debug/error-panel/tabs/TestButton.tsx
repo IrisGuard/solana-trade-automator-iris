@@ -1,28 +1,50 @@
 
-import React, { MouseEvent } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
-import { triggerTestError } from '@/utils/errorTestUtils';
-import { TestErrorOptions } from '@/utils/error-handling/collector/types';
+import { errorCollector } from '@/utils/error-handling/collector';
 
 interface TestButtonProps {
   label: string;
-  options: TestErrorOptions;
-  className?: string;
+  onClick: () => void;
+  disabled?: boolean;
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
+  type?: string; // Allow any string type for errors
+  errorType?: string; // Allow any string type for error categorization
 }
 
-export function TestButton({ label, options, className = "w-full" }: TestButtonProps) {
-  const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    triggerTestError(options.errorType || 'js', options);
+export const TestButton: React.FC<TestButtonProps> = ({
+  label,
+  onClick,
+  disabled = false,
+  variant = 'default',
+  size = 'default',
+  type,
+  errorType
+}) => {
+  const handleClick = () => {
+    try {
+      onClick();
+    } catch (error) {
+      errorCollector.captureError(error as Error, {
+        type,
+        errorType,
+        source: 'ErrorTestPanel',
+        component: 'TestButton',
+        message: `Error triggered by test button: ${label}`
+      });
+    }
   };
 
   return (
-    <Button 
-      variant="outline" 
+    <Button
+      variant={variant}
+      size={size}
       onClick={handleClick}
-      className={className}
+      disabled={disabled}
+      className="w-full mb-2"
     >
       {label}
     </Button>
   );
-}
+};
