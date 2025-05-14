@@ -17,7 +17,7 @@ export function setupGlobalErrorHandling() {
     }
     
     // Log error to collector
-    errorCollector.captureError(error || String(message), {
+    errorCollector.captureError(error || new Error(String(message)), {
       component: 'GlobalErrorHandler',
       source: 'client',
       details: { source, lineno, colno }
@@ -52,7 +52,7 @@ export function setupGlobalErrorHandling() {
     if (typeof errorMessage === 'string' && 
         (errorMessage.startsWith('Error:') || errorMessage.includes('React'))) {
       // Log to error collector
-      errorCollector.captureError(args.join(' '), {
+      errorCollector.captureError(new Error(args.join(' ')), {
         component: 'ReactError',
         source: 'client'
       });

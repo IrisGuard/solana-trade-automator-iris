@@ -9,7 +9,8 @@ import { useErrorReporting } from '@/hooks/useErrorReporting';
  */
 export function useWalletData() {
   const { solBalance, loadSolBalance } = useWalletBalance();
-  const { tokens, tokenPrices, isLoadingTokens, loadWalletTokens, selectTokenForTrading } = useWalletTokens();
+  const { tokens, loading: isLoadingTokens, error: tokensError, refetch } = useWalletTokens("");
+  const [tokenPrices, setTokenPrices] = useState<Record<string, { price: number, priceChange24h: number }>>({});
   const [error, setError] = useState<string | null>(null);
   const { reportError } = useErrorReporting();
   
@@ -18,6 +19,19 @@ export function useWalletData() {
   
   // Ελάχιστο διάστημα μεταξύ διαδοχικών αιτημάτων (10 δευτ)
   const MIN_REQUEST_INTERVAL = 10000;
+
+  // Mock function for selecting a token for trading
+  const selectTokenForTrading = (tokenAddress: string) => {
+    console.log(`Selected token for trading: ${tokenAddress}`);
+    // Implementation would go here in the future
+  };
+
+  // Mock function to load wallet tokens
+  const loadWalletTokens = async (address: string) => {
+    if (!address) return;
+    console.log(`Loading tokens for wallet: ${address}`);
+    await refetch();
+  };
   
   // Φόρτωση όλων των δεδομένων wallet σε μία κλήση
   const loadWalletData = useCallback(async (address: string) => {
@@ -73,7 +87,7 @@ export function useWalletData() {
     error,
     loadWalletData,
     refreshWalletData,
-    selectTokenForTrading
+    selectTokenForTrading,
+    loadWalletTokens
   };
 }
-

@@ -43,11 +43,14 @@ export class ErrorCollector {
   /**
    * Καταγράφει ένα σφάλμα με περισσότερες λεπτομέρειες και το αποθηκεύει (αν υπάρχει backend)
    */
-  public async captureError(error: Error, options?: { component?: string, details?: any, source?: string }): Promise<ErrorData> {
-    const { component = 'unknown', details = {}, source = 'client' } = options || {};
+  public async captureError(error: Error, options?: { component?: string, details?: any, source?: string, method?: string }): Promise<ErrorData> {
+    const { component = 'unknown', details = {}, source = 'client', method } = options || {};
     
     // Δημιουργία του error entry
-    const errorData = this.reportError(error, component, details);
+    const errorData = this.reportError(error, component, {
+      ...details,
+      method
+    });
     
     try {
       // Εδώ θα γινόταν αποστολή του σφάλματος σε κάποιο backend
@@ -74,6 +77,10 @@ export class ErrorCollector {
     this.errors = [];
     console.log('All errors cleared from the collector');
   }
+  
+  // Aliases για συμβατότητα με παλαιότερο κώδικα
+  public getErrors = this.getAllErrors;
+  public clearErrors = this.clearAllErrors;
 }
 
 export const errorCollector = new ErrorCollector();

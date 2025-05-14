@@ -1,6 +1,6 @@
 
 import { useCallback } from "react";
-import { displayError, ErrorDisplayOptions } from "@/utils/error-handling/displayError";
+import { displayError, type ErrorDisplayOptions } from "@/utils/error-handling/displayError";
 import { errorCollector } from "@/utils/error-handling/collector";
 
 export function useErrorReporting() {
@@ -16,12 +16,12 @@ export function useErrorReporting() {
 
   // Συνάρτηση για λήψη όλων των σφαλμάτων
   const getAllErrors = useCallback(() => {
-    return errorCollector.getErrors();
+    return errorCollector.getAllErrors();
   }, []);
 
   // Συνάρτηση για καθαρισμό όλων των σφαλμάτων
   const clearAllErrors = useCallback(() => {
-    errorCollector.clearErrors();
+    errorCollector.clearAllErrors();
   }, []);
 
   return {

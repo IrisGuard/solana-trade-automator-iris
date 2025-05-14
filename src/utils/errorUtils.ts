@@ -2,7 +2,6 @@
 import { toast } from "sonner";
 import { errorCollector, type ErrorData } from "./error-handling/collector";
 import { setupGlobalErrorHandling } from "./error-handling/setupGlobalErrorHandling";
-import { displayError as showError } from "./error-handling/displayError";
 
 interface ErrorDisplayOptions {
   title?: string;
@@ -28,9 +27,9 @@ const DEFAULT_OPTIONS: ErrorDisplayOptions = {
 /**
  * Κεντρική συνάρτηση για εμφάνιση και διαχείριση σφαλμάτων
  */
-export function displayError(error: Error, options?: ErrorDisplayOptions): string {
+export function displayError(error: Error | string, options?: ErrorDisplayOptions): string {
   const opts = { ...DEFAULT_OPTIONS, ...options };
-  const errorMessage = error.message || "Άγνωστο σφάλμα";
+  const errorMessage = typeof error === 'string' ? error : (error.message || "Άγνωστο σφάλμα");
   
   // Καταγραφή στην κονσόλα
   if (opts.logToConsole) {
@@ -39,12 +38,12 @@ export function displayError(error: Error, options?: ErrorDisplayOptions): strin
   
   // Προσθήκη στο συλλέκτη σφαλμάτων
   const errorData: ErrorData = {
+    id: `err_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
     message: errorMessage,
-    stack: error.stack,
+    stack: typeof error === 'string' ? undefined : error.stack,
+    component: opts.component || 'unknown',
     source: opts.source || 'client',
     timestamp: Date.now(),
-    component: opts.component,
-    method: opts.method,
     details: {
       browserInfo: {
         userAgent: navigator.userAgent,
@@ -56,21 +55,25 @@ export function displayError(error: Error, options?: ErrorDisplayOptions): strin
     }
   };
   
-  let errorCode = '';
+  let errorId = '';
   if (opts.useCollector) {
-    errorCode = errorCollector.captureError(error, {
+    const errorObj = typeof error === 'string' ? new Error(error) : error;
+    errorCollector.captureError(errorObj, {
       component: opts.component,
-      method: opts.method,
       source: opts.source,
-      details: errorData.details
+      details: errorData.details,
+      method: opts.method
+    }).then(data => {
+      errorId = data.id;
+    }).catch(err => {
+      console.error('Error capturing error:', err);
     });
   }
   
   // Εμφάνιση toast
   if (opts.showToast) {
     toast.error(`${opts.title}`, {
-      description: errorMessage,
-      ...(errorCode ? { id: errorCode } : {})
+      description: errorMessage
     });
   }
   
@@ -80,7 +83,7 @@ export function displayError(error: Error, options?: ErrorDisplayOptions): strin
     console.log("Αποστολή σφάλματος στο chat support");
   }
   
-  return errorCode || '';
+  return errorId || '';
 }
 
 export function formatErrorMessage(error: unknown): string {

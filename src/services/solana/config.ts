@@ -1,5 +1,5 @@
 
-import { clusterApiUrl } from '@solana/web3.js';
+import { clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
 
 // API Endpoints βασισμένα στο PR του χρήστη
 export const API_ENDPOINTS = {
@@ -64,5 +64,12 @@ export const MOCK_PRICES = {
 export const API_KEYS = {
   HELIUS: 'ddb32813-1f4b-459d-8964-310b1b73a053', // Demo key - Replace with actual key
   SOLSCAN: '',  // Replace with actual key
-  BIRDEYE: ''   // Replace with actual key
+  BIRDEYE: '',  // Replace with actual key
+  COINGECKO: ''  // Replace with actual key
 };
+
+// Δημιουργία connection αντικειμένου
+export const connection = new Connection(RPC_ENDPOINTS.PRIMARY);
+
+// Token Program ID
+export const TOKEN_PROGRAM_ID = new PublicKey(KNOWN_PROGRAMS.TOKEN_PROGRAM);

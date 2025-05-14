@@ -17,10 +17,10 @@ export function WalletErrorFallback({ error }: { error?: Error }) {
   useEffect(() => {
     // Αναφορά του σφάλματος όταν εμφανίζεται το fallback
     if (error) {
-      reportError(error, 'WalletErrorFallback', {
-        showToast: true,
-        logToConsole: true,
-        sendToChatInterface: true
+      reportError(error, {
+        component: "WalletErrorFallback",
+        details: { operation: "fallback" },
+        source: "client"
       });
       
       console.error("Wallet provider error:", error);

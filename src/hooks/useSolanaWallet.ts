@@ -4,7 +4,7 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { toast } from 'sonner';
 import { useErrorReporting } from './useErrorReporting';
-import { fetchTokenBalance } from '@/services/solana/token';
+import { WalletName } from '@solana/wallet-adapter-base';
 
 export function useSolanaWallet() {
   const { connection } = useConnection();
@@ -84,7 +84,8 @@ export function useSolanaWallet() {
   // Μέθοδος για σύνδεση πορτοφολιού με συγκεκριμένο provider
   const connectWallet = (provider: string) => {
     try {
-      select(provider);
+      // Μετατροπή του string σε WalletName τύπο
+      select(provider as WalletName);
     } catch (error) {
       console.error('Error connecting wallet:', error);
       reportError(error as Error, {

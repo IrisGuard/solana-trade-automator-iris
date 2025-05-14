@@ -1,7 +1,4 @@
 
-// Επανεξαγωγή συναρτήσεων για τη διαχείριση token
-
-export { fetchTokenBalance } from './balance';
-
-// Επανεξαγωγή τύπων
+// Export token related functions
+export { fetchTokenBalance, fetchAllTokenBalances, fetchTokenPrices, tokenService } from '../tokenService';
 export type { Token } from '@/types/wallet';

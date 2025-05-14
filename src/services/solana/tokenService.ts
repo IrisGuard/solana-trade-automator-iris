@@ -1,3 +1,4 @@
+
 import { PublicKey } from '@solana/web3.js';
 import { toast } from 'sonner';
 import { Token } from '@/types/wallet';
@@ -46,14 +47,16 @@ export const fetchAllTokenBalances = async (address: string): Promise<Token[]> =
         if (amount === 0) continue;
         
         // Find info for known tokens
-        const knownToken = KNOWN_TOKEN_ADDRESSES[mintAddress];
+        const knownToken = Object.entries(KNOWN_TOKEN_ADDRESSES).find(
+          ([_, addr]) => addr === mintAddress
+        );
         
         tokens.push({
           address: mintAddress,
-          name: knownToken?.name || `Token ${mintAddress.slice(0, 4)}...${mintAddress.slice(-4)}`,
-          symbol: knownToken?.symbol || 'UNKNOWN',
+          name: knownToken ? knownToken[0] : `Token ${mintAddress.slice(0, 4)}...${mintAddress.slice(-4)}`,
+          symbol: knownToken ? knownToken[0] : 'UNKNOWN',
           amount: amount,
-          logo: knownToken?.logo
+          decimals: parsedInfo.tokenAmount.decimals
         });
       }
       
@@ -66,7 +69,7 @@ export const fetchAllTokenBalances = async (address: string): Promise<Token[]> =
             name: 'Solana',
             symbol: 'SOL',
             amount: solBalance,
-            logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png'
+            decimals: 9
           });
         }
       } catch (solError) {
@@ -78,7 +81,7 @@ export const fetchAllTokenBalances = async (address: string): Promise<Token[]> =
       tokenBalanceCache[address] = [...tokens];
       
       return tokens;
-    });
+    }, { maxRetries: 3 });
   } catch (error) {
     // Check for rate limit errors
     if (isRateLimitError(error)) {
@@ -101,25 +104,31 @@ export const fetchAllTokenBalances = async (address: string): Promise<Token[]> =
     }
     
     // Add to error collector
-    errorCollector.captureError(new Error('Failed to load tokens'), {
+    errorCollector.captureError(error instanceof Error ? error : new Error('Failed to load tokens'), {
       source: 'client',
       component: 'tokenService',
-      method: 'fetchAllTokenBalances',
-      details: { address }
+      details: { action: 'fetchAllTokenBalances', address }
     });
     
     return [];
   }
 };
 
-export const fetchTokenPrices = async (tokenAddresses: string[]): Promise<Record<string, number>> => {
+export const fetchTokenPrices = async (tokenAddresses: string[]): Promise<Record<string, { price: number; priceChange24h: number }>> => {
   try {
-    const prices: Record<string, number> = {};
+    const prices: Record<string, { price: number; priceChange24h: number }> = {};
     
     // In a real implementation, we would fetch actual prices from an API
     // This is just a mock implementation
     for (const address of tokenAddresses) {
-      prices[address] = MOCK_PRICES[address] || Math.random() * 10;
+      if (address in MOCK_PRICES) {
+        prices[address] = MOCK_PRICES[address];
+      } else {
+        prices[address] = { 
+          price: Math.random() * 10, 
+          priceChange24h: (Math.random() * 2) - 1 
+        };
+      }
     }
     
     return prices;
@@ -129,11 +138,13 @@ export const fetchTokenPrices = async (tokenAddresses: string[]): Promise<Record
   }
 };
 
-// Keep backwards compatibility with existing code
-export const tokenService = {
+// Create the token service object for backwards compatibility
+const tokenServiceObj = {
   getTokenAccounts: fetchAllTokenBalances,
   getTokenPrice: async (tokenAddress: string): Promise<number> => {
     const prices = await fetchTokenPrices([tokenAddress]);
-    return prices[tokenAddress] || 0;
+    return prices[tokenAddress]?.price || 0;
   }
 };
+
+export { tokenServiceObj as tokenService };

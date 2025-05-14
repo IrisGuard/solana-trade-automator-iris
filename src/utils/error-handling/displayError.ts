@@ -11,13 +11,7 @@ import type { ErrorDisplayOptions } from './types';
  */
 export function displayError(
   error: string | Error,
-  options?: {
-    toastDuration?: number;
-    component?: string;
-    details?: any;
-    source?: string;
-    showToast?: boolean;
-  }
+  options?: ErrorDisplayOptions
 ) {
   const {
     toastDuration = 5000,
@@ -36,7 +30,11 @@ export function displayError(
   console.error(`[${component}] ${errorMessage}`, error);
   
   // Καταγραφή στο σύστημα συλλογής σφαλμάτων
-  errorCollector.reportError(error, component, details);
+  errorCollector.captureError(typeof error === 'string' ? new Error(error) : error, {
+    component,
+    details,
+    source
+  });
   
   // Εμφάνιση του σφάλματος σε toast αν επιθυμούμε
   if (showToast) {
@@ -51,6 +49,9 @@ export function displayError(
   // Επιστρέφουμε το error message για ευκολία
   return errorMessage;
 }
+
+// Εξάγουμε τον τύπο ώστε να είναι διαθέσιμος στον κώδικα
+export type { ErrorDisplayOptions };
 
 /**
  * Εμφανίζει ένα προειδοποιητικό μήνυμα στο UI
