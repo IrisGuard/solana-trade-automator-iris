@@ -1,2 +1,2 @@
 
-export { errorCollector, ErrorCollector, type ErrorData } from './ErrorCollector';
+export { errorCollector, type ErrorData } from './ErrorCollector';

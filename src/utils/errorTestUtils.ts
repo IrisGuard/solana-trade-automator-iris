@@ -1,170 +1,110 @@
 
-/**
- * Βοηθητικές συναρτήσεις για δοκιμή των σφαλμάτων και του συστήματος καταγραφής
- */
-import { useState, useCallback } from 'react';
-import { toast } from "sonner";
+// This file contains utility functions for testing error handling
+import { toast } from 'sonner';
 import { errorCollector, type ErrorData } from './error-handling/collector';
-import { sendErrorToChat } from './error-handling/sendErrorToChat';
-import { displayError } from './error-handling/displayError';
 
-// Options for error generation
-interface ErrorOptions {
-  showToast?: boolean;
-  logToConsole?: boolean;
-  sendToChat?: boolean;
-  useCollector?: boolean;
+// Generate a sample error with stack trace
+export function generateSampleError(message = 'Sample Error'): Error {
+  const error = new Error(message);
+  
+  // Add custom properties for testing
+  Object.assign(error, {
+    code: 'TEST_ERROR',
+    statusCode: 500,
+    details: { test: true }
+  });
+  
+  return error;
 }
 
-/**
- * Generate a test error with specified options
- */
-export function generateTestError(message: string = "Δοκιμαστικό σφάλμα", options: ErrorOptions = {}) {
-  const {
-    showToast = true,
-    logToConsole = true,
-    sendToChat = false,
-    useCollector = false
-  } = options;
+// Clear all errors from the error collector
+export function clearAllErrors(): void {
+  errorCollector.clearErrors();
+  toast.success('All errors cleared');
+}
+
+// Test adding errors to the error collector
+export function testAddError(count = 1): string[] {
+  const ids: string[] = [];
   
-  try {
-    // Create the error
+  for (let i = 0; i < count; i++) {
+    const message = `Test Error ${i + 1}`;
     const error = new Error(message);
-    console.error("Test error generated:", error);
     
-    // Add to collector if requested
-    if (useCollector) {
-      const errorData: ErrorData = {
-        message: error.message,
-        source: 'client',
-        stack: error.stack
-      };
-      errorCollector.addError(errorData);
-    }
+    // Add with metadata
+    const id = errorCollector.addError({
+      message,
+      stack: error.stack,
+      timestamp: Date.now(),
+      details: { testIndex: i }
+    });
     
-    // Display toast if requested
-    if (showToast) {
-      toast.error(message, {
-        description: "Δοκιμαστικό σφάλμα για έλεγχο του συστήματος",
-        action: sendToChat ? {
-          label: "Αποστολή στο Chat",
-          onClick: () => sendErrorToChat(error),
-        } : undefined
-      });
-    }
-    
-    // Log to console if requested
-    if (logToConsole) {
-      console.error("Generated test error:", error);
-    }
-    
-    // Send to chat if requested
-    if (sendToChat) {
-      sendErrorToChat(error);
-    }
-    
-    return error;
-  } catch (e) {
-    console.error("Error while generating test error:", e);
-    return new Error("Error while generating test error");
+    ids.push(id);
+  }
+  
+  toast.success(`Added ${count} test errors`);
+  return ids;
+}
+
+// Test unhandled promise rejection
+export function testUnhandledPromiseRejection(): void {
+  setTimeout(() => {
+    // Create a promise that rejects
+    new Promise((_, reject) => {
+      reject(new Error('Unhandled Promise Rejection Test'));
+    });
+  }, 100);
+  
+  toast.info('Unhandled promise rejection will occur shortly');
+}
+
+// Test asynchronous error
+export async function testAsyncError(): Promise<void> {
+  try {
+    await new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Async Operation Failed'));
+      }, 500);
+    });
+  } catch (error) {
+    toast.error('Async error caught');
+    throw error;
   }
 }
 
-/**
- * Generate various types of errors for testing purposes
- */
-export function generateVariousErrors() {
-  console.log("Generating various errors for testing...");
-  
-  // Array of errors to be created
-  const errors = [
-    new Error('Δοκιμαστικό σφάλμα 1: Απλό σφάλμα'),
-    new Error('Δοκιμαστικό σφάλμα 2: Σφάλμα ως string χωρίς stack trace'),
-    new Error('Δοκιμαστικό σφάλμα 3: Προσομοίωση σφάλματος Supabase'),
-    new Error('Δοκιμαστικό σφάλμα 4: Προσομοίωση σφάλματος δικτύου')
-  ];
-  
-  // Add to collector
-  errors.forEach(error => {
-    const errorData: ErrorData = {
-      message: error.message,
-      source: 'client',
-      stack: error.stack
-    };
-    errorCollector.addError(errorData);
-  });
-  
-  toast.error("Δημιουργήθηκαν πολλαπλά σφάλματα", {
-    description: `${errors.length} σφάλματα προστέθηκαν στη συλλογή`,
-    duration: 3000,
-  });
-  
-  // Send after 3 seconds all errors if they haven't been sent yet
-  setTimeout(() => {
-    errorCollector.reportErrors();
-  }, 3000);
-  
-  return errors;
+// Simulate runtime error
+export function simulateRuntimeError(): void {
+  try {
+    // @ts-ignore - Intentionally causing error
+    const obj = null;
+    obj.nonExistentMethod();
+  } catch (error) {
+    if (error instanceof Error) {
+      errorCollector.addError({
+        message: error.message,
+        stack: error.stack,
+        source: 'test',
+        details: { test: true }
+      });
+      toast.error('Runtime error simulated');
+    }
+  }
 }
 
-/**
- * Hook για δοκιμή των σφαλμάτων
- */
-export function useErrorTesting() {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [errorCount, setErrorCount] = useState(0);
-  
-  // Παραγωγή δοκιμαστικού σφάλματος
-  const generateTestErrorCallback = useCallback((message: string = "Δοκιμαστικό σφάλμα") => {
-    setIsGenerating(true);
-    
-    try {
-      // Δημιουργία σφάλματος
-      const error = generateTestError(message);
-      
-      // Αύξηση του μετρητή
-      setErrorCount(count => count + 1);
-      
-      return error;
-    } finally {
-      setIsGenerating(false);
+// Generate DOM errors
+export function generateDOMError(): void {
+  try {
+    // Create an element that doesn't exist
+    document.createElement('nonexistentelement' as any);
+  } catch (error) {
+    if (error instanceof Error) {
+      errorCollector.addError({
+        message: error.message,
+        stack: error.stack,
+        source: 'dom',
+        details: { location: window.location.href }
+      });
+      toast.error('DOM error simulated');
     }
-  }, []);
-  
-  // Καθαρισμός όλων των σφαλμάτων
-  const clearAllErrors = useCallback(() => {
-    errorCollector.clearErrors();
-    setErrorCount(0);
-    
-    toast.success("Όλα τα σφάλματα καθαρίστηκαν", {
-      description: "Η συλλογή σφαλμάτων είναι τώρα άδεια",
-      duration: 2000,
-    });
-  }, []);
-  
-  // Παραγωγή πολλαπλών σφαλμάτων για δοκιμή
-  const generateMultipleErrors = useCallback(() => {
-    setIsGenerating(true);
-    
-    try {
-      const errors = generateVariousErrors();
-      setErrorCount(count => count + errors.length);
-    } finally {
-      setIsGenerating(false);
-    }
-  }, []);
-  
-  return {
-    generateTestError: generateTestErrorCallback,
-    clearAllErrors,
-    generateMultipleErrors,
-    isGenerating,
-    errorCount
-  };
+  }
 }
-
-// Εξαγωγή της συνάρτησης καθαρισμού σφαλμάτων για ευκολότερη πρόσβαση
-export const clearAllErrors = () => {
-  errorCollector.clearErrors();
-  toast.success("Όλα τα σφάλματα καθαρίστηκαν");
-};

@@ -15,6 +15,7 @@ export interface ErrorData {
   url?: string;
   error?: Error;
   handled?: boolean;
+  reported?: boolean;
   [key: string]: any; // Allow additional custom properties
 }
 
@@ -61,6 +62,24 @@ class ErrorCollector {
     console.error(`Error collected [${id}]:`, data.message);
     
     return id;
+  }
+  
+  /**
+   * Collect an error object directly
+   * @param error Error object to collect
+   * @returns String ID of the added error
+   */
+  public collect(error: Error | string, context: any = {}): string {
+    const errorObj = typeof error === 'string' ? new Error(error) : error;
+    
+    const errorData: ErrorData = {
+      message: errorObj.message,
+      stack: errorObj.stack,
+      ...context,
+      timestamp: Date.now()
+    };
+    
+    return this.addError(errorData);
   }
   
   /**
@@ -124,16 +143,17 @@ class ErrorCollector {
   
   /**
    * Report errors to monitoring system
-   * @param errors Array of error data to report
    */
-  public reportErrors(errors: ErrorData[]): void {
+  public reportErrors(): Promise<void> {
     // Implementation would send errors to monitoring system
-    console.log(`Reporting ${errors.length} errors to monitoring system`);
+    console.log(`Reporting ${this.errors.size} errors to monitoring system`);
     
     // Mark errors as reported
-    errors.forEach(error => {
+    this.errors.forEach(error => {
       error.reported = true;
     });
+    
+    return Promise.resolve();
   }
 }
 

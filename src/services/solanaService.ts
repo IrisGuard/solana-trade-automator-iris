@@ -7,7 +7,6 @@ import { fetchTransactionHistory } from './solana/transaction';
 import { walletService } from './solana/walletService';
 import { tokenService } from './solana/token';
 import { priceService } from './solana/price';
-import { tradingService } from './solana';
 
 // Create and export a combined solanaService object for backwards compatibility
 export const solanaService = {
@@ -17,4 +16,3 @@ export const solanaService = {
   fetchTokenPrices,
   fetchTransactionHistory
 };
-

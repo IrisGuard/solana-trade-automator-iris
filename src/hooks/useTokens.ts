@@ -58,11 +58,13 @@ export function useTokens() {
       const simplePrices: Record<string, number> = {};
       
       // Safely extract price values from the returned data
-      Object.entries(priceData).forEach(([address, data]) => {
-        if (data && typeof data === 'object' && 'price' in data) {
-          simplePrices[address] = Number(data.price);
-        }
-      });
+      if (priceData) {
+        Object.entries(priceData).forEach(([address, data]) => {
+          if (data && typeof data === 'object' && 'price' in data) {
+            simplePrices[address] = Number(data.price) || 0;
+          }
+        });
+      }
       
       setTokenPrices(simplePrices);
       return simplePrices;

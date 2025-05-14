@@ -34,7 +34,7 @@ export function useErrorReporting() {
       stack: error.stack,
       timestamp: Date.now()
     };
-    errorCollector.collect(error);
+    errorCollector.addError(errorData);
     
     // Show toast
     if (showToast) {
