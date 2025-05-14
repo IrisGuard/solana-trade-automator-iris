@@ -12,10 +12,10 @@ export interface Token {
 export interface Transaction {
   signature: string;
   blockTime: number;
-  timestamp: number; // Changed from optional to required
+  timestamp: number; // Τώρα είναι υποχρεωτικό
   type: string;
   status: string;
-  amount?: string; // Changed from string | number to string only
+  amount?: string; // Πάντα string, όχι number
   from?: string;
   to?: string;
   tokenAddress?: string;

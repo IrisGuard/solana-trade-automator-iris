@@ -3,12 +3,12 @@ export interface Transaction {
   // Basic transaction properties
   signature: string;
   blockTime: number;
-  timestamp: number;
+  timestamp: number; // Τώρα είναι υποχρεωτικό
   status: string;
   type: string;
   
   // Amount and value information
-  amount?: string;  // Changed from string | number to string only
+  amount?: string;  // Πάντα string, όχι number
   price?: string | number;
   value?: string | number;
   

@@ -2,7 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
-import { Transaction } from "@/types/wallet"; // Use wallet Transaction type consistently
+import { Transaction } from "@/types/transaction"; // Χρησιμοποιούμε τον ενιαίο τύπο Transaction
 import { formatWalletAddress } from "@/utils/walletUtils";
 
 interface TransactionItemProps {
@@ -36,7 +36,7 @@ export function TransactionItem({ tx, getStatusBadgeClass, getTypeIcon }: Transa
                   ? formatWalletAddress(tx.to) 
                   : formatWalletAddress(tx.from)}
               </>
-            ) : formatDate(tx.blockTime)}
+            ) : formatDate(tx.timestamp)}
           </p>
         </div>
       </div>
