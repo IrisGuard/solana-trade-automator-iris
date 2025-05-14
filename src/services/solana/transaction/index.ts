@@ -1,13 +1,10 @@
 
-import { fetchRecentTransactions } from './fetchTransactions';
-import { parseTransaction } from './parseTransaction';
-import { TransactionSignatureResult } from './types';
+// Re-export transaction related functionality
+import { fetchTransactionsByAddress } from "./fetchTransactions";
+import { parseTransaction, type ParsedTransaction } from "./parseTransaction";
 
-// Export named function for individual import
-export const fetchTransactionHistory = fetchRecentTransactions;
-
-// Export all transaction services
-export const transactionService = {
-  getRecentTransactions: fetchRecentTransactions,
+export {
+  fetchTransactionsByAddress,
   parseTransaction,
+  type ParsedTransaction
 };

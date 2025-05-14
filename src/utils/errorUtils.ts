@@ -1,118 +1,103 @@
-import { toast } from "sonner";
-import { errorCollector, type ErrorData } from "./error-handling/collector";
-import { setupGlobalErrorHandling } from "./error-handling/setupGlobalErrorHandling";
 
-// Export the ErrorDisplayOptions type
-export interface ErrorDisplayOptions {
-  title?: string;
-  showToast?: boolean;
-  logToConsole?: boolean;
-  useCollector?: boolean;
-  sendToChat?: boolean;
-  component?: string;
-  method?: string;
-  source?: string;
-  details?: any;
+import { errorCollector } from './error-handling/collector';
+
+// Error categories
+export enum ErrorCategory {
+  NETWORK = 'NETWORK',
+  AUTH = 'AUTH',
+  VALIDATION = 'VALIDATION',
+  BLOCKCHAIN = 'BLOCKCHAIN',
+  DATABASE = 'DATABASE',
+  UNEXPECTED = 'UNEXPECTED'
 }
 
-const DEFAULT_OPTIONS: ErrorDisplayOptions = {
-  title: "Σφάλμα",
-  showToast: true,
-  logToConsole: true,
-  useCollector: true,
-  sendToChat: false,
-  component: undefined
-};
-
-/**
- * Κεντρική συνάρτηση για εμφάνιση και διαχείριση σφαλμάτων
- */
-export function displayError(error: Error | string, options?: ErrorDisplayOptions): string {
-  const opts = { ...DEFAULT_OPTIONS, ...options };
-  const errorMessage = typeof error === 'string' ? error : (error.message || "Άγνωστο σφάλμα");
-  
-  // Καταγραφή στην κονσόλα
-  if (opts.logToConsole) {
-    console.error(`${opts.title}: ${errorMessage}`, error);
-  }
-  
-  // Προσθήκη στο συλλέκτη σφαλμάτων
-  const errorData: ErrorData = {
-    id: `err_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-    message: errorMessage,
-    stack: typeof error === 'string' ? undefined : error.stack,
-    component: opts.component || 'unknown',
-    source: opts.source || 'client',
-    timestamp: Date.now(),
-    details: {
-      browserInfo: {
-        userAgent: navigator.userAgent,
-        language: navigator.language,
-        platform: navigator.platform
-      },
-      url: window.location.href,
-      ...(opts.details || {})
-    }
-  };
-  
-  let errorId = '';
-  if (opts.useCollector) {
-    const errorObj = typeof error === 'string' ? new Error(error) : error;
-    errorCollector.captureError(errorObj, {
-      component: opts.component,
-      source: opts.source,
-      details: errorData.details,
-    }).then(data => {
-      errorId = data.id || '';
-    }).catch(err => {
-      console.error('Error capturing error:', err);
-    });
-  }
-  
-  // Εμφάνιση toast
-  if (opts.showToast) {
-    toast.error(`${opts.title}`, {
-      description: errorMessage
-    });
-  }
-  
-  // Αποστολή στο chat support (μελλοντική λειτουργία)
-  if (opts.sendToChat) {
-    // Προς υλοποίηση μελλοντικά
-    console.log("Αποστολή σφάλματος στο chat support");
-  }
-  
-  return errorId;
+// Error severities
+export enum ErrorSeverity {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  CRITICAL = 'CRITICAL'
 }
 
-export function formatErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  
-  if (typeof error === 'string') {
-    return error;
-  }
-  
-  if (typeof error === 'object' && error !== null) {
-    return JSON.stringify(error);
-  }
-  
-  return 'Άγνωστο σφάλμα';
+// Structure for error reporting
+export interface ErrorReport {
+  message: string;
+  code: string;
+  category: ErrorCategory;
+  severity: ErrorSeverity;
+  timestamp: number;
+  source: string;
+  data?: any;
 }
 
-export function formatErrorToLog(error: Error | unknown): ErrorLogData {
-  const errorObject = error instanceof Error ? error : new Error(String(error));
-  
+// Helper function to create a standardized error report
+export function createErrorReport(
+  message: string,
+  code: string,
+  category: ErrorCategory,
+  severity: ErrorSeverity,
+  source: string,
+  data?: any
+): ErrorReport {
   return {
-    message: errorObject.message || 'Unknown error',
-    stack: errorObject.stack,
-    component: 'unknown',
-    source: 'client',
-    timestamp: new Date().toISOString(), // Use ISO string for timestamp
-    status: 'new'
+    message,
+    code,
+    category,
+    severity,
+    timestamp: Date.now(),
+    source,
+    data
   };
 }
 
-// Export the setupGlobalErrorHandling function
-export { setupGlobalErrorHandling };
+// Helper to log errors consistently
+export function logError(
+  error: Error | ErrorReport | string,
+  component?: string,
+  additionalData?: any
+): void {
+  try {
+    // Format the error based on its type
+    let formattedError: Error;
+    let errorData: Record<string, any> = {
+      component,
+      source: 'client',
+      details: ''
+    };
+    
+    if (error instanceof Error) {
+      formattedError = error;
+      if (additionalData) {
+        errorData.details = JSON.stringify(additionalData);
+      }
+    } else if (typeof error === 'string') {
+      formattedError = new Error(error);
+      if (additionalData) {
+        errorData.details = JSON.stringify(additionalData);
+      }
+    } else {
+      // It's an ErrorReport
+      formattedError = new Error(error.message);
+      errorData = {
+        ...errorData,
+        details: JSON.stringify({
+          code: error.code,
+          category: error.category,
+          severity: error.severity,
+          data: error.data
+        }),
+        source: error.source || 'client'
+      };
+    }
+    
+    // Log to console
+    console.error('Error logged:', formattedError, errorData);
+    
+    // Log to error collector for backend storage
+    errorCollector.captureError(formattedError, errorData);
+  } catch (err) {
+    // Failsafe - if error logging itself fails, at least log to console
+    console.error('Error in logError function:', err);
+    console.error('Original error:', error);
+  }
+}
