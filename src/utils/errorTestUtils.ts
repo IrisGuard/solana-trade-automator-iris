@@ -1,73 +1,108 @@
 
 import { errorCollector } from './error-handling/collector';
-import { toast } from 'sonner';
-import { displayError } from './errorUtils';
+import { ErrorDisplayOptions } from './error-handling/types';
 
-interface TestErrorOptions {
-  showToast?: boolean;
-  logToConsole?: boolean;
-  sendToChat?: boolean;
-  useCollector?: boolean;
+/**
+ * Interface για τις επιλογές κατά την παραγωγή δοκιμαστικών σφαλμάτων
+ */
+export interface TestErrorOptions {
+  errorType?: 'reference' | 'type' | 'syntax' | 'promise' | 'async' | 'timeout' | 'render' | 'prop' | 'state' | 'network';
   component?: string;
+  details?: any;
+  source?: string;
 }
 
-export function generateTestError(message: string, options: TestErrorOptions = {}) {
-  const error = new Error(message || 'Test error message');
+/**
+ * Παράγει ένα απλό σφάλμα για δοκιμές
+ */
+export function generateTestError(message: string, options?: ErrorDisplayOptions): void {
+  const error = new Error(message);
+  error.name = "TestError";
   
-  displayError(error, {
-    title: 'Test Error',
-    showToast: options.showToast,
-    logToConsole: options.logToConsole,
-    sendToChat: options.sendToChat,
-    useCollector: options.useCollector,
-    component: options.component || 'ErrorTestUtils'
-  });
+  // Καταγραφή του σφάλματος στον collector
+  errorCollector.reportError(error, options?.component || 'TestComponent', options?.details);
   
-  console.log('Test error generated:', message);
+  // Εμφάνιση στην κονσόλα για εύκολη αναγνώριση
+  console.error("Test Error Generated:", message, options);
 }
 
-export function generateTestErrorData(message: string) {
+/**
+ * Παράγει διάφορους τύπους σφαλμάτων ανάλογα με τις επιλογές
+ */
+export function generateVariousErrors(options?: TestErrorOptions): void {
+  const { errorType = 'reference', component = 'ErrorTestUtils', details = {}, source = 'test' } = options || {};
+  
+  let error: Error;
+  
+  // Δημιουργία διαφορετικών τύπων σφαλμάτων βάσει του errorType
+  switch (errorType) {
+    case 'reference':
+      error = new ReferenceError('Test ReferenceError - Undefined variable referenced');
+      break;
+    case 'type':
+      error = new TypeError('Test TypeError - Operation on incompatible type');
+      break;
+    case 'syntax':
+      error = new SyntaxError('Test SyntaxError - Invalid syntax');
+      break;
+    case 'promise':
+      Promise.reject(new Error('Test Promise Rejection'));
+      error = new Error('Test Promise Error - Uncaught promise rejection');
+      break;
+    case 'async':
+      setTimeout(() => {
+        const asyncError = new Error('Test Async Error - Error in async operation');
+        errorCollector.reportError(asyncError, component, { ...details, async: true });
+      }, 100);
+      return;
+    case 'timeout':
+      error = new Error('Test Timeout Error - Operation timed out');
+      break;
+    case 'render':
+      error = new Error('Test Render Error - Failed to render component');
+      break;
+    case 'prop':
+      error = new Error('Test Prop Error - Missing required prop');
+      break;
+    case 'state':
+      error = new Error('Test State Error - Invalid state update');
+      break;
+    case 'network':
+      const status = details.status || 500;
+      error = new Error(`Test Network Error - HTTP ${status}`);
+      error.name = 'NetworkError';
+      break;
+    default:
+      error = new Error('Test Generic Error');
+  }
+  
+  // Προσθήκη επιπλέον ιδιοτήτων στο σφάλμα
+  error.stack = `Error generated from: ${component}\n   at ErrorTestUtils.generateVariousErrors (errorTestUtils.ts:42)\n   at TestFunction (test.js:10)\n   at UserAction (app.js:25)`;
+  
+  // Καταγραφή του σφάλματος
+  errorCollector.reportError(error, component, details);
+  
+  // Εμφάνιση στην κονσόλα για εύκολη αναγνώριση
+  console.error(`Test ${errorType} Error Generated:`, error.message, { component, details, source });
+}
+
+/**
+ * Καθαρίζει όλα τα σφάλματα από τον collector
+ */
+export function clearAllErrors(): void {
+  errorCollector.clearAllErrors();
+  console.log("All errors cleared");
+}
+
+/**
+ * Παράγει δεδομένα σφάλματος για δοκιμές
+ */
+export function generateTestErrorData(message: string, options?: any) {
   return {
-    message: message || 'Test error message',
-    timestamp: Date.now(),
-    id: `test_${Date.now()}`,
-    source: 'client',
-    component: 'Test'
+    message,
+    stack: "Error: " + message + "\n    at TestFunction (test.js:10)\n    at UserAction (app.js:25)",
+    timestamp: new Date().toISOString(),
+    component: options?.component || "TestComponent",
+    details: options?.details || { source: "test" }
   };
-}
-
-export function clearAllErrors() {
-  // Clear errors from collector
-  errorCollector.clearErrors();
-  
-  // Clear toasts
-  toast.dismiss();
-  
-  console.log('All errors cleared');
-}
-
-export function generateVariousErrors(options: TestErrorOptions = {}) {
-  // Network error simulation
-  generateTestError('Network request failed: timeout after 30000ms', {
-    ...options,
-    component: 'NetworkService'
-  });
-  
-  // Database error simulation
-  generateTestError('Database query failed: relation "users" does not exist', {
-    ...options,
-    component: 'DatabaseService'
-  });
-  
-  // Authentication error simulation
-  generateTestError('Authentication failed: invalid token', {
-    ...options,
-    component: 'AuthService'
-  });
-  
-  // API error simulation
-  generateTestError('API Error: Rate limit exceeded', {
-    ...options,
-    component: 'APIService'
-  });
 }

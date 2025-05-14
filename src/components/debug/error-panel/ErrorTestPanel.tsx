@@ -1,122 +1,68 @@
 
-import React from "react";
+import React, { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BasicTestTab } from "./BasicTestTab";
+import { AdvancedTestTab } from "./AdvancedTestTab";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { errorCollector } from '@/utils/error-handling/collector';
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { errorCollector } from "@/utils/error-handling/collector";
-import { displayError } from "@/utils/error-handling/displayError";
 
-const testErrorTypes = [
-  {
-    name: "Σφάλμα συγχρονισμού",
-    generate: () => {
-      throw new Error("Δοκιμαστικό σφάλμα συγχρονισμού");
-    }
-  },
-  {
-    name: "Ασύγχρονο σφάλμα",
-    generate: async () => {
-      return new Promise((_, reject) => {
-        setTimeout(() => {
-          reject(new Error("Δοκιμαστικό ασύγχρονο σφάλμα"));
-        }, 300);
-      });
-    }
-  },
-  {
-    name: "Σφάλμα δικτύου",
-    generate: () => {
-      const error = new Error("Σφάλμα δικτύου: Αδυναμία σύνδεσης με τον διακομιστή");
-      error.name = "NetworkError";
-      throw error;
-    }
-  },
-  {
-    name: "Σφάλμα ελλιπών δεδομένων",
-    generate: () => {
-      throw new Error("Ελλιπή δεδομένα: Λείπουν απαιτούμενα πεδία");
-    }
-  }
-];
+interface ErrorTestPanelProps {
+  onGenerateError?: (error: Error) => void;
+}
 
-export function ErrorTestPanel() {
-  const triggerSyncError = (index: number) => {
-    try {
-      testErrorTypes[index].generate();
-    } catch (error) {
-      if (error instanceof Error) {
-        displayError(error, { 
-          title: "Δοκιμαστικό σφάλμα", 
-          showToast: true,
-          useCollector: true,
-          component: "ErrorTestPanel"
-        });
-      }
-    }
+export function ErrorTestPanel({ onGenerateError }: ErrorTestPanelProps) {
+  const [activeTab, setActiveTab] = useState<string>("basic");
+  const [errorCount, setErrorCount] = useState<number>(0);
+
+  // Ενημερώνει το μετρητή σφαλμάτων
+  const updateErrorCount = () => {
+    const allErrors = errorCollector.getAllErrors();
+    setErrorCount(allErrors.length);
   };
 
-  const triggerAsyncError = async (index: number) => {
-    try {
-      await testErrorTypes[index].generate();
-    } catch (error) {
-      if (error instanceof Error) {
-        displayError(error, { 
-          title: "Δοκιμαστικό ασύγχρονο σφάλμα", 
-          showToast: true,
-          useCollector: true,
-          component: "ErrorTestPanel"
-        });
-      }
-    }
-  };
+  // Κάθε φορά που αλλάζει η ενεργή καρτέλα, ενημερώνουμε το μετρητή
+  React.useEffect(() => {
+    updateErrorCount();
+  }, [activeTab]);
 
-  const reportCollectedErrors = async () => {
-    // Call the reportErrors method that we've added to ErrorCollector
-    await errorCollector.reportErrors();
-  };
-
-  const clearCollectedErrors = () => {
-    errorCollector.clearErrors();
+  // Δημιουργεί ένα σφάλμα όταν κάνουμε κλικ στο κουμπί "Clear All Errors"
+  const handleClearAllErrors = () => {
+    errorCollector.clearAllErrors();
+    updateErrorCount();
   };
 
   return (
-    <Card className="shadow-md">
+    <Card>
       <CardHeader>
-        <CardTitle>Δοκιμή διαχείρισης σφαλμάτων</CardTitle>
+        <CardTitle className="flex justify-between items-center">
+          <span>Error Testing Panel</span>
+          <span className="text-sm font-normal text-muted-foreground">
+            Errors: {errorCount}
+          </span>
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid gap-2">
-          {testErrorTypes.map((errorType, index) => (
-            <Button 
-              key={index} 
-              variant="outline" 
-              onClick={() => errorType.name.includes("Ασύγχρονο") 
-                ? triggerAsyncError(index) 
-                : triggerSyncError(index)
-              }
-            >
-              {errorType.name}
-            </Button>
-          ))}
-        </div>
+      <CardContent>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="basic">Basic</TabsTrigger>
+            <TabsTrigger value="advanced">Advanced</TabsTrigger>
+          </TabsList>
+          <TabsContent value="basic" className="mt-4">
+            <BasicTestTab />
+          </TabsContent>
+          <TabsContent value="advanced" className="mt-4">
+            <AdvancedTestTab />
+          </TabsContent>
+        </Tabs>
       </CardContent>
-      <CardFooter className="flex flex-col gap-2">
-        <div className="flex justify-between w-full">
-          <Button 
-            variant="default" 
-            onClick={reportCollectedErrors}
-          >
-            Αναφορά σφαλμάτων
-          </Button>
-          <Button 
-            variant="destructive" 
-            onClick={clearCollectedErrors}
-          >
-            Καθαρισμός σφαλμάτων
-          </Button>
-        </div>
-        <p className="text-xs text-muted-foreground self-start mt-2">
-          Τα σφάλματα αποθηκεύονται τοπικά πριν από την αναφορά
-        </p>
+      <CardFooter className="flex justify-between">
+        <Button variant="outline" onClick={updateErrorCount}>
+          Refresh Count
+        </Button>
+        <Button variant="destructive" onClick={handleClearAllErrors}>
+          Clear All Errors
+        </Button>
       </CardFooter>
     </Card>
   );

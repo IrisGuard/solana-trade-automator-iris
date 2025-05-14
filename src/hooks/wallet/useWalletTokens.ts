@@ -28,24 +28,21 @@ export function useWalletTokens(walletAddress: string | null) {
           name: 'Solana',
           symbol: 'SOL',
           amount: 1.23,
-          decimals: 9,
-          uiAmount: '1.23'
+          decimals: 9
         },
         {
           address: '9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E',
           name: 'Wrapped Bitcoin',
           symbol: 'BTC',
           amount: 0.001,
-          decimals: 8,
-          uiAmount: '0.001'
+          decimals: 8
         },
         {
           address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
           name: 'USD Coin',
           symbol: 'USDC',
           amount: 100,
-          decimals: 6,
-          uiAmount: '100'
+          decimals: 6
         }
       ];
       

@@ -1,80 +1,89 @@
 
-import { toast } from "sonner";
-import { errorCollector } from "./collector";
+import { toast } from 'sonner';
+import { errorCollector } from './collector';
+import type { ErrorDisplayOptions } from './types';
 
-export interface ErrorDisplayOptions {
-  showToast?: boolean;
-  logToConsole?: boolean;
-  sendToChat?: boolean;
-  useCollector?: boolean;
-  component?: string;
-  details?: any;
-  source?: string;
+/**
+ * Εμφανίζει ένα σφάλμα στο UI και προαιρετικά το καταγράφει
+ * 
+ * @param error Το σφάλμα προς εμφάνιση
+ * @param options Επιλογές για τον τρόπο εμφάνισης και καταγραφής του σφάλματος
+ */
+export function displayError(
+  error: string | Error,
+  options?: {
+    toastDuration?: number;
+    component?: string;
+    details?: any;
+    source?: string;
+    showToast?: boolean;
+  }
+) {
+  const {
+    toastDuration = 5000,
+    component = 'unknown',
+    details = {},
+    source = 'client',
+    showToast = true
+  } = options || {};
+  
+  // Μετατροπή του σφάλματος σε μορφή string αν δεν είναι ήδη
+  const errorMessage = typeof error === 'string' 
+    ? error 
+    : error.message || 'Άγνωστο σφάλμα';
+  
+  // Καταγραφή του σφάλματος στην κονσόλα
+  console.error(`[${component}] ${errorMessage}`, error);
+  
+  // Καταγραφή στο σύστημα συλλογής σφαλμάτων
+  errorCollector.reportError(error, component, details);
+  
+  // Εμφάνιση του σφάλματος σε toast αν επιθυμούμε
+  if (showToast) {
+    toast.error(errorMessage, {
+      duration: toastDuration,
+      description: source === 'server' 
+        ? 'Σφάλμα διακομιστή' 
+        : 'Σφάλμα εφαρμογής',
+    });
+  }
+  
+  // Επιστρέφουμε το error message για ευκολία
+  return errorMessage;
 }
 
 /**
- * Εμφανίζει το σφάλμα με διάφορους τρόπους ανάλογα με τις επιλογές
+ * Εμφανίζει ένα προειδοποιητικό μήνυμα στο UI
  */
-export function displayError(
-  error: Error | string,
-  options: ErrorDisplayOptions = {}
-) {
-  const {
-    showToast = true,
-    logToConsole = true,
-    sendToChat = false,
-    useCollector = true,
-    component = 'unknown',
-    details = {},
-    source = 'client'
-  } = options;
+export function displayWarning(message: string, duration: number = 5000) {
+  toast.warning(message, { duration });
+  return message;
+}
 
-  // Δημιουργία μηνύματος σφάλματος
-  const errorMessage = typeof error === 'string' ? error : error.message;
-  
-  // Καθαρισμός του stack trace για καλύτερη αναγνωσιμότητα
-  const cleanStack = typeof error === 'string' 
-    ? '' 
-    : error.stack
-      ?.split('\n')
-      .slice(0, 5)
-      .join('\n') || '';
+/**
+ * Εμφανίζει ένα πληροφοριακό μήνυμα στο UI
+ */
+export function displayInfo(message: string, duration: number = 5000) {
+  toast.info(message, { duration });
+  return message;
+}
 
-  // Εμφάνιση toast αν ζητηθεί
-  if (showToast) {
-    toast.error(errorMessage, {
-      description: "Δείτε την κονσόλα για περισσότερες λεπτομέρειες",
-      duration: 5000
-    });
-  }
+/**
+ * Εμφανίζει ένα μήνυμα επιτυχίας στο UI
+ */
+export function displaySuccess(message: string, duration: number = 5000) {
+  toast.success(message, { duration });
+  return message;
+}
 
-  // Καταγραφή στην κονσόλα αν ζητηθεί
-  if (logToConsole) {
-    console.error("[Error]", errorMessage);
-    if (cleanStack) {
-      console.error("Stack:", cleanStack);
-    }
-    if (Object.keys(details).length > 0) {
-      console.error("Details:", details);
-    }
-  }
-
-  // Χρήση του error collector αν ζητηθεί
-  if (useCollector) {
-    errorCollector.reportError(error, component, details, source);
-  }
-
-  // Αποστολή στο chat (υλοποίηση αργότερα)
-  if (sendToChat) {
-    // TODO: Υλοποίηση αποστολής σφάλματος στο chat
-    console.log("Send to chat requested but not implemented yet");
-  }
-
-  return {
-    message: errorMessage,
-    stack: cleanStack,
-    component,
-    source,
-    details
-  };
+/**
+ * Στέλνει ένα σφάλμα στο chat
+ * Λειτουργικότητα που προς το παρόν παρέχει stub
+ */
+export function sendErrorToChat(error: string | Error, component?: string, details?: any) {
+  // Placeholder για μελλοντική λειτουργικότητα
+  console.log("Error would be sent to chat:", 
+    typeof error === 'string' ? error : error.message,
+    component || 'unknown',
+    details || {});
 }

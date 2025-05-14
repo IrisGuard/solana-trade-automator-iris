@@ -2,85 +2,79 @@
 import { ErrorData } from './types';
 
 /**
- * Κλάση που συλλέγει και διαχειρίζεται σφάλματα
+ * Διαχειριστής για τη συλλογή και καταγραφή σφαλμάτων
  */
 export class ErrorCollector {
   private errors: ErrorData[] = [];
-  private maxErrors: number = 50;
+  private maxErrors: number = 100;
   
   /**
-   * Προσθέτει νέο σφάλμα στη συλλογή
+   * Καταγράφει ένα σφάλμα στη συλλογή
    */
-  public reportError(error: Error | string, component?: string, details?: any, source: string = 'client'): ErrorData {
-    const errorData: ErrorData = this.createErrorData(error, component, details, source);
+  public reportError(error: Error | string, component: string = 'unknown', details: any = {}): ErrorData {
+    const message = typeof error === 'string' ? error : error.message;
+    const stack = typeof error === 'string' ? new Error().stack || '' : error.stack || '';
+    const source = typeof error === 'string' ? 'manual' : error.name || 'error';
     
-    // Προσθήκη στην αρχή της συλλογής
+    const errorData: ErrorData = {
+      id: `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      message,
+      stack,
+      component,
+      source,
+      details,
+      timestamp: new Date().toISOString()
+    };
+    
+    // Προσθήκη στη λίστα σφαλμάτων
     this.errors.unshift(errorData);
     
-    // Διατήρηση μόνο των maxErrors πιο πρόσφατων σφαλμάτων
+    // Διατήρηση μέγιστου αριθμού σφαλμάτων
     if (this.errors.length > this.maxErrors) {
       this.errors = this.errors.slice(0, this.maxErrors);
     }
     
-    // Καταγραφή στην κονσόλα
-    console.error('[ErrorCollector]', errorData);
+    // Καταγραφή στην κονσόλα για διευκόλυνση του debugging
+    console.error(`[${errorData.component}] ${errorData.message}`, details);
     
     return errorData;
   }
-  
+
   /**
-   * Δημιουργεί ένα αντικείμενο ErrorData από ένα σφάλμα
+   * Καταγράφει ένα σφάλμα με περισσότερες λεπτομέρειες και το αποθηκεύει (αν υπάρχει backend)
    */
-  private createErrorData(error: Error | string, component?: string, details?: any, source: string = 'client'): ErrorData {
-    const now = new Date();
-    const errorMessage = typeof error === 'string' ? error : error.message;
-    const errorStack = typeof error === 'string' ? '' : error.stack || '';
+  public async captureError(error: Error, options?: { component?: string, details?: any, source?: string }): Promise<ErrorData> {
+    const { component = 'unknown', details = {}, source = 'client' } = options || {};
     
-    return {
-      id: crypto.randomUUID(),
-      message: errorMessage,
-      stack: errorStack,
-      component: component || 'unknown',
-      source,
-      details,
-      timestamp: now.toISOString()
-    };
+    // Δημιουργία του error entry
+    const errorData = this.reportError(error, component, details);
+    
+    try {
+      // Εδώ θα γινόταν αποστολή του σφάλματος σε κάποιο backend
+      // ή θα αποθηκευόταν σε κάποιο persistent storage
+      console.info('Error captured and ready for storage:', errorData);
+    } catch (storingError) {
+      console.error('Failed to store error:', storingError);
+    }
+    
+    return errorData;
   }
-  
+
   /**
-   * Επιστρέφει όλα τα σφάλματα
+   * Επιστρέφει όλα τα καταγεγραμμένα σφάλματα
    */
-  public getErrors(): ErrorData[] {
+  public getAllErrors(): ErrorData[] {
     return [...this.errors];
   }
-  
+
   /**
-   * Επιστρέφει το πιο πρόσφατο σφάλμα
+   * Καθαρίζει όλα τα καταγεγραμμένα σφάλματα
    */
-  public getLatestError(): ErrorData | null {
-    return this.errors.length > 0 ? this.errors[0] : null;
-  }
-  
-  /**
-   * Καθαρίζει όλα τα σφάλματα
-   */
-  public clearErrors(): void {
+  public clearAllErrors(): void {
     this.errors = [];
-  }
-  
-  /**
-   * Καταγράφει σφάλμα στο Supabase
-   */
-  public async captureError(error: Error, options: { component?: string, details?: any, source?: string } = {}): Promise<string> {
-    const errorData = this.reportError(error, options.component, options.details, options.source || 'client');
-    
-    // Εδώ θα μπορούσαμε να στείλουμε το σφάλμα σε κάποια υπηρεσία καταγραφής
-    console.log('Σφάλμα καταγράφηκε:', errorData);
-    
-    return errorData.id;
+    console.log('All errors cleared from the collector');
   }
 }
 
 export const errorCollector = new ErrorCollector();
-
-export type { ErrorData } from './types';
+export type { ErrorData };
