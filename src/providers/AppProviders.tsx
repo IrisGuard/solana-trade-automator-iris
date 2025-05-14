@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ThemeProvider } from "@/providers/ThemeProvider";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SupabaseAuthProvider } from '@/providers/SupabaseAuthProvider';
 import { SolanaWalletProvider } from '@/providers/SolanaWalletProvider';
@@ -24,7 +24,7 @@ interface AppProvidersProps {
 
 export function AppProviders({ children }: AppProvidersProps) {
   return (
-    <ThemeProvider defaultTheme="system" attribute="class">
+    <ThemeProvider defaultTheme="system">
       <LanguageProvider>
         <QueryClientProvider client={queryClient}>
           <SupabaseAuthProvider>
