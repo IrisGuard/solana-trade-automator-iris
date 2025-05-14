@@ -1,33 +1,27 @@
 
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { useState } from "react";
-import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { Button } from "@/components/ui/button";
+import { Loader2, RefreshCcw } from "lucide-react";
 import { syncAllHeliusData } from "@/utils/syncHeliusKeys";
-import { Server } from "lucide-react";
+import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { HeliusService } from "@/services/helius/HeliusService";
 
 export function HeliusSyncButton() {
   const [isSyncing, setIsSyncing] = useState(false);
   const { user } = useAuth();
 
-  const handleSyncHelius = async () => {
+  const handleSync = async () => {
     if (!user) {
-      toast.error("Πρέπει να συνδεθείτε για να συγχρονίσετε τα κλειδιά Helius");
       return;
     }
-
+    
     setIsSyncing(true);
     try {
-      const result = await syncAllHeliusData(user.id);
-      
-      if (result) {
-        toast.success("Τα κλειδιά και endpoints Helius συγχρονίστηκαν επιτυχώς");
-      } else {
-        toast.error("Υπήρξε πρόβλημα κατά τον συγχρονισμό των κλειδιών Helius");
-      }
+      await syncAllHeliusData(user.id);
+      // Ανανέωση των Helius παραμέτρων μετά τον συγχρονισμό
+      await HeliusService.refreshConfiguration();
     } catch (error) {
-      console.error("Error syncing Helius keys:", error);
-      toast.error("Σφάλμα κατά τον συγχρονισμό των κλειδιών Helius");
+      console.error("Error syncing Helius data:", error);
     } finally {
       setIsSyncing(false);
     }
@@ -35,13 +29,18 @@ export function HeliusSyncButton() {
 
   return (
     <Button
-      onClick={handleSyncHelius}
-      disabled={isSyncing || !user}
       variant="outline"
       size="sm"
+      onClick={handleSync}
+      disabled={isSyncing || !user}
+      className="gap-2"
     >
-      <Server className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-pulse' : ''}`} />
-      {isSyncing ? "Συγχρονισμός..." : "Συγχρονισμός Helius API"}
+      {isSyncing ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <RefreshCcw className="h-4 w-4" />
+      )}
+      Συγχρονισμός Helius
     </Button>
   );
 }

@@ -11,21 +11,22 @@ import { Separator } from "@/components/ui/separator";
 import { SupabaseApiKeysList } from "@/components/security/SupabaseApiKeysList";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Key, Loader2 } from "lucide-react";
-import { heliusKeyManager } from "@/services/solana/HeliusKeyManager";
+import { HeliusService } from "@/services/helius/HeliusService"; 
 import { ApiKeyCheckButton } from "@/components/security/ApiKeyCheckButton";
 import { HeliusSyncButton } from "@/components/HeliusSyncButton";
+import { HeliusStatusMonitor } from "@/components/HeliusStatusMonitor";
 
 export default function ApiVault() {
   const [keyCount, setKeyCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize and load key count
+  // Φόρτωση πληροφοριών Helius
   useEffect(() => {
-    const loadKeyCount = async () => {
+    const loadHeliusInfo = async () => {
       setIsLoading(true);
       try {
-        await heliusKeyManager.initialize();
-        setKeyCount(heliusKeyManager.getKeyCount());
+        const status = await HeliusService.checkStatus();
+        setKeyCount(status.keyCount);
       } catch (error) {
         console.error("Error loading API keys:", error);
       } finally {
@@ -33,15 +34,16 @@ export default function ApiVault() {
       }
     };
     
-    loadKeyCount();
+    loadHeliusInfo();
   }, []);
 
-  // Function to manually refresh keys
-  const handleRefreshKeys = async () => {
+  // Ανανέωση της διαμόρφωσης Helius
+  const handleRefreshHelius = async () => {
     setIsLoading(true);
     try {
-      await heliusKeyManager.initialize();
-      setKeyCount(heliusKeyManager.getKeyCount());
+      await HeliusService.refreshConfiguration();
+      const status = await HeliusService.checkStatus();
+      setKeyCount(status.keyCount);
     } catch (error) {
       console.error("Error refreshing API keys:", error);
     } finally {
@@ -62,7 +64,7 @@ export default function ApiVault() {
           <ApiKeyCheckButton />
           <Button 
             variant="outline"
-            onClick={handleRefreshKeys}
+            onClick={handleRefreshHelius}
             disabled={isLoading}
             className="gap-2"
           >
@@ -73,6 +75,9 @@ export default function ApiVault() {
           <RegisterHeliusKeysButton />
         </div>
       </div>
+      
+      {/* Προσθήκη του HeliusStatusMonitor */}
+      <HeliusStatusMonitor />
       
       <Card>
         <CardHeader className="pb-3">

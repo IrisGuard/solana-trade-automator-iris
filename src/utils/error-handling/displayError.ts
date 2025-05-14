@@ -1,90 +1,42 @@
 
-import { toast } from 'sonner';
-import { errorCollector } from './collector';
-import type { ErrorDisplayOptions } from './types';
+import { toast } from "sonner";
+import { errorCollector, type ErrorData } from './collector';
 
 /**
- * Εμφανίζει ένα σφάλμα στο UI και προαιρετικά το καταγράφει
+ * Εμφανίζει ένα σφάλμα στο UI και καταγράφει το σφάλμα στον συλλέκτη σφαλμάτων
  * 
- * @param error Το σφάλμα προς εμφάνιση
- * @param options Επιλογές για τον τρόπο εμφάνισης και καταγραφής του σφάλματος
+ * @param error - Το σφάλμα που θα εμφανιστεί
+ * @param options - Επιλογές για το πώς θα εμφανιστεί το σφάλμα
  */
-export function displayError(
-  error: string | Error,
-  options?: ErrorDisplayOptions
-) {
-  const {
-    toastDuration = 5000,
-    component = 'unknown',
-    details = {},
-    source = 'client',
-    showToast = true
-  } = options || {};
+export function displayError(error: Error | string, options?: {
+  component?: string;
+  details?: any;
+  duration?: number;
+  showStack?: boolean;
+}) {
+  const message = typeof error === 'string' ? error : error.message;
+  const stack = typeof error === 'string' ? undefined : error.stack;
+
+  // Καταγραφή στην κονσόλα
+  console.error(`[${options?.component || 'App'}]`, error);
   
-  // Μετατροπή του σφάλματος σε μορφή string αν δεν είναι ήδη
-  const errorMessage = typeof error === 'string' 
-    ? error 
-    : error.message || 'Άγνωστο σφάλμα';
+  // Καταγραφή στον συλλέκτη σφαλμάτων
+  const errorData: ErrorData = {
+    message,
+    component: options?.component,
+    details: options?.details ? JSON.stringify(options.details) : undefined,
+    source: 'client',
+  };
   
-  // Καταγραφή του σφάλματος στην κονσόλα
-  console.error(`[${component}] ${errorMessage}`, error);
-  
-  // Καταγραφή στο σύστημα συλλογής σφαλμάτων
-  errorCollector.captureError(typeof error === 'string' ? new Error(error) : error, {
-    component,
-    details,
-    source
-  });
-  
-  // Εμφάνιση του σφάλματος σε toast αν επιθυμούμε
-  if (showToast) {
-    toast.error(errorMessage, {
-      duration: toastDuration,
-      description: source === 'server' 
-        ? 'Σφάλμα διακομιστή' 
-        : 'Σφάλμα εφαρμογής',
-    });
+  if (stack) {
+    errorData.stack = stack;
   }
   
-  // Επιστρέφουμε το error message για ευκολία
-  return errorMessage;
-}
-
-// Εξάγουμε τον τύπο ώστε να είναι διαθέσιμος στον κώδικα
-export type { ErrorDisplayOptions };
-
-/**
- * Εμφανίζει ένα προειδοποιητικό μήνυμα στο UI
- */
-export function displayWarning(message: string, duration: number = 5000) {
-  toast.warning(message, { duration });
-  return message;
-}
-
-/**
- * Εμφανίζει ένα πληροφοριακό μήνυμα στο UI
- */
-export function displayInfo(message: string, duration: number = 5000) {
-  toast.info(message, { duration });
-  return message;
-}
-
-/**
- * Εμφανίζει ένα μήνυμα επιτυχίας στο UI
- */
-export function displaySuccess(message: string, duration: number = 5000) {
-  toast.success(message, { duration });
-  return message;
-}
-
-/**
- * Στέλνει ένα σφάλμα στο chat
- * Λειτουργικότητα που προς το παρόν παρέχει stub
- */
-export function sendErrorToChat(error: string | Error, component?: string, details?: any) {
-  // Placeholder για μελλοντική λειτουργικότητα
-  console.log("Error would be sent to chat:", 
-    typeof error === 'string' ? error : error.message,
-    component || 'unknown',
-    details || {});
+  errorCollector.captureError(typeof error === 'string' ? new Error(error) : error, errorData);
+  
+  // Εμφάνιση toast
+  toast.error(message, {
+    description: options?.component ? `Σφάλμα στο: ${options.component}` : undefined,
+    duration: options?.duration || 5000,
+  });
 }
