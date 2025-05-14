@@ -1,47 +1,72 @@
 
-import { PublicKey, ParsedTransactionWithMeta } from '@solana/web3.js';
-import { Transaction } from '@/types/wallet';
-import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { errorCollector } from '@/utils/error-handling/collector';
 
-export function parseTransaction(
-  tx: ParsedTransactionWithMeta,
-  signature: string,
-  timestamp: number,
-  walletPublicKey: PublicKey
-): Transaction {
+interface TransactionData {
+  signature: string;
+  blockTime: number; // Timestamps are numbers in Unix time
+  type: string;
+  status: string;
+  amount: string; // Amount as string for precision
+  source?: string;
+  destination?: string;
+}
+
+export function parseSimpleTransaction(txData: any): TransactionData {
   try {
-    // Βασικές πληροφορίες συναλλαγής
-    const baseTransaction: Transaction = {
-      signature,
-      timestamp: new Date(timestamp * 1000),
-      successful: tx.meta?.err === null,
-      fee: (tx.meta?.fee || 0) / LAMPORTS_PER_SOL,
-      type: 'unknown',
-      amount: 0,
-      sender: '',
-      recipient: '',
-      token: 'SOL',
-      blockTime: timestamp // Add blockTime as a number
-    };
-
-    // Προς το παρόν επιστρέφουμε τις βασικές πληροφορίες
-    // Σε μελλοντικές εκδόσεις θα προσθέσουμε περισσότερη ανάλυση
-    return baseTransaction;
-  } catch (error) {
-    console.error('Error parsing transaction:', error);
-    
-    // Επιστροφή βασικής δομής με ελάχιστες πληροφορίες σε περίπτωση σφάλματος
     return {
-      signature,
-      timestamp: new Date(timestamp * 1000),
-      successful: false,
-      fee: 0,
+      signature: txData.signature || '',
+      blockTime: txData.blockTime ? new Date(txData.blockTime).getTime() : Date.now(), // Convert Date to timestamp number
+      type: txData.type || 'unknown',
+      status: txData.status || 'confirmed',
+      amount: String(txData.amount || 0), // Convert to string
+      source: txData.source,
+      destination: txData.destination
+    };
+  } catch (error) {
+    errorCollector.captureError(error instanceof Error ? error : new Error('Error parsing simple transaction'), {
+      component: 'parseTransaction',
+      source: 'client'
+    });
+    
+    // Return default transaction data on error
+    return {
+      signature: 'error',
+      blockTime: Date.now(), // Current timestamp as number
       type: 'error',
-      amount: 0,
-      sender: '',
-      recipient: '',
-      token: '',
-      blockTime: timestamp // Add blockTime as a number
+      status: 'error',
+      amount: String(0), // Zero as string
+      source: undefined,
+      destination: undefined
+    };
+  }
+}
+
+export function parseHeliusTransaction(txData: any): TransactionData {
+  try {
+    return {
+      signature: txData.signature || txData.id || '',
+      blockTime: txData.timestamp ? new Date(txData.timestamp).getTime() : Date.now(), // Convert Date to timestamp number
+      type: txData.type || 'unknown',
+      status: txData.status || 'confirmed',
+      amount: String(txData.amount || 0), // Convert to string
+      source: txData.source || txData.sourceAddress,
+      destination: txData.destination || txData.destinationAddress
+    };
+  } catch (error) {
+    errorCollector.captureError(error instanceof Error ? error : new Error('Error parsing Helius transaction'), {
+      component: 'parseTransaction',
+      source: 'client'
+    });
+    
+    // Return default transaction data on error
+    return {
+      signature: 'error',
+      blockTime: Date.now(), // Current timestamp as number
+      type: 'error',
+      status: 'error',
+      amount: String(0), // Zero as string
+      source: undefined,
+      destination: undefined
     };
   }
 }

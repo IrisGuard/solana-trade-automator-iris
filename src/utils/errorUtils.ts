@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { errorCollector, type ErrorData } from "./error-handling/collector";
 import { setupGlobalErrorHandling } from "./error-handling/setupGlobalErrorHandling";
@@ -100,6 +99,19 @@ export function formatErrorMessage(error: unknown): string {
   }
   
   return 'Άγνωστο σφάλμα';
+}
+
+export function formatErrorToLog(error: Error | unknown): ErrorLogData {
+  const errorObject = error instanceof Error ? error : new Error(String(error));
+  
+  return {
+    message: errorObject.message || 'Unknown error',
+    stack: errorObject.stack,
+    component: 'unknown',
+    source: 'client',
+    timestamp: new Date().toISOString(), // Use ISO string for timestamp
+    status: 'new'
+  };
 }
 
 // Export the setupGlobalErrorHandling function
