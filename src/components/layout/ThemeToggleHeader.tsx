@@ -9,14 +9,15 @@ export function ThemeToggleHeader() {
   const { t } = useLanguage();
   
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
-      <Link to="/" className="lg:hidden flex items-center">
-        <Wallet className="h-6 w-6 text-primary" />
-        <span className="ml-2 font-semibold text-primary">SolApp</span>
+    <div className="flex items-center gap-2 md:gap-4">
+      <Link
+        to="/wallet"
+        className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+      >
+        <Wallet className="h-4 w-4" />
+        <span className="hidden md:inline">{t("general.wallet")}</span>
       </Link>
-      <div className="ml-auto flex items-center gap-2">
-        <ThemeToggle />
-      </div>
-    </header>
+      <ThemeToggle />
+    </div>
   );
 }

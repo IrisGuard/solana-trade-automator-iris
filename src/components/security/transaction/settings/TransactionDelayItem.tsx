@@ -8,8 +8,10 @@ export function TransactionDelayItem() {
   const { t } = useLanguage();
   
   return (
-    <AccordionItem value="item-1">
-      <AccordionTrigger>{t("security.transactionDelay")}</AccordionTrigger>
+    <AccordionItem value="transaction-delay">
+      <AccordionTrigger>
+        {t("security.transactionDelay.title")}
+      </AccordionTrigger>
       <TransactionDelaySettings />
     </AccordionItem>
   );

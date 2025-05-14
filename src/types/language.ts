@@ -102,4 +102,46 @@ export interface TranslationKeys {
     feature3Title: string;
     feature3Desc: string;
   };
+  platform: {
+    title: string;
+    subtitle: string;
+    description: string;
+    howItWorks: string;
+    feature1: string;
+    feature2: string;
+    feature3: string;
+    feature4: string;
+    feature5: string;
+    createBot: string;
+    welcomeMessage: string;
+    welcomeDescription: string;
+    gettingStarted: string;
+    step1Title: string;
+    step1Desc: string;
+    step2Title: string;
+    step2Desc: string;
+    step3Title: string;
+    step3Desc: string;
+    automationTitle: string;
+    benefit1: string;
+    benefit2: string;
+    benefit3: string;
+    benefit4: string;
+  };
+  faq: {
+    title: string;
+    subtitle: string;
+    questions: {
+      q1: string;
+      a1: string;
+      q2: string;
+      a2: string;
+      q3: string;
+      a3: string;
+      q4: string;
+      a4: string;
+      q5: string;
+      a5: string;
+    };
+  };
 }
