@@ -11,6 +11,8 @@ class HeliusKeyManager {
   private currentKeyIndex = 0;
   private initialized = false;
   private defaultKey = 'ddb32813-1f4b-459d-8964-310b1b73a053'; // Demo key
+  private keySuccessCounts: Record<string, number> = {};
+  private keyErrorCounts: Record<string, number> = {};
 
   /**
    * Αρχικοποίηση του διαχειριστή με κλειδιά από το Supabase
@@ -98,6 +100,60 @@ class HeliusKeyManager {
    */
   public getKeyCount(): number {
     return this.keys.length;
+  }
+  
+  /**
+   * Επιστρέφει τον αριθμό των κλειδιών που λειτουργούν
+   */
+  public getWorkingKeyCount(): number {
+    // Ως λειτουργικά θεωρούμε τα κλειδιά που έχουν περισσότερες επιτυχίες από αποτυχίες
+    let workingKeys = 0;
+    
+    for (const key of this.keys) {
+      const successCount = this.keySuccessCounts[key] || 0;
+      const errorCount = this.keyErrorCounts[key] || 0;
+      
+      if (successCount >= errorCount) {
+        workingKeys++;
+      }
+    }
+    
+    // Αν δεν έχουμε καμία στατιστική, επιστρέφουμε όλα τα κλειδιά
+    if (Object.keys(this.keySuccessCounts).length === 0) {
+      return this.keys.length;
+    }
+    
+    return workingKeys;
+  }
+  
+  /**
+   * Σημειώνει μια επιτυχημένη χρήση του τρέχοντος κλειδιού
+   */
+  public markKeyAsSuccessful(): void {
+    const currentKey = this.getCurrentKey();
+    this.keySuccessCounts[currentKey] = (this.keySuccessCounts[currentKey] || 0) + 1;
+  }
+  
+  /**
+   * Σημειώνει μια αποτυχημένη χρήση του τρέχοντος κλειδιού
+   */
+  public markKeyAsFailure(error?: Error): void {
+    const currentKey = this.getCurrentKey();
+    this.keyErrorCounts[currentKey] = (this.keyErrorCounts[currentKey] || 0) + 1;
+    
+    // Αν έχουμε πολλές αποτυχίες, εναλλαγή σε άλλο κλειδί
+    if (this.keyErrorCounts[currentKey] > 3 && this.keys.length > 1) {
+      console.warn(`Key ${currentKey.substring(0, 8)}... has failed ${this.keyErrorCounts[currentKey]} times, rotating`);
+      this.rotateKey();
+    }
+  }
+  
+  /**
+   * Ανανέωση της λίστας κλειδιών από το Supabase
+   */
+  public async forceReload(): Promise<void> {
+    this.initialized = false;
+    await this.initialize();
   }
 }
 

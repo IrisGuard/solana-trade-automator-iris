@@ -1,209 +1,298 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { displayError } from "@/utils/error-handling/displayError";
-import { heliusKeyManager } from "./HeliusKeyManager";
+import { errorCollector } from '@/utils/error-handling/collector';
+import { toast } from 'sonner';
 
 /**
- * Διεπαφή για αντικείμενο endpoint
+ * Διεπαφή για τα endpoints του Helius API
  */
-interface EndpointStatus {
-  url: string;
+interface HeliusEndpoint {
+  id: string;
   name: string;
-  isActive: boolean;
-  lastCheck: Date;
-  responseTime: number;
-  category: string;
+  url: string;
+  type: 'rpc' | 'api' | 'transactions';
+  is_active: boolean;
+  last_check?: string;
+  response_time?: number;
+  error_count: number;
+  success_count: number;
 }
 
 /**
- * Κλάση για την παρακολούθηση και έλεγχο των Helius endpoints
+ * Κλάση για την παρακολούθηση και διαχείριση των endpoints του Helius API
  */
-export class HeliusEndpointMonitor {
-  private endpoints: EndpointStatus[] = [];
+class HeliusEndpointMonitor {
+  private endpoints: HeliusEndpoint[] = [];
   private initialized = false;
-  private lastCheck: Date | null = null;
-  private readonly CHECK_INTERVAL = 10 * 60 * 1000; // 10 λεπτά
-
+  
   /**
-   * Αρχικοποίηση του monitor με endpoints από το Supabase
+   * Προεπιλεγμένα endpoints για το Helius API
+   */
+  private defaultEndpoints: Array<Omit<HeliusEndpoint, 'id'>> = [
+    {
+      name: "Helius RPC Mainnet",
+      url: "https://mainnet.helius-rpc.com/?api-key={api-key}",
+      type: 'rpc',
+      is_active: true,
+      error_count: 0,
+      success_count: 0
+    },
+    {
+      name: "Helius API v0",
+      url: "https://api.helius.xyz/v0?api-key={api-key}",
+      type: 'api',
+      is_active: true,
+      error_count: 0,
+      success_count: 0
+    },
+    {
+      name: "Helius Transactions API",
+      url: "https://api.helius.xyz/v0/transactions?api-key={api-key}",
+      type: 'transactions',
+      is_active: true,
+      error_count: 0,
+      success_count: 0
+    }
+  ];
+  
+  /**
+   * Αρχικοποίηση του συστήματος παρακολούθησης
    */
   public async initialize(): Promise<void> {
     try {
-      // Αν έχει γίνει ήδη αρχικοποίηση και έχει περάσει λιγότερο από το διάστημα ελέγχου
-      const now = new Date();
-      if (this.initialized && this.lastCheck && 
-          (now.getTime() - this.lastCheck.getTime()) < this.CHECK_INTERVAL) {
-        return;
-      }
-
-      // Λήψη των endpoints από το Supabase
-      const { data, error } = await supabase
+      // Αν έχει ήδη αρχικοποιηθεί, δεν χρειάζεται να το κάνουμε ξανά
+      if (this.initialized && this.endpoints.length > 0) return;
+      
+      // Έλεγχος αν υπάρχουν endpoints στο Supabase
+      const { data: endpointData, error } = await supabase
         .from('api_endpoints')
         .select('*')
-        .eq('category', 'helius')
-        .eq('is_active', true);
-
+        .eq('category', 'helius');
+        
       if (error) {
-        displayError(`Error loading Helius endpoints: ${error.message}`, { component: 'HeliusEndpointMonitor' });
-      } else if (data && data.length > 0) {
-        // Μετατροπή των δεδομένων σε EndpointStatus
-        this.endpoints = data.map(item => ({
-          url: item.url,
+        console.error('Error loading Helius API endpoints:', error);
+        // Χρήση των προεπιλεγμένων endpoints αν υπάρχει σφάλμα
+        await this.initializeDefaultEndpoints();
+      } else if (endpointData && endpointData.length > 0) {
+        // Μετατροπή δεδομένων από το σχήμα του πίνακα api_endpoints στο σχήμα που χρησιμοποιεί η κλάση
+        this.endpoints = endpointData.map(item => ({
+          id: item.id,
           name: item.name,
-          isActive: true,
-          lastCheck: new Date(),
-          responseTime: 0,
-          category: item.category
+          url: item.url,
+          type: this.getEndpointType(item.url),
+          is_active: item.is_active,
+          error_count: 0,
+          success_count: 0
         }));
         
-        console.log(`Loaded ${this.endpoints.length} Helius endpoints`);
-        
-        // Έλεγχος των endpoints
-        await this.checkAllEndpoints();
+        console.log(`Loaded ${this.endpoints.length} Helius API endpoints`);
       } else {
-        console.log('No Helius endpoints found');
-        this.addDefaultEndpoints();
+        // Αν δεν υπάρχουν καταχωρήσεις, χρησιμοποιούμε τα προεπιλεγμένα
+        console.log('No Helius API endpoints found, using defaults');
+        await this.initializeDefaultEndpoints();
       }
-
+      
       this.initialized = true;
-      this.lastCheck = now;
     } catch (err) {
-      displayError('Error initializing HeliusEndpointMonitor', { 
+      console.error('Error initializing HeliusEndpointMonitor:', err);
+      errorCollector.captureError(err instanceof Error ? err : new Error('Error initializing HeliusEndpointMonitor'), {
         component: 'HeliusEndpointMonitor',
-        details: err
+        source: 'client'
+      });
+      
+      // Χρήση των προεπιλεγμένων endpoints αν συμβεί οποιοδήποτε σφάλμα
+      this.endpoints = this.defaultEndpoints.map((endpoint, index) => ({
+        ...endpoint,
+        id: `default-${index}`
+      }));
+      
+      this.initialized = true;
+    }
+  }
+  
+  /**
+   * Αρχικοποίηση των προεπιλεγμένων endpoints
+   */
+  private async initializeDefaultEndpoints(): Promise<void> {
+    try {
+      // Προσπάθεια εισαγωγής των προεπιλεγμένων endpoints στο Supabase
+      for (const endpoint of this.defaultEndpoints) {
+        const { error } = await supabase
+          .from('api_endpoints')
+          .insert({
+            name: endpoint.name,
+            url: endpoint.url,
+            category: 'helius',
+            is_active: endpoint.is_active,
+            is_public: true
+          });
+          
+        if (error) {
+          console.error('Error adding default endpoint to Supabase:', error);
+        }
+      }
+      
+      // Φόρτωση από το Supabase
+      const { data } = await supabase
+        .from('api_endpoints')
+        .select('*')
+        .eq('category', 'helius');
+        
+      if (data && data.length > 0) {
+        this.endpoints = data.map(item => ({
+          id: item.id,
+          name: item.name,
+          url: item.url,
+          type: this.getEndpointType(item.url),
+          is_active: item.is_active,
+          error_count: 0,
+          success_count: 0
+        }));
+      } else {
+        // Αν αποτύχει η εισαγωγή, χρησιμοποιούμε τα προεπιλεγμένα endpoints αλλά μόνο στη μνήμη
+        this.endpoints = this.defaultEndpoints.map((endpoint, index) => ({
+          ...endpoint,
+          id: `default-${index}`
+        }));
+      }
+    } catch (err) {
+      console.error('Error initializing default endpoints:', err);
+      
+      // Χρησιμοποίηση των προεπιλεγμένων endpoints στη μνήμη
+      this.endpoints = this.defaultEndpoints.map((endpoint, index) => ({
+        ...endpoint,
+        id: `default-${index}`
+      }));
+    }
+  }
+  
+  /**
+   * Προσδιορισμός του τύπου του endpoint από το URL
+   */
+  private getEndpointType(url: string): 'rpc' | 'api' | 'transactions' {
+    if (url.includes('transactions')) {
+      return 'transactions';
+    } else if (url.includes('-rpc.com')) {
+      return 'rpc';
+    } else {
+      return 'api';
+    }
+  }
+  
+  /**
+   * Επιστρέφει το καλύτερο διαθέσιμο endpoint για τον συγκεκριμένο τύπο
+   */
+  public getBestEndpoint(type: 'rpc' | 'api' | 'transactions'): HeliusEndpoint | null {
+    if (!this.initialized) {
+      console.warn('HeliusEndpointMonitor not initialized');
+      return null;
+    }
+    
+    // Φιλτράρισμα endpoints βάσει τύπου και ενεργής κατάστασης
+    const availableEndpoints = this.endpoints
+      .filter(ep => ep.type === type && ep.is_active)
+      .sort((a, b) => {
+        // Προτεραιότητα με βάση τον λόγο επιτυχίας/αποτυχίας
+        const aSuccessRatio = a.success_count / (a.error_count + 1);
+        const bSuccessRatio = b.success_count / (b.error_count + 1);
+        return bSuccessRatio - aSuccessRatio;
+      });
+      
+    return availableEndpoints.length > 0 ? availableEndpoints[0] : null;
+  }
+  
+  /**
+   * Σημείωση επιτυχημένης κλήσης για ένα endpoint
+   */
+  public markEndpointSuccess(endpointUrl: string, responseTime?: number): void {
+    if (!this.initialized) return;
+    
+    const endpoint = this.endpoints.find(ep => ep.url === endpointUrl);
+    if (endpoint) {
+      endpoint.success_count++;
+      if (responseTime) endpoint.response_time = responseTime;
+      endpoint.last_check = new Date().toISOString();
+      
+      // Ενημέρωση του Supabase (ασύγχρονα)
+      this.updateEndpointStatus(endpoint.id, {
+        success_count: endpoint.success_count,
+        response_time: endpoint.response_time,
+        last_check: endpoint.last_check
       });
     }
   }
-
+  
   /**
-   * Προσθήκη προεπιλεγμένων endpoints αν δεν υπάρχουν στη βάση
+   * Σημείωση αποτυχημένης κλήσης για ένα endpoint
    */
-  private addDefaultEndpoints(): void {
-    const apiKey = heliusKeyManager.getCurrentKey();
+  public markEndpointError(endpointUrl: string): void {
+    if (!this.initialized) return;
     
-    this.endpoints = [
-      {
-        url: `https://mainnet.helius-rpc.com/?api-key=${apiKey}`,
-        name: 'Helius Mainnet RPC',
-        isActive: true,
-        lastCheck: new Date(),
-        responseTime: 0,
-        category: 'helius'
-      },
-      {
-        url: `https://api.helius.xyz/v0/?api-key=${apiKey}`,
-        name: 'Helius API v0',
-        isActive: true,
-        lastCheck: new Date(),
-        responseTime: 0,
-        category: 'helius'
+    const endpoint = this.endpoints.find(ep => ep.url === endpointUrl);
+    if (endpoint) {
+      endpoint.error_count++;
+      endpoint.last_check = new Date().toISOString();
+      
+      // Απενεργοποίηση endpoint αν έχει πολλά σφάλματα
+      if (endpoint.error_count > 5 && endpoint.success_count < 2) {
+        endpoint.is_active = false;
+        console.warn(`Deactivating endpoint due to high error count: ${endpoint.name}`);
       }
-    ];
-  }
-
-  /**
-   * Έλεγχος όλων των endpoints
-   */
-  public async checkAllEndpoints(): Promise<void> {
-    if (!this.initialized) {
-      await this.initialize();
+      
+      // Ενημέρωση του Supabase (ασύγχρονα)
+      this.updateEndpointStatus(endpoint.id, {
+        error_count: endpoint.error_count,
+        is_active: endpoint.is_active,
+        last_check: endpoint.last_check
+      });
     }
-
-    for (const endpoint of this.endpoints) {
-      await this.checkEndpoint(endpoint);
-    }
-
-    // Ενημέρωση του χρόνου τελευταίου ελέγχου
-    this.lastCheck = new Date();
   }
-
+  
   /**
-   * Έλεγχος συγκεκριμένου endpoint
+   * Ενημέρωση της κατάστασης του endpoint στο Supabase
    */
-  private async checkEndpoint(endpoint: EndpointStatus): Promise<boolean> {
-    const startTime = Date.now();
+  private async updateEndpointStatus(id: string, updates: any): Promise<void> {
+    if (id.startsWith('default-')) return; // Δεν ενημερώνουμε τα προεπιλεγμένα endpoints που είναι μόνο στη μνήμη
     
     try {
-      const response = await fetch(endpoint.url, {
-        method: 'HEAD', // Χρήση HEAD για γρήγορο έλεγχο
-        signal: AbortSignal.timeout(5000) // 5 δευτερόλεπτα timeout
-      });
-      
-      // Υπολογισμός του χρόνου απόκρισης
-      endpoint.responseTime = Date.now() - startTime;
-      endpoint.lastCheck = new Date();
-      endpoint.isActive = response.ok;
-      
-      return response.ok;
+      await supabase
+        .from('api_endpoints')
+        .update(updates)
+        .eq('id', id);
     } catch (err) {
-      console.error(`Error checking endpoint ${endpoint.name}:`, err);
-      endpoint.isActive = false;
-      endpoint.lastCheck = new Date();
-      endpoint.responseTime = Date.now() - startTime;
-      return false;
+      console.error('Error updating endpoint status:', err);
     }
   }
-
+  
   /**
-   * Επιστρέφει το καλύτερο endpoint για συγκεκριμένο τύπο
+   * Έλεγχος αν η υπηρεσία είναι λειτουργική
    */
-  public getBestEndpoint(type: 'rpc' | 'api' | 'transactions'): EndpointStatus | null {
-    if (!this.initialized || this.endpoints.length === 0) {
-      return null;
-    }
-
-    // Φιλτράρισμα των ενεργών endpoints που ταιριάζουν με τον τύπο
-    const matchingEndpoints = this.endpoints.filter(e => {
-      const url = e.url.toLowerCase();
-      switch (type) {
-        case 'rpc': return e.isActive && url.includes('rpc');
-        case 'api': return e.isActive && url.includes('v0') && !url.includes('transactions');
-        case 'transactions': return e.isActive && url.includes('transactions');
-        default: return e.isActive;
-      }
-    });
-
-    if (matchingEndpoints.length === 0) {
-      return null;
-    }
-
-    // Ταξινόμηση με βάση τον χρόνο απόκρισης (αύξουσα)
-    matchingEndpoints.sort((a, b) => a.responseTime - b.responseTime);
+  public isServiceOperational(): boolean {
+    if (!this.initialized || this.endpoints.length === 0) return false;
     
-    return matchingEndpoints[0];
+    // Έλεγχος αν υπάρχει τουλάχιστον ένα ενεργό endpoint για κάθε τύπο
+    const hasActiveRpc = this.endpoints.some(ep => ep.type === 'rpc' && ep.is_active);
+    const hasActiveApi = this.endpoints.some(ep => ep.type === 'api' && ep.is_active);
+    
+    return hasActiveRpc || hasActiveApi;
   }
-
+  
   /**
-   * Επιστρέφει τον αριθμό των ενεργών endpoints
-   */
-  public getActiveEndpointCount(): number {
-    return this.endpoints.filter(e => e.isActive).length;
-  }
-
-  /**
-   * Επιστρέφει τον συνολικό αριθμό των διαθέσιμων endpoints
+   * Επιστρέφει το συνολικό αριθμό των endpoints
    */
   public getEndpointCount(): number {
     return this.endpoints.length;
   }
-
+  
   /**
-   * Επιστρέφει αν η υπηρεσία είναι συνολικά λειτουργική
-   * (τουλάχιστον 1 ενεργό endpoint και 1 λειτουργικό κλειδί)
+   * Επιστρέφει τον αριθμό των ενεργών endpoints
    */
-  public isServiceOperational(): boolean {
-    return this.getActiveEndpointCount() > 0 && heliusKeyManager.getWorkingKeyCount() > 0;
+  public getActiveEndpointCount(): number {
+    return this.endpoints.filter(ep => ep.is_active).length;
   }
-
+  
   /**
-   * Επιστρέφει όλα τα endpoints
-   */
-  public getAllEndpoints(): EndpointStatus[] {
-    return [...this.endpoints];
-  }
-
-  /**
-   * Αναγκαστική επαναφόρτωση των endpoints από το Supabase
+   * Ανανέωση των δεδομένων από το Supabase
    */
   public async forceReload(): Promise<void> {
     this.initialized = false;
@@ -213,11 +302,3 @@ export class HeliusEndpointMonitor {
 
 // Singleton instance
 export const heliusEndpointMonitor = new HeliusEndpointMonitor();
-
-// Αυτόματη αρχικοποίηση κατά την εισαγωγή
-heliusEndpointMonitor.initialize().catch(err => {
-  displayError('Failed to initialize HeliusEndpointMonitor', {
-    component: 'HeliusEndpointMonitor',
-    details: err
-  });
-});

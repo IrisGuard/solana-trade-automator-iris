@@ -2,41 +2,76 @@
 import { toast } from "sonner";
 import { errorCollector, type ErrorData } from './collector';
 
-/**
- * Εμφανίζει ένα σφάλμα στο UI και καταγράφει το σφάλμα στον συλλέκτη σφαλμάτων
- * 
- * @param error - Το σφάλμα που θα εμφανιστεί
- * @param options - Επιλογές για το πώς θα εμφανιστεί το σφάλμα
- */
-export function displayError(error: Error | string, options?: {
+type ErrorOptions = {
   component?: string;
+  showToast?: boolean;
   details?: any;
-  duration?: number;
-  showStack?: boolean;
-}) {
-  const message = typeof error === 'string' ? error : error.message;
-  const stack = typeof error === 'string' ? undefined : error.stack;
+};
 
+/**
+ * Εμφανίζει ένα σφάλμα στη διασύνδεση χρήστη και το καταγράφει
+ * στον συλλέκτη σφαλμάτων.
+ *
+ * @param message Το μήνυμα σφάλματος που θα εμφανιστεί
+ * @param options Πρόσθετες επιλογές για την εμφάνιση του σφάλματος
+ */
+export function displayError(message: string, options: ErrorOptions = {}): void {
+  const { component, showToast = true, details } = options;
+  
   // Καταγραφή στην κονσόλα
-  console.error(`[${options?.component || 'App'}]`, error);
-  
-  // Καταγραφή στον συλλέκτη σφαλμάτων
-  const errorData: ErrorData = {
-    message,
-    component: options?.component,
-    details: options?.details ? JSON.stringify(options.details) : undefined,
-    source: 'client',
-  };
-  
-  if (stack) {
-    errorData.stack = stack;
+  if (component) {
+    console.error(`[${component}] ${message}`, details || '');
+  } else {
+    console.error(message, details || '');
   }
   
-  errorCollector.captureError(typeof error === 'string' ? new Error(error) : error, errorData);
-  
-  // Εμφάνιση toast
-  toast.error(message, {
-    description: options?.component ? `Σφάλμα στο: ${options.component}` : undefined,
-    duration: options?.duration || 5000,
+  // Προσθήκη στον συλλέκτη σφαλμάτων
+  errorCollector.captureError(new Error(message), {
+    component,
+    details: JSON.stringify(details),
+    source: 'client'
   });
+  
+  // Εμφάνιση toast αν ζητηθεί
+  if (showToast) {
+    toast.error(message, {
+      description: component ? `Στο: ${component}` : undefined,
+      duration: 5000
+    });
+  }
+}
+
+/**
+ * Αποστέλλει ένα σφάλμα στην υποστήριξη μέσω chat (προσομοίωση)
+ */
+export function sendErrorToChat(message: string, component?: string, details?: any): void {
+  // Προσομοίωση αποστολής στην υποστήριξη
+  console.log("Sending error to support chat:", {
+    message,
+    component,
+    details,
+    timestamp: new Date().toISOString()
+  });
+  
+  // Σε πραγματική εφαρμογή, εδώ θα κάναμε ένα API call στο σύστημα υποστήριξης
+}
+
+/**
+ * Αναφέρει ένα σφάλμα στο Supabase για καταγραφή
+ */
+export async function reportErrorToSupabase(error: Error, options: ErrorOptions = {}): Promise<void> {
+  const { component, details } = options;
+  
+  try {
+    // Προσθήκη στον συλλέκτη σφαλμάτων
+    errorCollector.captureError(error, {
+      component,
+      details: JSON.stringify(details),
+      source: 'client'
+    });
+    
+    // Εδώ θα μπορούσαμε να καλέσουμε μια λειτουργία του Supabase για καταγραφή σφαλμάτων
+  } catch (err) {
+    console.error("Error reporting to Supabase:", err);
+  }
 }
