@@ -6,6 +6,96 @@ import { useState, useCallback } from 'react';
 import { toast } from "sonner";
 import { errorCollector } from './error-handling/collector';
 import { sendErrorToChat } from './error-handling/sendErrorToChat';
+import { displayError } from './error-handling/displayError';
+
+// Options for error generation
+interface ErrorOptions {
+  showToast?: boolean;
+  logToConsole?: boolean;
+  sendToChat?: boolean;
+  useCollector?: boolean;
+}
+
+/**
+ * Generate a test error with specified options
+ */
+export function generateTestError(message: string = "Δοκιμαστικό σφάλμα", options: ErrorOptions = {}) {
+  const {
+    showToast = true,
+    logToConsole = true,
+    sendToChat = false,
+    useCollector = false
+  } = options;
+  
+  try {
+    // Create the error
+    const error = new Error(message);
+    console.error("Test error generated:", error);
+    
+    // Add to collector if requested
+    if (useCollector) {
+      errorCollector.addError(error);
+    }
+    
+    // Display toast if requested
+    if (showToast) {
+      toast.error(message, {
+        description: "Δοκιμαστικό σφάλμα για έλεγχο του συστήματος",
+        action: sendToChat ? {
+          label: "Αποστολή στο Chat",
+          onClick: () => sendErrorToChat(error),
+        } : undefined
+      });
+    }
+    
+    // Log to console if requested
+    if (logToConsole) {
+      console.error("Generated test error:", error);
+    }
+    
+    // Send to chat if requested
+    if (sendToChat) {
+      sendErrorToChat(error);
+    }
+    
+    return error;
+  } catch (e) {
+    console.error("Error while generating test error:", e);
+    return new Error("Error while generating test error");
+  }
+}
+
+/**
+ * Generate various types of errors for testing purposes
+ */
+export function generateVariousErrors() {
+  console.log("Generating various errors for testing...");
+  
+  // Array of errors to be created
+  const errors = [
+    new Error('Δοκιμαστικό σφάλμα 1: Απλό σφάλμα'),
+    new Error('Δοκιμαστικό σφάλμα 2: Σφάλμα ως string χωρίς stack trace'),
+    new Error('Δοκιμαστικό σφάλμα 3: Προσομοίωση σφάλματος Supabase'),
+    new Error('Δοκιμαστικό σφάλμα 4: Προσομοίωση σφάλματος δικτύου')
+  ];
+  
+  // Add to collector
+  errors.forEach(error => {
+    errorCollector.addError(error);
+  });
+  
+  toast.error("Δημιουργήθηκαν πολλαπλά σφάλματα", {
+    description: `${errors.length} σφάλματα προστέθηκαν στη συλλογή`,
+    duration: 3000,
+  });
+  
+  // Send after 3 seconds all errors if they haven't been sent yet
+  setTimeout(() => {
+    errorCollector.reportErrors();
+  }, 3000);
+  
+  return errors;
+}
 
 /**
  * Hook για δοκιμή των σφαλμάτων
@@ -15,28 +105,15 @@ export function useErrorTesting() {
   const [errorCount, setErrorCount] = useState(0);
   
   // Παραγωγή δοκιμαστικού σφάλματος
-  const generateTestError = useCallback((message: string = "Δοκιμαστικό σφάλμα") => {
+  const generateTestErrorCallback = useCallback((message: string = "Δοκιμαστικό σφάλμα") => {
     setIsGenerating(true);
     
     try {
       // Δημιουργία σφάλματος
-      const error = new Error(message);
-      console.error("Test error generated:", error);
+      const error = generateTestError(message);
       
       // Αύξηση του μετρητή
       setErrorCount(count => count + 1);
-      
-      // Προσθήκη στο collector
-      errorCollector.addError(error);
-      
-      // Εμφάνιση toast με επιλογή αποστολής στο chat
-      toast.error(message, {
-        description: "Δοκιμαστικό σφάλμα για έλεγχο του συστήματος",
-        action: {
-          label: "Αποστολή στο Chat",
-          onClick: () => sendErrorToChat(error),
-        }
-      });
       
       return error;
     } finally {
@@ -59,31 +136,16 @@ export function useErrorTesting() {
   const generateMultipleErrors = useCallback(() => {
     setIsGenerating(true);
     
-    // Πίνακας με τα σφάλματα που θα δημιουργηθούν
-    const errors = [
-      new Error('Δοκιμαστικό σφάλμα 1: Απλό σφάλμα'),
-      new Error('Δοκιμαστικό σφάλμα 2: Σφάλμα ως string χωρίς stack trace'),
-      new Error('Δοκιμαστικό σφάλμα 3: Προσομοίωση σφάλματος Supabase'),
-      new Error('Δοκιμαστικό σφάλμα 4: Προσομοίωση σφάλματος δικτύου')
-    ];
-    
-    // Προσθήκη στο collector
-    errors.forEach(error => {
-      errorCollector.addError(error);
-    });
-    
-    setErrorCount(count => count + errors.length);
-    setIsGenerating(false);
-    
-    // Αποστολή μετά από 3 δευτερόλεπτα όλων των σφαλμάτων αν δεν έχουν σταλεί ακόμα
-    setTimeout(() => {
-      // Using reportErrors instead of sendCollectedErrors
-      errorCollector.reportErrors();
-    }, 3000);
+    try {
+      const errors = generateVariousErrors();
+      setErrorCount(count => count + errors.length);
+    } finally {
+      setIsGenerating(false);
+    }
   }, []);
   
   return {
-    generateTestError,
+    generateTestError: generateTestErrorCallback,
     clearAllErrors,
     generateMultipleErrors,
     isGenerating,
