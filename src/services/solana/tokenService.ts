@@ -1,44 +1,44 @@
 
-import { PublicKey, Connection } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { Connection, PublicKey } from '@solana/web3.js';
 import { Token } from '@/types/wallet';
 
-/**
- * Fetch token data based on public key
- */
-export async function getTokenData(
-  publicKey: string, 
-  connection: Connection
-): Promise<Token[]> {
-  try {
-    const pubKey = new PublicKey(publicKey);
-    
-    // Get token accounts
-    const response = await connection.getParsedTokenAccountsByOwner(
-      pubKey,
-      { programId: TOKEN_PROGRAM_ID }
-    );
+// Τυχαία tokens (για δοκιμαστικούς σκοπούς)
+const DEMO_TOKENS: Token[] = [
+  { address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', symbol: 'USDC', name: 'USD Coin', decimals: 6, balance: 2500, uiBalance: 2.5, amount: 2500 },
+  { address: 'So11111111111111111111111111111111111111112', mint: 'So11111111111111111111111111111111111111112', symbol: 'SOL', name: 'Solana', decimals: 9, balance: 5000000000, uiBalance: 5, amount: 5000000000 },
+  { address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', mint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', symbol: 'USDT', name: 'Tether USD', decimals: 6, balance: 1000, uiBalance: 1, amount: 1000 },
+];
 
-    // Transform data
-    return response.value.map((item: any) => {
-      const accountInfo = item.account.data.parsed.info;
-      return {
-        address: item.pubkey.toBase58(),
-        mint: accountInfo.mint,
-        symbol: 'UNKNOWN', // Would be filled in with additional API call
-        name: 'Unknown Token', // Would be filled in with additional API call
-        decimals: accountInfo.tokenAmount.decimals,
-        balance: Number(accountInfo.tokenAmount.amount),
-        uiBalance: accountInfo.tokenAmount.uiAmount || 0
+/**
+ * Service για τη διαχείριση των tokens στο Solana blockchain
+ */
+export const tokenService = {
+  // Φέρε όλα τα tokens για μια διεύθυνση wallet
+  async fetchTokens(walletAddress: string): Promise<Token[]> {
+    // Σε παραγωγικό περιβάλλον, εδώ θα κάναμε πραγματική κλήση API
+    // αλλά για demo σκοπούς επιστρέφουμε τα δοκιμαστικά δεδομένα
+
+    console.log(`Fetching tokens for wallet: ${walletAddress}`);
+    
+    // Επιστροφή των demo tokens
+    return DEMO_TOKENS;
+  },
+
+  // Φέρε τιμές για τα tokens
+  async fetchTokenPrices(tokenAddresses: string[]): Promise<Record<string, { price: number, priceChange24h: number }>> {
+    console.log(`Fetching prices for tokens: ${tokenAddresses.join(', ')}`);
+    
+    // Mock data για τιμές tokens
+    const prices: Record<string, { price: number, priceChange24h: number }> = {};
+    
+    // Δημιουργία τυχαίων τιμών για κάθε token
+    tokenAddresses.forEach(address => {
+      prices[address] = {
+        price: Math.random() * 100,
+        priceChange24h: (Math.random() * 20) - 10
       };
     });
-  } catch (error) {
-    console.error("Error fetching token data:", error);
-    return [];
+    
+    return prices;
   }
-}
-
-// Placeholder mock function to satisfy imports
-export function getAssociatedTokenAddress() {
-  return new PublicKey("11111111111111111111111111111111");
-}
+};

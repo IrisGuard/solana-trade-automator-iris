@@ -1,31 +1,24 @@
 
 export interface Token {
   address: string;
-  name: string;
+  mint: string;
   symbol: string;
+  name: string;
+  decimals: number;
+  balance: number;
+  uiBalance: number;
+  amount?: number; // Προσθήκη του amount πεδίου που λείπει
+}
+
+export interface TokenAccount {
+  address: string;
+  mint: string;
   amount: number;
-  logo?: string;
-  price?: number;
-  decimals?: number;
+  decimals: number;
+  uiAmount: number;
 }
 
-export interface Transaction {
-  signature: string;
-  blockTime: number;
-  timestamp: number; // Τώρα είναι υποχρεωτικό
-  type: string;
-  status: string;
-  amount?: string; // Πάντα string, όχι number
-  from?: string;
-  to?: string;
-  tokenAddress?: string;
-}
-
-export interface WalletState {
-  isConnected: boolean;
-  walletAddress: string;
-  balance: number | null;
-  error: string | null;
-  isConnecting: boolean;
-  tokens: Token[];
+export interface TokenPriceInfo {
+  price: number;
+  priceChange24h: number;
 }
