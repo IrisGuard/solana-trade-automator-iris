@@ -19,7 +19,7 @@ interface KeyCheckResult {
 /**
  * Συλλογή με τα αποτελέσματα ελέγχων ανά υπηρεσία
  */
-interface ServiceCheckResults {
+export interface ServiceCheckResults {
   [service: string]: {
     total: number;
     working: number;

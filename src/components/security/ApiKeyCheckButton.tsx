@@ -6,6 +6,13 @@ import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { useApiKeyCheck } from "@/hooks/useApiKeyCheck";
 import { Check, AlertCircle, RefreshCcw } from "lucide-react";
 
+// Define a type for the check results stats
+interface CheckResultsStats {
+  total: number;
+  working: number;
+  notWorking: number;
+}
+
 export function ApiKeyCheckButton() {
   const { isChecking, checkAllApiKeys, checkResults } = useApiKeyCheck();
   const { user } = useAuth();
@@ -21,7 +28,7 @@ export function ApiKeyCheckButton() {
 
   // Υπολογισμός στατιστικών αν υπάρχουν αποτελέσματα
   const stats = checkResults ? Object.values(checkResults).reduce(
-    (acc: any, service: any) => {
+    (acc: CheckResultsStats, service: any) => {
       acc.total += service.total;
       acc.working += service.working;
       acc.notWorking += service.notWorking;

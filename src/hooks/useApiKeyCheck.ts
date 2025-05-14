@@ -4,9 +4,26 @@ import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { ApiKeyChecker } from "@/services/supabase/apiKeyChecker";
 import { toast } from "sonner";
 
+// Define the service check results interface
+interface ServiceCheckResults {
+  [service: string]: {
+    total: number;
+    working: number;
+    notWorking: number;
+    keys: Array<{
+      id: string;
+      name: string;
+      service: string;
+      status: string;
+      isWorking: boolean;
+      lastChecked: string;
+    }>;
+  };
+}
+
 export function useApiKeyCheck() {
   const [isChecking, setIsChecking] = useState(false);
-  const [checkResults, setCheckResults] = useState<any>(null);
+  const [checkResults, setCheckResults] = useState<ServiceCheckResults | null>(null);
   const { user } = useAuth();
 
   /**

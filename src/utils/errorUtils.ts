@@ -78,3 +78,6 @@ export function logError(message: string, source?: string, details?: any) {
     });
   }
 }
+
+// Export the displayError function from error-handling module
+export { displayError } from './error-handling/displayError';
