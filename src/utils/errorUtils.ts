@@ -1,107 +1,84 @@
 
-import { errorCollector } from './error-handling/collector';
-import { displayError, displayWarning, displayInfo, displaySuccess, sendErrorToChat } from './error-handling/displayError';
+import { toast } from 'sonner';
+import { errorCollector } from '@/utils/error-handling/collector';
+import { sendErrorToChat } from '@/utils/error-handling/sendErrorToChat';
 
-// Error categories
-export enum ErrorCategory {
-  NETWORK = 'NETWORK',
-  AUTH = 'AUTH',
-  VALIDATION = 'VALIDATION',
-  BLOCKCHAIN = 'BLOCKCHAIN',
-  DATABASE = 'DATABASE',
-  UNEXPECTED = 'UNEXPECTED'
+// Error display options
+export interface ErrorDisplayOptions {
+  title?: string;
+  showToast?: boolean;
+  logToConsole?: boolean;
+  sendToChat?: boolean;
+  useCollector?: boolean;
+  details?: Record<string, any>;
+  source?: string;
 }
 
-// Error severities
-export enum ErrorSeverity {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH',
-  CRITICAL = 'CRITICAL'
-}
-
-// Structure for error reporting
-export interface ErrorReport {
-  message: string;
-  code: string;
-  category: ErrorCategory;
-  severity: ErrorSeverity;
-  timestamp: number;
-  source: string;
-  data?: any;
-}
-
-// Helper function to create a standardized error report
-export function createErrorReport(
-  message: string,
-  code: string,
-  category: ErrorCategory,
-  severity: ErrorSeverity,
-  source: string,
-  data?: any
-): ErrorReport {
-  return {
-    message,
-    code,
-    category,
-    severity,
-    timestamp: Date.now(),
-    source,
-    data
-  };
-}
-
-// Helper to log errors consistently
-export function logError(
-  error: Error | ErrorReport | string,
-  component?: string,
-  additionalData?: any
-): void {
-  try {
-    // Format the error based on its type
-    let formattedError: Error;
-    let errorData: Record<string, any> = {
-      component,
-      source: 'client',
-      details: ''
-    };
-    
-    if (error instanceof Error) {
-      formattedError = error;
-      if (additionalData) {
-        errorData.details = JSON.stringify(additionalData);
-      }
-    } else if (typeof error === 'string') {
-      formattedError = new Error(error);
-      if (additionalData) {
-        errorData.details = JSON.stringify(additionalData);
-      }
-    } else {
-      // It's an ErrorReport
-      formattedError = new Error(error.message);
-      errorData = {
-        ...errorData,
-        details: JSON.stringify({
-          code: error.code,
-          category: error.category,
-          severity: error.severity,
-          data: error.data
-        }),
-        source: error.source || 'client'
-      };
-    }
-    
-    // Log to console
-    console.error('Error logged:', formattedError, errorData);
-    
-    // Log to error collector for backend storage
-    errorCollector.captureError(formattedError, errorData);
-  } catch (err) {
-    // Failsafe - if error logging itself fails, at least log to console
-    console.error('Error in logError function:', err);
-    console.error('Original error:', error);
+/**
+ * Centralized error display and logging function
+ */
+export function displayError(error: Error | string, options: ErrorDisplayOptions = {}) {
+  const {
+    title = 'Error',
+    showToast = true,
+    logToConsole = true,
+    sendToChat = false,
+    useCollector = true,
+    details = {},
+    source = 'client'
+  } = options;
+  
+  const errorMessage = typeof error === 'string' ? error : error.message;
+  const errorStack = error instanceof Error ? error.stack : undefined;
+  
+  // Display in toast notification
+  if (showToast) {
+    toast.error(title, {
+      description: errorMessage,
+      duration: 5000,
+    });
   }
+  
+  // Log to console
+  if (logToConsole) {
+    console.error(`[${title}]`, error);
+    console.error('Details:', details);
+  }
+  
+  // Send to chat for debugging
+  if (sendToChat) {
+    sendErrorToChat(errorMessage, details, errorStack);
+  }
+  
+  // Add to error collector
+  if (useCollector) {
+    errorCollector.addError({
+      message: errorMessage,
+      stack: errorStack,
+      timestamp: new Date().toISOString(),
+      details: JSON.stringify(details),
+      source
+    });
+  }
+  
+  return errorMessage;
 }
 
-// Export displayError and related functions
-export { displayError, displayWarning, displayInfo, displaySuccess, sendErrorToChat };
+/**
+ * Log an error to the console and optionally to the error collector
+ */
+export function logError(
+  message: string, 
+  component: string = 'unknown', 
+  details: string | Record<string, any> = {}
+) {
+  console.error(`[${component}] ${message}`, details);
+  
+  errorCollector.addError({
+    message,
+    stack: new Error().stack,
+    timestamp: new Date().toISOString(),
+    details: typeof details === 'string' ? details : JSON.stringify(details),
+    source: component
+  });
+}

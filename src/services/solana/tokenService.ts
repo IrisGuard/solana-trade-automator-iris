@@ -36,7 +36,10 @@ export const tokenService = {
       const tokenAccounts = await this.getTokenAccounts(connection, walletAddress);
       return await parseTokenAccounts(connection, tokenAccounts);
     } catch (error) {
-      logError('Failed to get parsed token accounts', 'tokenService', { action: 'getParsedTokenAccounts', walletAddress });
+      logError('Failed to get parsed token accounts', 'tokenService', { 
+        action: 'getParsedTokenAccounts', 
+        walletAddress 
+      });
       return [];
     }
   },
@@ -103,7 +106,10 @@ export const tokenService = {
       
       return tokens;
     } catch (error) {
-      logError('Failed to get all tokens', 'tokenService', { action: 'getAllTokens', address: walletAddress });
+      logError('Failed to get all tokens', 'tokenService', { 
+        action: 'getAllTokens', 
+        address: walletAddress 
+      });
       return [];
     }
   }

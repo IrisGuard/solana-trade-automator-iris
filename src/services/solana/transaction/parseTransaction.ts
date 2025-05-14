@@ -1,21 +1,27 @@
 
-import { TransactionSignature } from "@solana/web3.js";
+// This file handles parsing raw Solana transaction data into a standardized format
 
 export interface ParsedTransaction {
   id: string;
+  signature: string; // Added signature field to match Transaction type
   timestamp: number;
+  blockTime: number; // Added to match Transaction type
   type: 'transfer' | 'swap' | 'buy' | 'sell' | 'stake' | 'unstake' | 'unknown';
   amount: number;
   token: string;
-  usd: number | null;
-  fee: number;
   status: 'success' | 'error' | 'pending';
   from: string;
   to: string;
   programId: string;
   blockHeight: number | null;
   description: string;
-  blockTime: number;
+  usd: number | null;
+  fee: number;
+  // Additional fields to match Transaction interface
+  price?: string | number;
+  value?: string | number;
+  tokenAddress?: string;
+  bot?: string;
 }
 
 // Helper function to determine transaction type
@@ -98,12 +104,13 @@ export const parseTransaction = (transaction: any): ParsedTransaction => {
   try {
     const type = determineTransactionType(transaction);
     const timestamp = extractTimestamp(transaction);
+    const signature = transaction.transaction?.signatures?.[0] || 'unknown';
     
-    // This is a simplified parser - in a real app, you would extract more details
-    // based on the transaction type, instructions, accounts, etc.
     return {
-      id: transaction.transaction?.signatures?.[0] || 'unknown',
+      id: signature,
+      signature: signature,
       timestamp: timestamp,
+      blockTime: transaction.blockTime || Math.floor(timestamp / 1000),
       type: type,
       amount: 0, // Would need to calculate based on transaction data
       token: 'SOL', // Default, would need to extract from transaction data
@@ -115,13 +122,14 @@ export const parseTransaction = (transaction: any): ParsedTransaction => {
       programId: transaction.transaction?.message?.instructions?.[0]?.programId?.toString() || 'unknown',
       blockHeight: transaction.slot || null,
       description: `${type} transaction`,
-      blockTime: transaction.blockTime || Math.floor(Date.now() / 1000)
     };
   } catch (error) {
     console.error('Error parsing transaction:', error);
     return {
-      id: transaction.transaction?.signatures?.[0] || 'unknown',
+      id: 'unknown',
+      signature: transaction.transaction?.signatures?.[0] || 'unknown',
       timestamp: Date.now(),
+      blockTime: Math.floor(Date.now() / 1000),
       type: 'unknown',
       amount: 0,
       token: 'unknown',
@@ -133,12 +141,10 @@ export const parseTransaction = (transaction: any): ParsedTransaction => {
       programId: 'unknown',
       blockHeight: null,
       description: 'Failed to parse transaction',
-      blockTime: Math.floor(Date.now() / 1000)
     };
   }
 };
 
-// Export the parsing function for transactions
 export const parseTransactions = (transactions: any[]): ParsedTransaction[] => {
   return transactions
     .filter(tx => tx !== null)

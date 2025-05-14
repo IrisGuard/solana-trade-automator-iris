@@ -21,7 +21,10 @@ export const solanaService = {
     try {
       return await walletService.getSolBalance(connection, address);
     } catch (error) {
-      logError('Error fetching SOL balance', 'solanaService', { action: 'getSolBalance', address });
+      logError('Error fetching SOL balance', 'solanaService', { 
+        action: 'getSolBalance', 
+        address
+      });
       return 0;
     }
   },
@@ -52,10 +55,14 @@ export const solanaService = {
   async fetchTransactions(address: string, limit = 10): Promise<Transaction[]> {
     try {
       const txService = new TransactionService(connection);
-      const transactions = await txService.getTransactions(address, limit);
-      return parseTransactions(transactions);
+      const rawTransactions = await txService.getTransactions(address, limit);
+      // The ParsedTransaction type now includes all required fields from Transaction
+      return parseTransactions(rawTransactions) as unknown as Transaction[];
     } catch (error) {
-      logError('Error fetching transactions', 'solanaService', { action: 'fetchTransactions', address });
+      logError('Error fetching transactions', 'solanaService', { 
+        action: 'fetchTransactions', 
+        address 
+      });
       return [];
     }
   },
@@ -67,7 +74,10 @@ export const solanaService = {
     try {
       return await tokenService.getAllTokens(connection, address);
     } catch (error) {
-      logError('Error fetching token balances', 'solanaService', { action: 'fetchAllTokenBalances', address });
+      logError('Error fetching token balances', 'solanaService', { 
+        action: 'fetchAllTokenBalances', 
+        address 
+      });
       return [];
     }
   },
