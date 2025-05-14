@@ -38,9 +38,19 @@ class ErrorCollectorImpl implements ErrorCollector {
   getErrors(): ErrorData[] {
     return [...this.errors];
   }
+  
+  // Add alias for getErrors to support existing code
+  getAllErrors(): ErrorData[] {
+    return this.getErrors();
+  }
 
   clearErrors(): void {
     this.errors = [];
+  }
+  
+  // Add alias for clearErrors to support existing code
+  clearAllErrors(): void {
+    this.clearErrors();
   }
 
   hasCriticalErrors(): boolean {

@@ -25,7 +25,7 @@ export interface TestErrorOptions {
   message?: string;
   component?: string;
   details?: any;
-  errorType?: 'js' | 'async' | 'ui' | 'network';
+  errorType?: string; // Change this from enum to string to allow more flexible error types
   simulateDelay?: number;
 }
 
@@ -33,6 +33,8 @@ export interface ErrorCollector {
   captureError(error: Error | string, options?: ErrorOptions): string;
   getErrors(): ErrorData[];
   clearErrors(): void;
+  getAllErrors(): ErrorData[]; // Add this method
+  clearAllErrors(): void; // Add this method
   hasCriticalErrors(): boolean;
   getRecentErrors(count?: number): ErrorData[];
 }

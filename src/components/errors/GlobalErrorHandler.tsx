@@ -16,7 +16,7 @@ export function GlobalErrorHandler() {
   // Λήψη των σφαλμάτων από τον collector
   useEffect(() => {
     const checkForErrors = () => {
-      const allErrors = errorCollector.getAllErrors();
+      const allErrors = errorCollector.getErrors(); // Changed from getAllErrors to getErrors
       setErrors(allErrors);
       
       // Εάν υπάρχει νέο σφάλμα, το αποθηκεύουμε ως το τελευταίο

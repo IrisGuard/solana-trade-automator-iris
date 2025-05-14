@@ -10,7 +10,7 @@ export function NetworkErrorsTab() {
         <TestButton 
           label="404 Not Found"
           options={{
-            errorType: 'network',
+            errorType: "network",
             component: 'APIService',
             details: { severity: 'high', errorCode: 'NET001', status: 404 }
           }}
@@ -18,7 +18,7 @@ export function NetworkErrorsTab() {
         <TestButton 
           label="500 Server Error"
           options={{
-            errorType: 'network',
+            errorType: "network",
             component: 'APIService',
             details: { severity: 'critical', errorCode: 'NET002', status: 500 }
           }}
@@ -26,7 +26,7 @@ export function NetworkErrorsTab() {
         <TestButton 
           label="403 Forbidden"
           options={{
-            errorType: 'network',
+            errorType: "network",
             component: 'APIService',
             details: { severity: 'medium', errorCode: 'NET003', status: 403 }
           }}
@@ -34,7 +34,7 @@ export function NetworkErrorsTab() {
         <TestButton 
           label="Network Timeout"
           options={{
-            errorType: 'timeout',
+            errorType: "network", // Changed from "timeout" to "network"
             component: 'APIService',
             details: { severity: 'low', errorCode: 'NET004' }
           }}

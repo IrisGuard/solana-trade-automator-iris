@@ -17,7 +17,7 @@ export function ErrorTestPanel({ onGenerateError }: ErrorTestPanelProps) {
 
   // Ενημερώνει το μετρητή σφαλμάτων
   const updateErrorCount = () => {
-    const allErrors = errorCollector.getAllErrors();
+    const allErrors = errorCollector.getErrors(); // Changed from getAllErrors to getErrors
     setErrorCount(allErrors.length);
   };
 
@@ -28,7 +28,7 @@ export function ErrorTestPanel({ onGenerateError }: ErrorTestPanelProps) {
 
   // Δημιουργεί ένα σφάλμα όταν κάνουμε κλικ στο κουμπί "Clear All Errors"
   const handleClearAllErrors = () => {
-    errorCollector.clearAllErrors();
+    errorCollector.clearErrors(); // Changed from clearAllErrors to clearErrors
     updateErrorCount();
   };
 

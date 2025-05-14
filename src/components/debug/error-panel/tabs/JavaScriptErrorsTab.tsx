@@ -10,7 +10,7 @@ export function JavaScriptErrorsTab() {
         <TestButton 
           label="Reference Error"
           options={{
-            errorType: 'reference',
+            errorType: "js", // Changed from "reference" to "js"
             component: 'AdvancedErrorTests',
             details: { severity: 'high', errorCode: 'JS001' }
           }}
@@ -18,7 +18,7 @@ export function JavaScriptErrorsTab() {
         <TestButton 
           label="Type Error"
           options={{
-            errorType: 'type',
+            errorType: "js", // Changed from "type" to "js"
             component: 'AdvancedErrorTests',
             details: { severity: 'medium', errorCode: 'JS002' }
           }}
@@ -26,7 +26,7 @@ export function JavaScriptErrorsTab() {
         <TestButton 
           label="Syntax Error"
           options={{
-            errorType: 'syntax',
+            errorType: "js", // Changed from "syntax" to "js"
             component: 'AdvancedErrorTests',
             details: { severity: 'critical', errorCode: 'JS003' }
           }}

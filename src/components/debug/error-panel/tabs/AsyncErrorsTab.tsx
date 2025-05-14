@@ -10,7 +10,7 @@ export function AsyncErrorsTab() {
         <TestButton 
           label="Uncaught Promise Rejection"
           options={{
-            errorType: 'promise',
+            errorType: "async", // Changed from "promise" to "async"
             component: 'AsyncOperations',
             details: { severity: 'high', errorCode: 'ASYNC001' }
           }}
@@ -18,7 +18,7 @@ export function AsyncErrorsTab() {
         <TestButton 
           label="Async Function Error"
           options={{
-            errorType: 'async',
+            errorType: "async",
             component: 'AsyncOperations',
             details: { severity: 'medium', errorCode: 'ASYNC002' }
           }}
@@ -26,7 +26,7 @@ export function AsyncErrorsTab() {
         <TestButton 
           label="Operation Timeout"
           options={{
-            errorType: 'timeout',
+            errorType: "network", // Changed from "timeout" to "network"
             component: 'AsyncOperations',
             details: { severity: 'low', errorCode: 'ASYNC003' }
           }}

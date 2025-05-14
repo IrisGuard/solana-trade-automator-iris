@@ -10,7 +10,7 @@ export function UIErrorsTab() {
         <TestButton 
           label="React Render Error"
           options={{
-            errorType: 'render',
+            errorType: "ui", // Changed from "render" to "ui"
             component: 'UIComponents',
             details: { severity: 'critical', errorCode: 'UI001' }
           }}
@@ -18,7 +18,7 @@ export function UIErrorsTab() {
         <TestButton 
           label="Missing Required Props"
           options={{
-            errorType: 'prop',
+            errorType: "ui", // Changed from "prop" to "ui"
             component: 'UIComponents',
             details: { severity: 'high', errorCode: 'UI002' }
           }}
@@ -26,7 +26,7 @@ export function UIErrorsTab() {
         <TestButton 
           label="State Update Error"
           options={{
-            errorType: 'state',
+            errorType: "ui", // Changed from "state" to "ui"
             component: 'UIComponents',
             details: { severity: 'medium', errorCode: 'UI003' }
           }}
