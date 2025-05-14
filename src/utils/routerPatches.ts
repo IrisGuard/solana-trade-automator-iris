@@ -6,6 +6,9 @@
 // Import our React fix first
 import '../react-exports-fix';
 
+// Import React properly to avoid UMD global reference errors
+import * as React from 'react';
+
 // Import our router exports to ensure they're loaded early
 import * as RouterExports from '@/lib/router-exports';
 import { debugRouterExports } from '@/lib/router-exports';
