@@ -1,279 +1,209 @@
-import { API_ENDPOINTS } from './config';
-import { API_HEADERS, API_TIMEOUT } from './apiConfig';
-import { heliusKeyManager } from './HeliusKeyManager';
-import { withRateLimitRetry, isRateLimitError } from '@/utils/error-handling/rateLimitHandler';
-import { toast } from 'sonner';
+
+import { apiConfig } from './apiConfig';
 import { errorCollector } from '@/utils/error-handling/collector';
+import { toast } from 'sonner';
 
-export class HeliusService {
-  // RPC endpoints shown in your screenshots
-  private static RPC_ENDPOINT = 'https://mainnet.helius-rpc.com/';
-  private static WEBSOCKET_ENDPOINT = 'wss://mainnet.helius-rpc.com/';
-  private static ECLIPSE_ENDPOINT = 'https://eclipse.helius-rpc.com/';
-  
-  // API endpoints from your screenshots
-  private static API_V0_ENDPOINT = 'https://api.helius.xyz/v0';
-  private static TRANSACTIONS_ENDPOINT = 'https://api.helius.xyz/v0/transactions';
-  private static ADDRESS_TRANSACTIONS_ENDPOINT = 'https://api.helius.xyz/v0/addresses/{address}/transactions';
-  
-  // Initialize the key manager when the service is first used
-  static async initialize(): Promise<void> {
-    await heliusKeyManager.initialize();
+// Helper function to get API key from configuration
+const getHeliusApiKey = (): string => {
+  if (!apiConfig || !apiConfig.keys || !apiConfig.keys.helius) {
+    throw new Error('Helius API key is not configured');
   }
+  return apiConfig.keys.helius;
+};
 
-  static getBaseUrl(): string {
-    return API_ENDPOINTS.HELIUS_API;
-  }
+// Helper to get API URL with key
+const getHeliusApiUrl = (): string => {
+  const apiKey = getHeliusApiKey();
+  return `https://api.helius.xyz/v0?api-key=${apiKey}`;
+};
 
-  static getApiKey(): string {
-    return heliusKeyManager.getCurrentKey();
-  }
+// Interface for RPC request parameters
+interface RpcRequestParams {
+  method: string;
+  params: any[];
+}
 
-  // Get standard API endpoint
-  static getEndpoint(path: string): string {
-    const baseUrl = this.getBaseUrl();
-    const apiKey = this.getApiKey();
-    const separator = path.includes('?') ? '&' : '?';
-    return `${baseUrl}${path}${separator}api-key=${apiKey}`;
-  }
+// Send a JSON-RPC request to Helius API
+async function sendRpcRequest<T>(params: RpcRequestParams): Promise<T> {
+  try {
+    const response = await fetch(getHeliusApiUrl(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: Date.now(),
+        method: params.method,
+        params: params.params
+      })
+    });
 
-  // Get V0 API endpoint from the screenshots
-  static getV0Endpoint(path: string): string {
-    const apiKey = this.getApiKey();
-    const separator = path.includes('?') ? '&' : '?';
-    return `${this.API_V0_ENDPOINT}${path}${separator}api-key=${apiKey}`;
-  }
-
-  // Get RPC endpoint from the screenshots
-  static getRpcEndpoint(): string {
-    return `${this.RPC_ENDPOINT}?api-key=${this.getApiKey()}`;
-  }
-
-  // Get WebSocket endpoint from the screenshots
-  static getWebSocketEndpoint(): string {
-    return `${this.WEBSOCKET_ENDPOINT}?api-key=${this.getApiKey()}`;
-  }
-
-  // Get Eclipse endpoint from the screenshots
-  static getEclipseEndpoint(): string {
-    return this.ECLIPSE_ENDPOINT;
-  }
-
-  // Specific endpoints from your screenshots
-  static endpoints = {
-    // V0 API endpoints (from screenshots)
-    v0: {
-      getTransactions: () => `${this.TRANSACTIONS_ENDPOINT}?api-key=${this.getApiKey()}`,
-      getAddressTransactions: (address: string) => 
-        this.ADDRESS_TRANSACTIONS_ENDPOINT.replace('{address}', address) + `?api-key=${this.getApiKey()}`
-    },
-    // Legacy API endpoints for backward compatibility
-    getTransactions: () => this.getEndpoint('/transactions/'),
-    getAddressTransactions: (address: string) => this.getEndpoint(`/addresses/${address}/transactions/`),
-    getTransactionsBySignatures: () => this.getEndpoint('/transactions/')
-  };
-
-  // Try multiple endpoints for the same data to maximize success rate
-  private static async tryMultipleEndpoints<T>(
-    primaryFn: () => Promise<T>,
-    backupFn: () => Promise<T>,
-    options: { endpoint: string }
-  ): Promise<T> {
-    try {
-      // First try with the primary endpoint
-      return await withRateLimitRetry(primaryFn, options);
-    } catch (error) {
-      // Log the error from primary endpoint
-      console.warn(`Primary endpoint failed for ${options.endpoint}:`, error);
-      
-      // Only try backup if primary failed due to rate limit
-      if (isRateLimitError(error)) {
-        console.log(`Trying backup endpoint for ${options.endpoint}`);
-        try {
-          return await backupFn();
-        } catch (backupError) {
-          console.error(`Backup endpoint also failed for ${options.endpoint}:`, backupError);
-          errorCollector.captureError(backupError as Error, {
-            component: 'HeliusService',
-            details: 'Backup endpoint failed',
-            source: 'client'
-          });
-          throw backupError;
-        }
-      }
-      
-      // For non-rate limit errors, just throw the original error
-      throw error;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-  }
 
-  // Helper method for Fetch calls with automatic key rotation on rate limits
-  static async fetchFromHelius(endpoint: string, options: RequestInit = {}): Promise<any> {
-    try {
-      // Try with current key using rate limit retry mechanism
-      return await withRateLimitRetry(async () => {
-        const response = await fetch(endpoint, {
-          headers: API_HEADERS,
-          ...options,
-          signal: AbortSignal.timeout(API_TIMEOUT)
-        });
-
-        if (!response.ok) {
-          throw new Error(`Helius API error: ${response.status} ${response.statusText}`);
-        }
-
-        return await response.json();
-      }, { endpoint });
-    } catch (error) {
-      // If rate limit error, try rotating the key and try again
-      if (isRateLimitError(error)) {
-        // Rotate to next key
-        const newKey = heliusKeyManager.rotateKey();
-        
-        // Replace the API key in the endpoint
-        const updatedEndpoint = endpoint.replace(/api-key=[^&]+/, `api-key=${newKey}`);
-        
-        try {
-          // Retry with new key
-          console.log("Retrying with different Helius API key");
-          return await fetch(updatedEndpoint, {
-            headers: API_HEADERS,
-            ...options,
-            signal: AbortSignal.timeout(API_TIMEOUT)
-          }).then(res => {
-            if (!res.ok) {
-              throw new Error(`Helius API error after key rotation: ${res.status} ${res.statusText}`);
-            }
-            return res.json();
-          });
-        } catch (retryError) {
-          console.error('Error after key rotation:', retryError);
-          throw retryError;
-        }
-      }
-      
-      // For non-rate limit errors, just throw the error
-      console.error('Error fetching from Helius:', error);
-      throw error;
+    const data = await response.json();
+    if (data.error) {
+      throw new Error(`API error: ${data.error.message}`);
     }
-  }
 
-  // Example method for getting address transactions with multiple attempts
-  static async getAddressTransactions(address: string, limit = 10): Promise<any> {
-    return this.tryMultipleEndpoints(
-      // Primary endpoint - V0 API from screenshots
-      () => this.fetchFromHelius(this.endpoints.v0.getAddressTransactions(address) + `&limit=${limit}`),
-      // Backup endpoint - standard API for backward compatibility
-      () => this.fetchFromHelius(this.endpoints.getAddressTransactions(address) + `&limit=${limit}`),
-      { endpoint: `address-transactions-${address.substring(0, 8)}` }
-    );
-  }
-
-  // Method for getting transaction from signature with multiple attempts
-  static async getTransaction(signature: string): Promise<any> {
-    return this.tryMultipleEndpoints(
-      // Primary endpoint - V0 API from screenshots
-      () => this.fetchFromHelius(this.endpoints.v0.getTransactions() + `&signatures[]=${signature}`),
-      // Backup endpoint - standard API
-      () => this.fetchFromHelius(this.endpoints.getTransactions() + `&signatures[]=${signature}`),
-      { endpoint: `transaction-${signature.substring(0, 8)}` }
-    );
-  }
-
-  // Helper method for making requests with rate limit handling
-  private static async withRateLimitHandling<T>(fn: () => Promise<T>, options: { endpoint: string }): Promise<T> {
-    try {
-      return await fn();
-    } catch (error) {
-      if (isRateLimitError(error)) {
-        console.log("Rate limit hit, rotating API key and retrying...");
-        await this.rotateApiKey();
-        return this.withRateLimitHandling(fn, options);
-      }
-      throw error;
-    }
-  }
-
-  // Method for rotating the API key
-  private static async rotateApiKey(): Promise<void> {
-    const newKey = heliusKeyManager.rotateKey();
-    console.log("API key rotated to:", newKey);
-  }
-
-  // Method for making requests with rate limit handling and exponential backoff
-  static async makeRequest<T>(endpoint: string, method: string, params: any[] = [], apiKey?: string): Promise<T> {
-    try {
-      // Handle rate limit and retry logic
-      return await this.withRateLimitHandling(async () => {
-        const key = apiKey || await this.getApiKey();
-        
-        if (!key) {
-          throw new Error("No Helius API key available");
-        }
-        
-        // Build request URL with endpoint and API key
-        const url = `https://api.helius.xyz/v0/${endpoint}?api-key=${key}`;
-        
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            jsonrpc: '2.0',
-            id: Date.now(),
-            method,
-            params
-          })
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Helius API error: ${response.status} ${response.statusText}`);
-        }
-
-        return await response.json();
-      }, { endpoint: endpoint });
-    } catch (error) {
-      // If rate limit error, try rotating the key and try again
-      if (isRateLimitError(error)) {
-        console.log("Rate limit hit, rotating API key and retrying...");
-        await this.rotateApiKey();
-        return this.makeRequest(endpoint, method, params);
-      }
-      throw error;
-    }
-  }
-
-  // Helper method for making requests with rate limit handling and exponential backoff
-  private static async callWithRetry<T>(endpoint: string, apiKeyFn: () => Promise<string | null>, makeRequestFn: (key: string) => Promise<T>): Promise<T> {
-    try {
-      return await this.withRateLimitHandling(async () => {
-        const key = await apiKeyFn();
-        
-        if (!key) {
-          throw new Error("No Helius API key available");
-        }
-        
-        return makeRequestFn(key);
-      }, { endpoint: endpoint });
-    } catch (error) {
-      // If rate limit error, try rotating the key and try again
-      if (isRateLimitError(error)) {
-        console.log("Rate limit hit, rotating API key and retrying...");
-        await this.rotateApiKey();
-        return this.callWithRetry(endpoint, apiKeyFn, makeRequestFn);
-      }
-      throw error;
-    }
+    return data.result;
+  } catch (error) {
+    errorCollector.captureError(error, {
+      component: 'HeliusService',
+      source: 'sendRpcRequest',
+      context: { method: params.method }
+    });
+    throw error;
   }
 }
 
-// Initialize the key manager when the service is imported
-HeliusService.initialize().catch(err => {
-  console.error("Failed to initialize HeliusService:", err);
-  errorCollector.captureError(err as Error, {
-    component: 'HeliusService',
-    details: 'Failed during service import',
-    source: 'client'
-  });
-});
+// API functions
+export const heliusService = {
+  // Get enhanced transaction details
+  async getEnhancedTransaction(signature: string): Promise<any> {
+    try {
+      return await sendRpcRequest({
+        method: 'getEnhancedTransaction',
+        params: [signature]
+      });
+    } catch (error) {
+      errorCollector.captureError(error, {
+        component: 'HeliusService',
+        source: 'getEnhancedTransaction',
+        context: { signature }
+      });
+      throw error;
+    }
+  },
+
+  // Get multiple enhanced transactions
+  async getEnhancedTransactions(signatures: string[]): Promise<any[]> {
+    try {
+      return await sendRpcRequest({
+        method: 'getEnhancedTransactions',
+        params: [{ transactionHashes: signatures }]
+      });
+    } catch (error) {
+      errorCollector.captureError(error, {
+        component: 'HeliusService',
+        source: 'getEnhancedTransactions',
+        context: { signatures }
+      });
+      throw error;
+    }
+  },
+
+  // Get enhanced transaction history for address
+  async getEnhancedTransactionHistory(
+    address: string,
+    options: { before?: string; until?: string; limit?: number } = {}
+  ): Promise<any[]> {
+    try {
+      const params: any = { account: address };
+      
+      if (options.before) params.before = options.before;
+      if (options.until) params.until = options.until;
+      if (options.limit) params.limit = options.limit;
+      
+      return await sendRpcRequest({
+        method: 'getEnhancedTransactionHistory',
+        params: [params]
+      });
+    } catch (error) {
+      errorCollector.captureError(error, {
+        component: 'HeliusService',
+        source: 'getEnhancedTransactionHistory',
+        context: { address, options }
+      });
+      throw error;
+    }
+  },
+
+  // Get address assets (NFTs and tokens)
+  async getAddressAssets(address: string): Promise<any> {
+    try {
+      return await sendRpcRequest({
+        method: 'getAssetsByOwner',
+        params: [address, { page: 1, limit: 100 }]
+      });
+    } catch (error) {
+      errorCollector.captureError(error, {
+        component: 'HeliusService',
+        source: 'getAddressAssets',
+        context: { address }
+      });
+      throw error;
+    }
+  },
+
+  // Parse transaction data
+  async parseTransactionData(rawTransaction: string): Promise<any> {
+    try {
+      return await sendRpcRequest({
+        method: 'parseTransactionData',
+        params: [rawTransaction]
+      });
+    } catch (error) {
+      errorCollector.captureError(error, {
+        component: 'HeliusService',
+        source: 'parseTransactionData'
+      });
+      throw error;
+    }
+  },
+
+  // Get NFT events
+  async getNftEvents(
+    options: {
+      query?: Record<string, any>;
+      options?: { limit?: number; page?: number };
+    } = {}
+  ): Promise<any> {
+    try {
+      const params = [{}];
+      
+      if (options.query) params[0] = { ...options.query };
+      if (options.options) params.push(options.options);
+      
+      return await sendRpcRequest({
+        method: 'getNftEvents',
+        params
+      });
+    } catch (error) {
+      errorCollector.captureError(error, {
+        component: 'HeliusService',
+        source: 'getNftEvents'
+      });
+      throw error;
+    }
+  },
+
+  // Verify API connection and key validity
+  async verifyConnection(): Promise<boolean> {
+    try {
+      // Try a simple request to verify the connection
+      await this.getEnhancedTransactions(['5werj5j6wtP8y6DmbMeE5Xqfg89Q93o579n3Yj4tX6G9w75jC9ac2vTvqYFGJvBsjEqeTGhho8jNeJ9zafaVeqS']);
+      toast.success('Helius API connection verified');
+      return true;
+    } catch (error) {
+      toast.error('Helius API connection failed');
+      errorCollector.captureError(error, {
+        component: 'HeliusService',
+        source: 'verifyConnection'
+      });
+      return false;
+    }
+  },
+
+  // Set API key - note this is a front-end safe way to set the key during runtime
+  // but it won't persist between sessions
+  setApiKey(key: string): void {
+    if (!apiConfig.keys) {
+      apiConfig.keys = { helius: key };
+    } else {
+      apiConfig.keys.helius = key;
+    }
+  }
+};
+
+export default heliusService;
