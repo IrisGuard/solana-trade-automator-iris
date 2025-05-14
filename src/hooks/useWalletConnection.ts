@@ -79,7 +79,7 @@ export function useWalletConnection() {
     // Actions
     connectWallet,
     disconnectWallet,
-    refreshWalletData: () => refreshWalletData(walletAddress, isConnected),
+    refreshWalletData,
     selectTokenForTrading,
     
     // Utility properties

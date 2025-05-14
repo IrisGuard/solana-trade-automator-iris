@@ -57,7 +57,7 @@ export function TransactionItem({
         </div>
       </TableCell>
       <TableCell>{displayAmount()}</TableCell>
-      <TableCell>{transaction.token || 'SOL'}</TableCell>
+      <TableCell>{transaction.tokenAddress ? transaction.tokenAddress : 'SOL'}</TableCell>
       <TableCell className="hidden md:table-cell">
         <Badge variant="default" className={getStatusBadgeClass(transaction.status || 'Success')}>
           {transaction.status || 'Success'}

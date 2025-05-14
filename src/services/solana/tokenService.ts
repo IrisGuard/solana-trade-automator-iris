@@ -6,9 +6,9 @@ export const fetchTokens = (): Promise<Token[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve([
-        { address: 'So11111111111111111111111111111111111111112', name: 'Solana', symbol: 'SOL', amount: 1.5, decimals: 9, balance: 1.5, mint: 'So11111111111111111111111111111111111111112' },
-        { address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', name: 'USD Coin', symbol: 'USDC', amount: 100, decimals: 6, balance: 100, mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' },
-        { address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', name: 'USDT', symbol: 'USDT', amount: 50, decimals: 6, balance: 50, mint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB' }
+        { address: 'So11111111111111111111111111111111111111112', name: 'Solana', symbol: 'SOL', amount: 1.5, decimals: 9, mint: 'So11111111111111111111111111111111111111112' },
+        { address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', name: 'USD Coin', symbol: 'USDC', amount: 100, decimals: 6, mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' },
+        { address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', name: 'USDT', symbol: 'USDT', amount: 50, decimals: 6, mint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB' }
       ]);
     }, 1500);
   });
@@ -33,10 +33,10 @@ export const fetchTokenDetails = (tokenAddress: string): Promise<Token> => {
     setTimeout(() => {
       switch (tokenAddress) {
         case 'So11111111111111111111111111111111111111112':
-          resolve({ address: tokenAddress, name: 'Solana', symbol: 'SOL', amount: 1.5, decimals: 9, balance: 1.5, mint: tokenAddress });
+          resolve({ address: tokenAddress, name: 'Solana', symbol: 'SOL', amount: 1.5, decimals: 9, mint: tokenAddress });
           break;
         case 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v':
-          resolve({ address: tokenAddress, name: 'USD Coin', symbol: 'USDC', amount: 100, decimals: 6, balance: 100, mint: tokenAddress });
+          resolve({ address: tokenAddress, name: 'USD Coin', symbol: 'USDC', amount: 100, decimals: 6, mint: tokenAddress });
           break;
         default:
           reject(new Error(`Token not found: ${tokenAddress}`));

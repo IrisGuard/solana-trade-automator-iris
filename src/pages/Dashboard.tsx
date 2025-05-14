@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConnectWalletCard } from "@/components/home/ConnectWalletCard";
@@ -109,7 +108,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-2">
           <Button 
             variant="outline" 
-            onClick={() => refreshWalletData(walletAddress || '', isConnected)}
+            onClick={() => refreshWalletData()}
             disabled={!isConnected}
           >
             Ανανέωση Δεδομένων

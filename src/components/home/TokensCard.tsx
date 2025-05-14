@@ -8,18 +8,20 @@ import { Button } from "@/components/ui/button";
 import { Token } from "@/types/wallet";
 import { TokensList } from "./tokens/TokensList";
 
-interface TokensCardProps {
-  walletAddress: string | null;
+export interface TokensCardProps {
+  walletAddress?: string | null;
   tokens?: Token[];
   tokenPrices?: Record<string, { price: number, priceChange24h: number }>;
-  isLoading: boolean;
+  isLoading?: boolean;
+  onSelectToken?: (tokenAddress: string) => any;
 }
 
 export function TokensCard({ 
   walletAddress, 
   tokens = [], 
   tokenPrices = {},
-  isLoading 
+  isLoading = false,
+  onSelectToken
 }: TokensCardProps) {
   // If there's no wallet address, show placeholder
   if (!walletAddress) {
@@ -64,6 +66,7 @@ export function TokensCard({
             <TokensList 
               tokens={tokens.slice(0, 5)} 
               tokenPrices={tokenPrices} 
+              onSelectToken={onSelectToken}
             />
             
             <div className="mt-4 text-right">

@@ -7,6 +7,6 @@ export interface Transaction {
   from?: string;
   to?: string;
   timestamp?: number;
-  blockTime?: number;
+  blockTime: number;
   tokenAddress?: string;
 }

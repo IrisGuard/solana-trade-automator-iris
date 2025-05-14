@@ -14,7 +14,7 @@ interface WalletConnectedContentProps {
   displayAddress?: string;
   solBalance?: number;
   tokens?: Token[];
-  tokenPrices?: Record<string, number>;
+  tokenPrices?: Record<string, { price: number; priceChange24h: number }>;
   isLoadingTokens?: boolean;
   connectionError?: string | null;
   selectTokenForTrading?: (tokenAddress: string) => any;
@@ -44,8 +44,10 @@ export function WalletConnectedContent({
       <PlatformInfoCard />
       {tokens && tokens.length > 0 ? (
         <TokensCard 
+          walletAddress={walletAddress}
           tokens={tokens}
-          isLoadingTokens={isLoadingTokens}
+          tokenPrices={tokenPrices}
+          isLoading={isLoadingTokens || false}
           onSelectToken={selectTokenForTrading}
         />
       ) : (
@@ -57,7 +59,11 @@ export function WalletConnectedContent({
           </AlertDescription>
         </Alert>
       )}
-      <BotStatusCard />
+      <BotStatusCard 
+        isActive={false} 
+        isLoading={false} 
+        toggleBotStatus={() => Promise.resolve()}
+      />
       <div className="md:col-span-2">
         <TransactionsCard 
           walletAddress={walletAddress}
