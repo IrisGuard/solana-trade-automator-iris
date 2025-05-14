@@ -8,11 +8,11 @@ export interface ApiKey {
   createdAt?: string;    // Allow both naming conventions
   description?: string;
   status: 'active' | 'expired' | 'revoked';
-  expires?: string;      // Add expires field
-  source?: string;       // Add source field
-  permissions?: string[];// Add permissions field
-  connected?: boolean;   // Add connected field
-  isWorking?: boolean;   // Add isWorking field
+  expires?: string;     
+  source?: string;      
+  permissions?: string[];
+  connected?: boolean;   
+  isWorking?: boolean;   
 }
 
 export interface ApiEndpoint {
@@ -24,6 +24,7 @@ export interface ApiEndpoint {
   is_public: boolean;
   created_at?: string;
   updated_at?: string;
+  method?: string;  // Add method to match other interface
 }
 
 export interface ServiceInfo {
@@ -31,5 +32,6 @@ export interface ServiceInfo {
   totalKeys: number;
   activeKeys: number;
   expiredKeys: number;
-  workingCount: number; // Add workingCount field
+  workingCount: number;
+  count?: number;  // Add count to be compatible with other code
 }

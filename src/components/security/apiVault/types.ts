@@ -8,8 +8,10 @@ export interface ApiKey {
   description?: string;
   status: "active" | "expired" | "revoked";
   expires?: string;
-  permissions?: string[];  // Προσθήκη πεδίου permissions
+  permissions?: string[];  
   source?: string;
+  isWorking?: boolean;  // Add the isWorking property
+  connected?: boolean;  // Add the connected property
 }
 
 export interface ApiEndpoint {
@@ -18,8 +20,9 @@ export interface ApiEndpoint {
   url: string;
   method: string;
   description?: string;
-  is_active: boolean; // Προσθήκη του πεδίου is_active
-  is_public: boolean; // Προσθήκη του πεδίου is_public
+  is_active: boolean; 
+  is_public: boolean; 
+  category?: string;  // Add the category property
 }
 
 export interface ApiKeyStats {
@@ -34,8 +37,9 @@ export interface ApiKeyStats {
 }
 
 export interface ServiceInfo {
-  service: string; // Unique service identifier
-  name: string;    // Display name for the service
-  workingCount: number;  // Number of working keys
-  expiredCount: number;  // Number of expired keys
+  service: string;
+  name: string;    
+  workingCount: number;  
+  expiredCount: number;  
+  count: number;  // Add the count property
 }

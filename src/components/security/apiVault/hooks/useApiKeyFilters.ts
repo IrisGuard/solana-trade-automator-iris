@@ -45,6 +45,10 @@ export const calculateKeyStats = (apiKeys: ApiKey[]): ApiKeyStats => ({
   active: apiKeys.filter(key => key.status === "active" || !key.status).length,
   expired: apiKeys.filter(key => key.status === "expired").length,
   revoked: apiKeys.filter(key => key.status === "revoked").length,
+  servicesBreakdown: groupKeysByService(apiKeys).map(service => ({
+    name: service.name,
+    count: service.count
+  }))
 });
 
 export const groupKeysByService = (apiKeys: ApiKey[]): ServiceInfo[] => {

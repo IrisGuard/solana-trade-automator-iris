@@ -92,7 +92,7 @@ export function ApiKeyManagement({
                 <div className="flex justify-between items-center mb-2">
                   <div>
                     <h3 className="font-medium">{key.name}</h3>
-                    <p className="text-xs text-muted-foreground">Δημιουργήθηκε: {new Date(key.created || key.createdAt || '').toLocaleDateString()}</p>
+                    <p className="text-xs text-muted-foreground">Δημιουργήθηκε: {new Date(key.createdAt || '').toLocaleDateString()}</p>
                   </div>
                   <Badge variant={key.status === 'active' ? "success" : "secondary"}>
                     {key.status || 'ενεργό'}
