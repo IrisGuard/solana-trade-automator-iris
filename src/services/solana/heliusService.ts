@@ -109,7 +109,7 @@ export class HeliusService {
   }
 
   // Helper method for Fetch calls with automatic key rotation on rate limits
-  static async fetchFromHelius(endpoint: string, options = {}): Promise<any> {
+  static async fetchFromHelius(endpoint: string, options: RequestInit = {}): Promise<any> {
     try {
       // Try with current key using rate limit retry mechanism
       return await withRateLimitRetry(async () => {

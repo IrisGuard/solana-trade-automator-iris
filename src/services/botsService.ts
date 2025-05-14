@@ -13,11 +13,11 @@ export const botsService = {
     try {
       const { data, error } = await dbClient
         .from('bots')
-        .insert([{
+        .insert({
           user_id: userId,
           ...botData,
           created_at: new Date().toISOString()
-        }])
+        })
         .select();
       
       if (error) throw error;
@@ -100,7 +100,7 @@ export const botsService = {
     try {
       const { data, error } = await dbClient
         .from('bot_transactions')
-        .insert([transaction])
+        .insert(transaction)
         .select();
       
       if (error) throw error;
@@ -122,11 +122,11 @@ export const botsService = {
     try {
       const { data, error } = await dbClient
         .from('bot_performance')
-        .insert([{
+        .insert({
           bot_id: botId,
           ...performance,
           timestamp: new Date().toISOString()
-        }])
+        })
         .select();
       
       if (error) throw error;
@@ -159,13 +159,15 @@ export const botsService = {
   async createBotFromTemplate(userId: string, templateId: string, customName?: string) {
     try {
       // 1. Ανακτήστε το πρότυπο
-      const { data: templates, error: templateError } = await dbClient
+      const { data: templateData, error: templateError } = await dbClient
         .from('bot_templates')
         .select('*')
         .eq('id', templateId)
         .single();
       
       if (templateError) throw templateError;
+      
+      const templates = templateData;
       
       if (!templates) {
         throw new Error('Template not found');
@@ -175,14 +177,14 @@ export const botsService = {
       const botName = customName || `${templates.name} Bot`;
       const { data, error } = await dbClient
         .from('bots')
-        .insert([{
+        .insert({
           user_id: userId,
           name: botName,
           strategy: templates.strategy,
           active: false,
           config: templates.default_config,
           created_at: new Date().toISOString()
-        }])
+        })
         .select();
       
       if (error) throw error;
