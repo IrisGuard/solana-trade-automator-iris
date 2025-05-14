@@ -1,111 +1,126 @@
 
-import React from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
-
-interface ErrorFallbackProps {
-  error: Error;
-  resetErrorBoundary: () => void;
-}
-
-// Component που εμφανίζεται σε περίπτωση σφάλματος
-const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetErrorBoundary }) => {
-  const { sendErrorToChat } = useErrorReporting();
-
-  return (
-    <Alert variant="destructive" className="my-4">
-      <AlertTriangle className="h-4 w-4" />
-      <AlertTitle>Σφάλμα στην εφαρμογή</AlertTitle>
-      <AlertDescription className="mt-2">
-        <p className="mb-2">
-          Εντοπίστηκε ένα πρόβλημα κατά την εκτέλεση της εφαρμογής. Το σφάλμα έχει καταγραφεί αυτόματα.
-        </p>
-        <p className="text-sm font-mono bg-destructive/10 p-2 rounded max-h-32 overflow-y-auto mb-2">
-          {error.message}
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <Button 
-            size="sm" 
-            variant="outline"
-            onClick={resetErrorBoundary}
-          >
-            <RefreshCw className="h-4 w-4 mr-2" /> Επαναφόρτωση
-          </Button>
-          <Button 
-            size="sm" 
-            variant="secondary"
-            onClick={() => sendErrorToChat(error.message, error.stack)}
-          >
-            Αποστολή στο chat
-          </Button>
-        </div>
-      </AlertDescription>
-    </Alert>
-  );
-};
+import { errorCollector } from '@/utils/error-handling/collector';
 
 interface GlobalErrorHandlerProps {
   children: React.ReactNode;
 }
 
-export const GlobalErrorHandler: React.FC<GlobalErrorHandlerProps> = ({ children }) => {
-  const { reportError, sendErrorToChat } = useErrorReporting();
+export function GlobalErrorHandler({ children }: GlobalErrorHandlerProps) {
+  const { reportError } = useErrorReporting();
+  const errorHandlerSet = useRef(false);
 
-  // Χειριστής σφαλμάτων που καταγράφει τα σφάλματα
-  const logError = (error: Error, info: { componentStack: string }) => {
-    // Αποστολή στο σύστημα αναφοράς
-    reportError(error, {
-      showToast: true,
-      logToConsole: true,
-      saveToDatabase: true,
-      sendToChatInterface: true
-    });
+  useEffect(() => {
+    if (errorHandlerSet.current) return;
     
-    // Εμφάνιση toast με επιλογή αποστολής στο chat
-    toast.error(`Σφάλμα: ${error.message}`, {
-      description: "Πατήστε για αποστολή στο chat για ανάλυση",
-      action: {
-        label: "Αποστολή",
-        onClick: () => sendErrorToChat(error.message, error.stack)
-      }
-    });
+    const originalConsoleError = console.error;
+    const originalConsoleWarn = console.warn;
     
-    // Αποθήκευση του σφάλματος στο lovable_chat_errors
-    try {
-      const errorData = {
-        type: 'error',
-        message: error.message,
-        stack: error.stack,
-        componentStack: info.componentStack,
-        url: window.location.href,
-        timestamp: new Date().toISOString()
-      };
+    // Override console.error
+    console.error = (...args: any[]) => {
+      // Call the original console.error
+      originalConsoleError.apply(console, args);
       
-      const storedErrors = JSON.parse(localStorage.getItem('lovable_chat_errors') || '[]');
-      storedErrors.push(errorData);
-      localStorage.setItem('lovable_chat_errors', JSON.stringify(storedErrors));
+      // Extract error message or object
+      const errorMessage = args.map(arg => {
+        if (arg instanceof Error) {
+          return arg.message;
+        } else if (typeof arg === 'string') {
+          return arg;
+        } else {
+          try {
+            return JSON.stringify(arg);
+          } catch {
+            return String(arg);
+          }
+        }
+      }).join(' ');
       
-      // Dispatch custom event για να ενημερώσει το Lovable chat
-      const event = new CustomEvent('lovable-error', { detail: errorData });
-      window.dispatchEvent(event);
-    } catch (e) {
-      console.error("Σφάλμα κατά την αποθήκευση του σφάλματος για το chat:", e);
-    }
-  };
-
-  return (
-    <ErrorBoundary
-      FallbackComponent={ErrorFallback}
-      onError={logError}
-      onReset={() => {
-        // Επαναφορά κατάστασης εδώ αν χρειάζεται
-      }}
-    >
-      {children}
-    </ErrorBoundary>
-  );
-};
+      // Create an error object if a string was passed
+      const errorObject = args[0] instanceof Error 
+        ? args[0] 
+        : new Error(errorMessage);
+      
+      // Report the error
+      errorCollector.addError({
+        message: errorObject.message,
+        stack: errorObject.stack,
+        timestamp: new Date().toISOString(),
+        component: 'GlobalErrorHandler',
+        source: 'console'
+      });
+    };
+    
+    // Override console.warn
+    console.warn = (...args: any[]) => {
+      // Call the original console.warn
+      originalConsoleWarn.apply(console, args);
+      
+      // Extract warning message
+      const warningMessage = args.map(arg => {
+        if (typeof arg === 'string') {
+          return arg;
+        } else {
+          try {
+            return JSON.stringify(arg);
+          } catch {
+            return String(arg);
+          }
+        }
+      }).join(' ');
+      
+      // Report the warning as an info message
+      errorCollector.addError({
+        message: `Warning: ${warningMessage}`,
+        timestamp: new Date().toISOString(),
+        component: 'GlobalErrorHandler',
+        source: 'console'
+      });
+    };
+    
+    // Global error handler
+    const handleGlobalError = (event: ErrorEvent) => {
+      event.preventDefault();
+      const error = event.error || new Error(event.message);
+      reportError(error, {
+        component: 'Window',
+        source: 'global',
+        details: {
+          fileName: event.filename,
+          lineNumber: event.lineno,
+          columnNumber: event.colno
+        }
+      });
+    };
+    
+    // Unhandled promise rejection handler
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      event.preventDefault();
+      const error = event.reason instanceof Error 
+        ? event.reason 
+        : new Error(String(event.reason));
+      
+      reportError(error, {
+        component: 'Promise',
+        source: 'unhandledRejection'
+      });
+    };
+    
+    // Add event listeners
+    window.addEventListener('error', handleGlobalError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    
+    errorHandlerSet.current = true;
+    
+    // Cleanup
+    return () => {
+      console.error = originalConsoleError;
+      console.warn = originalConsoleWarn;
+      window.removeEventListener('error', handleGlobalError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, [reportError]);
+  
+  return <>{children}</>;
+}

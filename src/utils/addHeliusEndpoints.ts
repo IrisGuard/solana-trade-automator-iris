@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { heliusKeyManager } from "@/services/solana/HeliusKeyManager";
 
 // Σταθερό δοκιμαστικό κλειδί Helius για επίδειξη
 const DEMO_HELIUS_KEY = "ddb32813-1f4b-459d-8964-310b1b73a053";
@@ -77,7 +78,7 @@ export const addHeliusKey = async (userId: string): Promise<boolean> => {
     
     // Αν υπάρχουν ήδη κλειδιά Helius, επιστρέφουμε επιτυχία
     if (existingKeys && existingKeys.length > 0) {
-      console.log('Κλειδί Helius ήδη υπάρχει');
+      console.log('Κλειδιά Helius ήδη υπάρχουν:', existingKeys.length);
       return true;
     }
     
@@ -100,6 +101,10 @@ export const addHeliusKey = async (userId: string): Promise<boolean> => {
     if (error) throw error;
     
     console.log('Επιτυχής προσθήκη κλειδιού Helius');
+    
+    // Ενημέρωση του key manager
+    await heliusKeyManager.initialize();
+    
     return true;
   } catch (error) {
     console.error('Σφάλμα κατά την προσθήκη του κλειδιού Helius:', error);

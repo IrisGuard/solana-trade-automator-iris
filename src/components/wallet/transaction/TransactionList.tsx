@@ -1,10 +1,8 @@
 
 import React from "react";
-import { Loader } from "lucide-react";
-import { Transaction } from "@/types/wallet";
+import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/components/ui/table";
+import { Transaction } from "@/types/transaction";
 import { TransactionItem } from "./TransactionItem";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -15,55 +13,53 @@ interface TransactionListProps {
   getTypeIcon: (type: string) => string;
 }
 
-export function TransactionList({ 
-  transactions, 
-  isLoading, 
-  walletAddress, 
+export function TransactionList({
+  transactions,
+  isLoading,
+  walletAddress,
   limit,
   getStatusBadgeClass,
   getTypeIcon
 }: TransactionListProps) {
-  if (isLoading) {
-    return (
-      <div className="py-6 text-center text-muted-foreground">
-        <Loader className="h-6 w-6 animate-spin mx-auto mb-2" />
-        <p>Φόρτωση συναλλαγών...</p>
-      </div>
-    );
-  }
-  
-  if (!walletAddress) {
-    return (
-      <Alert variant="default" className="bg-muted/50">
-        <AlertCircle className="h-5 w-5 text-muted-foreground" />
-        <AlertDescription className="text-muted-foreground">
-          Δεν έχετε συνδέσει πορτοφόλι. Συνδεθείτε για να δείτε τις συναλλαγές σας.
-        </AlertDescription>
-      </Alert>
-    );
-  }
-  
-  if (transactions.length === 0) {
-    return (
-      <Alert variant="default" className="bg-muted/50">
-        <AlertCircle className="h-5 w-5 text-muted-foreground" />
-        <AlertDescription className="text-muted-foreground">
-          Δεν βρέθηκαν συναλλαγές για αυτό το πορτοφόλι.
-        </AlertDescription>
-      </Alert>
-    );
-  }
-  
   return (
-    <div className="space-y-3">
-      {transactions.slice(0, limit).map((tx, i) => (
-        <TransactionItem 
-          key={i} 
-          tx={tx} 
-          getStatusBadgeClass={getStatusBadgeClass} 
-          getTypeIcon={getTypeIcon} 
-        />
-      ))}
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Ημερομηνία</TableHead>
+            <TableHead>Τύπος</TableHead>
+            <TableHead>Ποσό</TableHead>
+            <TableHead>Token</TableHead>
+            <TableHead className="hidden md:table-cell">Κατάσταση</TableHead>
+            <TableHead className="text-right">Ενέργειες</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {transactions.length > 0 ? (
+            transactions.slice(0, limit).map((tx) => (
+              <TransactionItem 
+                key={tx.signature || tx.id} 
+                transaction={tx} 
+                walletAddress={walletAddress}
+                getStatusBadgeClass={getStatusBadgeClass}
+                getTypeIcon={getTypeIcon}
+              />
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={6} className="h-24 text-center">
+                {isLoading ? (
+                  <div className="flex justify-center items-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground">Δεν βρέθηκαν συναλλαγές</span>
+                )}
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
 }

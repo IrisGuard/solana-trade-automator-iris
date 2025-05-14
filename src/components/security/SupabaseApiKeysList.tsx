@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -151,7 +150,7 @@ export function SupabaseApiKeysList() {
                           {formatKeyDisplay(key.key_value, visibleKeys[key.id])}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={key.status === 'active' ? 'success' : 'secondary'}>
+                          <Badge variant={key.status === 'active' ? 'default' : 'secondary'}>
                             {key.status || 'active'}
                           </Badge>
                         </TableCell>

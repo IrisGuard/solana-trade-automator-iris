@@ -3,7 +3,7 @@
  * This file provides a consistent interface for React Router DOM exports
  * to ensure compatibility across the application
  */
-import React from 'react';
+import React from '../react-exports-fix'; // Import from our fixed exports
 
 // Import all react-router-dom exports that we need
 import * as ReactRouterDOM from 'react-router-dom';
@@ -53,6 +53,7 @@ export function debugRouterExports() {
     Route: !!ReactRouterDOM.Route,
     Link: !!ReactRouterDOM.Link,
     useNavigate: !!ReactRouterDOM.useNavigate,
-    useLocation: !!ReactRouterDOM.useLocation
+    useLocation: !!ReactRouterDOM.useLocation,
+    createElement: !!React.createElement
   });
 }

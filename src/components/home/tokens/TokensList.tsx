@@ -1,20 +1,19 @@
 
 import React from "react";
 import { Token } from "@/types/wallet";
-import { TokenItem } from "./TokenItem";
-import { Loader, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface TokensListProps {
   tokens: Token[];
   filteredTokens: Token[];
   selectedToken: string | null;
   tokenPrices?: Record<string, number>;
-  onSelectToken: (address: string) => void;
-  onTradingClick: (address: string) => void;
-  isLoadingTokens?: boolean;
-  isLoading?: boolean;
-  connectionError?: string | null;
+  isLoadingTokens: boolean;
+  isLoading: boolean;
+  connectionError: string | null;
+  onSelectToken: (tokenAddress: string) => void;
+  onTradingClick: (tokenAddress: string) => void;
 }
 
 export function TokensList({
@@ -22,72 +21,78 @@ export function TokensList({
   filteredTokens,
   selectedToken,
   tokenPrices,
+  isLoadingTokens,
+  isLoading,
+  connectionError,
   onSelectToken,
-  onTradingClick,
-  isLoadingTokens = false,
-  isLoading = false,
-  connectionError = null
+  onTradingClick
 }: TokensListProps) {
-  // Error View
+  if (isLoadingTokens) {
+    return (
+      <div className="flex justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   if (connectionError) {
     return (
-      <Alert variant="destructive" className="mb-4">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription className="flex flex-col gap-2">
-          <div>{connectionError}</div>
-          <div className="text-sm">
-            Προσπαθούμε να συνδεθούμε με το δίκτυο Solana. Παρακαλώ περιμένετε ή 
-            προσπαθήστε να συνδεθείτε ξανά με το πορτοφόλι σας.
-          </div>
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
-  // Loading View
-  if (isLoadingTokens || isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-8 text-center">
-        <Loader className="h-10 w-10 animate-spin mb-4 text-primary" />
-        <div>
-          <p className="text-lg font-medium mb-1">Φόρτωση tokens...</p>
-          <p className="text-sm text-muted-foreground">
-            Παρακαλώ περιμένετε όσο φορτώνουμε τις πληροφορίες του πορτοφολιού σας
-          </p>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-destructive mb-2">Σφάλμα φόρτωσης tokens</p>
+        <p className="text-sm text-muted-foreground">{connectionError}</p>
       </div>
     );
   }
 
-  // Empty View
-  if (!isLoadingTokens && filteredTokens.length === 0) {
+  if (tokens.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-lg font-medium">Δε βρέθηκαν tokens</p>
-        {tokens.length > 0 ? (
-          <p className="text-sm text-muted-foreground">Δοκιμάστε διαφορετικά κριτήρια αναζήτησης</p>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            Το πορτοφόλι σας δεν έχει tokens αυτή τη στιγμή
-          </p>
-        )}
+        <p className="mb-2">Δεν βρέθηκαν tokens</p>
+        <p className="text-sm text-muted-foreground">
+          Συνδέστε το πορτοφόλι σας για να δείτε τα tokens σας
+        </p>
       </div>
     );
   }
 
-  // List View
+  if (filteredTokens.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p>Δεν βρέθηκαν αποτελέσματα με αυτά τα κριτήρια αναζήτησης</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-2">
       {filteredTokens.map((token) => (
-        <TokenItem
+        <div 
           key={token.address}
-          token={token}
-          tokenPrice={tokenPrices?.[token.address]}
-          selectedToken={selectedToken}
-          isLoading={isLoading}
-          onSelectToken={() => onSelectToken(token.address)}
-          onTradingClick={() => onTradingClick(token.address)}
-        />
+          className={`p-3 border rounded-md cursor-pointer transition-colors ${
+            selectedToken === token.address ? "border-primary bg-primary/5" : "hover:bg-secondary/50"
+          }`}
+          onClick={() => onSelectToken(token.address)}
+        >
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                {token.symbol.slice(0, 1)}
+              </div>
+              <div>
+                <div className="font-medium">{token.symbol}</div>
+                <div className="text-sm text-muted-foreground">{token.name || token.symbol}</div>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="font-medium">{token.amount.toFixed(4)}</div>
+              {tokenPrices && tokenPrices[token.address] && (
+                <div className="text-sm text-muted-foreground">
+                  ${(token.amount * tokenPrices[token.address]).toFixed(2)}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       ))}
     </div>
   );

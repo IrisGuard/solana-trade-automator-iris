@@ -6,11 +6,23 @@ export interface ApiKey {
   service: string;
   createdAt: string;
   description?: string;
+  status: "active" | "expired" | "revoked";
   expires?: string;
-  status?: 'active' | 'expired' | 'revoked';
-  isWorking?: boolean;
+  permissions?: string[];  
   source?: string;
+  isWorking?: boolean;
   connected?: boolean;
+}
+
+export interface ApiEndpoint {
+  id: string;
+  name: string;
+  url: string;
+  method: string;
+  description?: string;
+  is_active: boolean; 
+  is_public: boolean; 
+  category: string;  // Make this required to match the other interface
 }
 
 export interface ApiKeyStats {
@@ -18,12 +30,16 @@ export interface ApiKeyStats {
   active: number;
   expired: number;
   revoked: number;
-  working?: number;
-  notWorking?: number;
+  servicesBreakdown: {
+    name: string;
+    count: number;
+  }[];
 }
 
 export interface ServiceInfo {
-  name: string;
+  service: string;
+  name: string;    
+  workingCount: number;  
+  expiredCount: number;  
   count: number;
-  workingCount?: number;
 }

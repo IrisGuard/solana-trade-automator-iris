@@ -1,37 +1,42 @@
 
-import { Routes as ReactRouterRoutes, Route, Outlet } from "./lib/router-exports";
-import { Layout } from "@/components/layout/Layout";
-import Dashboard from "@/pages/Dashboard"; 
-import Wallet from "@/pages/Wallet";
-import Security from "@/pages/Security";
-import Transactions from "@/pages/Transactions";
-import Settings from "@/pages/Settings";
-import Help from "@/pages/Help";
-import NotFound from "@/pages/NotFound";
-import ApiVault from "@/pages/ApiVault";
-import BotControl from "@/pages/BotControl";
-import Index from "@/pages/Index";
-import Home from "@/pages/Home";
-import Auth from "@/pages/Auth";
+import React, { Suspense } from 'react';
+import { Route, Routes as RouterRoutes, Navigate } from 'react-router-dom';
+import { MainLayout } from '@/components/layout/MainLayout';
 
+// Import pages
+const HomePage = React.lazy(() => import('@/pages/Home'));
+const IndexPage = React.lazy(() => import('@/pages/Index'));
+const WalletPage = React.lazy(() => import('@/pages/Wallet'));
+const BotControlPage = React.lazy(() => import('@/pages/BotControl'));
+const HelpPage = React.lazy(() => import('@/pages/Help'));
+const NotFoundPage = React.lazy(() => import('@/pages/NotFound'));
+
+// Loading component
+const PageLoading = () => (
+  <div className="flex items-center justify-center h-screen">
+    <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+  </div>
+);
+
+// Define the Routes component
 export function Routes() {
   return (
-    <ReactRouterRoutes>
-      <Route path="/" element={<Index />} />
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/index" element={<Index />} />
-      <Route element={<Layout />}>
-        <Route path="/home" element={<Home />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/wallet" element={<Wallet />} />
-        <Route path="/security" element={<Security />} />
-        <Route path="/transactions" element={<Transactions />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/help" element={<Help />} />
-        <Route path="/api-vault" element={<ApiVault />} />
-        <Route path="/bot-control" element={<BotControl />} />
-        <Route path="*" element={<NotFound />} />
-      </Route>
-    </ReactRouterRoutes>
+    <Suspense fallback={<PageLoading />}>
+      <RouterRoutes>
+        <Route path="/" element={<IndexPage />} />
+        
+        {/* Authenticated Pages with Layout */}
+        <Route element={<MainLayout />}>
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/wallet" element={<WalletPage />} />
+          <Route path="/bot-control" element={<BotControlPage />} />
+          <Route path="/help" element={<HelpPage />} />
+        </Route>
+        
+        {/* Fallback routes */}
+        <Route path="/404" element={<NotFoundPage />} />
+        <Route path="*" element={<Navigate to="/404" replace />} />
+      </RouterRoutes>
+    </Suspense>
   );
 }

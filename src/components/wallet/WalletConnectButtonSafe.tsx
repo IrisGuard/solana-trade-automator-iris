@@ -1,77 +1,89 @@
 
-import React from 'react';
-import { Button } from "@/components/ui/button";
-import { Wallet, Loader } from "lucide-react";
-import { ButtonProps } from "@/components/ui/button";
+import React, { useState } from "react";
+import { Button, type ButtonProps } from "@/components/ui/button";
+import { Loader2, Wallet } from "lucide-react";
+import { useWalletConnection } from "@/hooks/useWalletConnection";
 import { toast } from "sonner";
-import { handleWalletError } from "@/utils/walletUtils";
+import { isPhantomInstalled } from "@/utils/phantomWallet";
 
-interface WalletConnectButtonSafeProps extends ButtonProps {
-  isLoading?: boolean;
-  children?: React.ReactNode;
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
-  size?: "default" | "sm" | "lg" | "icon";
-}
-
-export function WalletConnectButtonSafe({ 
-  children, 
-  isLoading = false,
+// Αυτό είναι μια ασφαλής έκδοση του WalletConnectButton που χειρίζεται καλύτερα σφάλματα
+export function WalletConnectButtonSafe({
+  children,
   variant = "default",
   size = "default",
-  ...props 
-}: WalletConnectButtonSafeProps) {
-  const handleWalletClick = () => {
+  className = "",
+  ...props
+}: ButtonProps) {
+  const [isAttemptingConnect, setIsAttemptingConnect] = useState(false);
+  const { 
+    isConnected, 
+    isConnecting: hookConnecting, 
+    connectWallet, 
+    disconnectWallet 
+  } = useWalletConnection();
+  
+  // Συνδυάζουμε την κατάσταση από το hook και την τοπική κατάσταση
+  const isConnecting = hookConnecting || isAttemptingConnect;
+  
+  // Έλεγχος αν το Phantom είναι εγκατεστημένο
+  const phantomInstalled = isPhantomInstalled();
+  
+  const handleClick = async () => {
+    if (isConnecting) return;
+    
     try {
-      if (window.phantom?.solana) {
-        // Εμφάνιση toast ότι η σύνδεση είναι σε εξέλιξη
-        toast.info("Αίτημα σύνδεσης στο Phantom Wallet...", {
-          id: "phantom-connect-request",
-          duration: 3000
+      setIsAttemptingConnect(true);
+      
+      if (!phantomInstalled) {
+        toast.error("Το Phantom wallet δεν είναι εγκατεστημένο", {
+          description: "Παρακαλώ εγκαταστήστε το Phantom Wallet για να συνδεθείτε",
+          action: {
+            label: "Εγκατάσταση",
+            onClick: () => window.open("https://phantom.app/", "_blank")
+          }
         });
-        
-        // Attempt to connect with proper error handling
-        window.phantom.solana.connect()
-          .then(response => {
-            console.log("Wallet connected successfully:", response.publicKey.toString());
-            toast.success("Επιτυχής σύνδεση με το Phantom Wallet");
-            
-            // Διακοπή του προηγούμενου toast
-            toast.dismiss("phantom-connect-request");
-          })
-          .catch(err => {
-            console.error("Wallet connection error:", err);
-            const errorMessage = handleWalletError(err);
-            toast.error(`Σφάλμα: ${errorMessage}`);
-            
-            // Διακοπή του προηγούμενου toast
-            toast.dismiss("phantom-connect-request");
-          });
+        return;
+      }
+      
+      if (isConnected) {
+        await disconnectWallet();
       } else {
-        toast.error("Το Phantom Wallet δεν είναι εγκατεστημένο", {
-          description: "Παρακαλώ εγκαταστήστε το πρώτα από το phantom.app",
-          duration: 5000
-        });
+        await connectWallet();
       }
     } catch (error) {
-      console.error("Error handling wallet connection:", error);
-      toast.error("Απρόσμενο σφάλμα κατά τη σύνδεση του wallet");
+      console.error("Σφάλμα στο WalletConnectButtonSafe:", error);
+      toast.error("Πρόβλημα σύνδεσης με το wallet");
+    } finally {
+      setIsAttemptingConnect(false);
     }
   };
-
+  
+  const buttonContent = isConnecting ? (
+    <>
+      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      <span>Σύνδεση...</span>
+    </>
+  ) : isConnected ? (
+    <>{children || "Αποσύνδεση Wallet"}</>
+  ) : (
+    <>{children || 
+      <>
+        <Wallet className="mr-2 h-4 w-4" />
+        <span>Σύνδεση με Wallet</span>
+      </>
+    }</>
+  );
+  
   return (
     <Button 
-      variant={variant} 
-      size={size} 
-      onClick={handleWalletClick}
-      disabled={isLoading}
+      className={className}
+      variant={variant}
+      size={size}
+      onClick={handleClick}
+      disabled={isConnecting}
       {...props}
     >
-      {isLoading ? (
-        <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-      ) : (
-        <Wallet className="mr-2 h-4 w-4" />
-      )}
-      {children || "Σύνδεση Wallet"}
+      {buttonContent}
     </Button>
   );
 }
