@@ -1,19 +1,22 @@
 
-import { TokenPriceData } from './types';
-export { TokenPriceData } from './types';
-import { getTokenPrice, fetchTokenPrices } from './fetchPrice';
-import { subscribeToPriceUpdates } from './subscription';
+import { fetchTokenPrices, getTokenPrice } from './fetchPrice';
+import { setupPriceSubscription, cancelPriceSubscription } from './subscription';
 
-// Export services
-export const priceService = {
+// Re-export types correctly with 'export type'
+export type { TokenPriceData } from './types';
+
+// Export individual functions
+export {
+  fetchTokenPrices,
   getTokenPrice,
-  subscribeToPriceUpdates,
-  fetchTokenPrices
+  setupPriceSubscription,
+  cancelPriceSubscription
 };
 
-// Export individual functions for direct imports
-export {
+// Export price service object for backward compatibility
+export const priceService = {
   getTokenPrice,
   fetchTokenPrices,
-  subscribeToPriceUpdates
+  setupPriceSubscription,
+  cancelPriceSubscription
 };

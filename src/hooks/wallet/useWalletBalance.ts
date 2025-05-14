@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { fetchSOLBalance } from '@/services/solana/wallet';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
@@ -8,6 +8,7 @@ import { useErrorReporting } from '@/hooks/useErrorReporting';
  * Hook to manage wallet SOL balance
  */
 export function useWalletBalance() {
+  // Initialize state outside of render path
   const [solBalance, setSolBalance] = useState<number>(0);
   const { reportError } = useErrorReporting();
 

@@ -1,5 +1,7 @@
 
-export { Token } from './types';
+// Re-export types correctly with 'export type'
+export type { Token } from './types';
+
 import { fetchTokenBalance, fetchAllTokenBalances } from './balance';
 import { fetchTokenPrices } from './prices';
 

@@ -1,109 +1,69 @@
-
-interface ErrorDetails {
-  [key: string]: any;
-}
-
 export interface ErrorData {
   message: string;
   source: 'client' | 'server' | 'network';
+  timestamp?: Date;
   stack?: string;
-  details?: ErrorDetails;
-  timestamp?: string;
-  component?: string; // Added component field
-  url?: string;
-  browserInfo?: {
-    userAgent?: string;
-    language?: string;
-    platform?: string;
-    [key: string]: any;
-  };
+  details?: Record<string, any>;
 }
 
-class ErrorCollector {
+/**
+ * A class that collects errors for logging and reporting
+ */
+export class ErrorCollector {
   private errors: ErrorData[] = [];
-  private readonly maxSize: number;
-
-  constructor(maxSize: number = 100) {
-    this.maxSize = maxSize;
-  }
-
-  addError(error: ErrorData | Error): string {
-    // Convert standard Error to ErrorData if needed
-    const errorData: ErrorData = this.convertToErrorData(error);
-    
-    // Add timestamp to the error
-    errorData.timestamp = new Date().toISOString();
-
-    // If the collector is full, remove the oldest error
-    if (this.errors.length >= this.maxSize) {
-      this.errors.shift();
-    }
-
-    this.errors.push(errorData);
-    console.warn('Error collected:', errorData); // Log the error for immediate visibility
-    
-    // Generate and return an error code (simple implementation)
-    const errorCode = `ERR-${Date.now().toString(36)}`;
-    return errorCode;
-  }
-
-  // Helper method to convert Error to ErrorData
-  private convertToErrorData(error: Error | ErrorData): ErrorData {
-    if ('source' in error) {
-      return error as ErrorData;
-    }
-    
-    // If it's a standard Error object, convert it
-    return {
-      message: error.message || 'Unknown error',
-      source: 'client', // Default source
-      stack: error.stack,
+  private maxErrors: number = 50;
+  
+  /**
+   * Add an error to the collector
+   * @param error The error data to add
+   */
+  addError(error: ErrorData): void {
+    // Add timestamp if not provided
+    const errorWithTimestamp = {
+      ...error,
+      timestamp: error.timestamp || new Date()
     };
+    
+    this.errors.unshift(errorWithTimestamp);
+    
+    // Keep only the most recent errors
+    if (this.errors.length > this.maxErrors) {
+      this.errors = this.errors.slice(0, this.maxErrors);
+    }
+    
+    // Log to console for debugging
+    console.error('Error collected:', errorWithTimestamp);
   }
-
-  // Method to log and notify about an error
-  logErrorAndNotify(error: Error, component?: string): void {
-    this.addError({
-      message: error.message,
-      source: 'client',
-      stack: error.stack,
-      component,
-      timestamp: new Date().toISOString()
-    });
-  }
-
+  
+  /**
+   * Get all collected errors
+   */
   getErrors(): ErrorData[] {
-    return this.errors;
+    return [...this.errors];
   }
-
+  
+  /**
+   * Clear all collected errors
+   */
   clearErrors(): void {
     this.errors = [];
   }
-
-  // Method to report all collected errors (e.g., send to server)
-  reportErrors(): Promise<void> {
-    return new Promise<void>((resolve) => {
-      console.log('Reporting errors:', this.errors);
-      // In a real implementation, this would send errors to a server
-      // For now, we'll just resolve the promise
-      setTimeout(resolve, 500);
-    });
-  }
-
-  // Method to filter errors by source
-  filterErrorsBySource(source: 'client' | 'server' | 'network'): ErrorData[] {
+  
+  /**
+   * Get errors filtered by source
+   * @param source The source to filter by
+   */
+  getErrorsBySource(source: ErrorData['source']): ErrorData[] {
     return this.errors.filter(error => error.source === source);
   }
-
-  // Method to search errors by message
-  searchErrorsByMessage(message: string): ErrorData[] {
-    const searchTerm = message.toLowerCase();
-    return this.errors.filter(error =>
-      error.message.toLowerCase().includes(searchTerm)
-    );
+  
+  /**
+   * Get the count of errors
+   */
+  getErrorCount(): number {
+    return this.errors.length;
   }
 }
 
-const errorCollector = new ErrorCollector();
-
-export { errorCollector, ErrorCollector };
+// Create a singleton instance
+export const errorCollector = new ErrorCollector();
