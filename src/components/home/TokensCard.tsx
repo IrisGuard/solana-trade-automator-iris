@@ -1,5 +1,5 @@
 
-import React from "react";
+import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
@@ -7,11 +7,12 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Token } from "@/types/wallet";
 import { TokensList } from "./tokens/TokensList";
+import { TokenPrice, TokenPrices } from "@/services/solana/price/types";
 
 export interface TokensCardProps {
   walletAddress?: string | null;
   tokens?: Token[];
-  tokenPrices?: Record<string, { price: number, priceChange24h: number }>;
+  tokenPrices?: TokenPrices;
   isLoading?: boolean;
   onSelectToken?: (tokenAddress: string) => any;
 }

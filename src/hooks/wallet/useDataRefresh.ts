@@ -2,54 +2,45 @@
 import { useEffect, useRef } from 'react';
 
 /**
- * Hook για την περιοδική ανανέωση των δεδομένων του wallet
+ * Hook to periodically refresh wallet data when connected
  */
 export function useDataRefresh(
-  isConnected: boolean,
-  walletAddress: string | null | undefined,
-  refreshWalletData: (address: string, isConnected: boolean) => Promise<void>
+  isConnected: boolean, 
+  walletAddress: string, 
+  refreshFunction: () => Promise<void>
 ) {
-  // Track when we last refreshed to avoid too frequent refreshes
-  const lastRefresh = useRef<number>(Date.now());
-  const refreshInterval = useRef<ReturnType<typeof setInterval> | null>(null);
-  
-  // Set a longer interval to reduce API calls - 2 minutes
-  const REFRESH_INTERVAL = 2 * 60 * 1000;
-  
-  // Minimum time between manual refreshes - 30 seconds
-  const MIN_REFRESH_INTERVAL = 30 * 1000;
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Set up periodic data refresh
   useEffect(() => {
-    const setupRefresh = () => {
-      // Clear any existing interval
-      if (refreshInterval.current) {
-        clearInterval(refreshInterval.current);
-        refreshInterval.current = null;
-      }
-      
-      // Only set up refresh if we're connected
+    const refreshData = async () => {
       if (isConnected && walletAddress) {
-        refreshInterval.current = setInterval(() => {
-          const now = Date.now();
-          // Only refresh if enough time has passed
-          if (now - lastRefresh.current >= MIN_REFRESH_INTERVAL) {
-            lastRefresh.current = now;
-            console.log("Auto-refreshing wallet data");
-            
-            refreshWalletData(walletAddress, isConnected)
-              .catch(err => console.error("Error during auto-refresh:", err));
-          }
-        }, REFRESH_INTERVAL);
+        try {
+          await refreshFunction();
+        } catch (error) {
+          console.error("Error refreshing wallet data:", error);
+        }
       }
     };
-    
-    setupRefresh();
-    
+
+    // Clear any existing interval
+    if (refreshIntervalRef.current) {
+      clearInterval(refreshIntervalRef.current);
+    }
+
+    // Set up a new interval if connected
+    if (isConnected && walletAddress) {
+      // Refresh once immediately
+      refreshData();
+      
+      // Then set up the interval
+      refreshIntervalRef.current = setInterval(refreshData, 30000); // refresh every 30 seconds
+    }
+
+    // Cleanup on unmount or when connection state changes
     return () => {
-      if (refreshInterval.current) {
-        clearInterval(refreshInterval.current);
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
       }
     };
-  }, [isConnected, walletAddress, refreshWalletData]);
+  }, [isConnected, walletAddress, refreshFunction]);
 }

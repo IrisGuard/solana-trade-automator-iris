@@ -1,5 +1,5 @@
 
-import React from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 
 type Theme = "dark" | "light" | "system";
 
@@ -15,10 +15,10 @@ const initialState: ThemeProviderState = {
   setTheme: () => undefined,
 };
 
-const ThemeContext = React.createContext<ThemeProviderState>(initialState);
+const ThemeContext = createContext<ThemeProviderState>(initialState);
 
 export function useTheme() {
-  const context = React.useContext(ThemeContext);
+  const context = useContext(ThemeContext);
   return context;
 }
 
@@ -34,11 +34,11 @@ export function ThemeProvider({
   storageKey = "vite-ui-theme",
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = React.useState<Theme>(
+  const [theme, setTheme] = useState<Theme>(
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     const root = window.document.documentElement;
 
     root.classList.remove("light", "dark");
@@ -56,7 +56,7 @@ export function ThemeProvider({
     root.classList.add(theme);
   }, [theme]);
 
-  const toggleTheme = React.useCallback(() => {
+  const toggleTheme = useCallback(() => {
     setTheme((prevTheme) => {
       const newTheme = prevTheme === "dark" ? "light" : "dark";
       localStorage.setItem(storageKey, newTheme);
