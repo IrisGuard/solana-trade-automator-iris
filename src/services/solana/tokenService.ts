@@ -1,8 +1,10 @@
+
 import { PublicKey } from '@solana/web3.js';
 import { toast } from 'sonner';
 import { Token } from '@/types/wallet';
 import { connection, TOKEN_PROGRAM_ID, KNOWN_TOKEN_ADDRESSES, MOCK_PRICES } from './config';
 import { fetchSOLBalance } from './walletService';
+import { errorCollector } from '@/utils/error-handling/collector';
 
 // Export named functions for individual import
 export const fetchTokenBalance = async (tokenAddress: string, walletAddress: string): Promise<number> => {
@@ -49,22 +51,45 @@ export const fetchAllTokenBalances = async (address: string): Promise<Token[]> =
       });
     }
     
-    // Add native SOL to the token list
-    const solBalance = await fetchSOLBalance(address);
-    if (solBalance > 0) {
-      tokens.unshift({
-        address: 'So11111111111111111111111111111111111111112',
-        name: 'Solana',
-        symbol: 'SOL',
-        amount: solBalance,
-        logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png'
-      });
+    try {
+      // Add native SOL to the token list - handle errors separately
+      const solBalance = await fetchSOLBalance(address);
+      if (solBalance > 0) {
+        tokens.unshift({
+          address: 'So11111111111111111111111111111111111111112',
+          name: 'Solana',
+          symbol: 'SOL',
+          amount: solBalance,
+          logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png'
+        });
+      }
+    } catch (solError) {
+      console.log('Could not add SOL balance to tokens list:', solError);
+      // Continue without SOL balance
     }
     
     return tokens;
   } catch (error) {
+    // Έλεγχος για σφάλματα rate limit
+    const errorStr = String(error);
+    const isRateLimitError = errorStr.includes('rate limit') || errorStr.includes('429');
+    
     console.error('Error loading tokens:', error);
-    toast.error('Failed to load tokens');
+    
+    if (isRateLimitError) {
+      toast.error('Solana API rate limit exceeded. Using cached data if available.');
+    } else {
+      toast.error('Failed to load tokens');
+    }
+    
+    // Προσθήκη στον collector σφαλμάτων
+    errorCollector.addError({
+      message: 'Failed to load tokens',
+      source: 'tokenService.fetchAllTokenBalances',
+      stack: errorStr,
+      details: { address }
+    });
+    
     return [];
   }
 };
