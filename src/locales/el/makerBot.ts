@@ -19,15 +19,4 @@ export const makerBot = {
   successRate: "Ποσοστό Επιτυχίας",
   priceImpact: "Επίδραση στην Τιμή",
   connectToUse: "Συνδεθείτε για να χρησιμοποιήσετε το trading bot",
-  
-  // Προσθήκη των μεταφράσεων για το Bot Control
-  botControl: {
-    title: "Έλεγχος Bot",
-    activeBots: "Ενεργά Bots",
-    allBots: "Όλα τα Bots",
-    botTemplates: "Bot Templates",
-    stopAll: "Διακοπή Όλων",
-    startAll: "Έναρξη Όλων",
-    createNewBot: "Δημιουργία Νέου Bot"
-  }
 };

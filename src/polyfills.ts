@@ -6,7 +6,7 @@ import 'stream-browserify';
 import 'util/';
 
 // Import React compatibility patches
-import { ensureReactCompatibility } from './utils/reactPatches';
+import * as reactPatches from './utils/reactPatches';
 
 // Basic buffer polyfill for early access
 if (typeof window !== 'undefined' && !window.Buffer) {
@@ -47,7 +47,9 @@ if (typeof window !== 'undefined') {
   }
 }
 
-// Call React compatibility function if it exists
-ensureReactCompatibility();
+// Call React compatibility function
+if (reactPatches && typeof reactPatches.ensureReactCompatibility === 'function') {
+  reactPatches.ensureReactCompatibility();
+}
 
 console.log('Polyfills loaded successfully');

@@ -1,73 +1,127 @@
 
-import React from 'react';
-import { Container } from '@mui/material';
-import { useWallet } from '@/hooks/useWallet';
-import { WalletOverviewPanel } from '@/components/dashboard/WalletOverviewPanel';
-import { TokensPanel } from '@/components/dashboard/TokensPanel';
-import { TransactionsPanel } from '@/components/dashboard/TransactionsPanel';
+import React from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { BarChart2, Wallet, LineChart, ArrowUpRight } from "lucide-react";
+import { useWalletConnection } from "@/hooks/useWalletConnection";
+import { WalletTokensList } from "@/components/wallet/WalletTokensList";
+import { TransactionHistory } from "@/components/wallet/TransactionHistory";
+import { Link } from "react-router-dom";
+import { EnhancedTransactionHistory } from "@/components/wallet/EnhancedTransactionHistory";
 
-export default function Dashboard() {
-  const {
-    isConnected,
-    walletAddress,
-    tokens,
-    solBalance,
-    balance,
-    tokenPrices,
-    isLoadingTokens,
-    refreshWalletData,
-    selectTokenForTrading
-  } = useWallet();
-
-  // Calculate total portfolio value
-  const calculateTotalValue = () => {
-    if (!tokens.length || !tokenPrices) return solBalance;
-    
-    const tokensValue = tokens.reduce((total, token) => {
-      const price = tokenPrices[token.address] || 0;
-      return total + (token.amount * price);
-    }, 0);
-    
-    return solBalance + tokensValue;
-  };
-
-  const totalValue = calculateTotalValue();
+const Dashboard = () => {
+  const { isConnected, walletAddress, solBalance, tokens, isLoadingTokens } = useWalletConnection();
 
   return (
-    <Container maxWidth="lg">
-      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-      
+    <div className="container mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+        
+        <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link to="/wallet">
+              <Wallet className="h-4 w-4 mr-2" />
+              Πορτοφόλι
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link to="/transactions">
+              <LineChart className="h-4 w-4 mr-2" />
+              Συναλλαγές
+            </Link>
+          </Button>
+        </div>
+      </div>
+
       {!isConnected ? (
-        <div className="bg-muted/50 rounded-lg p-8 text-center">
-          <h2 className="text-xl font-semibold mb-4">Connect your wallet to view dashboard</h2>
-          <p className="text-muted-foreground mb-6">
-            Connect your Solana wallet to see your balances, tokens, and transactions
-          </p>
-          <button 
-            onClick={() => refreshWalletData()}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-          >
-            Connect Wallet
-          </button>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Συνδεθείτε με το πορτοφόλι σας</CardTitle>
+            <CardDescription>
+              Για να δείτε τα στοιχεία του dashboard, παρακαλώ συνδεθείτε με το πορτοφόλι σας.
+            </CardDescription>
+          </CardHeader>
+        </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <WalletOverviewPanel 
-            walletAddress={walletAddress}
-            solBalance={solBalance}
-            totalValue={totalValue}
-            onRefresh={refreshWalletData}
-          />
+        <>
+          <div className="grid gap-6 md:grid-cols-3">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Υπόλοιπο SOL</CardTitle>
+                <Wallet className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{solBalance} SOL</div>
+                <p className="text-xs text-muted-foreground">
+                  Πορτοφόλι: {walletAddress ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}` : ""}
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Tokens</CardTitle>
+                <BarChart2 className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{tokens?.length || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  Διαφορετικά tokens στο πορτοφόλι
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Bot Status</CardTitle>
+                <div className="h-2 w-2 rounded-full bg-red-500"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">Ανενεργό</div>
+                <Button variant="link" className="p-0 h-auto text-xs text-primary" asChild>
+                  <Link to="/bots" className="flex items-center">
+                    Ρύθμιση Bot <ArrowUpRight className="h-3 w-3 ml-1" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
           
-          <TokensPanel 
-            tokens={tokens}
-            tokenPrices={tokenPrices}
-            isLoading={isLoadingTokens}
-          />
-          
-          <TransactionsPanel />
-        </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="md:col-span-1">
+              <CardHeader>
+                <CardTitle>Tokens</CardTitle>
+                <CardDescription>Τα tokens που έχετε στο πορτοφόλι σας</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <WalletTokensList tokens={tokens} isLoading={isLoadingTokens} />
+              </CardContent>
+            </Card>
+            
+            <Card className="md:col-span-1">
+              <CardHeader>
+                <CardTitle>Πρόσφατες Συναλλαγές</CardTitle>
+                <CardDescription>Οι τελευταίες συναλλαγές στο πορτοφόλι σας</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {walletAddress ? (
+                  <EnhancedTransactionHistory 
+                    walletAddress={walletAddress} 
+                    limit={5}
+                    showViewAll={true} 
+                  />
+                ) : (
+                  <div className="py-8 text-center text-muted-foreground">
+                    Συνδεθείτε με το πορτοφόλι σας για να δείτε τις συναλλαγές
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </>
       )}
-    </Container>
+    </div>
   );
-}
+};
+
+export default Dashboard;

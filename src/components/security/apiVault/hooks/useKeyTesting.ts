@@ -50,11 +50,7 @@ export function useKeyTesting() {
         
         // Update keys with test results
         results.forEach(({ index, isWorking }) => {
-          updatedKeys[index] = { 
-            ...updatedKeys[index], 
-            isWorking // This is now valid since we added isWorking to ApiKey type
-          };
-          
+          updatedKeys[index] = { ...updatedKeys[index], isWorking };
           if (isWorking) {
             workingCount++;
           } else {

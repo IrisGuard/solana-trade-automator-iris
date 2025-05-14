@@ -1,55 +1,57 @@
 
-import React from 'react';
-import { Grid } from '@mui/material';
-import { WalletInfoCard } from './WalletInfoCard';
-import { TokensCard } from './TokensCard';
-import { TransactionsCard } from './TransactionsCard';
-import { BotStatusCard } from './BotStatusCard';
-import { PlatformInfoCard } from './PlatformInfoCard';
-import type { Token } from '@/types/wallet';
+import React from "react";
+import { TransactionsCard } from "./TransactionsCard";
+import { TokensCard } from "./TokensCard";
+import { BotStatusCard } from "./BotStatusCard";
+import { PlatformInfoCard } from "./PlatformInfoCard";
+import { WalletInfoCard } from "./WalletInfoCard";
+import { Token } from "@/types/wallet";
 
-export interface WalletConnectedContentProps {
+interface WalletConnectedContentProps {
   walletAddress: string;
-  tokens: Token[];
-  balance: number;
-  onDisconnect: () => void;
+  displayAddress?: string;
+  solBalance?: number;
+  tokens?: Token[];
+  tokenPrices?: Record<string, number>;
+  isLoadingTokens?: boolean;
+  connectionError?: string | null;
+  selectTokenForTrading?: (tokenAddress: string) => any;
 }
 
-export const WalletConnectedContent: React.FC<WalletConnectedContentProps> = ({
+export function WalletConnectedContent({ 
   walletAddress,
+  displayAddress,
+  solBalance,
   tokens,
-  balance,
-  onDisconnect
-}) => {
+  tokenPrices,
+  isLoadingTokens,
+  connectionError,
+  selectTokenForTrading
+}: WalletConnectedContentProps) {
+  // Format wallet address for display if not provided
+  const shortAddress = displayAddress || (walletAddress ? 
+    `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}` : 
+    '');
+    
   return (
-    <>
-      <Grid component="div" item xs={12} md={4}>
-        <div className="space-y-4">
-          <WalletInfoCard 
-            walletAddress={walletAddress}
-            balance={balance}
-            onDisconnect={onDisconnect}
-          />
-          <PlatformInfoCard />
-        </div>
-      </Grid>
-      
-      <Grid component="div" item xs={12} md={8}>
-        <div className="space-y-4">
-          <TokensCard tokens={tokens} />
-          <Grid container spacing={4}>
-            <Grid component="div" item xs={12} md={6}>
-              <TransactionsCard 
-                walletAddress={walletAddress} 
-                displayAddress={walletAddress}
-              />
-            </Grid>
-            <Grid component="div" item xs={12} md={6}>
-              <BotStatusCard />
-            </Grid>
-          </Grid>
-        </div>
-      </Grid>
-    </>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <WalletInfoCard 
+        walletAddress={walletAddress} 
+        balance={solBalance || 0}
+      />
+      <PlatformInfoCard />
+      <TokensCard 
+        tokens={tokens || []}
+        isLoadingTokens={isLoadingTokens}
+        onSelectToken={selectTokenForTrading}
+      />
+      <BotStatusCard />
+      <div className="md:col-span-2">
+        <TransactionsCard 
+          walletAddress={walletAddress}
+          displayAddress={shortAddress}
+        />
+      </div>
+    </div>
   );
-};
+}

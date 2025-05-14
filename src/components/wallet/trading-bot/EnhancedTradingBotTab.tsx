@@ -1,12 +1,16 @@
 
 import React from "react";
 import { TabsContent } from "@/components/ui/tabs";
+import { AdvancedStrategiesCard } from "./AdvancedStrategiesCard";
+import { PerformanceHistoryCard } from "./PerformanceHistoryCard";
 import { useTradingBot } from "@/hooks/useTradingBot";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { AlertCircle, Loader } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
-import { EnhancedPanel } from "./EnhancedPanel";
-import { EnhancedStatusPanel } from "./EnhancedStatusPanel";
+import { SettingsTab } from "./SettingsTab";
+import { StatusCard } from "./StatusCard";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 export function EnhancedTradingBotTab() {
   const { connected } = useWallet();
@@ -24,43 +28,64 @@ export function EnhancedTradingBotTab() {
     tokens
   } = useTradingBot();
 
-  // Convert 'error' status to 'idle' to match the expected types in EnhancedStatusPanel
-  const displayBotStatus = botStatus === 'error' ? 'idle' : 
-                          (botStatus === 'paused' ? 'idle' : botStatus);
-
   return (
     <TabsContent value="trading-bot">
       {!connected ? (
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Please connect your wallet to use the Trading Bot
+            Παρακαλώ συνδέστε το πορτοφόλι σας για να χρησιμοποιήσετε το Trading Bot
           </AlertDescription>
         </Alert>
       ) : (
         <>
           <div className="grid gap-4 md:grid-cols-2 mb-6">
             <div className="space-y-4">
-              <EnhancedPanel
+              <SettingsTab
                 config={config}
                 updateConfig={updateConfig}
                 selectToken={selectToken}
                 selectedTokenPrice={selectedTokenPrice}
                 selectedTokenDetails={selectedTokenDetails}
-                tokens={tokens || []}
-                isLoading={isLoading}
-                botStatus={displayBotStatus}
-                startBot={startBot}
-                stopBot={stopBot}
+                tokens={tokens}
               />
+              
+              {config.selectedToken && (
+                <div className="flex gap-2">
+                  <Button
+                    className="flex-1"
+                    onClick={startBot}
+                    disabled={isLoading || botStatus === 'running' || !config.selectedToken}
+                  >
+                    {isLoading && <Loader className="mr-2 h-4 w-4 animate-spin" />}
+                    Εκκίνηση Bot
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    className="flex-1"
+                    onClick={stopBot}
+                    disabled={isLoading || botStatus !== 'running'}
+                  >
+                    {isLoading && <Loader className="mr-2 h-4 w-4 animate-spin" />}
+                    Διακοπή Bot
+                  </Button>
+                </div>
+              )}
             </div>
             
-            <EnhancedStatusPanel 
-              botStatus={displayBotStatus}
+            <StatusCard
+              botStatus={botStatus}
               selectedTokenDetails={selectedTokenDetails}
               selectedTokenPrice={selectedTokenPrice}
-              activeOrders={activeOrders || []}
+              activeOrders={activeOrders}
             />
+          </div>
+          
+          <Separator className="my-6" />
+          
+          <div className="space-y-6">
+            <AdvancedStrategiesCard isActive={botStatus !== 'idle'} />
+            <PerformanceHistoryCard />
           </div>
         </>
       )}

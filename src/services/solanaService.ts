@@ -1,27 +1,9 @@
 
-import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
+// This file now re-exports from the modularized structure
+// for backwards compatibility
+export { solanaService } from './solana';
 
-// Initialize Solana connection
-export function getConnection(endpoint = clusterApiUrl('devnet')): Connection {
-  return new Connection(endpoint, 'confirmed');
-}
-
-// Get SOL balance
-export async function getSOLBalance(address: string): Promise<number> {
-  try {
-    const connection = getConnection();
-    const publicKey = new PublicKey(address);
-    const balance = await connection.getBalance(publicKey);
-    return balance / 1000000000; // Convert lamports to SOL
-  } catch (error) {
-    console.error('Error getting SOL balance:', error);
-    return 0;
-  }
-}
-
-// Mock IDL for anchor
-export const mockProgramIdl = {
-  version: '0.1.0',
-  name: 'mock_program',
-  instructions: []
-};
+// Also export the individual functions for direct access
+export { fetchSOLBalance } from './solana/walletService';
+export { fetchTokenBalance, fetchAllTokenBalances, fetchTokenPrices } from './solana/tokenService';
+export { fetchTransactionHistory } from './solana/transaction';

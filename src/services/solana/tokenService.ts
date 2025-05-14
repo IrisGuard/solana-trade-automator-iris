@@ -1,44 +1,96 @@
-
-import { Connection, PublicKey } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
+import { toast } from 'sonner';
 import { Token } from '@/types/wallet';
+import { connection, TOKEN_PROGRAM_ID, KNOWN_TOKEN_ADDRESSES, MOCK_PRICES } from './config';
+import { fetchSOLBalance } from './walletService';
 
-// Τυχαία tokens (για δοκιμαστικούς σκοπούς)
-const DEMO_TOKENS: Token[] = [
-  { address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', symbol: 'USDC', name: 'USD Coin', decimals: 6, balance: 2500, uiBalance: 2.5, amount: 2500, mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' },
-  { address: 'So11111111111111111111111111111111111111112', symbol: 'SOL', name: 'Solana', decimals: 9, balance: 5000000000, uiBalance: 5, amount: 5000000000, mint: 'So11111111111111111111111111111111111111112' },
-  { address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', symbol: 'USDT', name: 'Tether USD', decimals: 6, balance: 1000, uiBalance: 1, amount: 1000, mint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB' },
-];
+// Export named functions for individual import
+export const fetchTokenBalance = async (tokenAddress: string, walletAddress: string): Promise<number> => {
+  try {
+    // Implementation for getting balance of a specific token
+    // This is a placeholder, actual implementation would depend on specific requirements
+    return 0;
+  } catch (error) {
+    console.error('Error fetching token balance:', error);
+    return 0;
+  }
+};
 
-/**
- * Service για τη διαχείριση των tokens στο Solana blockchain
- */
-export const tokenService = {
-  // Φέρε όλα τα tokens για μια διεύθυνση wallet
-  async fetchTokens(walletAddress: string): Promise<Token[]> {
-    // Σε παραγωγικό περιβάλλον, εδώ θα κάναμε πραγματική κλήση API
-    // αλλά για demo σκοπούς επιστρέφουμε τα δοκιμαστικά δεδομένα
-
-    console.log(`Fetching tokens for wallet: ${walletAddress}`);
+export const fetchAllTokenBalances = async (address: string): Promise<Token[]> => {
+  try {
+    const publicKey = new PublicKey(address);
     
-    // Επιστροφή των demo tokens
-    return DEMO_TOKENS;
-  },
+    // Get user's token accounts
+    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
+      publicKey,
+      { programId: TOKEN_PROGRAM_ID }
+    );
 
-  // Φέρε τιμές για τα tokens
-  async fetchTokenPrices(tokenAddresses: string[]): Promise<Record<string, { price: number, priceChange24h: number }>> {
-    console.log(`Fetching prices for tokens: ${tokenAddresses.join(', ')}`);
+    // Transform data to Token[]
+    const tokens: Token[] = [];
     
-    // Mock data για τιμές tokens
-    const prices: Record<string, { price: number, priceChange24h: number }> = {};
+    for (const { account } of tokenAccounts.value) {
+      const parsedInfo = account.data.parsed.info;
+      const mintAddress = parsedInfo.mint;
+      const amount = parsedInfo.tokenAmount.uiAmount;
+      
+      // Skip tokens with zero balance
+      if (amount === 0) continue;
+      
+      // Find info for known tokens
+      const knownToken = KNOWN_TOKEN_ADDRESSES[mintAddress];
+      
+      tokens.push({
+        address: mintAddress,
+        name: knownToken?.name || `Token ${mintAddress.slice(0, 4)}...${mintAddress.slice(-4)}`,
+        symbol: knownToken?.symbol || 'UNKNOWN',
+        amount: amount,
+        logo: knownToken?.logo
+      });
+    }
     
-    // Δημιουργία τυχαίων τιμών για κάθε token
-    tokenAddresses.forEach(address => {
-      prices[address] = {
-        price: Math.random() * 100,
-        priceChange24h: (Math.random() * 20) - 10
-      };
-    });
+    // Add native SOL to the token list
+    const solBalance = await fetchSOLBalance(address);
+    if (solBalance > 0) {
+      tokens.unshift({
+        address: 'So11111111111111111111111111111111111111112',
+        name: 'Solana',
+        symbol: 'SOL',
+        amount: solBalance,
+        logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png'
+      });
+    }
+    
+    return tokens;
+  } catch (error) {
+    console.error('Error loading tokens:', error);
+    toast.error('Failed to load tokens');
+    return [];
+  }
+};
+
+export const fetchTokenPrices = async (tokenAddresses: string[]): Promise<Record<string, number>> => {
+  try {
+    const prices: Record<string, number> = {};
+    
+    // In a real implementation, we would fetch actual prices from an API
+    // This is just a mock implementation
+    for (const address of tokenAddresses) {
+      prices[address] = MOCK_PRICES[address] || Math.random() * 10;
+    }
     
     return prices;
+  } catch (error) {
+    console.error('Error fetching token prices:', error);
+    return {};
+  }
+};
+
+// Keep backwards compatibility with existing code
+export const tokenService = {
+  getTokenAccounts: fetchAllTokenBalances,
+  getTokenPrice: async (tokenAddress: string): Promise<number> => {
+    const prices = await fetchTokenPrices([tokenAddress]);
+    return prices[tokenAddress] || 0;
   }
 };

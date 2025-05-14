@@ -1,4 +1,4 @@
-import { Transaction } from '@/types/transaction';
+import { Transaction } from '@/types/wallet';
 
 /**
  * Merge transactions from API and database

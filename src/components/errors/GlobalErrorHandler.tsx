@@ -1,103 +1,111 @@
 
-import React, { useState, useEffect } from 'react';
-import { Toast, ToastAction } from '@/components/ui/toast';
-import { errorCollector } from '@/utils/error-handling/collector';
-import { ErrorData } from '@/utils/error-handling/collector/ErrorCollector';
+import React from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, X } from 'lucide-react';
-import { displayError } from '@/utils/errorUtils';
-import { sendErrorToChat } from '@/utils/error-handling/displayError';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 
-export function GlobalErrorHandler() {
-  const [errors, setErrors] = useState<ErrorData[]>([]);
-  const [lastError, setLastError] = useState<ErrorData | null>(null);
-  const { reportError } = useErrorReporting();
-  
-  // Get errors from the collector
-  useEffect(() => {
-    const checkForErrors = () => {
-      const allErrors = errorCollector.getAllErrors();
-      setErrors([...allErrors]); // Create a new array to avoid type issues
-      
-      // If there's a new error, save it as the last one
-      if (allErrors.length > 0 && (!lastError || allErrors[0].id !== lastError.id)) {
-        setLastError(allErrors[0] as ErrorData);
+interface ErrorFallbackProps {
+  error: Error;
+  resetErrorBoundary: () => void;
+}
+
+// Component που εμφανίζεται σε περίπτωση σφάλματος
+const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetErrorBoundary }) => {
+  const { sendErrorToChat } = useErrorReporting();
+
+  return (
+    <Alert variant="destructive" className="my-4">
+      <AlertTriangle className="h-4 w-4" />
+      <AlertTitle>Σφάλμα στην εφαρμογή</AlertTitle>
+      <AlertDescription className="mt-2">
+        <p className="mb-2">
+          Εντοπίστηκε ένα πρόβλημα κατά την εκτέλεση της εφαρμογής. Το σφάλμα έχει καταγραφεί αυτόματα.
+        </p>
+        <p className="text-sm font-mono bg-destructive/10 p-2 rounded max-h-32 overflow-y-auto mb-2">
+          {error.message}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={resetErrorBoundary}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" /> Επαναφόρτωση
+          </Button>
+          <Button 
+            size="sm" 
+            variant="secondary"
+            onClick={() => sendErrorToChat(error.message, error.stack)}
+          >
+            Αποστολή στο chat
+          </Button>
+        </div>
+      </AlertDescription>
+    </Alert>
+  );
+};
+
+interface GlobalErrorHandlerProps {
+  children: React.ReactNode;
+}
+
+export const GlobalErrorHandler: React.FC<GlobalErrorHandlerProps> = ({ children }) => {
+  const { reportError, sendErrorToChat } = useErrorReporting();
+
+  // Χειριστής σφαλμάτων που καταγράφει τα σφάλματα
+  const logError = (error: Error, info: { componentStack: string }) => {
+    // Αποστολή στο σύστημα αναφοράς
+    reportError(error, {
+      showToast: true,
+      logToConsole: true,
+      saveToDatabase: true,
+      sendToChatInterface: true
+    });
+    
+    // Εμφάνιση toast με επιλογή αποστολής στο chat
+    toast.error(`Σφάλμα: ${error.message}`, {
+      description: "Πατήστε για αποστολή στο chat για ανάλυση",
+      action: {
+        label: "Αποστολή",
+        onClick: () => sendErrorToChat(error.message, error.stack)
       }
-    };
+    });
     
-    // Initial error retrieval
-    checkForErrors();
-    
-    // Periodic check for new errors
-    const intervalId = setInterval(checkForErrors, 3000);
-    
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [lastError]);
-  
-  // Handle sending error to support
-  const handleSendToSupport = (error: ErrorData) => {
+    // Αποθήκευση του σφάλματος στο lovable_chat_errors
     try {
-      const supportMessage = `
-        Error Report:
-        - Message: ${error.message}
-        - Component: ${error.component}
-        - Source: ${error.source}
-        - Timestamp: ${error.timestamp}
-      `;
+      const errorData = {
+        type: 'error',
+        message: error.message,
+        stack: error.stack,
+        componentStack: info.componentStack,
+        url: window.location.href,
+        timestamp: new Date().toISOString()
+      };
       
-      // Send the error (for simulation)
-      console.log("Sending error to support:", supportMessage);
-      // Call the function to send to chat
-      sendErrorToChat(error.message);
+      const storedErrors = JSON.parse(localStorage.getItem('lovable_chat_errors') || '[]');
+      storedErrors.push(errorData);
+      localStorage.setItem('lovable_chat_errors', JSON.stringify(storedErrors));
       
-      // Update the user
-      displayError("Error sent to support", { 
-        showToast: true
-      });
-      
+      // Dispatch custom event για να ενημερώσει το Lovable chat
+      const event = new CustomEvent('lovable-error', { detail: errorData });
+      window.dispatchEvent(event);
     } catch (e) {
-      console.error("Error while sending error:", e);
-      reportError("Failed to send error to support");
+      console.error("Σφάλμα κατά την αποθήκευση του σφάλματος για το chat:", e);
     }
   };
 
-  if (!lastError) return null;
-
   return (
-    <Toast className="bg-destructive text-white">
-      <div className="flex items-start gap-2">
-        <AlertCircle className="h-5 w-5 mt-0.5" />
-        <div className="flex-1">
-          <div className="font-semibold">Application Error</div>
-          <div className="text-sm opacity-90">{lastError.message}</div>
-          <div className="text-xs opacity-75 mt-1">
-            In: {lastError.component} | {new Date(lastError.timestamp).toLocaleTimeString()}
-          </div>
-        </div>
-      </div>
-      <ToastAction className="flex gap-2" asChild altText="Send to support">
-        <div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="bg-transparent hover:bg-white/10 text-white border-white/20"
-            onClick={() => handleSendToSupport(lastError)}
-          >
-            Report
-          </Button>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            className="bg-transparent hover:bg-white/10 text-white border-white/20"
-            onClick={() => setLastError(null)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      </ToastAction>
-    </Toast>
+    <ErrorBoundary
+      FallbackComponent={ErrorFallback}
+      onError={logError}
+      onReset={() => {
+        // Επαναφορά κατάστασης εδώ αν χρειάζεται
+      }}
+    >
+      {children}
+    </ErrorBoundary>
   );
-}
+};

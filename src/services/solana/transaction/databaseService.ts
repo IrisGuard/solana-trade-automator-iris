@@ -1,5 +1,5 @@
 
-import { Transaction } from '@/types/transaction';
+import { Transaction } from '@/types/wallet';
 import { supabase } from '@/integrations/supabase/client';
 
 /**
@@ -19,7 +19,7 @@ export async function saveTransactionToDatabase(
         user_id: userId,
         type: transaction.type,
         status: transaction.status,
-        amount: String(transaction.amount || ''), // Μετατροπή σε string
+        amount: transaction.amount || '',
         source: transaction.from,
         destination: transaction.to,
         block_time: transaction.blockTime ? new Date(transaction.blockTime).toISOString() : new Date().toISOString()
