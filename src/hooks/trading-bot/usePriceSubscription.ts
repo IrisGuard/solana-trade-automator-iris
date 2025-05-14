@@ -1,92 +1,80 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Token } from '@/types/wallet';
-import { toast } from 'sonner';
+import { TokenPriceInfo } from './types';
 
-export interface PriceSubscriptionHook {
-  price: number;
-  isLoading: boolean;
-  tokenPrice: number; // Προσθήκη για συμβατότητα
-  selectedTokenPrice: number; // Προσθήκη για συμβατότητα
-  selectedTokenDetails: Token | null; // Προσθήκη για συμβατότητα
-  setupPriceSubscription: (token: Token) => void;
-  cleanupSubscription: () => void;
-}
-
-export function usePriceSubscription(): PriceSubscriptionHook {
+/**
+ * Hook για να διαχειριστεί τις συνδρομές τιμών για tokens
+ */
+export function usePriceSubscription() {
   const [price, setPrice] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [selectedToken, setSelectedToken] = useState<Token | null>(null);
-  const [intervalId, setIntervalId] = useState<number | null>(null);
+  const [selectedTokenPrice, setSelectedTokenPrice] = useState<TokenPriceInfo | null>(null);
+  const [selectedTokenDetails, setSelectedTokenDetails] = useState<Token | undefined>(undefined);
+  const [subscriptionActive, setSubscriptionActive] = useState<boolean>(false);
 
-  // Συνάρτηση για προσομοίωση τιμών με μικρές διακυμάνσεις
-  const simulatePriceUpdate = useCallback((basePrice: number): number => {
-    const fluctuation = (Math.random() - 0.5) * 0.02; // ±1% διακύμανση
-    return basePrice * (1 + fluctuation);
+  // Function to setup price subscription for a token
+  const setupPriceSubscription = useCallback(async (tokenAddress: string) => {
+    try {
+      setIsLoading(true);
+      console.log(`Setting up price subscription for token: ${tokenAddress}`);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Create mock price data for the token
+      const mockPrice = Math.random() * 1000;
+      setPrice(mockPrice);
+      
+      // Set the selected token price info
+      setSelectedTokenPrice({
+        currentPrice: mockPrice,
+        priceChange24h: (Math.random() * 10) - 5, // -5% to +5%
+        highPrice24h: mockPrice * (1 + Math.random() * 0.1),
+        lowPrice24h: mockPrice * (1 - Math.random() * 0.1),
+        volume24h: Math.random() * 1000000,
+        marketCap: Math.random() * 10000000000,
+        lastUpdated: new Date()
+      });
+      
+      setSubscriptionActive(true);
+      
+      // Setup interval to update price periodically
+      const interval = setInterval(() => {
+        const newPrice = price * (1 + (Math.random() * 0.02) - 0.01); // -1% to +1%
+        setPrice(newPrice);
+        setSelectedTokenPrice(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            currentPrice: newPrice,
+            lastUpdated: new Date()
+          };
+        });
+      }, 5000);
+      
+      // Cleanup interval on component unmount
+      return () => clearInterval(interval);
+    } catch (error) {
+      console.error("Error setting up price subscription:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [price]);
+
+  // Cleanup subscription when component unmounts
+  const cleanupSubscription = useCallback(() => {
+    console.log("Cleaning up price subscription");
+    setSubscriptionActive(false);
+    setSelectedTokenPrice(null);
   }, []);
 
-  // Εγκατάσταση της συνδρομής για συγκεκριμένο token
-  const setupPriceSubscription = useCallback((token: Token) => {
-    // Καθαρισμός προηγούμενων συνδρομών
-    if (intervalId) {
-      clearInterval(intervalId);
-    }
-    
-    setIsLoading(true);
-    setSelectedToken(token);
-    
-    // Προσομοίωση αρχικής τιμής βασισμένη στο token
-    const initialPrice = token.amount > 0 ? (token.amount * Math.random() * 5) + 1 : Math.random() * 10 + 1;
-    setPrice(initialPrice);
-    
-    // Δημιουργία νέας συνδρομής για ενημερώσεις τιμών
-    const id = setInterval(() => {
-      setPrice(prevPrice => simulatePriceUpdate(prevPrice));
-    }, 5000) as unknown as number;
-    
-    setIntervalId(id);
-    setIsLoading(false);
-    
-    toast.success(`Ενεργοποιήθηκε παρακολούθηση τιμής για το ${token.symbol}`, {
-      position: "bottom-right",
-      duration: 3000
-    });
-    
-    return () => {
-      if (id) clearInterval(id);
-    };
-  }, [simulatePriceUpdate]);
-
-  // Καθαρισμός συνδρομής
-  const cleanupSubscription = useCallback(() => {
-    if (intervalId) {
-      clearInterval(intervalId);
-      setIntervalId(null);
-      
-      if (selectedToken) {
-        toast.info(`Τερματίστηκε η παρακολούθηση τιμής για το ${selectedToken.symbol}`, {
-          position: "bottom-right",
-          duration: 3000
-        });
-      }
-      
-      setSelectedToken(null);
-    }
-  }, [intervalId, selectedToken]);
-
-  // Καθαρισμός κατά την αποφόρτωση
-  useEffect(() => {
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [intervalId]);
-
+  // Return values and functions
   return {
     price,
     isLoading,
-    tokenPrice: price,
-    selectedTokenPrice: price,
-    selectedTokenDetails: selectedToken,
+    selectedTokenPrice,
+    selectedTokenDetails,
     setupPriceSubscription,
     cleanupSubscription
   };

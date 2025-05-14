@@ -1,129 +1,150 @@
 
 import { useState, useCallback } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
 import { toast } from 'sonner';
-import { TradingBotConfig, BotStatus } from './types';
-import { Order } from '@/types/orders';
+import { Bot, ActiveOrder, TradingBotConfig } from './types';
+import { TokenPriceInfo } from './types';
 
+/**
+ * Hook για τη διαχείριση των ενεργειών του trading bot
+ */
 export function useBotActions() {
-  const { publicKey, connected } = useWallet();
-  const [bots, setBots] = useState<any[]>([]);
-  const [activeBot, setActiveBot] = useState<any>(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [botStatus, setBotStatus] = useState<BotStatus>('idle');
-  const [activeOrders, setActiveOrders] = useState<Order[]>([]);
-
-  // Load user's bots
-  const loadBots = useCallback(async () => {
-    if (!connected || !publicKey) return;
-    
+  const [bots, setBots] = useState<Bot[]>([]);
+  const [activeBot, setActiveBot] = useState<Bot | null>(null);
+  const [isCreating, setIsCreating] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [botStatus, setBotStatus] = useState<'running' | 'idle' | 'paused'>('idle');
+  const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>([]);
+  
+  // Φορτώνει τα διαθέσιμα bots
+  const loadBots = useCallback(async (): Promise<Bot[]> => {
     setIsLoading(true);
     try {
-      // Mock implementation since getUserBots doesn't exist
-      const userBots = []; // Mocked empty bots array
-      setBots(userBots);
+      // Σε πραγματική εφαρμογή θα φορτώναμε από API
+      const mockBots: Bot[] = [
+        {
+          id: '1',
+          name: 'SOL Bot',
+          status: 'idle',
+          token: 'So11111111111111111111111111111111111111112',
+          strategy: 'simple',
+          profitLoss: 25.5,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: '2',
+          name: 'USDC Bot',
+          status: 'idle',
+          token: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          strategy: 'advanced',
+          profitLoss: -5.2,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+      
+      setBots(mockBots);
+      return mockBots;
     } catch (error) {
-      console.error("Failed to load bots:", error);
-      toast.error("Αποτυχία φόρτωσης των bots");
+      console.error("Error loading bots:", error);
+      toast.error("Σφάλμα κατά τη φόρτωση των bots");
+      return [];
     } finally {
       setIsLoading(false);
     }
-  }, [connected, publicKey]);
-
-  // Start the trading bot
-  const startBot = useCallback((config: TradingBotConfig, selectedTokenPrice: any) => {
-    if (!config.selectedToken) {
-      toast.error("Επιλέξτε ένα token πρώτα");
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    try {
-      // In a real implementation, this would initiate the trading bot
-      setTimeout(() => {
-        setBotStatus('running');
-        
-        // Create some mock active orders
-        const orders: Order[] = [
-          {
-            id: '1',
-            type: 'stop-loss',
-            price: selectedTokenPrice ? selectedTokenPrice.price * 0.95 : 0,
-            amount: config.tradeAmount,
-            token: config.selectedToken || '',
-            tokenAddress: config.selectedToken || '',
-            status: 'active',
-            created: new Date().toISOString(),
-            createdAt: new Date()
-          },
-          {
-            id: '2',
-            type: 'take-profit',
-            price: selectedTokenPrice ? selectedTokenPrice.price * 1.10 : 0,
-            amount: config.tradeAmount,
-            token: config.selectedToken || '',
-            tokenAddress: config.selectedToken || '',
-            status: 'active',
-            created: new Date().toISOString(),
-            createdAt: new Date()
-          }
-        ];
-        
-        setActiveOrders(orders);
-        toast.success("Το bot ξεκίνησε επιτυχώς");
-        setIsLoading(false);
-      }, 1500);
-    } catch (error) {
-      console.error("Failed to start bot:", error);
-      toast.error("Αποτυχία εκκίνησης bot");
-      setIsLoading(false);
-    }
   }, []);
 
-  // Stop the trading bot
-  const stopBot = useCallback(() => {
-    setIsLoading(true);
-    
-    try {
-      // In a real implementation, this would stop the trading bot
-      setTimeout(() => {
-        setBotStatus('idle');
-        setActiveOrders([]);
-        toast.success("Το bot σταμάτησε επιτυχώς");
-        setIsLoading(false);
-      }, 1000);
-    } catch (error) {
-      console.error("Failed to stop bot:", error);
-      toast.error("Αποτυχία διακοπής bot");
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Create a new bot
-  const createBot = useCallback(async (botConfig: any) => {
-    if (!connected || !publicKey) {
-      toast.error("Πρέπει να συνδέσετε το wallet σας");
-      return null;
-    }
-    
+  // Δημιουργεί ένα νέο bot
+  const createBot = useCallback(async (config: TradingBotConfig): Promise<Bot | null> => {
     setIsCreating(true);
     try {
-      // Mock implementation since createBot doesn't exist
-      const newBot = { ...botConfig, id: Date.now().toString() };
+      // Σε πραγματική εφαρμογή θα αποθηκεύαμε στο API
+      const newBot: Bot = {
+        id: `bot-${Date.now()}`,
+        name: `${config.selectedToken?.substring(0, 4) || 'New'} Bot`,
+        status: 'idle',
+        token: config.selectedToken || '',
+        strategy: config.strategy,
+        profitLoss: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
       
       setBots(prev => [...prev, newBot]);
-      toast.success("Το bot δημιουργήθηκε με επιτυχία");
+      setActiveBot(newBot);
+      toast.success("Το bot δημιουργήθηκε επιτυχώς");
       return newBot;
     } catch (error) {
-      console.error("Failed to create bot:", error);
-      toast.error("Αποτυχία δημιουργίας bot");
+      console.error("Error creating bot:", error);
+      toast.error("Σφάλμα κατά τη δημιουργία του bot");
       return null;
     } finally {
       setIsCreating(false);
     }
-  }, [connected, publicKey]);
+  }, []);
+
+  // Ξεκινά το bot
+  const startBot = useCallback((config: TradingBotConfig, tokenPrice: TokenPriceInfo | null) => {
+    if (!config.selectedToken) {
+      toast.error("Παρακαλώ επιλέξτε ένα token πρώτα");
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      // Σε πραγματική εφαρμογή θα στέλναμε εντολή στο API
+      console.log("Starting bot with config:", config);
+      console.log("Current token price:", tokenPrice);
+      
+      // Δημιουργία υποθετικών εντολών
+      const mockOrders: ActiveOrder[] = [
+        {
+          id: `order-${Date.now()}-1`,
+          type: 'buy',
+          token: config.selectedToken,
+          amount: 0.5,
+          price: tokenPrice?.currentPrice || 0,
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: `order-${Date.now()}-2`,
+          type: 'stop-loss',
+          token: config.selectedToken,
+          amount: 0.5,
+          price: (tokenPrice?.currentPrice || 0) * (1 - config.stopLoss / 100),
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        }
+      ];
+      
+      setActiveOrders(mockOrders);
+      setBotStatus('running');
+      toast.success("Το bot ξεκίνησε επιτυχώς");
+      
+    } catch (error) {
+      console.error("Error starting bot:", error);
+      toast.error("Σφάλμα κατά την εκκίνηση του bot");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Σταματά το bot
+  const stopBot = useCallback(() => {
+    setIsLoading(true);
+    try {
+      // Σε πραγματική εφαρμογή θα στέλναμε εντολή στο API
+      setBotStatus('idle');
+      setActiveOrders([]);
+      toast.success("Το bot σταμάτησε επιτυχώς");
+    } catch (error) {
+      console.error("Error stopping bot:", error);
+      toast.error("Σφάλμα κατά τη διακοπή του bot");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   return {
     bots,
@@ -134,8 +155,8 @@ export function useBotActions() {
     botStatus,
     activeOrders,
     loadBots,
+    createBot,
     startBot,
-    stopBot,
-    createBot
+    stopBot
   };
 }

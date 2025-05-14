@@ -1,17 +1,14 @@
 
 import React from "react";
-import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { TabHeader } from "./components/TabHeader";
-import { TabNavigation } from "./tabs/TabNavigation";
-import { ConfigurationPanel } from "./components/ConfigurationPanel";
-import { OrdersTab } from "./OrdersTab";
-import { HistoryTab } from "./HistoryTab";
-import { StatusCard } from "./StatusCard";
-import { Order } from "@/types/orders";
-import { TradingBotHook } from "@/hooks/trading-bot/types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+import { SettingsTab } from "./SettingsTab";
+import { StrategyTab } from "./StrategyTab";
+import { MonitorTab } from "./MonitorTab";
 import { Button } from "@/components/ui/button";
-import { Loader } from "lucide-react";
+import { TradingBotHook } from "@/hooks/trading-bot/types";
 
 interface TradingBotContentProps {
   tradingBotState: TradingBotHook;
@@ -27,84 +24,88 @@ export function TradingBotContent({
   const {
     config,
     updateConfig,
+    selectToken,
     startBot,
     stopBot,
-    selectToken,
-    isLoading,
     botStatus,
-    activeOrders,
+    isLoading,
+    tokens,
     selectedTokenPrice,
     selectedTokenDetails,
-    tokens
+    activeOrders
   } = tradingBotState;
-
+  
   return (
-    <div className="grid md:grid-cols-3 gap-4">
-      <Card className="md:col-span-2">
-        <CardHeader>
-          <TabHeader botStatus={botStatus} />
-          <CardDescription>
-            Αυτοματοποιημένο trading με stop-loss και take-profit
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+    <Card className="bg-background">
+      <CardHeader>
+        <CardTitle>Trading Bot</CardTitle>
+        <CardDescription>
+          Αυτοματοποιημένο σύστημα συναλλαγών με βάση τη στρατηγική σας
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent>
+        {!tokens || tokens.length === 0 ? (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Δεν βρέθηκαν tokens στο πορτοφόλι σας. Για να χρησιμοποιήσετε το trading bot,
+              πρέπει να έχετε tokens στο πορτοφόλι σας.
+            </AlertDescription>
+          </Alert>
+        ) : (
           <Tabs value={tab} onValueChange={setTab}>
-            <TabNavigation tab={tab} onTabChange={setTab} />
+            <TabsList className="grid grid-cols-3 mb-8">
+              <TabsTrigger value="settings">Ρυθμίσεις</TabsTrigger>
+              <TabsTrigger value="strategy">Στρατηγική</TabsTrigger>
+              <TabsTrigger value="monitor">Παρακολούθηση</TabsTrigger>
+            </TabsList>
             
             <TabsContent value="settings">
-              <ConfigurationPanel
+              <div className="space-y-6">
+                <SettingsTab
+                  config={config}
+                  updateConfig={updateConfig}
+                  selectToken={selectToken}
+                  selectedTokenPrice={selectedTokenPrice}
+                  selectedTokenDetails={selectedTokenDetails}
+                  tokens={tokens}
+                />
+                
+                {config.selectedToken && (
+                  <div className="flex items-center justify-end gap-4 pt-4">
+                    {botStatus === 'running' ? (
+                      <Button variant="destructive" onClick={stopBot} disabled={isLoading}>
+                        Διακοπή Bot
+                      </Button>
+                    ) : (
+                      <Button onClick={startBot} disabled={isLoading || !config.selectedToken}>
+                        Έναρξη Bot
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="strategy">
+              <StrategyTab
                 config={config}
                 updateConfig={updateConfig}
-                selectToken={selectToken}
-                selectedTokenPrice={selectedTokenPrice}
-                selectedTokenDetails={selectedTokenDetails}
-                tokens={tokens}
-                isLoading={isLoading}
-                botStatus={botStatus}
-                startBot={startBot}
-                stopBot={stopBot}
               />
             </TabsContent>
             
-            <TabsContent value="orders">
-              <OrdersTab activeOrders={activeOrders as Order[]} />
-            </TabsContent>
-            
-            <TabsContent value="history">
-              <HistoryTab />
+            <TabsContent value="monitor">
+              <MonitorTab
+                botStatus={botStatus}
+                selectedTokenDetails={selectedTokenDetails}
+                selectedTokenPrice={selectedTokenPrice}
+                activeOrders={activeOrders}
+              />
             </TabsContent>
           </Tabs>
-        </CardContent>
-        <CardFooter className="flex justify-end gap-2 border-t pt-4">
-          {botStatus === 'running' ? (
-            <Button 
-              variant="destructive" 
-              onClick={stopBot}
-              disabled={isLoading}
-            >
-              {isLoading ? <Loader className="h-4 w-4 animate-spin mr-2" /> : null}
-              Διακοπή Bot
-            </Button>
-          ) : (
-            <Button 
-              variant="default" 
-              onClick={startBot}
-              disabled={isLoading || !config.selectedToken}
-            >
-              {isLoading ? <Loader className="h-4 w-4 animate-spin mr-2" /> : null}
-              Εκκίνηση Bot
-            </Button>
-          )}
-        </CardFooter>
-      </Card>
-      
-      {/* Status Card */}
-      <StatusCard
-        botStatus={botStatus}
-        selectedTokenDetails={selectedTokenDetails}
-        selectedTokenPrice={selectedTokenPrice}
-        activeOrders={activeOrders}
-      />
-    </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

@@ -1,52 +1,68 @@
 
 import { Token } from '@/types/wallet';
-import { Order } from '@/types/orders';
 
-// Define interface for bot configuration
 export interface TradingBotConfig {
   selectedToken: string | null;
+  strategy: 'simple' | 'advanced' | 'custom';
   tradeAmount: number;
-  stopLossPercent: number;
-  takeProfitPercent: number;
-  maxTrades: number;
+  buyThreshold: number;
+  sellThreshold: number;
+  stopLoss: number;
+  takeProfit: number;
+  autoRebalance: boolean;
+  trailingStop: boolean;
 }
 
-// Define interface for token price information
 export interface TokenPriceInfo {
-  price: number;
+  currentPrice: number;
   priceChange24h: number;
+  highPrice24h: number;
+  lowPrice24h: number;
+  volume24h: number;
+  marketCap: number;
+  lastUpdated: Date;
 }
 
-// Define interface for bot status
-export type BotStatus = 'idle' | 'running' | 'paused';
-
-// Define interface for trading bot state
-export interface TradingBotState {
-  bots: any[];
-  activeBot: any | null;
-  isCreating: boolean;
-  isLoading: boolean;
-  selectedToken: string | null;
-  tokenPrice: any;
-  priceSubscription: any;
-  botStatus: BotStatus;
-  activeOrders: Order[];
-  selectedTokenDetails: Token | undefined;
-  selectedTokenPrice: TokenPriceInfo | null;
-  tokens: Token[];
+export interface Bot {
+  id: string;
+  name: string;
+  status: 'running' | 'idle' | 'paused' | 'error';
+  token: string;
+  strategy: string;
+  profitLoss: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-// Define interface for trading bot hooks return value
+export interface ActiveOrder {
+  id: string;
+  type: 'buy' | 'sell' | 'stop-loss' | 'take-profit';
+  token: string;
+  amount: number;
+  price: number;
+  status: 'pending' | 'executed' | 'canceled';
+  createdAt: string;
+}
+
+export interface BotAction {
+  type: 'buy' | 'sell' | 'stop-loss' | 'take-profit';
+  token: string;
+  price: number;
+  amount: number;
+  timestamp: Date;
+  status: 'pending' | 'executed' | 'failed';
+}
+
 export interface TradingBotHook {
   // Bot state
-  bots: any[];
-  activeBot: any | null;
+  bots: Bot[];
+  activeBot: Bot | null;
   isCreating: boolean;
   isLoading: boolean;
   selectedToken: string | null;
-  tokenPrice: any;
-  botStatus: BotStatus;
-  activeOrders: Order[];
+  tokenPrice: number;
+  botStatus: 'running' | 'idle' | 'paused';
+  activeOrders: ActiveOrder[];
   selectedTokenPrice: TokenPriceInfo | null;
   selectedTokenDetails: Token | undefined;
   tokens: Token[];
@@ -54,13 +70,13 @@ export interface TradingBotHook {
   
   // Bot configuration
   config: TradingBotConfig;
-  updateConfig: (newConfig: Partial<TradingBotConfig>) => void;
+  updateConfig: (config: Partial<TradingBotConfig>) => void;
   
   // Bot actions
-  loadBots: () => Promise<void>;
+  loadBots: () => Promise<Bot[]>;
   selectToken: (token: string | null) => Promise<void>;
-  setActiveBot: (bot: any) => void;
-  createBot: (botConfig: any) => Promise<any | null>;
+  setActiveBot: (bot: Bot | null) => void;
+  createBot: (config: TradingBotConfig) => Promise<Bot | null>;
   startBot: () => void;
   stopBot: () => void;
   cleanup: () => void;

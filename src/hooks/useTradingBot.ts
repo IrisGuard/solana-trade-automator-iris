@@ -26,7 +26,8 @@ export function useTradingBot(): TradingBotHook {
   } = useBotActions();
   
   const {
-    price: tokenPrice,
+    price,
+    isLoading: isPriceLoading,
     selectedTokenPrice,
     selectedTokenDetails,
     setupPriceSubscription,
@@ -34,12 +35,14 @@ export function useTradingBot(): TradingBotHook {
   } = usePriceSubscription();
 
   // Select token for trading
-  const selectToken = useCallback(async (token: string | null) => {
-    updateConfig({ selectedToken: token });
+  const selectToken = useCallback(async (tokenAddress: string | null) => {
+    updateConfig({ selectedToken: tokenAddress });
     
     // Find token details and setup price subscription
-    const tokenDetails = findTokenDetails(token);
-    await setupPriceSubscription(token);
+    const tokenDetails = tokenAddress ? findTokenDetails(tokenAddress) : undefined;
+    if (tokenAddress && tokenDetails) {
+      await setupPriceSubscription(tokenAddress);
+    }
     
   }, [updateConfig, findTokenDetails, setupPriceSubscription]);
 
@@ -64,7 +67,7 @@ export function useTradingBot(): TradingBotHook {
     isCreating,
     isLoading,
     selectedToken: config.selectedToken,
-    tokenPrice,
+    tokenPrice: price,
     botStatus,
     activeOrders,
     selectedTokenPrice,
