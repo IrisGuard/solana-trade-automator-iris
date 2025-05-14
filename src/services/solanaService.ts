@@ -1,32 +1,37 @@
 
-// This file re-exports all Solana service functionality
-import { walletService } from './solana/walletService';
-import { tokenService } from './solana/tokenService';
-import { priceService } from './solana/priceService';
+import { Connection, PublicKey } from '@solana/web3.js';
+import { walletService } from './solana/wallet';
+import { tokenService } from './solana/token';
 import { transactionService } from './solana/transaction';
+import { priceService } from './solana/price';
+import { Token } from '@/types/wallet';
+import { TokenPriceData } from './solana/price/types';
 
-// Create a combined service for easier access
+// Export a unified solanaService object
 export const solanaService = {
-  // Wallet Methods
-  connectWallet: walletService.getConnection,
-  disconnectWallet: () => Promise.resolve(true), // No explicit disconnect in walletService
+  // Wallet methods
+  getConnection: walletService.getConnection,
+  getSolBalance: walletService.getSolBalance,
+  connectWallet: walletService.connect,
+  disconnectWallet: walletService.disconnect,
   fetchSOLBalance: walletService.getSolBalance,
+  sendToken: walletService.sendToken,
   
-  // Token Methods
-  fetchTokenBalance: tokenService.getTokenAccounts,
+  // Token methods
+  getTokenAccounts: tokenService.getTokenAccounts,
+  getTokenPrice: tokenService.getTokenPrice,
+  fetchTokenBalance: tokenService.getTokenBalance,
   fetchAllTokenBalances: tokenService.getTokenAccounts,
-  fetchTokenPrices: priceService.getTokenPrice,
+  fetchTokenPrices: (tokenAddress: string): Promise<TokenPriceData> => {
+    return priceService.getTokenPrice(tokenAddress);
+  },
   
-  // Transaction Methods
-  fetchTransactionHistory: transactionService.getRecentTransactions,
+  // Transaction methods
+  getRecentTransactions: transactionService.getRecentTransactions,
   parseTransaction: transactionService.parseTransaction,
+  fetchTransactions: transactionService.getRecentTransactions,
   
-  // Re-export individual services for direct access if needed
-  wallet: walletService,
-  token: tokenService,
-  price: priceService,
-  transaction: transactionService
+  // Price methods
+  subscribeToPriceUpdates: priceService.subscribeToPriceUpdates,
+  unsubscribeFromPriceUpdates: priceService.unsubscribeFromPriceUpdates
 };
-
-// Export the combined service as default
-export default solanaService;

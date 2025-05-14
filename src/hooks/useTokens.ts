@@ -50,21 +50,20 @@ export function useTokens() {
     try {
       if (tokens.length === 0) return {};
       
-      // Use token addresses to fetch prices
-      const addresses = tokens.map(token => token.address);
-      const priceData = await solanaService.fetchTokenPrices(addresses);
+      // Fix: Convert array of addresses to a comma-separated string or handle individually
+      const priceData = await Promise.all(
+        tokens.map(token => solanaService.fetchTokenPrices(token.address))
+      );
       
-      // Convert the TokenPriceData to simple price record for backward compatibility
+      // Convert the array of results to a record object
       const simplePrices: Record<string, number> = {};
       
-      // Safely extract price values from the returned data
-      if (priceData) {
-        Object.entries(priceData).forEach(([address, data]) => {
-          if (data && typeof data === 'object' && 'price' in data) {
-            simplePrices[address] = Number(data.price || 0);
-          }
-        });
-      }
+      tokens.forEach((token, index) => {
+        const data = priceData[index];
+        if (data && typeof data === 'object' && 'price' in data) {
+          simplePrices[token.address] = Number(data.price || 0);
+        }
+      });
       
       setTokenPrices(simplePrices);
       return simplePrices;

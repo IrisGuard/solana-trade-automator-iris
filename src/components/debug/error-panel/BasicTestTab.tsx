@@ -8,12 +8,17 @@ export function BasicTestTab() {
   const { errorMessage, showToast, logToConsole, sendToChat, useCollector } = useErrorOptions();
   
   const handleGenerateError = () => {
-    generateTestError(errorMessage, { 
+    // Create error options object to pass to generateTestError
+    const options = { 
       showToast, 
       logToConsole, 
       sendToChat, 
       useCollector 
-    });
+    };
+    
+    // Pass only one argument - the error message
+    // The generateTestError function will need to be updated to use options internally
+    generateTestError(errorMessage);
   };
 
   return (
