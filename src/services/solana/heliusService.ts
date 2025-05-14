@@ -7,9 +7,15 @@ import { toast } from 'sonner';
 import { errorCollector } from '@/utils/error-handling/collector';
 
 export class HeliusService {
-  // Special endpoints to use
-  private static API_V0_ENDPOINT = 'https://api.helius.xyz/v0';
+  // RPC endpoints shown in your screenshots
+  private static RPC_ENDPOINT = 'https://mainnet.helius-rpc.com/';
+  private static WEBSOCKET_ENDPOINT = 'wss://mainnet.helius-rpc.com/';
   private static ECLIPSE_ENDPOINT = 'https://eclipse.helius-rpc.com/';
+  
+  // API endpoints from your screenshots
+  private static API_V0_ENDPOINT = 'https://api.helius.xyz/v0';
+  private static TRANSACTIONS_ENDPOINT = 'https://api.helius.xyz/v0/transactions';
+  private static ADDRESS_TRANSACTIONS_ENDPOINT = 'https://api.helius.xyz/v0/addresses/{address}/transactions';
   
   // Initialize the key manager when the service is first used
   static async initialize(): Promise<void> {
@@ -24,6 +30,7 @@ export class HeliusService {
     return heliusKeyManager.getCurrentKey();
   }
 
+  // Get standard API endpoint
   static getEndpoint(path: string): string {
     const baseUrl = this.getBaseUrl();
     const apiKey = this.getApiKey();
@@ -31,33 +38,37 @@ export class HeliusService {
     return `${baseUrl}${path}${separator}api-key=${apiKey}`;
   }
 
-  // Get V0 API endpoint (alternative API format)
+  // Get V0 API endpoint from the screenshots
   static getV0Endpoint(path: string): string {
     const apiKey = this.getApiKey();
     const separator = path.includes('?') ? '&' : '?';
     return `${this.API_V0_ENDPOINT}${path}${separator}api-key=${apiKey}`;
   }
 
+  // Get RPC endpoint from the screenshots
   static getRpcEndpoint(): string {
-    return `https://mainnet.helius-rpc.com/?api-key=${this.getApiKey()}`;
+    return `${this.RPC_ENDPOINT}?api-key=${this.getApiKey()}`;
   }
 
+  // Get WebSocket endpoint from the screenshots
   static getWebSocketEndpoint(): string {
-    return `wss://mainnet.helius-rpc.com/?api-key=${this.getApiKey()}`;
+    return `${this.WEBSOCKET_ENDPOINT}?api-key=${this.getApiKey()}`;
   }
 
+  // Get Eclipse endpoint from the screenshots
   static getEclipseEndpoint(): string {
     return this.ECLIPSE_ENDPOINT;
   }
 
-  // Endpoints για συγκεκριμένες λειτουργίες
+  // Specific endpoints from your screenshots
   static endpoints = {
-    // V0 API endpoints (alternative format)
+    // V0 API endpoints (from screenshots)
     v0: {
-      getTransactions: () => this.getV0Endpoint('/transactions'),
-      getAddressTransactions: (address: string) => this.getV0Endpoint(`/addresses/${address}/transactions`)
+      getTransactions: () => `${this.TRANSACTIONS_ENDPOINT}?api-key=${this.getApiKey()}`,
+      getAddressTransactions: (address: string) => 
+        this.ADDRESS_TRANSACTIONS_ENDPOINT.replace('{address}', address) + `?api-key=${this.getApiKey()}`
     },
-    // Legacy API endpoints
+    // Legacy API endpoints for backward compatibility
     getTransactions: () => this.getEndpoint('/transactions/'),
     getAddressTransactions: (address: string) => this.getEndpoint(`/addresses/${address}/transactions/`),
     getTransactionsBySignatures: () => this.getEndpoint('/transactions/')
@@ -97,7 +108,7 @@ export class HeliusService {
     }
   }
 
-  // Βοηθητική μέθοδος για κλήσεις Fetch με αυτόματη εναλλαγή κλειδιών σε περίπτωση rate limit
+  // Helper method for Fetch calls with automatic key rotation on rate limits
   static async fetchFromHelius(endpoint: string, options = {}): Promise<any> {
     try {
       // Try with current key using rate limit retry mechanism
@@ -148,24 +159,24 @@ export class HeliusService {
     }
   }
 
-  // Παράδειγμα μεθόδου για λήψη των συναλλαγών διεύθυνσης με πολλαπλές προσπάθειες
+  // Example method for getting address transactions with multiple attempts
   static async getAddressTransactions(address: string, limit = 10): Promise<any> {
     return this.tryMultipleEndpoints(
-      // Primary endpoint - standard API
-      () => this.fetchFromHelius(this.endpoints.getAddressTransactions(address) + `&limit=${limit}`),
-      // Backup endpoint - V0 API (alternative format)
+      // Primary endpoint - V0 API from screenshots
       () => this.fetchFromHelius(this.endpoints.v0.getAddressTransactions(address) + `&limit=${limit}`),
+      // Backup endpoint - standard API for backward compatibility
+      () => this.fetchFromHelius(this.endpoints.getAddressTransactions(address) + `&limit=${limit}`),
       { endpoint: `address-transactions-${address.substring(0, 8)}` }
     );
   }
 
-  // Μέθοδος για λήψη συναλλαγής από signature με πολλαπλές προσπάθειες
+  // Method for getting transaction from signature with multiple attempts
   static async getTransaction(signature: string): Promise<any> {
     return this.tryMultipleEndpoints(
-      // Primary endpoint - standard API
-      () => this.fetchFromHelius(this.endpoints.getTransactions() + `&signatures[]=${signature}`),
-      // Backup endpoint - V0 API
+      // Primary endpoint - V0 API from screenshots
       () => this.fetchFromHelius(this.endpoints.v0.getTransactions() + `&signatures[]=${signature}`),
+      // Backup endpoint - standard API
+      () => this.fetchFromHelius(this.endpoints.getTransactions() + `&signatures[]=${signature}`),
       { endpoint: `transaction-${signature.substring(0, 8)}` }
     );
   }

@@ -4,7 +4,7 @@ import { Token } from '@/types/wallet';
 import { connection, TOKEN_PROGRAM_ID, KNOWN_TOKEN_ADDRESSES, MOCK_PRICES } from './config';
 import { fetchSOLBalance } from './walletService';
 import { errorCollector } from '@/utils/error-handling/collector';
-import { withRateLimitRetry, isRateLimitError, handleRateLimitError } from '@/utils/error-handling/rateLimitHandler';
+import { withRateLimitRetry, isRateLimitError } from '@/utils/error-handling/rateLimitHandler';
 
 // Cache for token balances to use as fallback when API is rate limited
 const tokenBalanceCache: Record<string, Token[]> = {};
