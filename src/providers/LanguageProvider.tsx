@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import enTranslations from '@/locales/en';
 import elTranslations from '@/locales/el';
 
@@ -18,7 +18,7 @@ const translations: Record<string, Translations> = {
   en: enTranslations,
 };
 
-const LanguageContext = createContext<LanguageContextType>({
+export const LanguageContext = createContext<LanguageContextType>({
   t: () => '',
   language: 'el',
   setLanguage: () => {},
@@ -103,5 +103,3 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     </LanguageContext.Provider>
   );
 }
-
-export const useLanguage = () => useContext(LanguageContext);
