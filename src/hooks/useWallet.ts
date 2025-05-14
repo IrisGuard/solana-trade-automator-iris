@@ -1,137 +1,260 @@
 
-import { useState, useEffect } from 'react';
-import { Token } from '@/types/wallet';
-import { toast } from 'sonner';
-import { getSolBalance } from '@/services/solana/token/balance';
+import { useState, useEffect } from "react";
+import { useWallet as useSolanaWallet } from "@solana/wallet-adapter-react";
+import { Token } from "@/types/wallet";
+import { v4 as uuidv4 } from "uuid";
 
-export function useWallet() {
-  const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [isConnecting, setIsConnecting] = useState<boolean>(false);
-  const [walletAddress, setWalletAddress] = useState<string>('');
+// Διασύνδεση που ορίζει τη δομή του hook
+export interface UseWalletReturn {
+  isConnected: boolean;
+  isConnecting: boolean;
+  walletAddress: string;
+  tokens: Token[];
+  balance: number;
+  solBalance: number;
+  tokenPrices: Record<string, number>;
+  isLoadingTokens: boolean;
+  connectWallet: () => Promise<boolean>;
+  disconnectWallet: () => void;
+  refreshWalletData: () => Promise<boolean>;
+  selectTokenForTrading: (token: Token) => void;
+  isSimulation: boolean;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  makers: number;
+  setMakers: (makers: number) => void;
+  minDelay: number;
+  setMinDelay: (delay: number) => void;
+  maxDelay: number;
+  setMaxDelay: (delay: number) => void;
+  priceBoost: number;
+  setPriceBoost: (boost: number) => void;
+  botActive: boolean;
+  tokenAmount: number;
+  solAmount: number;
+  apiKeys: any[];
+  isUnlocked: boolean;
+  apiSettings: any;
+  setApiSettings: (settings: any) => void;
+  setTokenAmount: (amount: number) => void;
+  setSolAmount: (amount: number) => void;
+  toggleSimulation: () => void;
+  handleConnectWallet: () => Promise<void>;
+  handleDisconnectWallet: () => void;
+  handleStartBot: () => void;
+  handleStopBot: () => void;
+  handleBoostPrice: () => void;
+  handleApiConnect: () => void;
+  handleUnlockVault: () => void;
+  handleLockVault: () => void;
+  handleSaveApiSettings: () => void;
+  handleExportKeys: () => void;
+  handleImportKeys: () => void;
+}
+
+export function useWallet(): UseWalletReturn {
+  const solanaWallet = useSolanaWallet();
+  const [isConnecting, setIsConnecting] = useState(false);
   const [tokens, setTokens] = useState<Token[]>([]);
-  const [balance, setBalance] = useState<number>(0);
-  const [solBalance, setSolBalance] = useState<number>(0);
+  const [solBalance, setSolBalance] = useState(0);
+  const [isLoadingTokens, setIsLoadingTokens] = useState(false);
   const [tokenPrices, setTokenPrices] = useState<Record<string, number>>({});
-  const [isLoadingTokens, setIsLoadingTokens] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [isSimulation, setIsSimulation] = useState(false);
+  const [makers, setMakers] = useState(5);
+  const [minDelay, setMinDelay] = useState(1000);
+  const [maxDelay, setMaxDelay] = useState(5000);
+  const [priceBoost, setPriceBoost] = useState(5);
+  const [botActive, setBotActive] = useState(false);
+  const [tokenAmount, setTokenAmount] = useState(1000);
+  const [solAmount, setSolAmount] = useState(5);
+  const [apiKeys, setApiKeys] = useState<any[]>([]);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [apiSettings, setApiSettings] = useState({});
 
-  // Sample token data for the demo
+  const toggleSimulation = () => setIsSimulation(prev => !prev);
+
+  // Ανάκτηση δεδομένων πορτοφολιού
   useEffect(() => {
-    if (isConnected && walletAddress) {
-      setTokens([
-        {
-          address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          name: 'USD Coin',
-          symbol: 'USDC',
-          amount: 125.45,
-          decimals: 6,
-          logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png'
-        },
-        {
-          address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
-          name: 'USDT',
-          symbol: 'USDT',
-          amount: 75.2,
-          decimals: 6,
-          logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.png'
-        },
-        {
-          address: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
-          name: 'Marinade staked SOL',
-          symbol: 'mSOL',
-          amount: 3.7,
-          decimals: 9,
-          logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png'
-        }
-      ]);
-      
-      setTokenPrices({
-        'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v': 1,
-        'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB': 1,
-        'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So': 30.45,
-      });
+    if (solanaWallet.connected) {
+      refreshWalletData();
+    } else {
+      // Καθαρισμός δεδομένων όταν το πορτοφόλι αποσυνδεθεί
+      setTokens([]);
+      setSolBalance(0);
     }
-  }, [isConnected, walletAddress]);
+  }, [solanaWallet.connected]);
 
-  // Get SOL balance when wallet is connected
-  useEffect(() => {
-    if (isConnected && walletAddress) {
-      fetchSolBalance();
-    }
-  }, [isConnected, walletAddress]);
-
-  const fetchSolBalance = async () => {
-    if (!walletAddress) return;
+  // Συνάρτηση για ανανέωση των δεδομένων του πορτοφολιού
+  const refreshWalletData = async (): Promise<boolean> => {
+    if (!solanaWallet.connected || !solanaWallet.publicKey) return false;
+    
+    setIsLoadingTokens(true);
     
     try {
-      const bal = await getSolBalance(walletAddress);
-      setSolBalance(bal);
-      setBalance(bal);
+      // Προσομοίωση ανάκτησης SOL balance
+      const mockSolBalance = 5 + Math.random() * 2;
+      setSolBalance(mockSolBalance);
+      
+      // Προσομοίωση ανάκτησης tokens
+      const mockTokens: Token[] = [
+        {
+          address: "mock-token-1",
+          symbol: "SOL",
+          name: "Solana",
+          amount: mockSolBalance,
+          logo: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png"
+        },
+        {
+          address: "mock-token-2",
+          symbol: "USDC",
+          name: "USD Coin",
+          amount: 100 + Math.random() * 50,
+          logo: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png"
+        },
+        {
+          address: "mock-token-3",
+          symbol: "BONK",
+          name: "Bonk",
+          amount: 1000000 + Math.random() * 500000,
+          logo: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263/logo.png"
+        }
+      ];
+      
+      setTokens(mockTokens);
+      
+      // Προσομοίωση τιμών tokens
+      const mockPrices: Record<string, number> = {
+        "mock-token-1": 70 + Math.random() * 10,
+        "mock-token-2": 0.98 + Math.random() * 0.04,
+        "mock-token-3": 0.00001 + Math.random() * 0.000005
+      };
+      
+      setTokenPrices(mockPrices);
+      
+      return true;
     } catch (error) {
-      console.error('Error fetching SOL balance:', error);
+      console.error("Failed to load wallet data:", error);
+      return false;
+    } finally {
+      setIsLoadingTokens(false);
     }
   };
 
+  // Σύνδεση πορτοφολιού
   const connectWallet = async (): Promise<boolean> => {
-    setIsConnecting(true);
-    
     try {
-      // This is a mock implementation, in a real app, you would use Phantom or another wallet provider
-      const mockAddress = '8YLKoCr7NdU1XgR5MjqXgmT3UNJqj2GrTwmJaWjfAxGz';
-      setWalletAddress(mockAddress);
-      setIsConnected(true);
-      toast.success('Wallet connected successfully');
+      setIsConnecting(true);
+      await solanaWallet.select('Phantom');
+      await solanaWallet.connect();
       return true;
     } catch (error) {
-      console.error('Error connecting wallet:', error);
-      toast.error('Failed to connect wallet');
+      console.error("Failed to connect wallet:", error);
       return false;
     } finally {
       setIsConnecting(false);
     }
   };
 
+  // Αποσύνδεση πορτοφολιού
   const disconnectWallet = () => {
-    setWalletAddress('');
-    setIsConnected(false);
-    setTokens([]);
-    setBalance(0);
-    setSolBalance(0);
-    toast.success('Wallet disconnected');
+    solanaWallet.disconnect();
   };
 
-  const refreshWalletData = async () => {
-    setIsLoadingTokens(true);
-    try {
-      await fetchSolBalance();
-      // In a real app, you would refresh token balances here
-      
-      toast.success('Wallet data updated');
-    } catch (error) {
-      console.error('Error refreshing wallet data:', error);
-      toast.error('Failed to update wallet data');
-    } finally {
-      setIsLoadingTokens(false);
-    }
-  };
-
+  // Επιλογή token για trading
   const selectTokenForTrading = (token: Token) => {
-    // Implement token selection for trading
-    toast.success(`Selected ${token.symbol} for trading`);
-    return token;
+    console.log(`Selected token for trading: ${token.symbol}`);
+  };
+
+  // Handlers για το UI
+  const handleConnectWallet = async () => {
+    await connectWallet();
+  };
+
+  const handleDisconnectWallet = () => {
+    disconnectWallet();
+  };
+
+  const handleStartBot = () => {
+    setBotActive(true);
+  };
+
+  const handleStopBot = () => {
+    setBotActive(false);
+  };
+
+  const handleBoostPrice = () => {
+    console.log(`Boosting price by ${priceBoost}%`);
+  };
+
+  const handleApiConnect = () => {
+    console.log('Connecting to API');
+  };
+
+  const handleUnlockVault = () => {
+    setIsUnlocked(true);
+  };
+
+  const handleLockVault = () => {
+    setIsUnlocked(false);
+  };
+
+  const handleSaveApiSettings = () => {
+    console.log('Saving API settings');
+  };
+
+  const handleExportKeys = () => {
+    console.log('Exporting keys');
+  };
+
+  const handleImportKeys = () => {
+    console.log('Importing keys');
   };
 
   return {
-    isConnected,
+    isConnected: solanaWallet.connected,
     isConnecting,
-    walletAddress,
+    walletAddress: solanaWallet.publicKey?.toString() || '',
     tokens,
-    balance,
+    balance: solBalance,
     solBalance,
     tokenPrices,
     isLoadingTokens,
     connectWallet,
     disconnectWallet,
     refreshWalletData,
-    selectTokenForTrading
+    selectTokenForTrading,
+    isSimulation,
+    activeTab,
+    setActiveTab,
+    makers,
+    setMakers,
+    minDelay,
+    setMinDelay,
+    maxDelay,
+    setMaxDelay,
+    priceBoost,
+    setPriceBoost,
+    botActive,
+    tokenAmount,
+    solAmount,
+    apiKeys,
+    isUnlocked,
+    apiSettings,
+    setApiSettings,
+    setTokenAmount,
+    setSolAmount,
+    toggleSimulation,
+    handleConnectWallet,
+    handleDisconnectWallet,
+    handleStartBot,
+    handleStopBot,
+    handleBoostPrice,
+    handleApiConnect,
+    handleUnlockVault,
+    handleLockVault,
+    handleSaveApiSettings,
+    handleExportKeys,
+    handleImportKeys
   };
 }

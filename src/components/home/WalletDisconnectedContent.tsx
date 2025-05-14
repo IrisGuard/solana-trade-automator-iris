@@ -23,13 +23,13 @@ export const WalletDisconnectedContent: React.FC<WalletDisconnectedContentProps>
   
   return (
     <>
-      <Grid item xs={12} md={4}>
+      <Grid component="div" item xs={12} md={4}>
         <div className="space-y-4">
           <ConnectWalletCard onConnect={handleConnect} isConnecting={isConnecting} />
           <PlatformInfoCard />
         </div>
       </Grid>
-      <Grid item xs={12} md={8}>
+      <Grid component="div" item xs={12} md={8}>
         <div className="rounded-lg border border-border bg-card p-6 shadow-sm space-y-8">
           <div className="text-center">
             <h3 className="text-xl font-semibold mb-2">

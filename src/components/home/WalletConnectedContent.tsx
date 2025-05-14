@@ -23,7 +23,7 @@ export const WalletConnectedContent: React.FC<WalletConnectedContentProps> = ({
 }) => {
   return (
     <>
-      <Grid item xs={12} md={4}>
+      <Grid component="div" item xs={12} md={4}>
         <div className="space-y-4">
           <WalletInfoCard 
             walletAddress={walletAddress}
@@ -34,17 +34,17 @@ export const WalletConnectedContent: React.FC<WalletConnectedContentProps> = ({
         </div>
       </Grid>
       
-      <Grid item xs={12} md={8}>
+      <Grid component="div" item xs={12} md={8}>
         <div className="space-y-4">
           <TokensCard tokens={tokens} />
           <Grid container spacing={4}>
-            <Grid item xs={12} md={6}>
+            <Grid component="div" item xs={12} md={6}>
               <TransactionsCard 
                 walletAddress={walletAddress} 
                 displayAddress={walletAddress}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid component="div" item xs={12} md={6}>
               <BotStatusCard />
             </Grid>
           </Grid>

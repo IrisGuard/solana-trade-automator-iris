@@ -35,7 +35,7 @@ export function useTradingBot(): TradingBotHook {
   // Initialize with first token if available
   useEffect(() => {
     if (walletTokens.length > 0 && !selectedTokenDetails) {
-      selectToken(walletTokens[0]);
+      selectToken(walletTokens[0].address);
     }
   }, [walletTokens]);
   
@@ -95,7 +95,15 @@ export function useTradingBot(): TradingBotHook {
   }, [botStatus, selectedTokenPrice]);
   
   // Select a token for trading
-  const selectToken = async (token: Token) => {
+  const selectToken = async (tokenAddress: string | null) => {
+    if (!tokenAddress) {
+      setSelectedTokenDetails(null);
+      setSelectedTokenPrice(null);
+      return Promise.resolve();
+    }
+    
+    // Find the token in wallet tokens
+    const token = walletTokens.find(t => t.address === tokenAddress) || null;
     setSelectedTokenDetails(token);
     setSelectedTokenPrice(null); // Reset price to trigger a new fetch
     return Promise.resolve();
@@ -111,7 +119,7 @@ export function useTradingBot(): TradingBotHook {
   
   // Start the trading bot
   const startBot = async () => {
-    if (!selectedTokenDetails) return;
+    if (!selectedTokenDetails) return Promise.resolve();
     
     setIsLoading(true);
     

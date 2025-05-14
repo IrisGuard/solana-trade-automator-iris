@@ -1,28 +1,48 @@
 
-import { errorCollector } from '@/utils/error-handling/collector';
+import { ErrorOptions } from './error-handling/types';
+import { errorCollector } from './error-handling/collector';
+import { v4 as uuidv4 } from 'uuid';
 
-export const clearAllErrors = () => {
-  errorCollector.clearAllErrors();
-};
-
-export const simulateError = (message: string, code?: string): Error => {
-  const error = new Error(message);
-  if (code) {
-    (error as any).code = code;
+/**
+ * Πυροδοτεί ένα δοκιμαστικό σφάλμα για σκοπούς ελέγχου
+ */
+export function triggerTestError(options?: ErrorOptions): void {
+  const testError = new Error(options?.message || 'This is a test error');
+  
+  // Προσθήκη επιπλέον πληροφοριών στο σφάλμα
+  if (options?.source) {
+    (testError as any).source = options.source;
   }
-  return error;
-};
+  
+  if (options?.component) {
+    (testError as any).component = options.component;
+  }
 
-export const simulateNetworkError = (status = 500, statusText = 'Internal Server Error'): Error => {
-  const error = new Error(`Network error: ${status} ${statusText}`);
-  (error as any).status = status;
-  return error;
-};
+  // Καταγραφή του σφάλματος
+  errorCollector.captureError(testError, options);
+  
+  // Εμφάνιση στην κονσόλα
+  if (options?.logToConsole !== false) {
+    console.error('Test Error:', testError);
+  }
+  
+  // Ενημέρωση του UI αν χρειάζεται
+  if (options?.sendToUI) {
+    const errorEvent = new CustomEvent('app-error', { 
+      detail: { 
+        error: testError, 
+        id: uuidv4(),
+        timestamp: new Date().toISOString()
+      } 
+    });
+    window.dispatchEvent(errorEvent);
+  }
+}
 
-export const simulateAsyncError = async (): Promise<void> => {
-  return new Promise((_, reject) => {
-    setTimeout(() => {
-      reject(new Error('Simulated async operation failed'));
-    }, 500);
-  });
-};
+/**
+ * Καθαρίζει όλα τα καταγεγραμμένα σφάλματα
+ */
+export function clearAllErrors(): void {
+  errorCollector.clearAllErrors();
+  console.log('All errors have been cleared');
+}

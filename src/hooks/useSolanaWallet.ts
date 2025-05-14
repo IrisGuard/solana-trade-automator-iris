@@ -1,111 +1,92 @@
 
-import { useState, useEffect } from 'react';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { toast } from 'sonner';
-import { useErrorReporting } from './useErrorReporting';
-import { WalletName } from '@solana/wallet-adapter-base';
+import { useState, useEffect } from "react";
+import { useWallet as useSolanaAdapter } from "@solana/wallet-adapter-react";
+import { errorCollector } from "@/utils/error-handling/collector";
+import { ErrorOptions } from "@/utils/error-handling/types";
 
 export function useSolanaWallet() {
-  const { connection } = useConnection();
-  const { publicKey, connected, connecting, select, disconnect } = useWallet();
-  const [balance, setBalance] = useState<number | null>(null);
+  const solanaAdapter = useSolanaAdapter();
   const [isLoading, setIsLoading] = useState(false);
-  const { reportError } = useErrorReporting();
-  
-  // Φορτώνει το υπόλοιπο SOL όταν συνδέεται το πορτοφόλι
+  const [solBalance, setSolBalance] = useState<number>(0);
+
   useEffect(() => {
-    let mounted = true;
-    
-    const loadBalance = async () => {
-      if (!publicKey || !connection) return;
-      
-      setIsLoading(true);
-      try {
-        const lamports = await connection.getBalance(publicKey);
-        const solBalance = lamports / LAMPORTS_PER_SOL;
-        
-        if (mounted) {
-          setBalance(solBalance);
-        }
-      } catch (error) {
-        console.error('Error fetching SOL balance:', error);
-        reportError(error as Error, {
-          component: 'SolanaWallet',
-          details: { action: 'getBalance' },
-          source: 'client'
-        });
-        
-        if (mounted) {
-          setBalance(null);
-          toast.error('Failed to load wallet balance');
-        }
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-    
-    if (connected && publicKey) {
-      loadBalance();
+    // Όταν συνδεθεί το πορτοφόλι, φόρτωσε το υπόλοιπο
+    if (solanaAdapter.connected && solanaAdapter.publicKey) {
+      loadSolBalance();
     } else {
-      setBalance(null);
+      // Επαναφορά των δεδομένων όταν αποσυνδεθεί
+      setSolBalance(0);
     }
-    
-    return () => {
-      mounted = false;
-    };
-  }, [connection, publicKey, connected, reportError]);
-  
-  // Μέθοδος για χειροκίνητη ανανέωση υπολοίπου
-  const refreshBalance = async () => {
-    if (!publicKey || !connection) {
+  }, [solanaAdapter.connected, solanaAdapter.publicKey]);
+
+  // Φόρτωση του υπόλοιπου SOL
+  const loadSolBalance = async () => {
+    if (!solanaAdapter.publicKey) {
       return;
     }
-    
-    setIsLoading(true);
+
     try {
-      const lamports = await connection.getBalance(publicKey);
-      setBalance(lamports / LAMPORTS_PER_SOL);
+      setIsLoading(true);
+      // Προσομοίωση αίτησης δικτύου - σε πραγματική εφαρμογή θα καλούσε μια API
+      setTimeout(() => {
+        // Τυχαίο υπόλοιπο για προσομοίωση
+        const mockBalance = 5.24 + (Math.random() * 10);
+        setSolBalance(mockBalance);
+        setIsLoading(false);
+      }, 1000);
     } catch (error) {
-      console.error('Error refreshing SOL balance:', error);
-      reportError(error as Error, {
-        component: 'SolanaWallet',
-        details: { action: 'refreshBalance' },
-        source: 'client'
+      errorCollector.captureError(error as Error, {
+        source: "wallet-api",
+        message: "Failed to load SOL balance",
+        component: "SolanaWallet" 
       });
-      toast.error('Failed to refresh wallet balance');
+      setIsLoading(false);
+      throw error;
+    }
+  };
+
+  // Σύνδεση πορτοφολιού
+  const connect = async (): Promise<boolean> => {
+    try {
+      setIsLoading(true);
+      // Επιλογή του πρώτου διαθέσιμου wallet
+      if (!solanaAdapter.wallet) {
+        await solanaAdapter.select('Phantom');
+      }
+      
+      await solanaAdapter.connect();
+      return true;
+    } catch (error) {
+      errorCollector.captureError(error as Error, {
+        source: "wallet-connection",
+        message: "Failed to connect wallet",
+        component: "SolanaWallet"
+      });
+      return false;
     } finally {
       setIsLoading(false);
     }
   };
-  
-  // Μέθοδος για σύνδεση πορτοφολιού με συγκεκριμένο provider
-  const connectWallet = (providerName: string) => {
+
+  // Αποσύνδεση πορτοφολιού
+  const disconnect = async (): Promise<void> => {
     try {
-      // Instead of casting, we use the WalletName for typesafety
-      // This assumes providerName is one of the valid wallet names
-      select(providerName as unknown as WalletName);
+      await solanaAdapter.disconnect();
     } catch (error) {
-      console.error('Error connecting wallet:', error);
-      reportError(error as Error, {
-        component: 'SolanaWallet',
-        details: { action: 'connectWallet', provider: providerName },
-        source: 'client'
+      errorCollector.captureError(error as Error, {
+        source: "wallet-connection",
+        message: "Failed to disconnect wallet",
+        component: "SolanaWallet"
       });
-      toast.error('Failed to connect wallet');
     }
   };
-  
+
   return {
-    address: publicKey?.toString() || null,
-    connected,
-    connecting,
-    balance,
+    ...solanaAdapter,
     isLoading,
-    connectWallet,
-    disconnectWallet: disconnect,
-    refreshBalance
+    solBalance,
+    loadSolBalance,
+    connect,
+    disconnect
   };
 }
