@@ -1,12 +1,11 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import en from "../locales/en";
 import el from "../locales/el";
 
-type TranslationValue = string | Record<string, any>;
+// Define a type for translations using the en object as reference
 type Translations = typeof en;
 
-// Τύποι για το language context
+// Types for the language context
 interface LanguageContextType {
   t: (key: string, section?: string) => string;
   translations: Translations;
@@ -19,7 +18,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export function useLanguage() {
   const context = useContext(LanguageContext);
   if (!context) {
-    throw new Error("useLanguage πρέπει να χρησιμοποιείται μέσα σε LanguageProvider");
+    throw new Error("useLanguage must be used within a LanguageProvider");
   }
   return context;
 }
@@ -29,16 +28,16 @@ interface LanguageProviderProps {
 }
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  const [language, setLanguage] = useState<"en" | "el">("el"); // Default σε Ελληνικά
-  const [translations, setTranslations] = useState<Translations>(el);
+  const [language, setLanguage] = useState<"en" | "el">("el"); // Default to Greek
+  const [translations, setTranslations] = useState<Translations>(language === "en" ? en : el as unknown as Translations);
 
-  // Ενημέρωση των μεταφράσεων όταν αλλάζει η γλώσσα
+  // Update translations when language changes
   useEffect(() => {
-    setTranslations(language === "en" ? en : el);
+    setTranslations(language === "en" ? en : el as unknown as Translations);
     document.documentElement.setAttribute("lang", language);
   }, [language]);
 
-  // Διατήρηση της επιλεγμένης γλώσσας στο localStorage
+  // Keep the selected language in localStorage
   useEffect(() => {
     const savedLanguage = localStorage.getItem("app-language");
     if (savedLanguage === "en" || savedLanguage === "el") {
@@ -46,12 +45,12 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     }
   }, []);
 
-  // Αποθήκευση της επιλεγμένης γλώσσας όταν αλλάζει
+  // Save the selected language when it changes
   useEffect(() => {
     localStorage.setItem("app-language", language);
   }, [language]);
 
-  // Βοηθητική συνάρτηση για να παίρνουμε μεταφράσεις με dot notation (π.χ., "general.save")
+  // Helper function to get translations with dot notation (e.g., "general.save")
   const t = (key: string, section?: string): string => {
     try {
       if (!key) return "";
@@ -73,7 +72,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       
       return typeof result === 'string' ? result : key;
     } catch (error) {
-      console.error("Σφάλμα μετάφρασης:", error, key);
+      console.error("Translation error:", error, key);
       return key;
     }
   };
