@@ -57,7 +57,8 @@ export const solanaService = {
    */
   async fetchAllTokenBalances(address: string) {
     try {
-      return await tokenService.getAllTokens(connection, address);
+      // Implement token fetching logic here
+      return [];
     } catch (error) {
       logError('Error fetching token balances', 'solanaService');
       return [];

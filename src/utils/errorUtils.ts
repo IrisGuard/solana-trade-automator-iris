@@ -64,3 +64,26 @@ export function displayError(
     // Implementation for sending to chat
   }
 }
+
+/**
+ * Simple error logging function for service modules
+ */
+export function logError(message: string, source?: string, details?: any) {
+  console.error(`[${source || 'unknown'}]`, message, details || '');
+  
+  // Add to error collector
+  errorCollector.addError({
+    message,
+    stack: details?.stack || new Error().stack,
+    timestamp: new Date().toISOString(),
+    source: source || 'unknown',
+    details: details ? JSON.stringify(details) : undefined
+  });
+  
+  // Show toast in non-production environments
+  if (process.env.NODE_ENV !== 'production') {
+    toast.error(`Error: ${message}`, {
+      description: `Source: ${source || 'unknown'}`
+    });
+  }
+}

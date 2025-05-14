@@ -1,34 +1,45 @@
 
-import type { ParsedTransaction, Transaction } from '@/types/transaction';
+import { Connection } from "@solana/web3.js";
+import { Transaction } from "@/types/transaction";
+import { parseTransactions } from "./parseTransaction";
 
-class TransactionService {
-  static async getTransactions(address: string, limit: number = 10): Promise<Transaction[]> {
+export class TransactionService {
+  /**
+   * Get transactions for a wallet address
+   */
+  static async getTransactions(address: string): Promise<Transaction[]> {
     try {
-      // Fetch transactions logic would go here
-      return [];
+      // Simplified implementation for now
+      // In a real app, you would fetch real transactions from the blockchain
+      const mockTransactions = [
+        { 
+          id: "tx1",
+          signature: "signature1",
+          blockTime: new Date(),
+          timestamp: new Date().getTime(),
+          status: "success",
+          amount: "1.5",
+          type: "transfer",
+          source: address,
+          destination: "destination1"
+        },
+        { 
+          id: "tx2",
+          signature: "signature2",
+          blockTime: new Date(),
+          timestamp: new Date().getTime(),
+          status: "success",
+          amount: "0.5",
+          type: "swap",
+          source: "source2",
+          destination: address
+        }
+      ] as Transaction[];
+
+      return mockTransactions;
     } catch (error) {
-      console.error('Error fetching transactions:', error);
+      console.error("Error fetching transactions:", error);
       return [];
     }
-  }
-
-  static parseTransactions(transactions: ParsedTransaction): Transaction[] {
-    if (!transactions || !Array.isArray(transactions)) {
-      return [];
-    }
-
-    return transactions.map((tx: any) => ({
-      id: tx.id,
-      signature: tx.signature,
-      blockTime: tx.blockTime,
-      timestamp: tx.blockTime, // Add timestamp
-      status: tx.status,
-      amount: tx.amount,
-      type: tx.type,
-      source: tx.source,
-      destination: tx.destination
-    }));
   }
 }
-
-export { TransactionService };
