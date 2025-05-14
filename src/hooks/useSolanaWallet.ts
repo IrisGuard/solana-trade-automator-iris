@@ -1,11 +1,10 @@
-
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useConnection } from '@solana/wallet-adapter-react';
 import { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { Token } from '@/types/wallet';
-import { tokenService } from '@/services/solana/tokenService';
+import { tokenService } from '@/services/solana/token';
 
 export function useSolanaWallet() {
   const { connection } = useConnection();

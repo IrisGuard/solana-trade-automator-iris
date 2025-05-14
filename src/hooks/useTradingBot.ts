@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { tradingService, StopLossParams, TakeProfitParams, OrderParams } from '@/services/solana/tradingService';
-import { priceService, TokenPriceData } from '@/services/solana/priceService';
+import { priceService, TokenPriceData } from '@/services/solana/price';
 import { useSolanaWallet } from './useSolanaWallet';
 import { Token } from '@/types/wallet';
 

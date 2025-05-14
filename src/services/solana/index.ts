@@ -1,16 +1,17 @@
 
-// Re-export solana services for consistent access
-import { fetchTokenBalance, fetchAllTokenBalances } from './tokenService';
-import { fetchSOLBalance } from './walletService';
+// Export individual functions from each module
+import { fetchSOLBalance } from './wallet';
+import { fetchTokenBalance, fetchAllTokenBalances, fetchTokenPrices as fetchTokenPricesFromToken } from './token';
 import { fetchTransactionHistory } from './transaction';
-import { fetchTokenPrices } from './priceService';
+import { getTokenPrice, fetchTokenPrices as fetchTokenPricesFromPrice } from './price';
 
-// For backward compatibility with existing code
-import { walletService } from './walletService';
-import { tokenService } from './tokenService';
+// Import services for backward compatibility
+import { walletService } from './wallet';
+import { tokenService } from './token';
 import { transactionService } from './transaction';
 import { raydiumService } from './raydiumService';
 import { tradingService } from './tradingService';
+import { priceService } from './price';
 import { connection } from './config';
 
 // Export a standard interface for the modular approach
@@ -20,7 +21,7 @@ export const solanaService = {
   fetchAllTokenBalances,
   fetchSOLBalance,
   fetchTransactionHistory,
-  fetchTokenPrices,
+  fetchTokenPrices: fetchTokenPricesFromPrice,
   
   // Backward compatibility properties
   getConnection: () => connection,

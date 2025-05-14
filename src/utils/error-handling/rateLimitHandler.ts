@@ -16,6 +16,18 @@ const DEFAULT_RETRY_CONFIG: RetryConfig = {
 };
 
 /**
+ * Check if an error is due to rate limiting
+ */
+export function isRateLimitError(error: unknown): boolean {
+  const errorStr = String(error);
+  return errorStr.includes('rate limit') || 
+         errorStr.includes('429') || 
+         errorStr.includes('-32429') ||
+         errorStr.includes('Too many requests') ||
+         errorStr.includes('exceeded') && errorStr.includes('limit');
+}
+
+/**
  * Function that executes a task with automatic retries for Rate Limit errors
  */
 export async function withRateLimitRetry<T>(
@@ -33,11 +45,11 @@ export async function withRateLimitRetry<T>(
     } catch (error) {
       attempt++;
       const errorStr = String(error);
-      const isRateLimitError = isRateLimitError(error);
+      const isRateLimitDetected = isRateLimitError(error);
       
       // If it's not a rate limit error or we've exceeded retry attempts, forward the error
-      if (!isRateLimitError || attempt >= config.maxRetries) {
-        if (isRateLimitError) {
+      if (!isRateLimitDetected || attempt >= config.maxRetries) {
+        if (isRateLimitDetected) {
           console.warn(`Rate limit persists after ${attempt} attempts. Giving up.`);
           toast.error('Solana API rate limit exceeded. Please try again later.', {
             description: 'The application will use cached data if available.'
@@ -69,18 +81,6 @@ export async function withRateLimitRetry<T>(
       delay = Math.min(delay * config.backoffFactor, config.maxDelay);
     }
   }
-}
-
-/**
- * Check if an error is due to rate limiting
- */
-export function isRateLimitError(error: unknown): boolean {
-  const errorStr = String(error);
-  return errorStr.includes('rate limit') || 
-         errorStr.includes('429') || 
-         errorStr.includes('-32429') ||
-         errorStr.includes('Too many requests') ||
-         errorStr.includes('exceeded') && errorStr.includes('limit');
 }
 
 /**

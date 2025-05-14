@@ -4,6 +4,6 @@
 export { solanaService } from './solana';
 
 // Also export the individual functions for direct access
-export { fetchSOLBalance } from './solana/walletService';
-export { fetchTokenBalance, fetchAllTokenBalances, fetchTokenPrices } from './solana/tokenService';
+export { fetchSOLBalance } from './solana/wallet';
+export { fetchTokenBalance, fetchAllTokenBalances, fetchTokenPrices } from './solana/token';
 export { fetchTransactionHistory } from './solana/transaction';

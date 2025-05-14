@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
-import { fetchSOLBalance } from '@/services/solana/walletService';
+import { fetchSOLBalance } from '@/services/solana/wallet';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 
 /**
