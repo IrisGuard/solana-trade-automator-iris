@@ -1,24 +1,26 @@
 
 /**
- * Επιλογές για την εμφάνιση σφαλμάτων
+ * Επιλογές για την εμφάνιση και καταγραφή σφαλμάτων
  */
 export interface ErrorOptions {
-  /** Εμφάνιση toast μηνύματος */
+  // Επιλογές εμφάνισης
   showToast?: boolean;
-  /** Καταγραφή στην κονσόλα */
   logToConsole?: boolean;
-  /** Αποστολή στο chat */
   sendToChat?: boolean;
-  /** Χρήση του error collector */
   useCollector?: boolean;
-  /** Τίτλος του σφάλματος */
+  
+  // Μεταδεδομένα σφάλματος
   title?: string;
-  /** Συστατικό που προκάλεσε το σφάλμα */
   component?: string;
-  /** Επιπλέον λεπτομέρειες */
   details?: any;
-  /** Προέλευση σφάλματος (client/server) */
   source?: string;
+  
+  // Στοιχεία περιβάλλοντος
+  url?: string;
+  browserInfo?: any;
 }
 
-export { ErrorOptions as ErrorDisplayOptions };
+/**
+ * Επιλογές για την εμφάνιση σφαλμάτων (συντομογραφία)
+ */
+export type ErrorDisplayOptions = ErrorOptions;
