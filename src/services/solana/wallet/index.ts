@@ -15,5 +15,19 @@ export const walletService = {
   getSolBalance: fetchSOLBalance,
   
   // Send token functionality
-  sendToken
+  sendToken,
+
+  // Add connect method (simplified implementation)
+  connect: async (): Promise<boolean> => {
+    // This is a placeholder implementation
+    console.log('Connect wallet called');
+    return true;
+  },
+  
+  // Add disconnect method (simplified implementation)
+  disconnect: async (): Promise<boolean> => {
+    // This is a placeholder implementation
+    console.log('Disconnect wallet called');
+    return true;
+  }
 };

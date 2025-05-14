@@ -27,7 +27,8 @@ export function useTransactions(walletAddress: string | null) {
       }
       
       // Get transactions from Solana API
-      const apiTxs = await solanaService.fetchTransactionHistory(address, limit);
+      // Changed from fetchTransactionHistory to fetchTransactions
+      const apiTxs = await solanaService.fetchTransactions(address, limit);
       
       // Merge transactions from both sources
       const mergedTxs = mergeTransactions(apiTxs, dbTxs);
