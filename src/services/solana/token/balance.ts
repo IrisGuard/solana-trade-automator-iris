@@ -1,68 +1,67 @@
 
-import { PublicKey, Connection } from '@solana/web3.js';
-import { RPC_ENDPOINTS } from '../config';
-import { errorCollector } from '@/utils/error-handling/collector';
-import { Token } from '@/types/wallet';
+import { Connection, PublicKey } from '@solana/web3.js';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { logError } from '@/utils/errorUtils';
 
 /**
- * Φορτώνει το balance ενός συγκεκριμένου token
+ * Get SPL token balance for a wallet
+ * @param connection Solana connection
+ * @param walletAddress Wallet address
+ * @param tokenAddress SPL token address
+ * @returns Token balance as number
  */
-export async function fetchTokenBalance(
-  walletAddress: string,
+export async function getTokenBalance(
+  connection: Connection, 
+  walletAddress: string, 
   tokenAddress: string
-): Promise<Token | null> {
+): Promise<number> {
   try {
-    if (!walletAddress || !tokenAddress) {
-      throw new Error('Απαιτούνται διεύθυνση πορτοφολιού και διεύθυνση token');
-    }
-
-    const connection = new Connection(RPC_ENDPOINTS.PRIMARY);
+    const walletPublicKey = new PublicKey(walletAddress);
+    const tokenPublicKey = new PublicKey(tokenAddress);
     
-    // Δημιουργία PublicKey για το πορτοφόλι και το token
-    const wallet = new PublicKey(walletAddress);
-    const token = new PublicKey(tokenAddress);
-    
-    // Λήψη όλων των λογαριασμών token
-    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
-      wallet,
-      { mint: token }
+    // Find associated token account
+    const tokenAccounts = await connection.getTokenAccountsByOwner(
+      walletPublicKey,
+      { mint: tokenPublicKey }
     );
     
     if (tokenAccounts.value.length === 0) {
-      console.log(`Δεν βρέθηκε λογαριασμός για το token ${tokenAddress}`);
-      return null;
+      return 0; // No token account found
     }
     
-    // Λήψη πληροφοριών για το πρώτο token account
-    const account = tokenAccounts.value[0];
-    const parsedData = account.account.data.parsed;
-    const info = parsedData.info;
-    const tokenAmount = info.tokenAmount;
+    // Get the token account info
+    const accountInfo = tokenAccounts.value[0].account;
+    const data = Buffer.from(accountInfo.data);
     
-    // Μετατροπή του ποσού σε ανθρώπινα αναγνώσιμη μορφή
-    const amount = Number(tokenAmount.amount) / Math.pow(10, tokenAmount.decimals);
+    // Extract the balance (64-bit integer at offset 64)
+    const balance = data.readBigUInt64LE(64);
     
-    // Επιστροφή των στοιχείων του token
-    return {
-      address: tokenAddress,
-      amount,
-      decimals: tokenAmount.decimals,
-      name: '', // Θα πρέπει να συμπληρωθεί με περαιτέρω αιτήματα
-      symbol: '' // Θα πρέπει να συμπληρωθεί με περαιτέρω αιτήματα
-    };
+    return Number(balance);
   } catch (error) {
-    console.error('Error fetching token balance:', error);
-    
-    // Καταγραφή του σφάλματος στον collector
-    errorCollector.captureError(error as Error, {
-      component: 'TokenBalance',
-      details: {
-        walletAddress: walletAddress ? walletAddress.substring(0, 8) + '...' : 'null',
-        tokenAddress: tokenAddress ? tokenAddress.substring(0, 8) + '...' : 'null'
-      },
-      source: 'client'
+    logError(`Failed to get token balance for ${tokenAddress}`, 'tokenBalance', error);
+    throw error;
+  }
+}
+
+/**
+ * Get SOL balance for a wallet
+ * @param connection Solana connection
+ * @param walletAddress Wallet address
+ * @returns SOL balance as number
+ */
+export async function getSolBalance(
+  connection: Connection,
+  walletAddress: string
+): Promise<number> {
+  try {
+    const walletPublicKey = new PublicKey(walletAddress);
+    const balance = await connection.getBalance(walletPublicKey);
+    return balance / 1_000_000_000; // Convert lamports to SOL
+  } catch (error) {
+    logError('Failed to get SOL balance', 'solBalance', { 
+      walletAddress, 
+      tokenAddress: 'SOL' 
     });
-    
-    return null;
+    throw error;
   }
 }

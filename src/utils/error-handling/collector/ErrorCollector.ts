@@ -1,12 +1,15 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ErrorData {
+  id?: string;
+  message: string;
+  stack?: string;
   component?: string;
-  details?: string;
+  details?: string | Record<string, any>;
   source?: string;
   url?: string;
   browserInfo?: Record<string, any>;
+  timestamp: number;
 }
 
 class ErrorCollector {
@@ -14,21 +17,55 @@ class ErrorCollector {
   private errorQueue: Array<{error: Error, data?: ErrorData}> = [];
   private flushTimer: NodeJS.Timeout | null = null;
   private readonly FLUSH_INTERVAL = 10000; // 10 seconds
+  private storedErrors: ErrorData[] = [];
   
   constructor() {
     window.addEventListener('unload', () => this.flush(true));
   }
   
-  public captureError(error: Error, data?: ErrorData): void {
+  public captureError(error: Error, data?: Omit<ErrorData, 'message' | 'timestamp'>): void {
     console.error('Error captured:', error, data);
     
-    this.errorQueue.push({ error, data });
+    const errorData: ErrorData = {
+      message: error.message || 'Unknown error',
+      stack: error.stack,
+      timestamp: Date.now(),
+      ...(data || {})
+    };
+
+    // Store error in memory for retrieval
+    this.storedErrors.push(errorData);
+    
+    // Keep only recent errors (max 50)
+    if (this.storedErrors.length > 50) {
+      this.storedErrors.shift();
+    }
+    
+    this.errorQueue.push({ error, data: errorData });
     
     if (this.errorQueue.length >= this.MAX_QUEUE_SIZE) {
       this.flush(true);
     } else if (!this.flushTimer) {
       this.flushTimer = setTimeout(() => this.flush(), this.FLUSH_INTERVAL);
     }
+  }
+  
+  public reportError(error: Error, component?: string, details?: any): void {
+    this.captureError(error, { component, details });
+  }
+  
+  public getAllErrors(): ErrorData[] {
+    return this.storedErrors;
+  }
+  
+  public clearAllErrors(): void {
+    this.storedErrors = [];
+    this.errorQueue = [];
+    if (this.flushTimer) {
+      clearTimeout(this.flushTimer);
+      this.flushTimer = null;
+    }
+    console.log("All errors cleared");
   }
   
   private async flush(immediate = false): Promise<void> {

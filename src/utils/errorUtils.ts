@@ -1,5 +1,6 @@
 
 import { errorCollector } from './error-handling/collector';
+import { displayError, displayWarning, displayInfo, displaySuccess, sendErrorToChat } from './error-handling/displayError';
 
 // Error categories
 export enum ErrorCategory {
@@ -101,3 +102,6 @@ export function logError(
     console.error('Original error:', error);
   }
 }
+
+// Export displayError and related functions
+export { displayError, displayWarning, displayInfo, displaySuccess, sendErrorToChat };

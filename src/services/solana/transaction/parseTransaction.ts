@@ -15,6 +15,7 @@ export interface ParsedTransaction {
   programId: string;
   blockHeight: number | null;
   description: string;
+  blockTime: number;
 }
 
 // Helper function to determine transaction type
@@ -113,17 +114,17 @@ export const parseTransaction = (transaction: any): ParsedTransaction => {
       to: transaction.transaction?.message?.accountKeys?.[1]?.toString() || 'unknown',
       programId: transaction.transaction?.message?.instructions?.[0]?.programId?.toString() || 'unknown',
       blockHeight: transaction.slot || null,
-      description: `${type} transaction`
+      description: `${type} transaction`,
+      blockTime: transaction.blockTime || Math.floor(Date.now() / 1000)
     };
   } catch (error) {
     console.error('Error parsing transaction:', error);
-    // Return a basic transaction object if parsing fails
     return {
       id: transaction.transaction?.signatures?.[0] || 'unknown',
       timestamp: Date.now(),
       type: 'unknown',
       amount: 0,
-      token: 'UNKNOWN',
+      token: 'unknown',
       usd: null,
       fee: 0,
       status: 'error',
@@ -131,10 +132,15 @@ export const parseTransaction = (transaction: any): ParsedTransaction => {
       to: 'unknown',
       programId: 'unknown',
       blockHeight: null,
-      description: 'Failed to parse transaction'
+      description: 'Failed to parse transaction',
+      blockTime: Math.floor(Date.now() / 1000)
     };
   }
 };
 
-// Export the parseTransaction function
-export { parseTransaction };
+// Export the parsing function for transactions
+export const parseTransactions = (transactions: any[]): ParsedTransaction[] => {
+  return transactions
+    .filter(tx => tx !== null)
+    .map(parseTransaction);
+};

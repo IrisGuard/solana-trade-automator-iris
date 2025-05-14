@@ -20,7 +20,10 @@ export function generateTestError(message: string, options?: ErrorDisplayOptions
   error.name = "TestError";
   
   // Καταγραφή του σφάλματος στον collector
-  errorCollector.reportError(error, options?.component || 'TestComponent', options?.details);
+  errorCollector.captureError(error, {
+    component: options?.component || 'TestComponent',
+    details: options?.details
+  });
   
   // Εμφάνιση στην κονσόλα για εύκολη αναγνώριση
   console.error("Test Error Generated:", message, options);
@@ -52,7 +55,7 @@ export function generateVariousErrors(options?: TestErrorOptions): void {
     case 'async':
       setTimeout(() => {
         const asyncError = new Error('Test Async Error - Error in async operation');
-        errorCollector.reportError(asyncError, component, { ...details, async: true });
+        errorCollector.captureError(asyncError, { component, details: { ...details, async: true } });
       }, 100);
       return;
     case 'timeout':
@@ -80,7 +83,7 @@ export function generateVariousErrors(options?: TestErrorOptions): void {
   error.stack = `Error generated from: ${component}\n   at ErrorTestUtils.generateVariousErrors (errorTestUtils.ts:42)\n   at TestFunction (test.js:10)\n   at UserAction (app.js:25)`;
   
   // Καταγραφή του σφάλματος
-  errorCollector.reportError(error, component, details);
+  errorCollector.captureError(error, { component, details });
   
   // Εμφάνιση στην κονσόλα για εύκολη αναγνώριση
   console.error(`Test ${errorType} Error Generated:`, error.message, { component, details, source });
@@ -101,7 +104,7 @@ export function generateTestErrorData(message: string, options?: any) {
   return {
     message,
     stack: "Error: " + message + "\n    at TestFunction (test.js:10)\n    at UserAction (app.js:25)",
-    timestamp: new Date().toISOString(),
+    timestamp: Date.now(),
     component: options?.component || "TestComponent",
     details: options?.details || { source: "test" }
   };

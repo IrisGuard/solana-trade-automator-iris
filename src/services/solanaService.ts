@@ -1,70 +1,98 @@
 
-import { fetchSOLBalance } from './solana/wallet/balance';
-import { fetchAllTokenBalances } from './solana/token';
-import { tokenService } from './solana/token';
-import { errorCollector } from '@/utils/error-handling/collector';
+import { Connection, clusterApiUrl } from '@solana/web3.js';
+import { walletService } from './solana/walletService';
+import { tokenService } from './solana/tokenService';
+import { Transaction } from '@/types/transaction';
+import { TransactionService } from './solana/transaction/TransactionService';
+import { parseTransactions } from './solana/transaction/parseTransaction';
+import { logError } from '@/utils/errorUtils';
 
-// Εκτέλεση πολλαπλών λειτουργιών σχετικών με το wallet
-export const fetchWalletData = async (address: string) => {
-  try {
-    // Παράλληλη λήψη δεδομένων
-    const [solBalance, tokens] = await Promise.all([
-      fetchSOLBalance(address),
-      fetchAllTokenBalances(address)
-    ]);
-    
-    return {
-      solBalance,
-      tokens
-    };
-  } catch (error) {
-    console.error('Error fetching wallet data:', error);
-    errorCollector.captureError(error instanceof Error ? error : new Error('Error fetching wallet data'), {
-      component: 'SolanaService',
-      details: { action: 'fetchWalletData', address },
-      source: 'client'
-    });
-    
-    return {
-      solBalance: 0,
-      tokens: []
-    };
-  }
-};
+// Create a default connection to the Solana network
+const connection = new Connection(clusterApiUrl('mainnet-beta'), 'confirmed');
 
-// Εξαγωγή του tokenService για συμβατότητα με προηγούμενο κώδικα
-export { tokenService };
-
-// Συνάρτηση για αποστολή token με βελτιωμένο error handling
-export const sendToken = async (from: string, to: string, amount: number, tokenAddress?: string) => {
-  try {
-    // To be implemented
-    console.log(`Would send ${amount} from ${from} to ${to}`);
-    return false;
-  } catch (error) {
-    console.error('Error sending token:', error);
-    errorCollector.captureError(error instanceof Error ? error : new Error('Error sending token'), {
-      component: 'SolanaService',
-      details: { action: 'sendToken', from, to, amount, tokenAddress },
-      source: 'client'
-    });
-    return false;
-  }
-};
-
-// Φόρτωση ιστορικών συναλλαγών
-export const fetchTransactionHistory = async (address: string) => {
-  try {
-    // To be implemented
-    console.log(`Would fetch transaction history for ${address}`);
-    return [];
-  } catch (error) {
-    console.error('Error fetching transaction history:', error);
-    errorCollector.captureError(error instanceof Error ? error : new Error('Error fetching transaction history'), {
-      component: 'SolanaService',
-      details: { action: 'fetchTransactionHistory', address },
-      source: 'client'
-    });
-    return [];
+/**
+ * Unified service to interact with Solana blockchain
+ */
+export const solanaService = {
+  /**
+   * Get SOL balance for an address
+   */
+  async getSolBalance(address: string): Promise<number> {
+    try {
+      return await walletService.getSolBalance(connection, address);
+    } catch (error) {
+      logError('Error fetching SOL balance', 'solanaService', { action: 'getSolBalance', address });
+      return 0;
+    }
+  },
+  
+  /**
+   * Send SOL to another address
+   */
+  async sendSol(from: string, to: string, amount: number): Promise<string> {
+    try {
+      // Implementation would go here
+      // This is just a stub for now
+      return 'transaction-signature-placeholder';
+    } catch (error) {
+      logError('Error sending SOL', 'solanaService', { 
+        action: 'sendSol', 
+        from, 
+        to, 
+        amount, 
+        tokenAddress: 'SOL' 
+      });
+      throw error;
+    }
+  },
+  
+  /**
+   * Fetch all transactions for a wallet
+   */
+  async fetchTransactions(address: string, limit = 10): Promise<Transaction[]> {
+    try {
+      const txService = new TransactionService(connection);
+      const transactions = await txService.getTransactions(address, limit);
+      return parseTransactions(transactions);
+    } catch (error) {
+      logError('Error fetching transactions', 'solanaService', { action: 'fetchTransactions', address });
+      return [];
+    }
+  },
+  
+  /**
+   * Fetch token balances for a wallet
+   */
+  async fetchAllTokenBalances(address: string) {
+    try {
+      return await tokenService.getAllTokens(connection, address);
+    } catch (error) {
+      logError('Error fetching token balances', 'solanaService', { action: 'fetchAllTokenBalances', address });
+      return [];
+    }
+  },
+  
+  /**
+   * Fetch price data for a token
+   */
+  async fetchTokenPrices(tokenAddress: string) {
+    try {
+      // Placeholder token price logic 
+      // In a real app you'd call CoinGecko, Pyth, or another price oracle
+      return {
+        price: Math.random() * 100, 
+        priceChange24h: (Math.random() * 20) - 10
+      };
+    } catch (error) {
+      logError('Error fetching token prices', 'solanaService', 'fetchTokenPrices');
+      return { price: 0, priceChange24h: 0 };
+    }
+  },
+  
+  /**
+   * Check if a Solana address is valid
+   */
+  isValidSolanaAddress(address: string): boolean {
+    return walletService.isValidSolanaAddress(address);
   }
 };
