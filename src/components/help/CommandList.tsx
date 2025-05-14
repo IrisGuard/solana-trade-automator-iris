@@ -1,6 +1,6 @@
 
 import React from "react";
-import { useLanguage } from "@/providers/LanguageProvider";
+import { useLanguage } from "@/hooks/use-language";
 
 // Λίστα με εντολές και την περιγραφή τους
 const COMMANDS = [

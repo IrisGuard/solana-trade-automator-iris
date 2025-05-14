@@ -28,12 +28,12 @@ export function SolanaResourceList() {
       <div>
         <h3 className="text-lg font-medium mb-2">Solana {t("help.documentation")}</h3>
         <p className="text-sm text-muted-foreground mb-4">
-          {t("Explore resources to learn more about Solana blockchain and ecosystem", "Εξερευνήστε πόρους για να μάθετε περισσότερα για το blockchain και το οικοσύστημα του Solana")}
+          {t("help.exploreResources", "Εξερευνήστε πόρους για να μάθετε περισσότερα για το blockchain και το οικοσύστημα του Solana")}
         </p>
         
         <div className="mb-4">
           <Input 
-            placeholder={t("Search resources", "Αναζήτηση πόρων")}
+            placeholder={t("help.searchResources", "Αναζήτηση πόρων")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="mb-2"
@@ -45,7 +45,7 @@ export function SolanaResourceList() {
               size="sm"
               onClick={() => setSelectedCategory(null)}
             >
-              {t("All", "Όλα")}
+              {t("general.all", "Όλα")}
             </Button>
             
             {resourceCategories.map((category) => (
@@ -76,14 +76,14 @@ export function SolanaResourceList() {
               rel="noopener noreferrer"
               className="inline-flex items-center text-sm text-primary hover:underline"
             >
-              {t("Visit", "Επίσκεψη")} <ExternalLink className="h-3 w-3 ml-1" />
+              {t("general.visit", "Επίσκεψη")} <ExternalLink className="h-3 w-3 ml-1" />
             </a>
           </div>
         ))}
         
         {filteredResources.length === 0 && (
           <div className="col-span-2 text-center py-8 text-muted-foreground">
-            {t("No resources found matching your criteria", "Δεν βρέθηκαν πόροι που να ταιριάζουν με τα κριτήριά σας")}
+            {t("help.noResourcesFound", "Δεν βρέθηκαν πόροι που να ταιριάζουν με τα κριτήριά σας")}
           </div>
         )}
       </div>

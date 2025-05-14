@@ -1,17 +1,8 @@
 
 export const wallet = {
   connectWallet: "Connect Wallet",
-  connectPhantom: "Connect with Phantom Wallet",
   disconnectWallet: "Disconnect Wallet",
-  walletStatus: "Wallet Status",
-  walletConnected: "Connected",
-  walletDisconnected: "Disconnected",
-  walletAddress: "Address",
-  walletBalance: "Balance",
-  tokensBalance: "Token Balance",
-  recentTransactions: "Recent Transactions",
-  viewAllTransactions: "View All Transactions",
-  sendSolOrTokens: "Send SOL or tokens",
-  transactionsLoading: "Loading transactions...",
-  noTransactionsFound: "No transactions found",
+  walletBalance: "Wallet Balance",
+  tokensBalance: "Tokens Balance",
+  connectionInstructions: "Connect your Phantom wallet by clicking the \"Connect\" button in the top right corner. This will allow you to see your balance, tokens and make transactions."
 };

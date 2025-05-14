@@ -14,4 +14,13 @@ export const help = {
   tools: "Εργαλεία",
   defi: "DeFi",
   nft: "NFT",
+  botsDescription: "Η πλατφόρμα μας παρέχει δύο τύπους bots:",
+  tradingBotDescription: "Αυτόματες αγορές και πωλήσεις με ρυθμιζόμενα stop-loss και take-profit",
+  makerBotDescription: "Δημιουργία ρευστότητας στην αγορά με αυτόματες εντολές αγοράς και πώλησης",
+  apiVaultDescription: "Στην ενότητα API Vault μπορείτε να αποθηκεύσετε και να διαχειριστείτε με ασφάλεια τα API κλειδιά σας για διάφορες υπηρεσίες όπως Helius, Coingecko, και άλλες πλατφόρμες.",
+  exploreResources: "Εξερευνήστε πόρους για να μάθετε περισσότερα για το blockchain και το οικοσύστημα του Solana",
+  searchResources: "Αναζήτηση πόρων",
+  noResourcesFound: "Δεν βρέθηκαν πόροι που να ταιριάζουν με τα κριτήριά σας",
+  commandExplorer: "Εντολές & Πόροι Πλατφόρμας",
+  exploreAllCommands: "Εξερευνήστε όλες τις διαθέσιμες εντολές και πόρους της πλατφόρμας",
 };

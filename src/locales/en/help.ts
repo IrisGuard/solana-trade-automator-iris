@@ -14,4 +14,13 @@ export const help = {
   tools: "Tools",
   defi: "DeFi",
   nft: "NFT",
+  botsDescription: "Our platform provides two types of bots:",
+  tradingBotDescription: "Automatic buys and sells with adjustable stop-loss and take-profit",
+  makerBotDescription: "Creates liquidity in the market with automatic buy and sell orders",
+  apiVaultDescription: "In the API Vault section, you can securely store and manage your API keys for various services like Helius, Coingecko, and other platforms.",
+  exploreResources: "Explore resources to learn more about Solana blockchain and ecosystem",
+  searchResources: "Search resources",
+  noResourcesFound: "No resources found matching your criteria",
+  commandExplorer: "Platform Commands & Resources",
+  exploreAllCommands: "Explore all available commands and resources of the platform",
 };
