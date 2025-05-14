@@ -2,7 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useWalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useLanguage } from "@/hooks/use-language";
 import { ArrowRight } from "lucide-react";
 
@@ -13,7 +13,7 @@ interface ConnectWalletCardProps {
 
 export function ConnectWalletCard({ isConnecting = false, isPhantomInstalled = true }: ConnectWalletCardProps) {
   const { t } = useLanguage();
-  const { setVisible } = useWalletMultiButton();
+  const { setVisible } = useWalletModal();
   
   // Handle connect wallet button click
   const handleConnectClick = () => {
