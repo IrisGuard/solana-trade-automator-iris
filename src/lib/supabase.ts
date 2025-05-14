@@ -1,9 +1,7 @@
 
 // This file is maintained for compatibility with existing code
 // New code should use @/integrations/supabase/client directly
-export { supabase, dbClient } from '@/integrations/supabase/client';
-export type { Tables } from '@/integrations/supabase/client';
-// Export extended types for convenience
+export { supabase, dbClient, type Tables } from '@/integrations/supabase/client';
 export type { 
   BotConfig, 
   ProfileRow, 

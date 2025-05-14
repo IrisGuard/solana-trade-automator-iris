@@ -1,21 +1,42 @@
 
-// Βασικοί τύποι για τη διαχείριση σφαλμάτων
+/**
+ * Types for error handling utilities
+ */
 
 export interface ErrorDisplayOptions {
-  title?: string;
   component?: string;
   details?: any;
-  showToast?: boolean;
   logToConsole?: boolean;
+  showToast?: boolean;
   source?: string;
+  sendToChat?: boolean;
 }
 
-export type ErrorOptions = ErrorDisplayOptions;
+export interface ErrorReportOptions {
+  component?: string;
+  details?: any;
+  user?: any;
+}
 
 export interface TestErrorOptions {
-  showToast?: boolean;
-  logToConsole?: boolean;
-  sendToChat?: boolean;
+  message?: string;
   component?: string;
-  useCollector?: boolean;
+  details?: any;
+  errorType?: string;
+}
+
+export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
+
+export interface GroupedError {
+  hash: string;
+  count: number;
+  lastOccurrence: Date;
+  errorData: ErrorData;
+}
+
+export interface ErrorData {
+  error: Error | string;
+  component?: string;
+  details?: any;
+  timestamp?: Date;
 }
