@@ -1,4 +1,3 @@
-
 import { errorCollector } from "./collector";
 
 export function setupGlobalErrorHandling(): () => void {
@@ -25,7 +24,8 @@ export function setupGlobalErrorHandling(): () => void {
   // Χειρισμός μη επεξεργασμένων ασύγχρονων εξαιρέσεων
   const originalUnhandledRejection = window.onunhandledrejection;
   
-  window.onunhandledrejection = (event) => {
+  // Fix: Use addEventListener instead of direct assignment to maintain correct context
+  const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
     let error: Error;
     
     if (event.reason instanceof Error) {
@@ -35,16 +35,20 @@ export function setupGlobalErrorHandling(): () => void {
     }
     
     errorCollector.logErrorAndNotify(error, "UnhandledRejectionHandler");
-    
-    // Κλήση του προηγούμενου χειριστή αν υπάρχει
-    if (typeof originalUnhandledRejection === 'function') {
-      return originalUnhandledRejection(event);
-    }
   };
+  
+  // Add event listener for unhandled rejections
+  window.addEventListener("unhandledrejection", handleUnhandledRejection);
+  
+  // Store original handler for cleanup if it exists
+  if (typeof originalUnhandledRejection === 'function') {
+    // Keep reference but don't use direct assignment
+  }
   
   // Επιστρέφουμε μια συνάρτηση για την απενεργοποίηση των global handlers
   return () => {
     window.onerror = originalOnError;
-    window.onunhandledrejection = originalUnhandledRejection;
+    window.removeEventListener("unhandledrejection", handleUnhandledRejection);
+    // Don't need to restore original since we're using addEventListener
   };
 }
