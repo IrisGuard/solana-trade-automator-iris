@@ -1,51 +1,45 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { ApiEndpoint } from '@/components/security/endpoints/ApiEndpointsManager';
+import { useState, useEffect } from 'react';
+import { fetchApiEndpoints } from '@/utils/supabaseEndpoints';
+
+export interface ApiEndpoint {
+  id?: string;
+  name: string;
+  url: string;
+  category?: string;
+  is_active?: boolean;
+  is_public?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
 
 export function useGetEndpoints() {
   const [endpoints, setEndpoints] = useState<ApiEndpoint[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  const fetchEndpoints = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const { data, error: fetchError } = await supabase
-        .from('api_endpoints')
-        .select('*')
-        .order('name');
-      
-      if (fetchError) {
-        throw fetchError;
-      }
-      
-      setEndpoints(data || []);
-      return data;
-    } catch (err: any) {
-      console.error('Error fetching API endpoints:', err);
-      setError(err.message || 'Σφάλμα φόρτωσης των endpoints');
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-  
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
   useEffect(() => {
-    fetchEndpoints();
-  }, [fetchEndpoints]);
-  
-  const refetch = useCallback(async () => {
-    return fetchEndpoints();
-  }, [fetchEndpoints]);
-  
+    loadEndpoints();
+  }, []);
+
+  const loadEndpoints = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchApiEndpoints();
+      setEndpoints(data);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Unknown error loading endpoints'));
+      console.error('Error loading endpoints:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     endpoints,
-    isLoading,
+    loading,
     error,
-    refetch
+    reloadEndpoints: loadEndpoints
   };
 }

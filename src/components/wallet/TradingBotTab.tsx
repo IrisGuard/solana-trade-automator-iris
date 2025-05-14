@@ -1,40 +1,65 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { TabsContent } from "@/components/ui/tabs";
-import { ConnectPrompt } from "./maker-bot/ConnectPrompt";
 import { useTradingBot } from "@/hooks/useTradingBot";
-import { TradingBotContent } from "./trading-bot/TradingBotContent";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from '@/hooks/useWallet';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+import { BotControlPanel } from "./BotControlPanel";
+import { BotStatusPanel } from "./BotStatusPanel";
 
 export function TradingBotTab() {
-  const { connected } = useWallet();
-  const tradingBotState = useTradingBot();
-  
-  const [tab, setTab] = useState("settings");
-  
-  // Handle connect wallet
-  const handleConnectWallet = () => {
-    // This is handled by the WalletMultiButton component
-  };
-  
-  if (!connected) {
-    return (
-      <TabsContent value="trading-bot" className="space-y-4">
-        <ConnectPrompt 
-          handleConnectWallet={handleConnectWallet} 
-          size="large"
-        />
-      </TabsContent>
-    );
-  }
-  
+  const { isConnected } = useWallet();
+  const {
+    config,
+    updateConfig,
+    startBot,
+    stopBot,
+    selectToken,
+    isLoading,
+    botStatus,
+    activeOrders,
+    selectedTokenPrice,
+    selectedTokenDetails,
+    tokens
+  } = useTradingBot();
+
   return (
-    <TabsContent value="trading-bot" className="space-y-4">
-      <TradingBotContent
-        tradingBotState={tradingBotState}
-        tab={tab}
-        setTab={setTab}
-      />
+    <TabsContent value="trading-bot">
+      {!isConnected ? (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Παρακαλώ συνδέστε το πορτοφόλι σας για να χρησιμοποιήσετε το Trading Bot
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <>
+          <div className="grid gap-4 md:grid-cols-2 mb-6">
+            <div className="space-y-4">
+              <BotControlPanel
+                config={config}
+                updateConfig={updateConfig}
+                selectToken={selectToken}
+                selectedTokenPrice={selectedTokenPrice}
+                selectedTokenDetails={selectedTokenDetails}
+                tokens={tokens}
+                isLoading={isLoading}
+                botStatus={botStatus}
+                startBot={startBot}
+                stopBot={stopBot}
+              />
+            </div>
+            
+            <BotStatusPanel 
+              botStatus={botStatus}
+              selectedTokenDetails={selectedTokenDetails}
+              selectedTokenPrice={selectedTokenPrice}
+              activeOrders={activeOrders}
+            />
+          </div>
+        </>
+      )}
     </TabsContent>
   );
 }

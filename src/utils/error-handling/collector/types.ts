@@ -24,4 +24,13 @@ export type ErrorDisplayOptions = {
   sendToChat?: boolean;
   useCollector?: boolean;
   title?: string;
+  reportToServer?: boolean;
 };
+
+export interface ErrorReportOptions {
+  component?: string;
+  details?: any;
+  source?: string;
+  stack?: string;
+  url?: string;
+}

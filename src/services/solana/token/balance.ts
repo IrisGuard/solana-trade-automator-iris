@@ -1,67 +1,78 @@
 
-import { Connection, PublicKey } from '@solana/web3.js';
-import { getAccount } from '@solana/spl-token';
-import { RPC_ENDPOINTS } from '../config';
-import { errorCollector } from '@/utils/error-handling/collector';
+import { Connection, PublicKey } from "@solana/web3.js";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { errorCollector } from "@/utils/error-handling/collector";
+import { SOLANA_RPC_ENDPOINTS } from "@/config/endpoints";
 
-// Interface for the returned balance
-export interface TokenBalance {
-  address: string;
-  amount: number;
-  decimals: number;
-  uiAmount: number;
+/**
+ * Get the SOL balance for a wallet address
+ */
+export async function getSolanaBalance(
+  walletAddress: string
+): Promise<number | null> {
+  try {
+    // Initialize connection
+    const connection = new Connection(SOLANA_RPC_ENDPOINTS.MAINNET);
+    
+    // Parse wallet public key
+    const publicKey = new PublicKey(walletAddress);
+    
+    // Get SOL balance
+    const balance = await connection.getBalance(publicKey);
+    
+    // Convert from lamports to SOL
+    return balance / 1_000_000_000;
+  } catch (error) {
+    errorCollector.captureError(
+      error instanceof Error ? error : new Error("Unknown error getting SOL balance"), 
+      {
+        component: "BalanceService",
+        details: { walletAddress },
+        source: "getSolanaBalance"
+      }
+    );
+    return null;
+  }
 }
 
 /**
- * Fetches the balance of a specific token for a given wallet address
- * @param walletAddress - The public key of the wallet
- * @param tokenAddress - The public key of the token
- * @returns Promise with the token balance
+ * Get all SPL token balances for a wallet
  */
-export async function fetchTokenBalance(
-  walletAddress: string, 
-  tokenAddress: string
-): Promise<TokenBalance | null> {
+export async function getSplTokenBalances(walletAddress: string) {
   try {
-    // Create connection
-    const connection = new Connection(RPC_ENDPOINTS.mainnet);
+    // Initialize connection
+    const connection = new Connection(SOLANA_RPC_ENDPOINTS.MAINNET);
     
-    // Convert strings to PublicKeys
-    const wallet = new PublicKey(walletAddress);
-    const token = new PublicKey(tokenAddress);
+    // Parse wallet public key
+    const publicKey = new PublicKey(walletAddress);
     
-    // Find the associated token account
-    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(wallet, { mint: token });
+    // Get all token accounts
+    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
+      publicKey, 
+      { programId: TOKEN_PROGRAM_ID }
+    );
     
-    // If the wallet has no token accounts for this mint, return 0 balance
-    if (tokenAccounts.value.length === 0) {
+    // Process token accounts
+    const tokens = tokenAccounts.value.map((tokenAccount) => {
+      const parsedInfo = tokenAccount.account.data.parsed.info;
+      
       return {
-        address: tokenAddress,
-        amount: 0,
-        decimals: 0,
-        uiAmount: 0
+        mint: parsedInfo.mint,
+        amount: parsedInfo.tokenAmount.uiAmount,
+        decimals: parsedInfo.tokenAmount.decimals
       };
-    }
-    
-    // Get the token account with the highest balance
-    const accountInfo = tokenAccounts.value[0].account.data.parsed.info;
-    const decimals = accountInfo.tokenAmount.decimals;
-    const amount = parseFloat(accountInfo.tokenAmount.amount);
-    const uiAmount = amount / Math.pow(10, decimals);
-    
-    return {
-      address: tokenAddress,
-      amount,
-      decimals,
-      uiAmount
-    };
-  } catch (error) {
-    errorCollector.reportError(error instanceof Error ? error : new Error('Unknown error fetching token balance'), {
-      component: 'fetchTokenBalance',
-      severity: 'warning',
-      message: `Error fetching balance for token ${tokenAddress}`,
-      code: 'TOKEN_BALANCE_ERROR'
     });
-    return null;
+    
+    return tokens;
+  } catch (error) {
+    errorCollector.captureError(
+      error instanceof Error ? error : new Error("Unknown error getting SPL token balances"), 
+      {
+        component: "BalanceService",
+        details: { walletAddress },
+        source: "getSplTokenBalances"
+      }
+    );
+    return [];
   }
 }

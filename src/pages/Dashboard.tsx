@@ -1,136 +1,99 @@
 
-import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { WalletConnectedContent } from "@/components/home/WalletConnectedContent";
-import { ConnectWalletCard } from "@/components/home/ConnectWalletCard";
-import { useWalletConnection } from "@/hooks/useWalletConnection";
-import { Button } from "@/components/ui/button";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import React from 'react';
+import { Container, Grid } from '@mui/material';
+import { useWallet } from '@/hooks/useWallet';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-const chartData = [
-  { name: 'Jan', value: 1200 },
-  { name: 'Feb', value: 1900 },
-  { name: 'Mar', value: 1500 },
-  { name: 'Apr', value: 2400 },
-  { name: 'May', value: 2200 },
-  { name: 'Jun', value: 3000 },
-  { name: 'Jul', value: 2800 },
-];
+// Dashboard components
+import { WalletOverviewPanel } from '@/components/dashboard/WalletOverviewPanel';
+import { TokensPanel } from '@/components/dashboard/TokensPanel';
+import { TransactionsPanel } from '@/components/dashboard/TransactionsPanel';
+import { TradingBotTab } from '@/components/wallet/TradingBotTab';
+import { useSupabaseSync } from '@/components/security/apiVault/hooks/useSupabaseSync';
 
 export default function Dashboard() {
-  const {
+  const { 
     isConnected,
     walletAddress,
-    isConnecting,
-    solBalance,
     tokens,
-    tokenPrices,
-    isLoadingTokens,
+    balance,
     connectWallet,
-    refreshWalletData,
-    selectTokenForTrading
-  } = useWalletConnection();
+    disconnectWallet
+  } = useWallet();
 
-  // Convert tokenPrices to the expected format for WalletConnectedContent
-  const simplifiedTokenPrices: Record<string, number> = {};
+  // Sync API keys with Supabase
+  const { 
+    syncApiKeysToSupabase,
+    fetchApiKeysFromSupabase,
+    isSyncing,
+    isAuthenticated 
+  } = useSupabaseSync();
   
-  if (tokenPrices) {
-    Object.entries(tokenPrices).forEach(([address, priceData]) => {
-      simplifiedTokenPrices[address] = priceData.price;
-    });
-  }
+  // Handle token selection for trading
+  const handleSelectToken = (tokenAddress: string) => {
+    console.log('Selected token:', tokenAddress);
+    // Implementation will be added later
+  };
+  
+  // Handle refresh wallet data
+  const handleRefreshWallet = async () => {
+    try {
+      // Implementation will be added later
+      console.log('Refreshing wallet data');
+    } catch (error) {
+      console.error('Error refreshing wallet data:', error);
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => refreshWalletData()}>Ανανέωση</Button>
-        </div>
-      </div>
-
-      {isConnected && walletAddress ? (
-        <>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Υπόλοιπο SOL</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{solBalance?.toFixed(4) || "0"} SOL</div>
-                <p className="text-xs text-muted-foreground">
-                  +2.5% από την προηγούμενη εβδομάδα
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tokens</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{tokens?.length || 0}</div>
-                <p className="text-xs text-muted-foreground">
-                  {tokens && tokens.length > 0 ? tokens[0]?.symbol : "Δεν υπάρχουν tokens"}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Bot Status</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">Ανενεργό</div>
-                <p className="text-xs text-muted-foreground">
-                  Ενεργοποιήστε το bot για αυτόματες συναλλαγές
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Portfolio Performance</CardTitle>
-              <CardDescription>
-                Η απόδοση του χαρτοφυλακίου σας τους τελευταίους μήνες
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-2">
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={chartData}
-                    margin={{
-                      top: 5,
-                      right: 30,
-                      left: 20,
-                      bottom: 5,
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Area type="monotone" dataKey="value" stroke="#8884d8" fill="#8884d8" fillOpacity={0.3} />
-                  </AreaChart>
-                </ResponsiveContainer>
+    <Container maxWidth="xl" className="py-6">
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="w-full justify-start mb-8">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="tokens">Tokens</TabsTrigger>
+          <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          <TabsTrigger value="trading-bot">Trading Bot</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="overview">
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={4}>
+              <WalletOverviewPanel 
+                walletAddress={walletAddress}
+                balance={balance}
+                isConnected={isConnected}
+                onRefresh={handleRefreshWallet}
+              />
+            </Grid>
+            <Grid item xs={12} md={8}>
+              <div className="space-y-4">
+                <TokensPanel 
+                  tokens={tokens} 
+                  isLoading={false} 
+                  onSelectToken={handleSelectToken}
+                />
+                <TransactionsPanel walletAddress={walletAddress} />
               </div>
-            </CardContent>
-          </Card>
-
-          <WalletConnectedContent 
-            walletAddress={walletAddress}
-            solBalance={solBalance}
-            tokens={tokens}
-            tokenPrices={simplifiedTokenPrices}
-            isLoadingTokens={isLoadingTokens}
-            selectTokenForTrading={selectTokenForTrading}
+            </Grid>
+          </Grid>
+        </TabsContent>
+        
+        <TabsContent value="tokens">
+          <TokensPanel 
+            tokens={tokens} 
+            isLoading={false}
+            onSelectToken={handleSelectToken}
           />
-        </>
-      ) : (
-        <ConnectWalletCard 
-          isConnecting={isConnecting} 
-        />
-      )}
-    </div>
+        </TabsContent>
+        
+        <TabsContent value="transactions">
+          <TransactionsPanel 
+            walletAddress={walletAddress} 
+          />
+        </TabsContent>
+        
+        <TradingBotTab />
+      </Tabs>
+    </Container>
   );
 }

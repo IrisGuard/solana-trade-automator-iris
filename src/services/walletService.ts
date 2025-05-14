@@ -1,81 +1,200 @@
 
-import { dbClient } from '@/integrations/supabase/client';
-import type { Tables } from '@/integrations/supabase/client';
-import { Token } from '@/types/wallet';
-import { tokensService } from './tokensService';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { errorCollector } from '@/utils/error-handling/collector';
+
+export interface WalletData {
+  id: string;
+  user_id: string;
+  address: string;
+  blockchain: string;
+  is_primary: boolean;
+  last_connected: string;
+  created_at: string;
+  updated_at: string;
+}
 
 export const walletService = {
-  async saveWalletAddress(userId: string, address: string) {
-    const { data, error } = await dbClient
-      .from('wallets')
-      .upsert({ 
-        user_id: userId, 
-        address, 
-        last_connected: new Date().toISOString(),
-        is_primary: true,
-        blockchain: 'solana' 
-      });
-    
-    if (error) throw error;
-    return data;
+  /**
+   * Save wallet to Supabase
+   */
+  async saveWallet(
+    userId: string,
+    walletAddress: string,
+    blockchain: string = 'solana'
+  ): Promise<WalletData | null> {
+    try {
+      // Check if this wallet already exists for this user
+      const { data: existingWallets } = await supabase
+        .from('wallets')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('address', walletAddress);
+        
+      if (existingWallets && existingWallets.length > 0) {
+        // Update existing wallet
+        const { data, error } = await supabase
+          .from('wallets')
+          .update({
+            last_connected: new Date().toISOString(),
+            is_primary: true
+          })
+          .eq('id', existingWallets[0].id)
+          .select();
+          
+        if (error) throw error;
+        
+        // Set all other wallets as non-primary
+        await supabase
+          .from('wallets')
+          .update({ is_primary: false })
+          .eq('user_id', userId)
+          .neq('id', existingWallets[0].id);
+        
+        return data[0];
+      } else {
+        // Set all existing wallets as non-primary
+        await supabase
+          .from('wallets')
+          .update({ is_primary: false })
+          .eq('user_id', userId);
+          
+        // Create new wallet record
+        const { data, error } = await supabase
+          .from('wallets')
+          .insert({
+            address: walletAddress,
+            user_id: userId,
+            blockchain,
+            is_primary: true,
+            last_connected: new Date().toISOString()
+          })
+          .select();
+        
+        if (error) throw error;
+        return data[0];
+      }
+    } catch (err) {
+      errorCollector.captureError(
+        err instanceof Error ? err : new Error('Error saving wallet'),
+        { component: 'walletService', source: 'saveWallet' }
+      );
+      return null;
+    }
+  },
+
+  /**
+   * Load saved wallet from Supabase
+   */
+  async getUserWallets(userId: string): Promise<WalletData[]> {
+    try {
+      const { data, error } = await supabase
+        .from('wallets')
+        .select('*')
+        .eq('user_id', userId)
+        .order('last_connected', { ascending: false });
+        
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      errorCollector.captureError(
+        err instanceof Error ? err : new Error('Error loading wallets'),
+        { component: 'walletService', source: 'getUserWallets' }
+      );
+      return [];
+    }
   },
   
-  async getWalletByUser(userId: string) {
-    const { data, error } = await dbClient
-      .from('wallets')
-      .select('*')
-      .eq('user_id', userId)
-      .order('is_primary', { ascending: false });
-    
-    if (error) throw error;
-    return data as Tables['wallets'][];
-  },
-
-  async getPrimaryWallet(userId: string) {
-    const { data, error } = await dbClient
-      .from('wallets')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('is_primary', true)
-      .single();
-    
-    if (error && error.code !== 'PGRST116') {
-      // PGRST116 means no rows returned, which is not an error in this context
-      throw error;
-    }
-    
-    return data as Tables['wallets'] | null;
-  },
-
-  saveWalletToDatabase: async (userId: string | undefined, address: string, tokens: Token[]): Promise<boolean> => {
-    if (!userId) return false;
-    
+  /**
+   * Get primary wallet for user
+   */
+  async getPrimaryWallet(userId: string): Promise<WalletData | null> {
     try {
-      // Save wallet address
-      await walletService.saveWalletAddress(userId, address);
-      
-      // Also save tokens to database
-      await tokensService.saveTokens(userId, tokens);
-      
-      toast.success('Το πορτοφόλι συνδέθηκε και αποθηκεύτηκε στο λογαριασμό σας');
+      const { data, error } = await supabase
+        .from('wallets')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_primary', true)
+        .single();
+        
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      errorCollector.captureError(
+        err instanceof Error ? err : new Error('Error loading primary wallet'),
+        { component: 'walletService', source: 'getPrimaryWallet' }
+      );
+      return null;
+    }
+  },
+
+  /**
+   * Update wallet last connected timestamp in Supabase
+   */
+  async updateWalletLastConnected(walletId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('wallets')
+        .update({ last_connected: new Date().toISOString() })
+        .eq('id', walletId);
+        
+      if (error) throw error;
       return true;
     } catch (err) {
-      console.error('Error saving wallet to database:', err);
-      toast.error('Το πορτοφόλι συνδέθηκε αλλά απέτυχε η αποθήκευση στο λογαριασμό σας');
+      errorCollector.captureError(
+        err instanceof Error ? err : new Error('Error updating wallet last connected'),
+        { component: 'walletService', source: 'updateWalletLastConnected' }
+      );
       return false;
     }
   },
   
-  loadSavedWallet: async (userId: string | undefined): Promise<{address: string} | null> => {
-    if (!userId) return null;
-    
+  /**
+   * Set a wallet as primary
+   */
+  async setPrimaryWallet(userId: string, walletId: string): Promise<boolean> {
     try {
-      return await walletService.getPrimaryWallet(userId);
+      // First set all wallets as non-primary
+      await supabase
+        .from('wallets')
+        .update({ is_primary: false })
+        .eq('user_id', userId);
+        
+      // Then set the selected wallet as primary
+      const { error } = await supabase
+        .from('wallets')
+        .update({ is_primary: true })
+        .eq('id', walletId);
+      
+      if (error) throw error;
+      return true;
     } catch (err) {
-      console.error('Error loading saved wallet:', err);
-      toast.error('Αποτυχία αυτόματης σύνδεσης πορτοφολιού');
-      return null;
+      errorCollector.captureError(
+        err instanceof Error ? err : new Error('Error setting primary wallet'),
+        { component: 'walletService', source: 'setPrimaryWallet' }
+      );
+      return false;
+    }
+  },
+  
+  /**
+   * Delete a wallet
+   */
+  async deleteWallet(walletId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('wallets')
+        .delete()
+        .eq('id', walletId);
+        
+      if (error) throw error;
+      return true;
+    } catch (err) {
+      errorCollector.captureError(
+        err instanceof Error ? err : new Error('Error deleting wallet'),
+        { component: 'walletService', source: 'deleteWallet' }
+      );
+      return false;
     }
   }
 };

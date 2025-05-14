@@ -1,135 +1,68 @@
 
-import React, { useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { WalletConnectedContent } from "@/components/home/WalletConnectedContent";
-import { ConnectWalletCard } from "@/components/home/ConnectWalletCard";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Wallet } from "lucide-react";
-import { useWalletConnection } from "@/hooks/useWalletConnection";
-import { TokenBot } from "@/components/wallet/TokenBot";
+import { useEffect } from 'react';
+import { Container, Grid } from '@mui/material';
+import { useWallet } from '@/hooks/useWallet';
+import { WalletConnectedContent } from '@/components/home/WalletConnectedContent';
+import { WalletDisconnectedContent } from '@/components/home/WalletDisconnectedContent';
+import { HeroSection } from '@/components/home/HeroSection';
+import { FooterSection } from '@/components/home/FooterSection';
+import { FaqSection } from '@/components/home/FaqSection';
+import { BotExplanationSection } from '@/components/home/BotExplanationSection';
+import { useAuth } from '@/providers/SupabaseAuthProvider';
 
 export default function Home() {
   const { 
-    isConnected, 
-    walletAddress, 
-    solBalance, 
-    tokens, 
-    isConnecting, 
-    isLoadingTokens, 
-    tokenPrices,
+    isConnected,
+    walletAddress,
+    tokens,
+    balance,
     connectWallet,
-    disconnectWallet,
-    selectTokenForTrading
-  } = useWalletConnection();
-  
-  console.log("WalletConnection hook loaded, connection status:", isConnected);
-  
-  // Διασφαλίζουμε ότι το walletAddress είναι string πριν χρησιμοποιήσουμε substring
-  const displayAddress = typeof walletAddress === 'string' && walletAddress ? 
-    `${walletAddress.substring(0, 4)}...${walletAddress.substring(walletAddress.length - 4)}` : 
-    "Δεν έχει συνδεθεί πορτοφόλι";
-  
-  // Convert complex token prices to simple format for compatibility
-  const simplifiedTokenPrices: Record<string, number> = {};
-  if (tokenPrices) {
-    Object.entries(tokenPrices).forEach(([address, priceData]) => {
-      simplifiedTokenPrices[address] = priceData.price;
-    });
-  }
-  
-  useEffect(() => {
-    console.log("Home page loaded. Connection status:", isConnected ? "Connected" : "Not connected");
-  }, [isConnected]);
+    disconnectWallet
+  } = useWallet();
 
-  const handleConnectClick = async () => {
-    await connectWallet();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    // Initialize the page
+    console.log("Home page initialized, auth status:", !!user);
+  }, [user]);
+
+  const handleConnect = async () => {
+    try {
+      await connectWallet();
+      return true;
+    } catch (error) {
+      console.error("Failed to connect wallet:", error);
+      return false;
+    }
+  };
+
+  const handleDisconnect = () => {
+    disconnectWallet();
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Wallet className="h-5 w-5 text-primary" />
-            <div className="flex-1">
-              <CardTitle>Καλώς ήρθατε στο Solana Trade Automator</CardTitle>
-              <CardDescription>
-                Αυτοματοποιήστε τις συναλλαγές σας και διαχειριστείτε τα περιουσιακά σας στοιχεία με ασφάλεια
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isConnected ? (
-            <WalletConnectedContent 
-              walletAddress={walletAddress}
-              displayAddress={displayAddress}
-              solBalance={solBalance}
-              tokens={tokens}
-              tokenPrices={simplifiedTokenPrices}
-              isLoadingTokens={isLoadingTokens}
-              onDisconnect={disconnectWallet}
-              selectTokenForTrading={selectTokenForTrading}
-            />
-          ) : (
-            <ConnectWalletCard 
-              isConnecting={isConnecting}
-              onConnect={handleConnectClick}
-            />
-          )}
-        </CardContent>
-      </Card>
+    <Container maxWidth="xl">
+      <HeroSection />
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TokenBot 
-          tokens={tokens}
-          isConnected={isConnected}
-          onConnectWallet={connectWallet}
-        />
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Αρχίστε με το Solana Trading</CardTitle>
-            <CardDescription>Βήματα για να ξεκινήσετε με την πλατφόρμα</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 border rounded-lg">
-                  <h3 className="text-lg font-medium mb-2">1. Σύνδεση Πορτοφολιού</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Συνδέστε το Phantom Wallet σας για να αποκτήσετε πρόσβαση σε όλες τις λειτουργίες της πλατφόρμας.
-                  </p>
-                </div>
-                
-                <div className="p-4 border rounded-lg">
-                  <h3 className="text-lg font-medium mb-2">2. Ρύθμιση Bot</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Διαμορφώστε τις παραμέτρους του trading bot σας σύμφωνα με τη στρατηγική σας.
-                  </p>
-                </div>
-                
-                <div className="p-4 border rounded-lg">
-                  <h3 className="text-lg font-medium mb-2">3. Παρακολούθηση</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Παρακολουθήστε τις συναλλαγές και την απόδοση από το dashboard της πλατφόρμας.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="mt-4 p-4 bg-primary/10 rounded-lg">
-                <h3 className="text-lg font-medium mb-2">Πλεονεκτήματα της Αυτοματοποίησης</h3>
-                <ul className="list-disc pl-5 space-y-2">
-                  <li>24/7 παρακολούθηση της αγοράς χωρίς ανθρώπινη παρέμβαση</li>
-                  <li>Αυτόματη αναγνώριση ευκαιριών με βάση προκαθορισμένες παραμέτρους</li>
-                  <li>Γρήγορη εκτέλεση συναλλαγών όταν εντοπίζονται ευκαιρίες</li>
-                  <li>Λεπτομερείς αναφορές και αναλύσεις για τη βελτιστοποίηση της στρατηγικής σας</li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+      <Grid container spacing={4} sx={{ mt: 4, mb: 8 }}>
+        {isConnected ? (
+          <WalletConnectedContent 
+            walletAddress={walletAddress}
+            tokens={tokens}
+            balance={balance} 
+            onDisconnect={handleDisconnect}
+          />
+        ) : (
+          <WalletDisconnectedContent 
+            onConnect={handleConnect}
+          />
+        )}
+      </Grid>
+      
+      <BotExplanationSection />
+      <FaqSection />
+      <FooterSection />
+    </Container>
   );
 }

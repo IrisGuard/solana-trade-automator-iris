@@ -1,81 +1,51 @@
 
-import { useState, useCallback, useEffect } from 'react';
-import { Token } from '@/types/wallet';
+import { useState, useEffect } from 'react';
 import { TokenPriceInfo } from './types';
 
-/**
- * Hook για να διαχειριστεί τις συνδρομές τιμών για tokens
- */
-export function usePriceSubscription() {
-  const [price, setPrice] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [selectedTokenPrice, setSelectedTokenPrice] = useState<TokenPriceInfo | null>(null);
-  const [selectedTokenDetails, setSelectedTokenDetails] = useState<Token | undefined>(undefined);
-  const [subscriptionActive, setSubscriptionActive] = useState<boolean>(false);
-
-  // Function to setup price subscription for a token
-  const setupPriceSubscription = useCallback(async (tokenAddress: string) => {
-    try {
-      setIsLoading(true);
-      console.log(`Setting up price subscription for token: ${tokenAddress}`);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Create mock price data for the token
-      const mockPrice = Math.random() * 1000;
-      setPrice(mockPrice);
-      
-      // Set the selected token price info
-      setSelectedTokenPrice({
-        currentPrice: mockPrice,
-        priceChange24h: (Math.random() * 10) - 5, // -5% to +5%
-        highPrice24h: mockPrice * (1 + Math.random() * 0.1),
-        lowPrice24h: mockPrice * (1 - Math.random() * 0.1),
-        volume24h: Math.random() * 1000000,
-        marketCap: Math.random() * 10000000000,
-        lastUpdated: new Date()
-      });
-      
-      setSubscriptionActive(true);
-      
-      // Setup interval to update price periodically
-      const interval = setInterval(() => {
-        const newPrice = price * (1 + (Math.random() * 0.02) - 0.01); // -1% to +1%
-        setPrice(newPrice);
-        setSelectedTokenPrice(prev => {
-          if (!prev) return null;
-          return {
-            ...prev,
-            currentPrice: newPrice,
-            lastUpdated: new Date()
-          };
-        });
-      }, 5000);
-      
-      // Cleanup interval on component unmount
-      return () => clearInterval(interval);
-    } catch (error) {
-      console.error("Error setting up price subscription:", error);
-    } finally {
-      setIsLoading(false);
+export function usePriceSubscription(tokenAddress: string | null) {
+  const [priceInfo, setPriceInfo] = useState<TokenPriceInfo | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  
+  useEffect(() => {
+    if (!tokenAddress) {
+      setPriceInfo(null);
+      return;
     }
-  }, [price]);
-
-  // Cleanup subscription when component unmounts
-  const cleanupSubscription = useCallback(() => {
-    console.log("Cleaning up price subscription");
-    setSubscriptionActive(false);
-    setSelectedTokenPrice(null);
-  }, []);
-
-  // Return values and functions
-  return {
-    price,
-    isLoading,
-    selectedTokenPrice,
-    selectedTokenDetails,
-    setupPriceSubscription,
-    cleanupSubscription
-  };
+    
+    setIsLoading(true);
+    
+    // This would be replaced with an actual API call in a real application
+    const fetchPrice = async () => {
+      try {
+        // Mock price data
+        const mockPrice: TokenPriceInfo = {
+          price: Math.random() * 100,
+          priceChange24h: (Math.random() * 10) - 5,
+          volume24h: Math.random() * 1000000,
+          marketCap: Math.random() * 10000000,
+          lastUpdated: new Date()
+        };
+        
+        setPriceInfo(mockPrice);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Unknown error fetching price'));
+        setPriceInfo(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchPrice();
+    
+    // Set up interval for price updates
+    const intervalId = setInterval(fetchPrice, 30000);
+    
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [tokenAddress]);
+  
+  return { priceInfo, isLoading, error };
 }
