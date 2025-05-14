@@ -1,7 +1,7 @@
 
 import React, { createContext, useState, useContext, ReactNode } from 'react';
-import { enTranslations } from '@/locales/en';
-import { elTranslations } from '@/locales/el';
+import en from '@/locales/en';
+import el from '@/locales/el';
 import { TranslationKeys } from '@/types/language';
 
 type Language = 'en' | 'el';
@@ -22,17 +22,17 @@ interface LanguageProviderProps {
 export function LanguageProvider({ children }: LanguageProviderProps) {
   const [language, setLanguage] = useState<Language>('el');
   
-  // Ορίζουμε τον τύπο εδώ για να αποφύγουμε τα TypeScript errors
+  // Get translations based on the selected language
   const translations = language === 'en' 
-    ? enTranslations as unknown as TranslationKeys
-    : elTranslations as unknown as TranslationKeys;
+    ? en as unknown as TranslationKeys
+    : el as unknown as TranslationKeys;
 
   const handleSetLanguage = (lang: Language) => {
     setLanguage(lang);
     localStorage.setItem('language', lang);
   };
 
-  // Helper function για να πάρουμε μια τιμή από ένα ένθετο αντικείμενο με βάση ένα string path
+  // Helper function to get a nested value from an object with string path
   const getNestedValue = (obj: any, path: string) => {
     return path.split('.').reduce((prev, curr) => {
       return prev && prev[curr] !== undefined ? prev[curr] : undefined;
