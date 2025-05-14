@@ -71,7 +71,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
         if (result === undefined) return key;
       }
       
-      return result || key;
+      return typeof result === 'string' ? result : key;
     } catch (error) {
       console.error("Σφάλμα μετάφρασης:", error, key);
       return key;

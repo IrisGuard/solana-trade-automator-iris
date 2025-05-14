@@ -5,20 +5,23 @@ import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { cn } from "@/lib/utils";
 import { HelpButton } from "@/components/help/HelpButton";
-
-const pageTitles: Record<string, string> = {
-  "/": "Αρχική",
-  "/home": "Αρχική",
-  "/dashboard": "Dashboard",
-  "/wallet": "Πορτοφόλι",
-  "/transactions": "Συναλλαγές",
-  "/security": "Ασφάλεια",
-  "/settings": "Ρυθμίσεις",
-  "/help": "Βοήθεια",
-};
+import { useLanguage } from "@/hooks/use-language";
 
 export function Layout() {
   const location = useLocation();
+  const { t } = useLanguage();
+  
+  const pageTitles: Record<string, string> = {
+    "/": t("general.home"),
+    "/home": t("general.home"),
+    "/dashboard": t("general.dashboard"),
+    "/wallet": t("general.wallet"),
+    "/transactions": t("general.transactions"),
+    "/security": t("general.security"),
+    "/settings": t("general.settings"),
+    "/help": t("general.help"),
+  };
+
   const title = pageTitles[location.pathname] || "Solana Trade";
 
   return (
