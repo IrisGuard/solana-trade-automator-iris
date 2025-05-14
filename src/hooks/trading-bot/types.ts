@@ -27,8 +27,9 @@ export interface TradingOrder {
   price: number;
   amount: number;
   tokenAddress: string;
+  token?: string; // Added for compatibility with ActiveOrder
   status: 'pending' | 'executed' | 'cancelled';
-  createdAt: Date;
+  createdAt: Date | string;
   executedAt?: Date;
 }
 

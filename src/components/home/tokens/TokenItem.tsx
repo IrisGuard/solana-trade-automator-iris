@@ -35,7 +35,7 @@ export function TokenItem({
   };
   
   // Format the token amount with proper decimals
-  const formattedAmount = formatTokenAmount(token.amount, token.decimals);
+  const formattedAmount = formatTokenAmount(token, token.decimals);
   
   // Calculate USD value if price is available
   const usdValue = tokenPrice ? (token.amount * tokenPrice).toFixed(2) : undefined;

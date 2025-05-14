@@ -26,6 +26,22 @@ export function formatTokenAmount(token: Token, decimals: number = 4): string {
 }
 
 /**
+ * Format a number for display, useful for token balances
+ */
+export function formatAmount(amount: number, decimals: number = 4): string {
+  if (amount === undefined || isNaN(amount)) {
+    return "0.0000";
+  }
+
+  try {
+    return amount.toFixed(decimals);
+  } catch (error) {
+    console.error("Error formatting amount:", error);
+    return "0.0000";
+  }
+}
+
+/**
  * Format price change with + or - sign
  */
 export function formatPriceChange(change: number): string {

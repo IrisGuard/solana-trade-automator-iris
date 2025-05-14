@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader, PlayCircle, StopCircle, Settings2, Flame, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { Token } from "@/types/wallet";
-import { formatTokenAmount } from "@/utils/tokenUtils";
+import { formatAmount } from "@/utils/tokenUtils";
 
 interface TokenBotProps {
   tokens: Token[];
@@ -120,7 +120,7 @@ export function TokenBot({ tokens, isConnected, onConnectWallet }: TokenBotProps
               <SelectContent>
                 {tokens.map(token => (
                   <SelectItem key={token.address} value={token.address}>
-                    {token.symbol} ({formatTokenAmount(token.balance)})
+                    {token.symbol} ({formatAmount(token.balance || 0)})
                   </SelectItem>
                 ))}
               </SelectContent>
