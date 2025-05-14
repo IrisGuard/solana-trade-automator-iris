@@ -35,9 +35,12 @@ export default function Home() {
     "Δεν έχει συνδεθεί πορτοφόλι";
   
   // Convert complex token prices to simple format for compatibility
-  const tokenPrices: Record<string, number> = {};
+  const tokenPrices: Record<string, { price: number, priceChange24h: number }> = {};
   tokens.forEach(token => {
-    tokenPrices[token.address] = Math.random() * 10; // Mock prices for demo
+    tokenPrices[token.address] = {
+      price: Math.random() * 10,  // Mock prices for demo
+      priceChange24h: (Math.random() * 2) - 1  // Between -1 and 1
+    };
   });
   
   // Wrapper for connectWallet to match expected return type

@@ -49,11 +49,14 @@ export function useWalletConnection() {
     }
   );
 
-  // Initialize wallet on component mount
+  // Initialize wallet on component mount - here's the fix: make the callback async to return a Promise
   useWalletInit(
     setWalletAddress,
     setIsConnected,
-    (address) => loadWalletData(address)
+    async (address) => {
+      await loadWalletData(address);
+      return Promise.resolve();
+    }
   );
 
   // Setup periodic data refresh

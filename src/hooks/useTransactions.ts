@@ -42,7 +42,7 @@ export function useTransactions({ walletAddress, limit = 5 }: UseTransactionsPro
         from: tx.source || undefined,
         to: tx.destination || undefined,
         timestamp: tx.block_time ? new Date(tx.block_time).getTime() : new Date(tx.created_at).getTime(),
-        blockTime: tx.block_time ? new Date(tx.block_time).getTime() : undefined
+        blockTime: tx.block_time ? new Date(tx.block_time).getTime() : new Date(tx.created_at).getTime()
       })) || [];
 
       setTransactions(formattedTransactions);
@@ -60,7 +60,8 @@ export function useTransactions({ walletAddress, limit = 5 }: UseTransactionsPro
           amount: "0.5",
           from: walletAddress,
           to: "receiver1",
-          timestamp: Date.now() - 1000 * 60 * 60 * 2 // 2 hours ago
+          timestamp: Date.now() - 1000 * 60 * 60 * 2, // 2 hours ago
+          blockTime: Date.now() - 1000 * 60 * 60 * 2 // 2 hours ago
         },
         {
           signature: "mock-sig-2",
@@ -69,7 +70,8 @@ export function useTransactions({ walletAddress, limit = 5 }: UseTransactionsPro
           amount: "1.2",
           from: "sender1",
           to: walletAddress,
-          timestamp: Date.now() - 1000 * 60 * 60 * 24 // 1 day ago
+          timestamp: Date.now() - 1000 * 60 * 60 * 24, // 1 day ago
+          blockTime: Date.now() - 1000 * 60 * 60 * 24 // 1 day ago
         },
         {
           signature: "mock-sig-3",
@@ -78,7 +80,8 @@ export function useTransactions({ walletAddress, limit = 5 }: UseTransactionsPro
           amount: "0.1",
           from: walletAddress,
           to: "receiver2",
-          timestamp: Date.now() - 1000 * 60 * 60 * 48 // 2 days ago
+          timestamp: Date.now() - 1000 * 60 * 60 * 48, // 2 days ago
+          blockTime: Date.now() - 1000 * 60 * 60 * 48 // 2 days ago
         }
       ]);
     } finally {
