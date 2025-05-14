@@ -39,7 +39,10 @@ export const WalletConnectedContent: React.FC<WalletConnectedContentProps> = ({
           <TokensCard tokens={tokens} />
           <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
-              <TransactionsCard />
+              <TransactionsCard 
+                walletAddress={walletAddress} 
+                displayAddress={walletAddress}
+              />
             </Grid>
             <Grid item xs={12} md={6}>
               <BotStatusCard />

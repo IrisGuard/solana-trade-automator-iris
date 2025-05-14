@@ -1,176 +1,137 @@
 
 import { useState, useEffect } from 'react';
+import { Token } from '@/types/wallet';
 import { toast } from 'sonner';
-import { ApiKey, ApiSettings } from '@/components/wallet/api-vault/types';
-import { DEFAULT_API_SETTINGS, DEFAULT_API_KEYS } from '@/components/wallet/api-vault/defaultApis';
+import { getSolBalance } from '@/services/solana/token/balance';
 
 export function useWallet() {
-  const [isConnected, setIsConnected] = useState(false);
-  const [isSimulation, setIsSimulation] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
-  const [makers, setMakers] = useState(100);
-  const [minDelay, setMinDelay] = useState(5);
-  const [maxDelay, setMaxDelay] = useState(10);
-  const [priceBoost, setPriceBoost] = useState(0);
-  const [botActive, setBotActive] = useState(false);
-  const [tokenAmount, setTokenAmount] = useState(100000);
-  const [solAmount, setSolAmount] = useState(0.5);
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>(DEFAULT_API_KEYS);
-  const [botRunningTime, setBotRunningTime] = useState(0);
-  const [isUnlocked, setIsUnlocked] = useState(false);
-  const [apiSettings, setApiSettings] = useState<ApiSettings>(DEFAULT_API_SETTINGS);
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [isConnecting, setIsConnecting] = useState<boolean>(false);
+  const [walletAddress, setWalletAddress] = useState<string>('');
+  const [tokens, setTokens] = useState<Token[]>([]);
+  const [balance, setBalance] = useState<number>(0);
+  const [solBalance, setSolBalance] = useState<number>(0);
+  const [tokenPrices, setTokenPrices] = useState<Record<string, number>>({});
+  const [isLoadingTokens, setIsLoadingTokens] = useState<boolean>(false);
 
-  const walletAddress = "3eDZ...f9Kt";
-  const solBalance = 12.45;
-  const tokenBalance = 250000;
-
-  // Simulate bot running time
+  // Sample token data for the demo
   useEffect(() => {
-    let timer: number;
-    if (botActive) {
-      timer = window.setInterval(() => {
-        setBotRunningTime(prev => prev + 1);
-      }, 1000);
+    if (isConnected && walletAddress) {
+      setTokens([
+        {
+          address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          name: 'USD Coin',
+          symbol: 'USDC',
+          amount: 125.45,
+          decimals: 6,
+          logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png'
+        },
+        {
+          address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+          name: 'USDT',
+          symbol: 'USDT',
+          amount: 75.2,
+          decimals: 6,
+          logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.png'
+        },
+        {
+          address: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+          name: 'Marinade staked SOL',
+          symbol: 'mSOL',
+          amount: 3.7,
+          decimals: 9,
+          logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png'
+        }
+      ]);
+      
+      setTokenPrices({
+        'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v': 1,
+        'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB': 1,
+        'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So': 30.45,
+      });
     }
+  }, [isConnected, walletAddress]);
 
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [botActive]);
-
-  // Format running time
-  const formatRunningTime = () => {
-    const hours = Math.floor(botRunningTime / 3600);
-    const minutes = Math.floor((botRunningTime % 3600) / 60);
-    const seconds = botRunningTime % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  };
-
-  const handleConnectWallet = () => {
-    setIsConnected(true);
-    toast.success("Wallet connected successfully");
-  };
-
-  const handleDisconnectWallet = () => {
-    setIsConnected(false);
-    setBotActive(false);
-    toast.info("Wallet disconnected");
-  };
-
-  const toggleSimulation = () => {
-    setIsSimulation(!isSimulation);
-    toast.info(isSimulation ? "Live trading enabled" : "Simulation mode enabled");
-  };
-
-  const handleStartBot = () => {
-    if (isConnected) {
-      setBotActive(true);
-      setBotRunningTime(0);
-      toast.success(
-        isSimulation 
-          ? "Bot started in simulation mode" 
-          : "Bot started with live trading"
-      );
-    } else {
-      toast.error("Please connect your wallet first");
+  // Get SOL balance when wallet is connected
+  useEffect(() => {
+    if (isConnected && walletAddress) {
+      fetchSolBalance();
     }
-  };
+  }, [isConnected, walletAddress]);
 
-  const handleStopBot = () => {
-    setBotActive(false);
-    toast.info("Bot stopped");
-  };
-
-  const handleBoostPrice = () => {
-    if (priceBoost > 0) {
-      toast.success(`Boosting price by ${priceBoost}%`);
-    } else {
-      toast.error("Please set a price boost percentage first");
-    }
-  };
-
-  const handleApiConnect = (index: number) => {
-    const updatedKeys = [...apiKeys];
-    updatedKeys[index].connected = !updatedKeys[index].connected;
-    setApiKeys(updatedKeys);
+  const fetchSolBalance = async () => {
+    if (!walletAddress) return;
     
-    if (updatedKeys[index].connected) {
-      toast.success(`${updatedKeys[index].name} connected successfully`);
-    } else {
-      toast.info(`${updatedKeys[index].name} disconnected`);
+    try {
+      const bal = await getSolBalance(walletAddress);
+      setSolBalance(bal);
+      setBalance(bal);
+    } catch (error) {
+      console.error('Error fetching SOL balance:', error);
     }
   };
 
-  const handleUnlockVault = () => {
-    setIsUnlocked(true);
-    toast.success("API vault unlocked");
+  const connectWallet = async (): Promise<boolean> => {
+    setIsConnecting(true);
+    
+    try {
+      // This is a mock implementation, in a real app, you would use Phantom or another wallet provider
+      const mockAddress = '8YLKoCr7NdU1XgR5MjqXgmT3UNJqj2GrTwmJaWjfAxGz';
+      setWalletAddress(mockAddress);
+      setIsConnected(true);
+      toast.success('Wallet connected successfully');
+      return true;
+    } catch (error) {
+      console.error('Error connecting wallet:', error);
+      toast.error('Failed to connect wallet');
+      return false;
+    } finally {
+      setIsConnecting(false);
+    }
   };
 
-  const handleLockVault = () => {
-    setIsUnlocked(false);
-    toast.info("API vault locked");
+  const disconnectWallet = () => {
+    setWalletAddress('');
+    setIsConnected(false);
+    setTokens([]);
+    setBalance(0);
+    setSolBalance(0);
+    toast.success('Wallet disconnected');
   };
 
-  const handleSaveApiSettings = () => {
-    toast.success("API settings saved successfully");
+  const refreshWalletData = async () => {
+    setIsLoadingTokens(true);
+    try {
+      await fetchSolBalance();
+      // In a real app, you would refresh token balances here
+      
+      toast.success('Wallet data updated');
+    } catch (error) {
+      console.error('Error refreshing wallet data:', error);
+      toast.error('Failed to update wallet data');
+    } finally {
+      setIsLoadingTokens(false);
+    }
   };
 
-  const handleExportKeys = () => {
-    toast.success("API keys exported (encrypted)");
-  };
-
-  const handleImportKeys = () => {
-    toast.success("API keys imported successfully");
-  };
-
-  // Custom setter to handle the apiSettings state directly without type issues
-  const setApiSettingsHandler = (settings: ApiSettings) => {
-    setApiSettings(settings);
+  const selectTokenForTrading = (token: Token) => {
+    // Implement token selection for trading
+    toast.success(`Selected ${token.symbol} for trading`);
+    return token;
   };
 
   return {
     isConnected,
-    isSimulation,
-    activeTab,
-    setActiveTab,
-    makers,
-    setMakers,
-    minDelay,
-    setMinDelay,
-    maxDelay,
-    setMaxDelay,
-    priceBoost,
-    setPriceBoost,
-    botActive,
-    tokenAmount,
-    setTokenAmount,
-    solAmount,
-    setSolAmount,
-    apiKeys,
-    botRunningTime,
-    isUnlocked,
-    apiSettings,
-    setApiSettings: setApiSettingsHandler,
-    walletAddress: "3eDZ...f9Kt",
-    solBalance: 12.45,
-    tokenBalance: 250000,
-    formatRunningTime: () => {
-      const hours = Math.floor(botRunningTime / 3600);
-      const minutes = Math.floor((botRunningTime % 3600) / 60);
-      const seconds = botRunningTime % 60;
-      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    },
-    handleConnectWallet,
-    handleDisconnectWallet,
-    toggleSimulation,
-    handleStartBot,
-    handleStopBot,
-    handleBoostPrice,
-    handleApiConnect,
-    handleUnlockVault,
-    handleLockVault,
-    handleSaveApiSettings,
-    handleExportKeys,
-    handleImportKeys
+    isConnecting,
+    walletAddress,
+    tokens,
+    balance,
+    solBalance,
+    tokenPrices,
+    isLoadingTokens,
+    connectWallet,
+    disconnectWallet,
+    refreshWalletData,
+    selectTokenForTrading
   };
 }

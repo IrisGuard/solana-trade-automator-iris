@@ -1,69 +1,50 @@
 
-import { Connection, PublicKey } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { errorCollector } from "@/utils/error-handling/collector";
-import { SOLANA_RPC_ENDPOINTS } from "@/config/endpoints";
+import { Connection, PublicKey } from '@solana/web3.js';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { SOLANA_ENDPOINTS } from '@/config/endpoints';
 
 /**
- * Get parsed token accounts for a wallet
+ * Interface for token account information
  */
-export async function getTokenAccounts(walletAddress: string) {
-  try {
-    // Initialize connection
-    const connection = new Connection(SOLANA_RPC_ENDPOINTS.MAINNET);
-    
-    // Parse wallet public key
-    const publicKey = new PublicKey(walletAddress);
-    
-    // Get all token accounts
-    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
-      publicKey, 
-      { programId: TOKEN_PROGRAM_ID }
-    );
-    
-    // Return the raw token account data
-    return tokenAccounts.value;
-  } catch (error) {
-    errorCollector.captureError(
-      error instanceof Error ? error : new Error("Error getting token accounts"), 
-      {
-        component: "TokenAccountsService",
-        details: { walletAddress },
-        source: "getTokenAccounts"
-      }
-    );
-    return [];
-  }
+export interface TokenAccountInfo {
+  address: string;
+  mint: string;
+  owner: string;
+  amount: string;
+  decimals: number;
 }
 
 /**
- * Get parsed token accounts with balances for a wallet
+ * Get all token accounts for a wallet address
+ * @param walletAddress The wallet address to get token accounts for
+ * @returns An array of token account information
  */
-export async function getTokenAccountsWithBalances(walletAddress: string) {
+export async function getTokenAccounts(walletAddress: string): Promise<TokenAccountInfo[]> {
   try {
-    // Get token accounts
-    const tokenAccounts = await getTokenAccounts(walletAddress);
+    if (!walletAddress) {
+      throw new Error('Wallet address is required');
+    }
+
+    const connection = new Connection(SOLANA_ENDPOINTS.RPC);
+    const publicKey = new PublicKey(walletAddress);
     
-    // Process token accounts
-    return tokenAccounts.map((tokenAccount) => {
-      const parsedInfo = tokenAccount.account.data.parsed.info;
+    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
+      programId: TOKEN_PROGRAM_ID
+    });
+
+    return tokenAccounts.value.map(account => {
+      const parsedInfo = account.account.data.parsed.info;
       
       return {
+        address: account.pubkey.toBase58(),
         mint: parsedInfo.mint,
-        tokenAccount: tokenAccount.pubkey.toString(),
-        amount: parsedInfo.tokenAmount.uiAmount,
+        owner: parsedInfo.owner,
+        amount: parsedInfo.tokenAmount.amount,
         decimals: parsedInfo.tokenAmount.decimals
       };
     });
   } catch (error) {
-    errorCollector.captureError(
-      error instanceof Error ? error : new Error("Error processing token accounts"), 
-      {
-        component: "TokenAccountsService",
-        details: { walletAddress },
-        source: "getTokenAccountsWithBalances"
-      }
-    );
+    console.error('Error getting token accounts:', error);
     return [];
   }
 }

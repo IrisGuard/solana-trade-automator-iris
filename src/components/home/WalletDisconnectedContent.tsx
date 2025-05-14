@@ -6,16 +6,26 @@ import { PlatformInfoCard } from './PlatformInfoCard';
 
 export interface WalletDisconnectedContentProps {
   onConnect: () => Promise<boolean>;
+  isConnecting: boolean;
 }
 
 export const WalletDisconnectedContent: React.FC<WalletDisconnectedContentProps> = ({
-  onConnect
+  onConnect,
+  isConnecting
 }) => {
+  const handleConnect = async () => {
+    try {
+      await onConnect();
+    } catch (error) {
+      console.error("Failed to connect wallet:", error);
+    }
+  };
+  
   return (
     <>
       <Grid item xs={12} md={4}>
         <div className="space-y-4">
-          <ConnectWalletCard onConnect={onConnect} />
+          <ConnectWalletCard onConnect={handleConnect} isConnecting={isConnecting} />
           <PlatformInfoCard />
         </div>
       </Grid>

@@ -1,64 +1,68 @@
 
-import { errorCollector } from "./error-handling/collector";
-import { toast } from "sonner";
-import { ErrorOptions } from "./error-handling/types";
+import { errorCollector } from '@/utils/error-handling/collector';
+import { toast } from 'sonner';
+import { ErrorOptions } from '@/utils/error-handling/types';
+
+interface TestErrorOptions extends ErrorOptions {
+  errorType?: 'runtime' | 'syntax' | 'api' | 'network' | 'authentication';
+  message?: string;
+  useToast?: boolean;
+  isAsync?: boolean;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+  code?: string;
+}
 
 /**
- * Generates an error for testing purposes
+ * Triggers a test error with specified options for testing error handling
  */
-export function generateTestError(options: ErrorOptions = {}) {
+export function triggerTestError(options: TestErrorOptions = {}) {
   const {
-    errorType = "type",
-    component = "TestComponent",
-    details = {},
-    source = "test"
+    errorType = 'runtime',
+    message = 'This is a test error',
+    component = 'TestComponent',
+    useToast = true,
+    isAsync = false,
+    code = 'ERR_TEST',
+    severity = 'low',
+    context = {}
   } = options;
 
-  let error: Error;
+  // Create the error with the provided message
+  const error = new Error(message);
 
-  switch (errorType) {
-    case "reference":
-      error = new ReferenceError("Test Reference Error");
-      break;
-    case "syntax":
-      error = new SyntaxError("Test Syntax Error");
-      break;
-    case "type":
-      error = new TypeError("Test Type Error");
-      break;
-    default:
-      error = new Error(`Test Error (${errorType})`);
+  if (isAsync) {
+    setTimeout(() => {
+      if (useToast) {
+        toast.error(message);
+      }
+      errorCollector.captureError(error, { 
+        component, 
+        code, 
+        context,
+        severity
+      });
+    }, 100);
+    return;
   }
 
-  errorCollector.captureError(error, {
-    component,
-    details,
-    source
-  });
-
-  return error;
+  // Trigger different error types
+  switch (errorType) {
+    case 'runtime':
+      errorCollector.captureError(error, { component, code, context, severity });
+      break;
+    case 'syntax':
+      errorCollector.captureError(new SyntaxError(message), { component, code, context, severity });
+      break;
+    case 'api':
+      errorCollector.captureError(message, { component: 'APIService', code: 'API_ERROR', context, severity });
+      break;
+    case 'network':
+      errorCollector.captureError(message, { component: 'NetworkService', code: 'NETWORK_ERROR', context, severity });
+      break;
+    case 'authentication':
+      errorCollector.captureError(message, { component: 'AuthService', code: 'AUTH_ERROR', context, severity });
+      break;
+    default:
+      errorCollector.captureError(error, { component, code, context, severity });
+  }
 }
-
-/**
- * Generates various types of errors for testing
- */
-export function generateVariousErrors() {
-  generateTestError({ errorType: "type", component: "TypeErrorTest" });
-  generateTestError({ errorType: "reference", component: "ReferenceErrorTest" });
-  generateTestError({ errorType: "syntax", component: "SyntaxErrorTest" });
-  
-  // Async error
-  setTimeout(() => {
-    generateTestError({ errorType: "async", component: "AsyncErrorTest" });
-  }, 100);
-}
-
-/**
- * Clear all errors from the collector
- */
-export function clearAllErrors() {
-  errorCollector.clearAllErrors();
-  toast.success("All errors cleared");
-}
-
-export type { ErrorOptions };

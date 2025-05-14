@@ -1,99 +1,73 @@
 
 import React from 'react';
-import { Container, Grid } from '@mui/material';
+import { Container } from '@mui/material';
 import { useWallet } from '@/hooks/useWallet';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-// Dashboard components
 import { WalletOverviewPanel } from '@/components/dashboard/WalletOverviewPanel';
 import { TokensPanel } from '@/components/dashboard/TokensPanel';
 import { TransactionsPanel } from '@/components/dashboard/TransactionsPanel';
-import { TradingBotTab } from '@/components/wallet/TradingBotTab';
-import { useSupabaseSync } from '@/components/security/apiVault/hooks/useSupabaseSync';
 
 export default function Dashboard() {
-  const { 
+  const {
     isConnected,
     walletAddress,
     tokens,
+    solBalance,
     balance,
-    connectWallet,
-    disconnectWallet
+    tokenPrices,
+    isLoadingTokens,
+    refreshWalletData,
+    selectTokenForTrading
   } = useWallet();
 
-  // Sync API keys with Supabase
-  const { 
-    syncApiKeysToSupabase,
-    fetchApiKeysFromSupabase,
-    isSyncing,
-    isAuthenticated 
-  } = useSupabaseSync();
-  
-  // Handle token selection for trading
-  const handleSelectToken = (tokenAddress: string) => {
-    console.log('Selected token:', tokenAddress);
-    // Implementation will be added later
-  };
-  
-  // Handle refresh wallet data
-  const handleRefreshWallet = async () => {
-    try {
-      // Implementation will be added later
-      console.log('Refreshing wallet data');
-    } catch (error) {
-      console.error('Error refreshing wallet data:', error);
-    }
+  // Calculate total portfolio value
+  const calculateTotalValue = () => {
+    if (!tokens.length || !tokenPrices) return solBalance;
+    
+    const tokensValue = tokens.reduce((total, token) => {
+      const price = tokenPrices[token.address] || 0;
+      return total + (token.amount * price);
+    }, 0);
+    
+    return solBalance + tokensValue;
   };
 
+  const totalValue = calculateTotalValue();
+
   return (
-    <Container maxWidth="xl" className="py-6">
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="w-full justify-start mb-8">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="tokens">Tokens</TabsTrigger>
-          <TabsTrigger value="transactions">Transactions</TabsTrigger>
-          <TabsTrigger value="trading-bot">Trading Bot</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="overview">
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={4}>
-              <WalletOverviewPanel 
-                walletAddress={walletAddress}
-                balance={balance}
-                isConnected={isConnected}
-                onRefresh={handleRefreshWallet}
-              />
-            </Grid>
-            <Grid item xs={12} md={8}>
-              <div className="space-y-4">
-                <TokensPanel 
-                  tokens={tokens} 
-                  isLoading={false} 
-                  onSelectToken={handleSelectToken}
-                />
-                <TransactionsPanel walletAddress={walletAddress} />
-              </div>
-            </Grid>
-          </Grid>
-        </TabsContent>
-        
-        <TabsContent value="tokens">
+    <Container maxWidth="lg">
+      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+      
+      {!isConnected ? (
+        <div className="bg-muted/50 rounded-lg p-8 text-center">
+          <h2 className="text-xl font-semibold mb-4">Connect your wallet to view dashboard</h2>
+          <p className="text-muted-foreground mb-6">
+            Connect your Solana wallet to see your balances, tokens, and transactions
+          </p>
+          <button 
+            onClick={() => refreshWalletData()}
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+          >
+            Connect Wallet
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <WalletOverviewPanel 
+            walletAddress={walletAddress}
+            solBalance={solBalance}
+            totalValue={totalValue}
+            onRefresh={refreshWalletData}
+          />
+          
           <TokensPanel 
-            tokens={tokens} 
-            isLoading={false}
-            onSelectToken={handleSelectToken}
+            tokens={tokens}
+            tokenPrices={tokenPrices}
+            isLoading={isLoadingTokens}
           />
-        </TabsContent>
-        
-        <TabsContent value="transactions">
-          <TransactionsPanel 
-            walletAddress={walletAddress} 
-          />
-        </TabsContent>
-        
-        <TradingBotTab />
-      </Tabs>
+          
+          <TransactionsPanel />
+        </div>
+      )}
     </Container>
   );
 }

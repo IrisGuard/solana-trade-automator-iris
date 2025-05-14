@@ -1,27 +1,25 @@
 
-import type { Token } from '@/types/wallet';
-
-export type BotStrategy = 'simple' | 'advanced' | 'custom' | 'dca' | 'grid' | 'momentum' | 'arbitrage';
+export interface TokenPriceInfo {
+  price: number;
+  change24h?: number;
+  volume24h?: number;
+  marketCap?: number;
+  lastUpdated?: Date;
+}
 
 export type BotStatus = 'idle' | 'running' | 'paused' | 'error';
 
-export interface BotConfig {
-  amount: number;
-  strategy: BotStrategy;
-  buyThreshold: number;
-  sellThreshold: number;
-  autoTrading: boolean;
-  maxSlippage: number;
-  stopLoss?: number;
-  takeProfit?: number;
-}
-
-export interface TokenPriceInfo {
-  price: number;
-  priceChange24h: number;
-  volume24h?: number;
-  marketCap?: number;
-  lastUpdated: Date;
+export interface TradingBotConfig {
+  selectedToken: string | null;
+  quoteToken: string;
+  tradingAmount: number;
+  maxTrade: number;
+  stopLoss: number | null;
+  takeProfit: number | null;
+  strategy: 'simple' | 'advanced' | 'custom';
+  autoRebalance: boolean;
+  riskLevel: 'low' | 'medium' | 'high';
+  autoCompound: boolean;
 }
 
 export interface TradingOrder {
@@ -29,9 +27,9 @@ export interface TradingOrder {
   type: 'buy' | 'sell';
   amount: number;
   price: number;
-  tokenAddress: string;
-  tokenSymbol: string;
-  timestamp: Date;
+  token: string;
+  status: 'pending' | 'executed' | 'canceled' | 'failed';
+  createdAt: Date;
 }
 
 export interface ActiveOrder {
@@ -39,22 +37,36 @@ export interface ActiveOrder {
   type: 'buy' | 'sell';
   amount: number;
   price: number;
-  token: Token;
-  status: 'pending' | 'completed' | 'failed';
+  token: string;
+  status: 'pending' | 'executed' | 'canceled' | 'failed';
   createdAt: Date;
 }
 
+export interface BotConfig {
+  selectedToken?: string;
+  quoteToken?: string;
+  tradingAmount?: number;
+  maxTrade?: number;
+  stopLoss?: number;
+  takeProfit?: number;
+  strategy?: 'simple' | 'advanced' | 'custom' | 'dca' | 'grid' | 'momentum' | 'arbitrage';
+  autoRebalance?: boolean;
+  riskLevel?: 'low' | 'medium' | 'high';
+  autoCompound?: boolean;
+}
+
 export interface TradingBotHook {
-  config: BotConfig;
-  updateConfig: (config: Partial<BotConfig>) => void;
-  startBot: () => void;
-  stopBot: () => void;
-  selectToken: (token: Token) => void;
-  isLoading: boolean;
-  botStatus: BotStatus;
-  activeOrders: ActiveOrder[];
-  selectedTokenPrice: TokenPriceInfo | null;
-  selectedTokenDetails: Token | null;
-  tokens: Token[];
   connected: boolean;
+  selectedToken: string | null;
+  selectedTokenPrice: TokenPriceInfo | null;
+  selectedTokenDetails: any;
+  config: TradingBotConfig;
+  updateConfig: (config: Partial<TradingBotConfig>) => void;
+  selectToken: (tokenAddress: string) => Promise<void>;
+  botStatus: BotStatus;
+  startBot: () => Promise<void>;
+  stopBot: () => Promise<void>;
+  isLoading: boolean;
+  transactions: TradingOrder[];
+  orders: ActiveOrder[];
 }

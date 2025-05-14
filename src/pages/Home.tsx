@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Container, Grid } from '@mui/material';
 import { useWallet } from '@/hooks/useWallet';
 import { WalletConnectedContent } from '@/components/home/WalletConnectedContent';
@@ -11,8 +11,9 @@ import { BotExplanationSection } from '@/components/home/BotExplanationSection';
 import { useAuth } from '@/providers/SupabaseAuthProvider';
 
 export default function Home() {
-  const { 
+  const {
     isConnected,
+    isConnecting,
     walletAddress,
     tokens,
     balance,
@@ -47,15 +48,16 @@ export default function Home() {
       
       <Grid container spacing={4} sx={{ mt: 4, mb: 8 }}>
         {isConnected ? (
-          <WalletConnectedContent 
+          <WalletConnectedContent
             walletAddress={walletAddress}
             tokens={tokens}
-            balance={balance} 
+            balance={balance}
             onDisconnect={handleDisconnect}
           />
         ) : (
-          <WalletDisconnectedContent 
+          <WalletDisconnectedContent
             onConnect={handleConnect}
+            isConnecting={isConnecting}
           />
         )}
       </Grid>

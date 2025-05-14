@@ -1,27 +1,22 @@
 
-import React, { MouseEvent } from 'react';
-import { Button } from "@/components/ui/button";
-import { generateVariousErrors } from '@/utils/errorTestUtils';
-import { TestErrorOptions } from '@/utils/error-handling/types';
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { triggerTestError } from '@/utils/errorTestUtils';
+import { ErrorOptions } from '@/utils/error-handling/types';
 
 interface TestButtonProps {
+  errorOptions?: ErrorOptions;
   label: string;
-  options: TestErrorOptions;
-  className?: string;
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
 }
 
-export function TestButton({ label, options, className = "w-full" }: TestButtonProps) {
-  const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    generateVariousErrors(options);
+export function TestButton({ errorOptions, label, variant = 'outline' }: TestButtonProps) {
+  const handleClick = () => {
+    triggerTestError(errorOptions);
   };
 
   return (
-    <Button 
-      variant="outline" 
-      onClick={handleClick}
-      className={className}
-    >
+    <Button variant={variant} onClick={handleClick} className="w-full mb-2">
       {label}
     </Button>
   );

@@ -1,34 +1,40 @@
 
 /**
- * Επιλογές για το χειρισμό σφαλμάτων
+ * Options for error handling
  */
 export interface ErrorOptions {
-  title?: string;
-  showToast?: boolean;
-  toastType?: 'error' | 'warning' | 'info';
-  logToConsole?: boolean;
-  sendToChat?: boolean;
-  useCollector?: boolean;
-  rethrow?: boolean;
+  /**
+   * Component where the error occurred
+   */
+  component?: string;
+  
+  /**
+   * Custom error code
+   */
+  code?: string;
+  
+  /**
+   * Additional context information about the error
+   */
+  context?: Record<string, any>;
+  
+  /**
+   * Whether to suppress console logging
+   */
   silent?: boolean;
-  // Adding the missing properties that are being used across the app
-  component?: string;
-  details?: any;
-  source?: string;
-}
-
-/**
- * Συντομογραφία για το ErrorOptions
- * για συμβατότητα με παλαιότερα σημεία χρήσης
- */
-export type ErrorDisplayOptions = ErrorOptions;
-
-/**
- * Επιλογές για τον έλεγχο σφαλμάτων στα τεστ
- */
-export interface TestErrorOptions {
-  errorType?: "type" | "promise" | "async" | "reference" | "syntax" | "timeout" | "render" | "prop" | "state" | "network";
-  component?: string;
-  details?: any;
-  source?: string;
+  
+  /**
+   * Whether to show a toast notification
+   */
+  showToast?: boolean;
+  
+  /**
+   * Whether to report the error to the server
+   */
+  reportToServer?: boolean;
+  
+  /**
+   * Error severity level
+   */
+  severity?: 'low' | 'medium' | 'high' | 'critical';
 }
