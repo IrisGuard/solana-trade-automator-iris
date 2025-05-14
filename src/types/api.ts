@@ -1,11 +1,27 @@
 
 export interface ApiEndpoint {
-  id?: string;  // Making id optional to match with supabaseEndpoints.ts
+  id: string;
   name: string;
   url: string;
-  category?: string;
-  is_active?: boolean;
-  is_public?: boolean;
-  created_at?: string;
-  updated_at?: string;
+  description?: string;
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  category: string;
+  requiresAuth: boolean;
+  status?: 'active' | 'inactive' | 'deprecated';
+}
+
+export interface ApiCategory {
+  name: string;
+  endpoints: ApiEndpoint[];
+}
+
+export interface ApiKey {
+  id: string;
+  name: string;
+  key: string;
+  permissions: string[];
+  createdAt: string;
+  expiresAt?: string;
+  lastUsed?: string;
+  status: 'active' | 'inactive' | 'revoked';
 }

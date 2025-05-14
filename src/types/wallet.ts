@@ -8,7 +8,7 @@ export interface Token {
   balance?: number;
   uiBalance?: number;
   mint?: string;
-  logo?: string;  // Add the logo property
+  logo?: string;  // Added logo property
 }
 
 export interface WalletBalance {

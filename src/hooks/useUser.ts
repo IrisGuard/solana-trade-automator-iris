@@ -2,74 +2,90 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export interface UserProfile {
+interface UserProfile {
   id: string;
-  full_name?: string;
+  username?: string;
   avatar_url?: string;
-  email?: string;
+  created_at?: string;
 }
 
 export function useUser() {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    async function getUserProfile() {
       try {
         setLoading(true);
-        const { data: { user: authUser } } = await supabase.auth.getUser();
         
-        if (authUser) {
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', authUser.id)
-            .single();
-
-          if (error) throw error;
-          
-          setUser({
-            id: authUser.id,
-            email: authUser.email,
-            ...profile
-          });
+        // Get current session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          throw sessionError;
         }
-      } catch (error) {
-        console.error('Error fetching user:', error);
-        setError(error instanceof Error ? error.message : 'An error occurred');
+        
+        if (!session) {
+          setUser(null);
+          setProfile(null);
+          return;
+        }
+        
+        // Set user from session
+        setUser(session.user);
+        
+        // Get user profile
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+          
+        if (profileError && profileError.code !== 'PGRST116') {
+          // PGRST116 means no rows returned, which is expected for new users
+          throw profileError;
+        }
+        
+        setProfile(profileData || { id: session.user.id });
+        setError(null);
+        
+      } catch (err) {
+        console.error('Error loading user:', err);
+        setError('Failed to load user profile');
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchUser();
+    }
     
-    // Subscribe to auth changes
+    getUserProfile();
+    
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' && session?.user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          setUser({
-            id: session.user.id,
-            email: session.user.email,
-            ...profile
-          });
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
+      (_event, session) => {
+        setUser(session?.user || null);
+        // When auth state changes, refresh profile
+        if (session?.user) {
+          getUserProfile();
+        } else {
+          setProfile(null);
         }
       }
     );
-
+    
+    // Clean up subscription
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
-  return { user, loading, error };
+  return {
+    user,
+    profile,
+    isLoading: loading,
+    error,
+    isAuthenticated: !!user,
+    userId: user?.id
+  };
 }
