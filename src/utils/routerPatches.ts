@@ -1,46 +1,34 @@
 
 /**
- * This file contains patches for React Router DOM compatibility
+ * This file patches React Router DOM to ensure compatibility with our React setup
  */
 
-// Import our React fix first
-import '../react-exports-fix';
+import * as React from 'react';  // Add proper React import to fix TS2686 errors
 
-// Import React properly to avoid UMD global reference errors
-import * as React from 'react';
-
-// Import our router exports to ensure they're loaded early
-import * as RouterExports from '@/lib/router-exports';
-import { debugRouterExports } from '@/lib/router-exports';
-
-// Apply patches for React Router DOM compatibility
-export function applyRouterPatches() {
-  // Log available router exports for debugging
-  debugRouterExports();
-
-  // Try to make React Router use window.React if available
-  if (typeof window !== 'undefined' && window.React) {
-    // Ensure React is properly patched for Router
-    console.log('Applying React Router DOM compatibility patches');
+// Ensure proper React exports are available for React Router DOM
+if (typeof window !== 'undefined') {
+  // Make core React hooks and methods available globally to fix issues with React Router DOM
+  try {
+    // Create patched React module with required exports
+    const patchedReact = {
+      createElement: React.createElement,
+      useContext: React.useContext,
+      useState: React.useState,
+      useEffect: React.useEffect,
+      useRef: React.useRef,
+      createContext: React.createContext
+    };
     
-    // Make sure createElement is available for react-router
-    if (window.React && !window.React.createElement && React.createElement) {
-      window.React.createElement = React.createElement;
-      console.log('Added createElement to window.React');
-    }
+    // Make available to modules that expect React from window
+    window.React = window.React || patchedReact;
     
-    // Make sure createContext is available for react-router-dom
-    if (window.React && !window.React.createContext && React.createContext) {
-      window.React.createContext = React.createContext;
-      console.log('Added createContext to window.React');
-    }
+    // Store the patched React module for direct reference
+    (window as any).patchedReactRouter = patchedReact;
+    
+    console.log('React Router patches applied successfully');
+  } catch (error) {
+    console.error('Failed to apply React Router patches:', error);
   }
-
-  return true;
 }
 
-// Auto-execute the patches
-applyRouterPatches();
-
-// Export for explicit usage
-export default applyRouterPatches;
+export default {};
