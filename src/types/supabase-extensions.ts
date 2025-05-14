@@ -1,34 +1,89 @@
 
-import type { Database } from '@/integrations/supabase/types';
+// TypeScript definitions for Supabase extensions
 
-// Re-export the Database type for convenience
-export type { Database } from '@/integrations/supabase/types';
-
-// Extended/supplementary types that don't require modifying the original types file
-export type BotConfig = {
+export interface BotConfig {
   selectedToken?: string;
   quoteToken?: string;
-  tradingAmount?: number;
   allocation?: number;
   maxTrade?: number;
-  stopLoss?: number;
   takeProfit?: number;
-  strategy?: 'dca' | 'grid' | 'momentum' | 'arbitrage';
-  autoRebalance?: boolean;
-  riskLevel?: number | 'low' | 'medium' | 'high';
+  stopLoss?: number;
+  riskLevel?: number;
   autoCompound?: boolean;
   profit?: string;
   timeRunning?: string;
-};
+  enabledStrategies?: {
+    dca: boolean;
+    grid: boolean;
+    momentum: boolean;
+  };
+}
 
-// Type-safe helper for accessing Supabase tables
-export type TableRow<T extends keyof Database['public']['Tables']> = 
-  Database['public']['Tables'][T]['Row'];
+export interface ProfileRow {
+  id: string;
+  full_name?: string;
+  avatar_url?: string;
+  updated_at?: string;
+  created_at?: string;
+}
 
-// Specific table row types
-export type ProfileRow = TableRow<'profiles'>;
-export type WalletRow = TableRow<'wallets'>;
-export type TokenRow = TableRow<'tokens'>;
-export type TransactionRow = TableRow<'transactions'>;
-export type BotRow = TableRow<'bots'>;
-export type ApiKeysRow = TableRow<'api_keys_storage'>;
+export interface WalletRow {
+  id: string;
+  user_id: string;
+  address: string;
+  blockchain: string;
+  is_primary: boolean;
+  created_at?: string;
+  updated_at?: string;
+  last_connected?: string;
+}
+
+export interface TokenRow {
+  id: string;
+  user_id: string;
+  token_address: string;
+  name: string;
+  symbol: string;
+  amount?: number;
+  logo?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface TransactionRow {
+  id: string;
+  user_id: string;
+  wallet_address: string;
+  signature: string;
+  type: string;
+  status: string;
+  amount: string;
+  source?: string;
+  destination?: string;
+  block_time?: string;
+  created_at?: string;
+}
+
+export interface BotRow {
+  id: string;
+  user_id: string;
+  name: string;
+  strategy: string;
+  active?: boolean;
+  config?: BotConfig;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ApiKeysRow {
+  id: string;
+  user_id: string;
+  name: string;
+  key_value: string;
+  service: string;
+  description?: string;
+  status?: string;
+  is_encrypted?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
