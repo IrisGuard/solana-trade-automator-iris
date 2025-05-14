@@ -81,6 +81,65 @@ export type Tables = {
   api_endpoints: any;
 };
 
+// Define a better Mock response type
+interface MockResponse {
+  data: any;
+  error: any | null;
+  status: number;
+  statusText: string;
+  count: number | null;
+}
+
+// Helper function to create a standardized response
+function createResponse(data: any = null, error: any = null): MockResponse {
+  return {
+    data,
+    error,
+    status: error ? 400 : 200,
+    statusText: error ? 'Bad Request' : 'OK',
+    count: Array.isArray(data) ? data.length : null
+  };
+}
+
+// Improved mock chain builders
+function buildSelectChain(data: any[] = []) {
+  const baseSelect = {
+    data,
+    error: null,
+    single: () => ({ data: data.length > 0 ? data[0] : null, error: null }),
+    maybeSingle: () => ({ data: data.length > 0 ? data[0] : null, error: null }),
+    select: (columns?: string) => baseSelect,
+    eq: (column: string, value: any) => buildSelectChain(data),
+    neq: (column: string, value: any) => buildSelectChain(data),
+    gt: (column: string, value: any) => buildSelectChain(data),
+    lt: (column: string, value: any) => buildSelectChain(data),
+    gte: (column: string, value: any) => buildSelectChain(data),
+    lte: (column: string, value: any) => buildSelectChain(data),
+    like: (column: string, value: any) => buildSelectChain(data),
+    ilike: (column: string, value: any) => buildSelectChain(data),
+    is: (column: string, value: any) => buildSelectChain(data),
+    in: (column: string, values: any[]) => buildSelectChain(data),
+    contains: (column: string, value: any) => buildSelectChain(data),
+    containedBy: (column: string, value: any) => buildSelectChain(data),
+    rangeLt: (column: string, range: any) => buildSelectChain(data),
+    rangeGt: (column: string, range: any) => buildSelectChain(data),
+    rangeGte: (column: string, range: any) => buildSelectChain(data),
+    rangeLte: (column: string, range: any) => buildSelectChain(data),
+    rangeAdjacent: (column: string, range: any) => buildSelectChain(data),
+    overlaps: (column: string, value: any) => buildSelectChain(data),
+    textSearch: (column: string, query: string, options: any) => buildSelectChain(data),
+    match: (query: any) => buildSelectChain(data),
+    not: (column: string, operator: string, value: any) => buildSelectChain(data),
+    or: (filters: string, options: any) => buildSelectChain(data),
+    filter: (column: string, operator: string, value: any) => buildSelectChain(data),
+    order: (column: string, options: any) => buildSelectChain(data),
+    limit: (count: number) => buildSelectChain(data),
+    range: (from: number, to: number) => buildSelectChain(data),
+    abortSignal: (signal: AbortSignal) => buildSelectChain(data),
+  };
+  return baseSelect;
+}
+
 export const supabase = {
   auth: {
     getUser: async () => ({ data: { user: null }, error: null }),
@@ -99,7 +158,6 @@ export const supabase = {
     },
     onAuthStateChange: (callback: (event: string, session: any) => void) => {
       console.log('Mock onAuthStateChange registered');
-      // Return a mock subscription
       return {
         data: {
           subscription: {
@@ -113,76 +171,22 @@ export const supabase = {
   },
   from: (table: string) => {
     return {
-      select: (columns?: string) => {
-        const baseResponse = {
-          data: [],
-          error: null,
-          single: () => ({ data: null, error: null }),
-          maybeSingle: () => ({ data: null, error: null }),
-          order: (column: string, { ascending }: { ascending: boolean }) => ({ 
-            data: [], 
-            error: null,
-            single: () => ({ data: null, error: null }),
-            maybeSingle: () => ({ data: null, error: null }),
-            limit: (limit: number) => ({ data: [], error: null }),
-            eq: (column: string, value: any) => ({ data: [], error: null }),
-            in: (column: string, values: any[]) => ({ data: [], error: null }),
-          }),
-          match: (criteria: any) => ({
-            data: [], 
-            error: null,
-            single: () => ({ data: null, error: null }),
-            maybeSingle: () => ({ data: null, error: null }),
-          }),
-          limit: (limit: number) => ({
-            data: [], 
-            error: null,
-            single: () => ({ data: null, error: null }),
-            maybeSingle: () => ({ data: null, error: null }),
-          }),
-          eq: (column: string, value: any) => ({
-            data: [],
-            error: null,
-            single: () => ({ data: null, error: null }),
-            maybeSingle: () => ({ data: null, error: null }),
-            order: (col: string, opts: { ascending: boolean }) => ({
-              data: [], 
-              error: null,
-              limit: (limit: number) => ({ data: [], error: null }),
-            }),
-            limit: (limit: number) => ({ data: [], error: null }),
-            in: (col: string, values: any[]) => ({ data: [], error: null }),
-          }),
-          in: (column: string, values: any[]) => ({
-            data: [],
-            error: null,
-            single: () => ({ data: null, error: null }),
-            maybeSingle: () => ({ data: null, error: null }),
-          }),
-          neq: (column: string, value: any) => ({
-            data: [],
-            error: null,
-            single: () => ({ data: null, error: null }),
-            maybeSingle: () => ({ data: null, error: null }),
-          })
-        };
-        console.log(`Mock select ${columns || '*'} from ${table}`);
-        return baseResponse;
-      },
+      select: (columns?: string) => buildSelectChain([]),
       insert: (data: any) => {
         console.log(`Mock insert into ${table}`, data);
-        return {
-          select: (columns?: string) => ({
-            data: data ? [data] : null,
+        const insertChain = {
+          select: (columns?: string) => ({ 
+            data: Array.isArray(data) ? data : [data], 
             error: null,
-            single: () => ({ data: data || null, error: null }),
-            maybeSingle: () => ({ data: data || null, error: null }),
+            single: () => ({ data: Array.isArray(data) ? data[0] : data, error: null }),
+            maybeSingle: () => ({ data: Array.isArray(data) ? data[0] : data, error: null }),
           }),
-          data: data ? [data] : null,
+          single: () => ({ data: Array.isArray(data) ? data[0] : data, error: null }),
+          maybeSingle: () => ({ data: Array.isArray(data) ? data[0] : data, error: null }),
+          data: Array.isArray(data) ? data : [data], 
           error: null,
-          single: () => ({ data: data || null, error: null }),
-          maybeSingle: () => ({ data: data || null, error: null }),
         };
+        return insertChain;
       },
       update: (data: any) => {
         console.log(`Mock update ${table}`, data);
@@ -190,35 +194,55 @@ export const supabase = {
           eq: (column: string, value: any) => {
             console.log(`where ${column} = ${value}`);
             return { 
-              data: data ? [data] : null, 
+              data: Array.isArray(data) ? data : [data],
               error: null,
               select: (columns?: string) => ({
-                data: data ? [data] : null,
-                error: null
-              })
+                data: Array.isArray(data) ? data : [data],
+                error: null,
+                single: () => ({ data: Array.isArray(data) ? data[0] : data, error: null }),
+                maybeSingle: () => ({ data: Array.isArray(data) ? data[0] : data, error: null }),
+              }),
+              single: () => ({ data: Array.isArray(data) ? data[0] : data, error: null }),
             };
           },
-          match: (criteria: any) => {
-            console.log(`match criteria`, criteria);
-            return { 
-              data: data ? [data] : null, 
-              error: null,
-              select: (columns?: string) => ({
-                data: data ? [data] : null,
-                error: null
-              })
-            };
-          },
-          data: null,
-          error: null,
+          neq: (column: string, value: any) => ({ 
+            data: Array.isArray(data) ? data : [data], 
+            error: null,
+            select: (columns?: string) => ({
+              data: Array.isArray(data) ? data : [data],
+              error: null
+            }),
+          }),
+          match: (criteria: any) => ({ 
+            data: Array.isArray(data) ? data : [data], 
+            error: null,
+            select: (columns?: string) => ({
+              data: Array.isArray(data) ? data : [data],
+              error: null
+            }),
+          }),
+          in: (column: string, values: any[]) => ({ 
+            data: Array.isArray(data) ? data : [data], 
+            error: null,
+            select: (columns?: string) => ({
+              data: Array.isArray(data) ? data : [data],
+              error: null
+            }),
+          }),
           select: (columns?: string) => ({
             data: null, 
             error: null,
             eq: (column: string, value: any) => ({
-              data: data ? [data] : null,
+              data: Array.isArray(data) ? data : [data],
               error: null
-            })
+            }),
+            neq: (column: string, value: any) => ({
+              data: Array.isArray(data) ? data : [data],
+              error: null
+            }),
           }),
+          data: null,
+          error: null,
         };
       },
       delete: () => {
@@ -228,8 +252,16 @@ export const supabase = {
             console.log(`where ${column} = ${value}`);
             return { data: null, error: null };
           },
+          neq: (column: string, value: any) => {
+            console.log(`where ${column} != ${value}`);
+            return { data: null, error: null };
+          },
           match: (criteria: any) => {
             console.log(`match criteria`, criteria);
+            return { data: null, error: null };
+          },
+          in: (column: string, values: any[]) => {
+            console.log(`where ${column} in (${values.join(', ')})`);
             return { data: null, error: null };
           },
           data: null,
@@ -239,11 +271,12 @@ export const supabase = {
       upsert: (data: any, options?: any) => {
         console.log(`Mock upsert into ${table}`, data, options);
         return { 
-          data: data ? [data] : null, 
+          data: Array.isArray(data) ? data : [data], 
           error: null,
           select: (columns?: string) => ({
-            data: data ? [data] : null,
-            error: null
+            data: Array.isArray(data) ? data : [data],
+            error: null,
+            single: () => ({ data: Array.isArray(data) ? data[0] : data, error: null }),
           })
         };
       }

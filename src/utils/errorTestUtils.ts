@@ -1,11 +1,22 @@
 
-// Assume this is the content of errorTestUtils.ts
-// We need to fix line 23 which has a possible null reference
-
-// Let's create a safer implementation
 import { errorCollector } from '@/utils/error-handling/collector';
 
-export function triggerTestError(type: string, options?: any): void {
+// Export functions needed by other files
+export function clearAllErrors(): void {
+  errorCollector.clearErrors();
+}
+
+export function getAllErrors() {
+  return errorCollector.getErrors();
+}
+
+export interface TestErrorOptions {
+  errorType?: string;
+  message?: string;
+  details?: Record<string, any>;
+}
+
+export function triggerTestError(type: string, options?: TestErrorOptions): void {
   switch (type) {
     case 'js':
       triggerJsError(options);
@@ -24,22 +35,32 @@ export function triggerTestError(type: string, options?: any): void {
   }
 }
 
-function triggerJsError(options?: any): void {
+export function generateVariousErrors(count: number = 1): void {
+  const errorTypes = ['js', 'async', 'network', 'ui'];
+  for (let i = 0; i < count; i++) {
+    const randomType = errorTypes[Math.floor(Math.random() * errorTypes.length)];
+    try {
+      triggerTestError(randomType);
+    } catch (e) {
+      // Catch and ignore to prevent test errors from stopping execution
+      console.log(`Generated test error: ${randomType}`);
+    }
+  }
+}
+
+function triggerJsError(options?: TestErrorOptions): void {
   try {
-    // Safely handle potential null options
-    const errorType = options && options.errorType ? options.errorType : 'reference';
+    const errorType = options?.errorType || 'reference';
     
-    // Generate different types of JavaScript errors
     if (errorType === 'reference') {
       // @ts-ignore - Intentionally causing an error
       const nonExistentVar = undefinedVariable.property;
     } else if (errorType === 'type') {
+      // Create an intentional type error that won't be caught by TS compiler
       // @ts-ignore - Intentionally causing an error
-      const num = 42;
-      num.toLowerCase();
+      const num: any = 42;
+      console.log(num.doesNotExist());
     } else if (errorType === 'syntax') {
-      // This won't actually throw at runtime due to how JS works
-      // But we can simulate a syntax error
       try {
         // @ts-ignore - Intentionally causing an error
         eval('const x = {,};');
@@ -56,11 +77,10 @@ function triggerJsError(options?: any): void {
   }
 }
 
-function triggerAsyncError(options?: any): void {
+function triggerAsyncError(options?: TestErrorOptions): void {
   setTimeout(() => {
     try {
-      // Safely handle potential null options
-      const errorType = options && options.errorType ? options.errorType : 'promise';
+      const errorType = options?.errorType || 'promise';
       
       if (errorType === 'promise') {
         Promise.reject(new Error('Test Promise Rejection'));
@@ -76,9 +96,8 @@ function triggerAsyncError(options?: any): void {
   }, 100);
 }
 
-function triggerNetworkError(options?: any): void {
-  // Safely handle potential null options
-  const errorType = options && options.errorType ? options.errorType : 'fetch';
+function triggerNetworkError(options?: TestErrorOptions): void {
+  const errorType = options?.errorType || 'fetch';
   
   if (errorType === 'fetch') {
     fetch('https://non-existent-domain-123456.xyz')
@@ -90,7 +109,6 @@ function triggerNetworkError(options?: any): void {
         });
       });
   } else if (errorType === 'timeout') {
-    // Simulate a network timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 100);
     
@@ -108,12 +126,9 @@ function triggerNetworkError(options?: any): void {
   }
 }
 
-function triggerUIError(options?: any): void {
-  // UI errors would normally be triggered in component rendering
-  // Here we just throw an error that would be caught by ErrorBoundary
+function triggerUIError(options?: TestErrorOptions): void {
   try {
-    // Safely handle potential null options
-    const errorType = options && options.errorType ? options.errorType : 'render';
+    const errorType = options?.errorType || 'render';
     
     throw new Error(`Test UI Error: ${errorType}`);
   } catch (error) {

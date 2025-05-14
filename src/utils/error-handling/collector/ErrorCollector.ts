@@ -112,6 +112,19 @@ class ErrorCollectorImpl implements IErrorCollector {
       timestamp: new Date().toISOString()
     };
   }
+
+  // For backward compatibility
+  addError(error: Error | unknown, options: ErrorOptions = {}): string {
+    return this.captureError(error, options);
+  }
+
+  getAllErrors(): ErrorData[] {
+    return this.getErrors();
+  }
+
+  clearAllErrors(): void {
+    this.clearErrors();
+  }
 }
 
 // Create singleton instance

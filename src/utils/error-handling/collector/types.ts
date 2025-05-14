@@ -1,7 +1,7 @@
 
 // Type definitions for error collector
 
-export type ErrorSource = 'client' | 'server' | 'network' | 'test';
+export type ErrorSource = 'client' | 'server' | 'network' | 'test' | 'helius';
 
 export interface ErrorOptions {
   component?: string;
@@ -38,4 +38,8 @@ export interface ErrorCollector {
   getErrors: () => ErrorData[];
   clearErrors: () => void;
   logError: (errorData: ErrorData) => Promise<string | null>;
+  // Added for backward compatibility
+  addError: (error: Error | unknown, options?: ErrorOptions) => string;
+  getAllErrors: () => ErrorData[];
+  clearAllErrors: () => void;
 }
