@@ -118,6 +118,7 @@ export async function importHeliusKeys(userId: string): Promise<boolean> {
 
 /**
  * Import Helius API keys into Supabase specifically based on the SQL schema provided in the user's message.
+ * Modified to remove direct references to 'api_keys' table which doesn't exist in the schema.
  */
 export async function importHeliusKeysFromSqlSchema(userId: string): Promise<boolean> {
   // If no user ID, we can't import the keys
@@ -127,110 +128,10 @@ export async function importHeliusKeysFromSqlSchema(userId: string): Promise<boo
   }
 
   try {
-    // Check if table exists first
-    const { error: tableCheckError } = await supabase
-      .from('api_keys')
-      .select('id', { count: 'exact', head: true });
-
-    // If the api_keys table doesn't exist, fall back to api_keys_storage
-    if (tableCheckError) {
-      console.log("api_keys table not found, using api_keys_storage instead");
-      return importHeliusKeys(userId);
-    }
-
-    // Define the keys based on the SQL schema provided by the user
-    const apiKeys = [
-      {
-        name: 'HELIUS_API_KEY_MAIN',
-        value: 'ddb32813-1f4b-459d-8964-310b1b73a053',
-        category: 'blockchain',
-        status: 'active',
-        provider_type: 'helius',
-        description: 'Βασικό κλειδί API για το Helius RPC API',
-        is_required: true
-      },
-      {
-        name: 'HELIUS_MAINNET_RPC',
-        value: 'ddb32813-1f4b-459d-8964-310b1b73a053',
-        category: 'blockchain',
-        status: 'active',
-        provider_type: 'helius',
-        description: 'Κλειδί για το Mainnet RPC endpoint της Helius',
-        is_required: true
-      },
-      {
-        name: 'HELIUS_WEBSOCKET',
-        value: 'ddb32813-1f4b-459d-8964-310b1b73a053',
-        category: 'blockchain',
-        status: 'active',
-        provider_type: 'helius',
-        description: 'Κλειδί για το WebSocket endpoint της Helius',
-        is_required: true
-      },
-      {
-        name: 'HELIUS_ECLIPSE',
-        value: 'ddb32813-1f4b-459d-8964-310b1b73a053',
-        category: 'blockchain',
-        status: 'active',
-        provider_type: 'helius',
-        description: 'Κλειδί για το Eclipse endpoint της Helius',
-        is_required: false
-      },
-      {
-        name: 'HELIUS_API_BASE',
-        value: 'ddb32813-1f4b-459d-8964-310b1b73a053',
-        category: 'blockchain',
-        status: 'active',
-        provider_type: 'helius',
-        description: 'Βασικό URL του API της Helius',
-        is_required: true
-      },
-      {
-        name: 'HELIUS_TRANSACTIONS',
-        value: 'ddb32813-1f4b-459d-8964-310b1b73a053',
-        category: 'blockchain',
-        status: 'active',
-        provider_type: 'helius',
-        description: 'Κλειδί για το Transactions endpoint της Helius',
-        is_required: true
-      }
-    ];
-
-    // Check which keys already exist in the database
-    const { data: existingKeys, error: checkError } = await supabase
-      .from('api_keys')
-      .select('name');
-
-    if (checkError) {
-      console.error("Error checking existing keys:", checkError);
-      throw checkError;
-    }
-
-    // Filter out keys that already exist
-    const existingNames = existingKeys?.map(k => k.name) || [];
-    const keysToAdd = apiKeys.filter(entry => !existingNames.includes(entry.name));
-
-    if (keysToAdd.length === 0) {
-      toast.info("Όλα τα κλειδιά Helius υπάρχουν ήδη");
-      return true;
-    }
-
-    // Insert the new keys
-    const { data, error } = await supabase
-      .from('api_keys')
-      .insert(keysToAdd)
-      .select();
-
-    if (error) {
-      console.error("Error adding Helius keys:", error);
-      throw error;
-    }
-
-    // Also add keys to the api_keys_storage for the HeliusKeyManager
-    await importHeliusKeys(userId);
-
-    toast.success(`Προστέθηκαν ${keysToAdd.length} κλειδιά Helius επιτυχώς!`);
-    return true;
+    // Since we don't have the api_keys table according to the schema,
+    // we'll just use the api_keys_storage table directly
+    console.log("Using api_keys_storage table for Helius keys import");
+    return importHeliusKeys(userId);
   } catch (error) {
     console.error("Error importing Helius keys:", error);
     toast.error("Σφάλμα κατά την προσθήκη των κλειδιών Helius");

@@ -1,9 +1,11 @@
 
 // Re-export all services for easier access
 import { walletService } from './walletService';
-import { tokenService } from './token';
 import { priceService } from './price';
 import { tradingService } from './tradingService';
+
+// Import tokenService from the correct location and re-export
+import { tokenService } from './token';
 
 // Export all services
 export {

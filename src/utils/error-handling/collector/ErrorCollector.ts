@@ -1,243 +1,99 @@
-import { toast } from "sonner";
-
-/**
- * Represents error data stored in the collector
- */
+// Define interface for error data
 export interface ErrorData {
-  id: string;
-  timestamp: string;
+  id?: string;
   message: string;
   stack?: string;
+  source?: string;
   component?: string;
   details?: any;
-  source?: string;
-  resolved?: boolean;
+  timestamp?: number;
+  method?: string; // Added method property to fix TypeScript errors
 }
 
-export interface ErrorDisplayOptions {
-  showToast?: boolean;
-  logToConsole?: boolean;
-  saveToDatabase?: boolean;
-  sendToChatInterface?: boolean;
-  title?: string; // Added title for display purposes
-}
-
-/**
- * Class responsible for collecting and managing errors in the application
- */
-export class ErrorCollector {
-  private static instance: ErrorCollector;
+class ErrorCollector {
   private errors: ErrorData[] = [];
-  private isReporting: boolean = false;
-  
-  // Maximum number of errors to store
   private readonly MAX_ERRORS = 100;
 
-  private constructor() {
-    // Private constructor for singleton pattern
-  }
-
-  /**
-   * Get singleton instance
-   */
-  public static getInstance(): ErrorCollector {
-    if (!ErrorCollector.instance) {
-      ErrorCollector.instance = new ErrorCollector();
-    }
-    return ErrorCollector.instance;
-  }
-
-  /**
-   * Capture an error and add it to the collector
-   */
-  public captureError(
-    error: Error | string,
-    options?: {
-      component?: string;
-      details?: any;
-      source?: string;
-    }
-  ): ErrorData {
+  // Capture an error and return the error ID
+  captureError(error: Error | string, options?: {
+    component?: string;
+    details?: any;
+    source?: string;
+    method?: string; // Added method property
+  }): string {
+    const errorMessage = typeof error === 'string' ? error : error.message;
+    const errorStack = typeof error === 'string' ? undefined : error.stack;
+    
     const errorData: ErrorData = {
-      id: `error-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      timestamp: new Date().toISOString(),
-      message: typeof error === 'string' ? error : error.message,
-      stack: typeof error !== 'string' ? error.stack : undefined,
+      id: `err_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      message: errorMessage,
+      stack: errorStack,
+      timestamp: Date.now(),
+      source: options?.source || 'client',
       component: options?.component,
       details: options?.details,
-      source: options?.source || 'client',
-      resolved: false
+      method: options?.method // Added method property
     };
-
-    // Add to internal array, keeping the limit of MAX_ERRORS
-    this.errors = [errorData, ...this.errors].slice(0, this.MAX_ERRORS);
     
-    // Log the error to console
-    this.logError(errorData);
-
-    return errorData;
+    this.addErrorToCollection(errorData);
+    return errorData.id || '';
   }
 
-  /**
-   * Log the error to console with color formatting
-   */
-  private logError(errorData: ErrorData): void {
-    const componentInfo = errorData.component ? `[${errorData.component}] ` : '';
-    const sourceInfo = errorData.source === 'server' ? '[SERVER] ' : '';
+  // Add error - alias for backward compatibility
+  addError(errorData: ErrorData | string): string {
+    if (typeof errorData === 'string') {
+      return this.captureError(errorData);
+    }
     
-    console.error(
-      `%c${sourceInfo}${componentInfo}Error: ${errorData.message}`,
-      'color: #FF4560; font-weight: bold',
-      '\n',
-      errorData.stack || '',
-      '\nDetails:',
-      errorData.details || {}
-    );
+    const completeErrorData: ErrorData = {
+      ...errorData,
+      id: errorData.id || `err_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      timestamp: errorData.timestamp || Date.now()
+    };
+    
+    this.addErrorToCollection(completeErrorData);
+    return completeErrorData.id || '';
   }
 
-  /**
-   * Get all captured errors
-   */
-  public getErrors(): ErrorData[] {
+  // Log error and notify - for backward compatibility
+  logErrorAndNotify(error: Error | string, options?: {
+    component?: string;
+    details?: any;
+    source?: string;
+    method?: string;
+  }): string {
+    return this.captureError(error, options);
+  }
+
+  // Get all errors
+  getErrors(): ErrorData[] {
     return [...this.errors];
   }
 
-  /**
-   * Get a specific error by ID
-   */
-  public getErrorById(id: string): ErrorData | undefined {
-    return this.errors.find(error => error.id === id);
-  }
-
-  /**
-   * Clear all errors from the collector
-   */
-  public clearErrors(): void {
+  // Clear all errors
+  clearErrors(): void {
     this.errors = [];
   }
 
-  /**
-   * Mark an error as resolved
-   */
-  public resolveError(id: string): boolean {
-    const errorIndex = this.errors.findIndex(error => error.id === id);
-    if (errorIndex !== -1) {
-      this.errors = [
-        ...this.errors.slice(0, errorIndex),
-        { ...this.errors[errorIndex], resolved: true },
-        ...this.errors.slice(errorIndex + 1)
-      ];
-      return true;
-    }
-    return false;
+  // Report errors to external system (placeholder)
+  reportErrors(): void {
+    console.log('Reporting errors to external system:', this.errors);
+    // Implementation would send errors to external system
   }
 
-  /**
-   * Report error to the server (e.g., Supabase)
-   */
-  public async reportError(
-    error: string | Error,
-    component?: string,
-    details?: any
-  ): Promise<boolean> {
-    if (this.isReporting) {
-      return false;
+  // Private method to add error to collection
+  private addErrorToCollection(errorData: ErrorData): void {
+    // Keep collection size under control
+    if (this.errors.length >= this.MAX_ERRORS) {
+      this.errors.shift(); // Remove oldest error
     }
     
-    this.isReporting = true;
+    this.errors.push(errorData);
     
-    try {
-      // Add error to local collection first
-      const errorData = this.captureError(error, { component, details });
-      
-      // Implementation of sending to server would go here
-      console.log("Error would be reported to server:", errorData);
-      
-      return true;
-    } catch (reportError) {
-      console.error("Failed to report error:", reportError);
-      return false;
-    } finally {
-      this.isReporting = false;
-    }
-  }
-  
-  /**
-   * Add an error directly - legacy compatibility method
-   */
-  public addError(
-    message: string,
-    details?: any,
-    component?: string,
-    source?: string
-  ): ErrorData {
-    return this.captureError(message, { component, details, source });
-  }
-
-  /**
-   * Log an error and notify users - legacy compatibility method
-   */
-  public logErrorAndNotify(
-    error: Error | string,
-    options?: {
-      component?: string;
-      details?: any;
-      showToast?: boolean;
-      title?: string;
-    }
-  ): ErrorData {
-    // Add to error collection
-    const errorData = this.captureError(error, {
-      component: options?.component,
-      details: options?.details
-    });
-    
-    // Show toast notification if requested
-    if (options?.showToast !== false) {
-      toast.error(
-        options?.title || 'Error',
-        {
-          description: typeof error === 'string' ? error : error.message
-        }
-      );
-    }
-    
-    return errorData;
-  }
-  
-  /**
-   * Report errors to the chat interface - legacy compatibility method
-   */
-  public reportErrors(): ErrorData[] {
-    // This would handle sending errors to a chat interface
-    return this.getErrors();
-  }
-  
-  /**
-   * Send error to chat interface - legacy compatibility method
-   */
-  public sendErrorToChat(
-    error: string | Error | ErrorDisplayOptions,
-    details?: any,
-    component?: string
-  ): void {
-    // Handle the different parameter types
-    if (typeof error === 'object' && !('message' in error)) {
-      // It's an ErrorDisplayOptions
-      const options = error as ErrorDisplayOptions;
-      console.log('Would send to chat interface with options:', options);
-      return;
-    }
-    
-    // Normal error handling
-    const errorData = this.captureError(
-      error as string | Error, 
-      { component, details }
-    );
-    
-    console.log('Would send to chat interface:', errorData);
+    // Log to console for debugging
+    console.error(`[ErrorCollector] ${errorData.component || 'unknown'}: ${errorData.message}`);
   }
 }
 
 // Export a singleton instance
-export const errorCollector = ErrorCollector.getInstance();
+export const errorCollector = new ErrorCollector();

@@ -1,80 +1,73 @@
-// Simple utility functions for testing error handling system
 
-import { errorCollector, type ErrorData } from "@/utils/error-handling/collector";
+import { errorCollector } from './error-handling/collector';
+import { toast } from 'sonner';
+import { displayError } from './errorUtils';
 
-/**
- * Generates a test error with specified details
- */
-export function generateTestError(message: string = "This is a test error", options?: {
+interface TestErrorOptions {
+  showToast?: boolean;
+  logToConsole?: boolean;
+  sendToChat?: boolean;
+  useCollector?: boolean;
   component?: string;
-  details?: any;
-  source?: string;
-}) {
-  const error = new Error(message);
-  errorCollector.captureError(error, {
-    component: options?.component || "TestComponent",
-    details: options?.details || { testMode: true },
-    source: options?.source || "client",
-  });
-  return error;
 }
 
-/**
- * Generates test error data for display without throwing an error
- */
-export function generateTestErrorData(message: string = "This is a test error"): ErrorData {
+export function generateTestError(message: string, options: TestErrorOptions = {}) {
+  const error = new Error(message || 'Test error message');
+  
+  displayError(error, {
+    title: 'Test Error',
+    showToast: options.showToast,
+    logToConsole: options.logToConsole,
+    sendToChat: options.sendToChat,
+    useCollector: options.useCollector,
+    component: options.component || 'ErrorTestUtils'
+  });
+  
+  console.log('Test error generated:', message);
+}
+
+export function generateTestErrorData(message: string) {
   return {
-    id: `test-${Date.now()}`,
-    timestamp: new Date().toISOString(),
-    message: message,
-    stack: "Test stack trace\n  at TestFunction (test.js:1:1)\n  at AnotherFunction (test.js:2:1)",
-    component: "TestComponent",
-    details: { testMode: true },
-    source: "client",
-    resolved: false
+    message: message || 'Test error message',
+    timestamp: Date.now(),
+    id: `test_${Date.now()}`,
+    source: 'client',
+    component: 'Test'
   };
 }
 
-/**
- * Generates various errors for testing the error handling system
- */
-export function generateVariousErrors() {
-  // Simple error
-  generateTestError("Simple test error");
+export function clearAllErrors() {
+  // Clear errors from collector
+  errorCollector.clearErrors();
   
-  // Error with component
-  generateTestError("Component error", { component: "ButtonComponent" });
+  // Clear toasts
+  toast.dismiss();
   
-  // Error with details
-  generateTestError("Error with details", { 
-    details: { 
-      userId: "123", 
-      action: "checkout",
-      code: "PAYMENT_FAILED"
-    }
-  });
-  
-  // Server error
-  generateTestError("Server error", { source: "server" });
-  
-  // API error
-  generateTestError("API error", { 
-    component: "ApiClient", 
-    details: { 
-      endpoint: "/api/users", 
-      statusCode: 404,
-      response: { error: "Not found" }
-    },
-    source: "client"
-  });
+  console.log('All errors cleared');
 }
 
-/**
- * Clears all errors in the collector
- */
-export function clearAllErrors() {
-  // This is a placeholder - actual implementation will depend on the error collector's API
-  console.log("Clearing all errors");
-  // In a real implementation, you would call something like:
-  // errorCollector.clearErrors();
+export function generateVariousErrors(options: TestErrorOptions = {}) {
+  // Network error simulation
+  generateTestError('Network request failed: timeout after 30000ms', {
+    ...options,
+    component: 'NetworkService'
+  });
+  
+  // Database error simulation
+  generateTestError('Database query failed: relation "users" does not exist', {
+    ...options,
+    component: 'DatabaseService'
+  });
+  
+  // Authentication error simulation
+  generateTestError('Authentication failed: invalid token', {
+    ...options,
+    component: 'AuthService'
+  });
+  
+  // API error simulation
+  generateTestError('API Error: Rate limit exceeded', {
+    ...options,
+    component: 'APIService'
+  });
 }

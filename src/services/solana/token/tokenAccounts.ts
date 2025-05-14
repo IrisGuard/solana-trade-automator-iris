@@ -5,8 +5,8 @@ import type { Token } from '@/types/wallet';
 import { RPC_ENDPOINTS } from '../config';
 import { errorCollector } from '@/utils/error-handling/collector';
 
-// Define connection
-const connection = new Connection(RPC_ENDPOINTS.MAINNET);
+// Define connection - fix the RPC_ENDPOINTS.MAINNET error
+const connection = new Connection(RPC_ENDPOINTS.PRIMARY || 'https://api.mainnet-beta.solana.com');
 
 /**
  * Get token accounts for a given wallet address

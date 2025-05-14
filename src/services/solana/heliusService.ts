@@ -96,7 +96,6 @@ export class HeliusService {
           console.error(`Backup endpoint also failed for ${options.endpoint}:`, backupError);
           errorCollector.captureError(backupError as Error, {
             component: 'HeliusService',
-            method: options.endpoint,
             details: 'Backup endpoint failed',
             source: 'client'
           });
@@ -188,7 +187,6 @@ HeliusService.initialize().catch(err => {
   console.error("Failed to initialize HeliusService:", err);
   errorCollector.captureError(err as Error, {
     component: 'HeliusService',
-    method: 'initialize',
     details: 'Failed during service import',
     source: 'client'
   });

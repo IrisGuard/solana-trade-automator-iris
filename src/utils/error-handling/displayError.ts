@@ -12,6 +12,7 @@ interface ErrorDisplayOptions {
   details?: any;
   sendToChat?: boolean;
   useCollector?: boolean;
+  method?: string; // Added method property
 }
 
 /**
@@ -42,7 +43,8 @@ export function displayError(error: Error | string, options: ErrorDisplayOptions
     source: opts.source || 'client',
     timestamp: Date.now(),
     component: opts.component,
-    details: opts.details
+    details: opts.details,
+    method: opts.method
   };
 
   // Log to console if enabled
@@ -57,12 +59,15 @@ export function displayError(error: Error | string, options: ErrorDisplayOptions
   }
 
   // Add to error collector if enabled
+  let errorId = '';
   if (opts.useCollector) {
-    errorCollector.captureError(error, {
+    errorId = errorCollector.captureError(error, {
       component: opts.component,
       source: opts.source,
-      details: opts.details
+      details: opts.details,
+      method: opts.method
     });
+    errorData.id = errorId;
   }
 
   // Show toast if enabled

@@ -11,6 +11,9 @@ interface ErrorDisplayOptions {
   useCollector?: boolean;
   sendToChat?: boolean;
   component?: string;
+  method?: string; // Added method property
+  source?: string;
+  details?: any;
 }
 
 const DEFAULT_OPTIONS: ErrorDisplayOptions = {
@@ -38,15 +41,18 @@ export function displayError(error: Error, options?: ErrorDisplayOptions): strin
   const errorData: ErrorData = {
     message: errorMessage,
     stack: error.stack,
-    source: 'client',
+    source: opts.source || 'client',
+    timestamp: Date.now(),
     component: opts.component,
+    method: opts.method,
     details: {
       browserInfo: {
         userAgent: navigator.userAgent,
         language: navigator.language,
         platform: navigator.platform
       },
-      url: window.location.href
+      url: window.location.href,
+      ...(opts.details || {})
     }
   };
   
@@ -54,6 +60,8 @@ export function displayError(error: Error, options?: ErrorDisplayOptions): strin
   if (opts.useCollector) {
     errorCode = errorCollector.captureError(error, {
       component: opts.component,
+      method: opts.method,
+      source: opts.source,
       details: errorData.details
     });
   }

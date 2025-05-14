@@ -64,15 +64,13 @@ export const fetchSOLBalance = async (address: string): Promise<number> => {
     }
     
     // Προσθήκη στο error collector για περαιτέρω ανάλυση
-    errorCollector.addError({
-      message: 'Failed to get SOL balance',
+    errorCollector.captureError('Failed to get SOL balance', {
+      component: 'wallet.balance',
       source: 'client',
-      stack: String(error),
-      details: { address }
+      details: { address, error: String(error) }
     });
     
     // Επιστροφή 0 ή cached τιμής αν υπάρχει (ακόμη κι αν δεν είναι έγκυρη)
     return address in solBalanceCache ? solBalanceCache[address].balance : 0;
   }
 };
-
