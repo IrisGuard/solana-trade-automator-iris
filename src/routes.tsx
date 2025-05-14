@@ -1,7 +1,7 @@
 
 import React, { Suspense } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AppLayout } from "@/components/layout/AppLayout";
+import { BrowserRouter, Routes as RouterRoutes, Route, Navigate } from "react-router-dom";
+import { Layout } from "@/components/layout/Layout";
 
 // Lazy-loaded pages
 const Home = React.lazy(() => import("@/pages/Home"));
@@ -18,11 +18,11 @@ const PageLoader = () => (
   </div>
 );
 
-export const Routes = () => {
+export const AppRoutes = () => {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<AppLayout />}>
+      <RouterRoutes>
+        <Route path="/" element={<Layout />}>
           <Route index element={
             <Suspense fallback={<PageLoader />}>
               <Index />
@@ -54,7 +54,7 @@ export const Routes = () => {
             </Suspense>
           } />
         </Route>
-      </Routes>
+      </RouterRoutes>
     </BrowserRouter>
   );
 };

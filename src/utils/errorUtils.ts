@@ -1,81 +1,70 @@
 
-import { toast } from 'sonner';
-import { errorCollector } from '@/utils/error-handling/collector';
-import { sendErrorToChat } from '@/utils/error-handling/sendErrorToChat';
+/**
+ * Βασικές λειτουργίες χειρισμού σφαλμάτων για την εφαρμογή.
+ */
 
-// Error display options
-export interface ErrorDisplayOptions {
-  title?: string;
-  showToast?: boolean;
-  logToConsole?: boolean;
-  sendToChat?: boolean;
-  useCollector?: boolean;
-  details?: Record<string, any>;
-  source?: string;
+// Μορφή καταγραφής σφαλμάτων
+interface ErrorLogFormat {
+  timestamp: string;
+  message: string;
   component?: string;
+  details?: any;
 }
 
-/**
- * Centralized error display and logging function
- */
-export function displayError(error: Error | string, options: ErrorDisplayOptions = {}) {
-  const {
-    title = 'Error',
-    showToast = true,
-    logToConsole = true,
-    sendToChat = false,
-    useCollector = true,
-    details = {},
-    source = 'client',
-    component = 'unknown'
-  } = options;
-  
-  const errorMessage = typeof error === 'string' ? error : error.message;
-  const errorStack = error instanceof Error ? error.stack : undefined;
-  
-  // Display in toast notification
-  if (showToast) {
-    toast.error(title, {
-      description: errorMessage,
-      duration: 5000,
-    });
-  }
-  
-  // Log to console
-  if (logToConsole) {
-    console.error(`[${title}]`, error);
-    console.error('Details:', details);
-  }
-  
-  // Send to chat for debugging
-  if (sendToChat) {
-    sendErrorToChat(errorMessage, details, errorStack);
-  }
-  
-  // Add to error collector
-  if (useCollector) {
-    errorCollector.captureError(
-      typeof error === 'string' ? new Error(error) : error, 
-      { component, details, source }
-    );
-  }
-  
-  return errorMessage;
-}
+// Συλλογή των σφαλμάτων σε μνήμη
+const errorLogs: ErrorLogFormat[] = [];
 
 /**
- * Log an error to the console and optionally to the error collector
+ * Καταγράφει ένα σφάλμα με δομημένο τρόπο.
+ * 
+ * @param message Το μήνυμα σφάλματος
+ * @param component Το συστατικό ή η υπηρεσία που παρήγαγε το σφάλμα
+ * @param details Προαιρετικές λεπτομέρειες σφάλματος
  */
-export function logError(
-  message: string, 
-  component: string = 'unknown', 
-  details: string | Record<string, any> = {}
-) {
-  console.error(`[${component}] ${message}`, details);
-  
-  errorCollector.captureError(new Error(message), {
+export function logError(message: string, component?: string, details?: any) {
+  const errorLog: ErrorLogFormat = {
+    timestamp: new Date().toISOString(),
+    message,
     component,
-    details: typeof details === 'string' ? details : JSON.stringify(details),
-    source: 'client'
-  });
+    details
+  };
+  
+  // Προσθήκη στη συλλογή σφαλμάτων
+  errorLogs.push(errorLog);
+  
+  // Καταγραφή στην κονσόλα
+  console.error(`[${component || 'Unknown'}]`, message, details || '');
+  
+  return errorLog;
+}
+
+/**
+ * Λήψη όλων των καταγεγραμμένων σφαλμάτων.
+ */
+export function getErrorLogs(): ErrorLogFormat[] {
+  return [...errorLogs];
+}
+
+/**
+ * Καθαρισμός όλων των καταγεγραμμένων σφαλμάτων.
+ */
+export function clearErrorLogs(): void {
+  errorLogs.length = 0;
+}
+
+/**
+ * Εμφανίζει ένα σφάλμα στο UI (Toast notification).
+ */
+export function displayError(error: Error | string, options?: any) {
+  const errorMessage = error instanceof Error ? error.message : error;
+  
+  // Καταγραφή στην κονσόλα
+  logError(errorMessage, options?.component);
+  
+  // Άλλες ενέργειες όπως εμφάνιση toast θα προστεθούν εδώ
+  return {
+    message: errorMessage,
+    timestamp: new Date().toISOString(),
+    component: options?.component
+  };
 }

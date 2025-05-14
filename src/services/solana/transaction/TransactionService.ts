@@ -15,17 +15,22 @@ export class TransactionService {
       // Υλοποίηση για λήψη συναλλαγών
       const parsedTransactions = await parseTransaction(walletAddress);
       
-      // Μετατροπή των ParsedTransaction σε Transaction
-      return parsedTransactions.map(tx => ({
-        id: tx.id || Math.random().toString(36).substring(2, 15),
-        signature: tx.signature || '',
-        blockTime: tx.blockTime,
-        status: tx.status || 'confirmed',
-        amount: tx.amount || '0',
-        type: tx.type || 'unknown',
-        source: tx.source,
-        destination: tx.destination
-      }));
+      // Μετατροπή του ParsedTransaction σε Transaction
+      if (Array.isArray(parsedTransactions)) {
+        return parsedTransactions.map(tx => ({
+          id: tx.id || Math.random().toString(36).substring(2, 15),
+          signature: tx.signature || '',
+          blockTime: tx.blockTime,
+          status: tx.status || 'confirmed',
+          amount: tx.amount?.toString() || '0',
+          type: tx.type || 'unknown',
+          source: tx.from,
+          destination: tx.to
+        }));
+      }
+      
+      // Αν το parsedTransactions δεν είναι πίνακας, επέστρεψε έναν άδειο πίνακα
+      return [];
     } catch (error) {
       console.error("Error fetching transactions:", error);
       errorCollector.captureError(error instanceof Error ? error : new Error('Failed to get transactions'), {

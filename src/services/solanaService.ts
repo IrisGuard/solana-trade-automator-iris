@@ -1,7 +1,7 @@
 
 import { Connection, clusterApiUrl } from '@solana/web3.js';
 import { walletService } from './solana/walletService';
-import { tokenService } from './solana/tokenService';
+import { tokenService } from './solana/token';
 import { Transaction } from '@/types/transaction';
 import { TransactionService } from './solana/transaction/TransactionService';
 import { parseTransactions } from './solana/transaction/parseTransaction';
@@ -21,10 +21,7 @@ export const solanaService = {
     try {
       return await walletService.getSolBalance(connection, address);
     } catch (error) {
-      logError('Error fetching SOL balance', 'solanaService', { 
-        action: 'getSolBalance', 
-        address
-      });
+      logError('Error fetching SOL balance', 'solanaService'); 
       return 0;
     }
   },
@@ -38,13 +35,7 @@ export const solanaService = {
       // This is just a stub for now
       return 'transaction-signature-placeholder';
     } catch (error) {
-      logError('Error sending SOL', 'solanaService', { 
-        action: 'sendSol', 
-        from, 
-        to, 
-        amount, 
-        tokenAddress: 'SOL' 
-      });
+      logError('Error sending SOL', 'solanaService'); 
       throw error;
     }
   },
@@ -54,15 +45,9 @@ export const solanaService = {
    */
   async fetchTransactions(address: string, limit = 10): Promise<Transaction[]> {
     try {
-      const txService = new TransactionService(connection);
-      const rawTransactions = await txService.getTransactions(address, limit);
-      // The ParsedTransaction type now includes all required fields from Transaction
-      return parseTransactions(rawTransactions) as unknown as Transaction[];
+      return await TransactionService.getTransactions(address);
     } catch (error) {
-      logError('Error fetching transactions', 'solanaService', { 
-        action: 'fetchTransactions', 
-        address 
-      });
+      logError('Error fetching transactions', 'solanaService');
       return [];
     }
   },
@@ -74,10 +59,7 @@ export const solanaService = {
     try {
       return await tokenService.getAllTokens(connection, address);
     } catch (error) {
-      logError('Error fetching token balances', 'solanaService', { 
-        action: 'fetchAllTokenBalances', 
-        address 
-      });
+      logError('Error fetching token balances', 'solanaService');
       return [];
     }
   },
@@ -94,7 +76,7 @@ export const solanaService = {
         priceChange24h: (Math.random() * 20) - 10
       };
     } catch (error) {
-      logError('Error fetching token prices', 'solanaService', 'fetchTokenPrices');
+      logError('Error fetching token prices', 'solanaService');
       return { price: 0, priceChange24h: 0 };
     }
   },

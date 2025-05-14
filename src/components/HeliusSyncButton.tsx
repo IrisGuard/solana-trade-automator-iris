@@ -14,9 +14,8 @@ export function HeliusSyncButton() {
   const handleSyncHelius = async () => {
     if (!user) {
       toast({
-        variant: "destructive",
-        title: "Σφάλμα",
-        description: "Πρέπει να συνδεθείτε για να συγχρονίσετε τα κλειδιά Helius"
+        description: "Πρέπει να συνδεθείτε για να συγχρονίσετε τα κλειδιά Helius",
+        variant: "destructive"
       });
       return;
     }
@@ -27,22 +26,19 @@ export function HeliusSyncButton() {
       
       if (result) {
         toast({
-          title: "Επιτυχία",
           description: "Τα κλειδιά και endpoints Helius συγχρονίστηκαν επιτυχώς"
         });
       } else {
         toast({
-          variant: "destructive",
-          title: "Προειδοποίηση",
-          description: "Υπήρξε πρόβλημα κατά τον συγχρονισμό των κλειδιών Helius"
+          description: "Υπήρξε πρόβλημα κατά τον συγχρονισμό των κλειδιών Helius",
+          variant: "destructive"
         });
       }
     } catch (error) {
       console.error("Error syncing Helius keys:", error);
       toast({
-        variant: "destructive",
-        title: "Σφάλμα",
-        description: "Σφάλμα κατά τον συγχρονισμό των κλειδιών Helius"
+        description: "Σφάλμα κατά τον συγχρονισμό των κλειδιών Helius",
+        variant: "destructive"
       });
     } finally {
       setIsSyncing(false);

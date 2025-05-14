@@ -1,6 +1,18 @@
 
-import type { TokenPriceMap } from "@/types/wallet";
 import { errorCollector } from "@/utils/error-handling/collector";
+
+// Define TokenPriceMap interface
+interface TokenPriceData {
+  price: number;
+  change24h: number;
+  volume24h?: number;
+  marketCap?: number;
+  lastUpdated: string;
+}
+
+export interface TokenPriceMap {
+  [tokenAddress: string]: TokenPriceData;
+}
 
 /**
  * Fetches current market prices for tokens
