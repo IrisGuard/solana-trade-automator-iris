@@ -1,5 +1,5 @@
 
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import en from '@/locales/en';
 import el from '@/locales/el';
 import { TranslationKeys } from '@/types/language';
@@ -21,6 +21,14 @@ interface LanguageProviderProps {
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
   const [language, setLanguage] = useState<Language>('el');
+  
+  // Load saved language from localStorage on component mount
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem('language');
+    if (savedLanguage === 'en' || savedLanguage === 'el') {
+      setLanguage(savedLanguage as Language);
+    }
+  }, []);
   
   // Get translations based on the selected language
   const translations = language === 'en' 
