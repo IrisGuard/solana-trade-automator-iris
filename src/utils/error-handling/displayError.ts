@@ -61,6 +61,6 @@ export function displayError(
     });
   }
 
-  // Return the error ID
+  // Always return the error ID (empty string if not collected)
   return errorId;
 }
