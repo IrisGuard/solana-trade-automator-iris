@@ -1,5 +1,5 @@
 
-import React, { Suspense, useEffect } from "react";
+import React, { useEffect, Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Routes } from "@/routes";
 import { Toaster } from "@/components/ui/toaster";
@@ -11,7 +11,6 @@ import { ConsoleMonitor } from "@/components/debug/ConsoleMonitor";
 import { DOMErrorHandler } from "@/components/errors/DOMErrorHandler";
 import { displayError } from "@/utils/errorUtils";
 import { setupGlobalErrorHandling } from "@/utils/error-handling/setupGlobalErrorHandling";
-import { useNavigate, useLocation } from "@/lib/router-exports";
 
 // Loader component για το Suspense
 const AppLoader = () => (
@@ -36,25 +35,7 @@ export function AppContent() {
   useEffect(() => {
     setupGlobalErrorHandling();
   }, []);
-
-  const navigate = useNavigate();
-  const location = useLocation();
   
-  // Redirect στη σωστή σελίδα μετά από ανανέωση αν είμαστε σε σφάλμα
-  useEffect(() => {
-    // Έλεγχος αν υπάρχει παράμετρος σφάλματος στο URL
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('error')) {
-      navigate('/');
-      return;
-    }
-    
-    // Έλεγχος για token ή σύνδεση στην URL και ανακατεύθυνση στη σωστή σελίδα
-    if (location.pathname === '/' && (location.hash.includes('access_token') || location.hash.includes('error'))) {
-      navigate('/auth', { replace: true });
-    }
-  }, [navigate, location]);
-
   return (
     <Suspense fallback={<AppLoader />}>
       <DOMErrorHandler />

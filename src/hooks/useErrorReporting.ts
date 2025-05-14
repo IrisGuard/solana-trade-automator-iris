@@ -1,8 +1,8 @@
 
 import { useCallback } from "react";
-import { displayError } from "@/utils/error-handling/displayError";
+import { displayError } from "@/utils/errorUtils";
 import { errorCollector } from "@/utils/error-handling/collector";
-import { ErrorDisplayOptions } from "@/utils/error-handling/types";
+import type { ErrorDisplayOptions } from "@/utils/error-handling/types";
 
 export function useErrorReporting() {
   // Συνάρτηση για αναφορά σφάλματος
@@ -12,7 +12,7 @@ export function useErrorReporting() {
 
   // Συνάρτηση για καταγραφή σφάλματος στο Supabase
   const captureError = useCallback(async (error: Error, options: { component?: string, details?: any, source?: string } = {}) => {
-    return await errorCollector.captureError(error, options);
+    return errorCollector.captureError(error, options);
   }, []);
 
   // Συνάρτηση για λήψη όλων των σφαλμάτων

@@ -1,12 +1,13 @@
+
 import { PublicKey } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { useSolana } from '@/providers/SolanaWalletProvider';
+import { useConnection } from '@solana/wallet-adapter-react';
 import { useEffect, useState } from 'react';
 import { TokenAccount } from '@/types/tokenTypes';
 import { logError } from '@/utils/errorUtils';
 
 const useTokenAccounts = (pubKey: string | null | undefined) => {
-  const { connection } = useSolana();
+  const { connection } = useConnection();
   const [tokenAccounts, setTokenAccounts] = useState<TokenAccount[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);

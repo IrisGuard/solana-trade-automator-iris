@@ -16,6 +16,18 @@ export interface ErrorDisplayOptions {
 }
 
 /**
+ * Options for errorCollector.captureError
+ */
+export interface ErrorOptions {
+  component?: string;
+  details?: any;
+  source?: string;
+  title?: string;
+  url?: string;
+  browserInfo?: Record<string, any>;
+}
+
+/**
  * Δεδομένα σφάλματος για την καταγραφή
  */
 export interface ErrorData {

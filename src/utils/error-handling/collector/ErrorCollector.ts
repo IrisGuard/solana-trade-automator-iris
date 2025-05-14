@@ -1,4 +1,6 @@
 
+import { ErrorOptions } from '../types';
+
 export interface ErrorData {
   id?: string;
   message: string;
@@ -38,14 +40,14 @@ class ErrorCollector {
   /**
    * Capture an error with additional metadata
    */
-  captureError(error: Error, metadata: any = {}): void {
+  captureError(error: Error, options: ErrorOptions = {}): void {
     this.addError({
       message: error.message,
       stack: error.stack,
       timestamp: new Date().toISOString(),
-      details: JSON.stringify(metadata),
-      source: metadata.source || 'unknown',
-      component: metadata.component || 'unknown'
+      details: JSON.stringify(options.details || {}),
+      source: options.source || 'unknown',
+      component: options.component || 'unknown'
     });
   }
 
@@ -84,7 +86,7 @@ class ErrorCollector {
   /**
    * Report a new error (alias for captureError)
    */
-  reportError(error: Error, metadata: any = {}): void {
+  reportError(error: Error, metadata: ErrorOptions = {}): void {
     this.captureError(error, metadata);
   }
 }

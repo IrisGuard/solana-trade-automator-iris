@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import { useErrorReporting } from "@/hooks/useErrorReporting";
-import { displayError } from "@/utils/error-handling/displayError";
+import { displayError } from "@/utils/errorUtils";
 
 interface LogRecord {
   type: 'error' | 'warn' | 'info';
@@ -60,6 +60,7 @@ export function ConsoleMonitor() {
               : (args[0] instanceof Request ? args[0].url : 'unknown');
             
             const errorMessage = `HTTP ${response.status}: ${response.statusText} - ${url}`;
+            const errorObj = new Error(errorMessage);
             
             // Check if this is a rate limit error (HTTP 429)
             const isRateLimit = response.status === 429;
@@ -89,7 +90,7 @@ export function ConsoleMonitor() {
               } else if (url.includes('supabase') || url.includes('lvkbyfocssuzcdphpmfu')) {
                 // Handle Supabase errors
                 if (response.status >= 500) {
-                  displayError(new Error(errorMessage), {
+                  displayError(errorObj, {
                     title: 'Σφάλμα Supabase Server',
                     showToast: true,
                     logToConsole: true,
@@ -104,7 +105,7 @@ export function ConsoleMonitor() {
                 
                 // Only show error if we haven't shown too many
                 if (recentApiErrors.current.count <= 3) {
-                  displayError(new Error(errorMessage), {
+                  displayError(errorObj, {
                     title: 'Σφάλμα API Server',
                     showToast: true,
                     logToConsole: true,
@@ -140,7 +141,8 @@ export function ConsoleMonitor() {
             errorCache.set(cacheKey, now);
             
             if (isNetworkError) {
-              displayError(new Error('Network error: check your internet connection'), {
+              const networkError = new Error('Network error: check your internet connection');
+              displayError(networkError, {
                 title: 'Σφάλμα δικτύου',
                 showToast: true,
                 logToConsole: true,

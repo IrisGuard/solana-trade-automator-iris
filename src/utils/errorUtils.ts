@@ -1,8 +1,8 @@
 
 // Εξάγουμε όλη τη λειτουργικότητα διαχείρισης σφαλμάτων από το εξειδικευμένο module
-export { displayError, sendErrorToChat, reportErrorToSupabase } from './error-handling/displayError';
-export type { ErrorDisplayOptions } from './error-handling/types';
-export { errorCollector, type ErrorData } from './error-handling/collector';
+import { displayError, sendErrorToChat, reportErrorToSupabase } from './error-handling/displayError';
+import { errorCollector } from './error-handling/collector';
+import type { ErrorDisplayOptions } from './error-handling/types';
 
 /**
  * Legacy function to maintain compatibility with existing code
@@ -19,3 +19,12 @@ export function logError(error: Error | string, component?: string, details?: an
   
   return displayError(error, options);
 }
+
+// Re-export all the functions and types
+export {
+  displayError,
+  sendErrorToChat,
+  reportErrorToSupabase,
+  errorCollector,
+  type ErrorDisplayOptions
+};

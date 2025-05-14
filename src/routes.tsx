@@ -1,11 +1,12 @@
 
 import React, { Suspense } from "react";
-import { BrowserRouter, Routes as RouterRoutes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes as RouterRoutes, Route } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 
 // Lazy-loaded pages
 const Home = React.lazy(() => import("@/pages/Home"));
 const Index = React.lazy(() => import("@/pages/Index"));
+const Auth = React.lazy(() => import("@/pages/Auth"));
 const BotControl = React.lazy(() => import("@/pages/BotControl"));
 const Security = React.lazy(() => import("@/pages/Security"));
 const Settings = React.lazy(() => import("@/pages/Settings"));
@@ -32,6 +33,11 @@ export const Routes = () => {
           <Route path="home" element={
             <Suspense fallback={<PageLoader />}>
               <Home />
+            </Suspense>
+          } />
+          <Route path="auth" element={
+            <Suspense fallback={<PageLoader />}>
+              <Auth />
             </Suspense>
           } />
           <Route path="bot-control" element={
