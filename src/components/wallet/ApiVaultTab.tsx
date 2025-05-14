@@ -32,6 +32,9 @@ export function ApiVaultTab({
   // Add Helius services to API Keys
   const combinedApiKeys = [...apiKeys];
   
+  // Current date for created timestamps
+  const currentDate = new Date().toISOString();
+  
   // Add Helius RPC endpoint
   if (HELIUS_ENDPOINTS.rpc) {
     combinedApiKeys.push({
@@ -39,7 +42,9 @@ export function ApiVaultTab({
       name: 'Helius RPC API',
       service: 'helius-rpc',
       connected: heliusKeyCount > 0,
-      key: HELIUS_API_KEYS.mainnet_rpc
+      key: HELIUS_API_KEYS.mainnet_rpc,
+      createdAt: currentDate,
+      status: 'active'
     });
   }
   
@@ -50,7 +55,9 @@ export function ApiVaultTab({
       name: 'Helius API v0',
       service: 'helius-api',
       connected: heliusKeyCount > 0,
-      key: HELIUS_API_KEYS.api_v0
+      key: HELIUS_API_KEYS.api_v0,
+      createdAt: currentDate,
+      status: 'active'
     });
   }
   

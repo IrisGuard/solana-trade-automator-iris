@@ -1,71 +1,78 @@
 
-import { toast } from "sonner";
-import { sendErrorToChat } from "./sendErrorToChat";
-import { errorCollector, type ErrorData } from "../error-handling/collector";
+import { errorCollector, type ErrorData } from './collector';
+import { toast } from 'sonner';
 
-interface ErrorOptions {
-  title?: string;
+// Error display options
+interface ErrorDisplayOptions {
   showToast?: boolean;
   logToConsole?: boolean;
-  sendToChat?: boolean; 
-  useCollector?: boolean;
+  source?: string;
+  component?: string;
+  details?: any;
 }
 
 /**
- * Βοηθητική συνάρτηση για εμφάνιση σφαλμάτων με διάφορους τρόπους
+ * Default options for error display
  */
-export function displayError(
-  error: Error | string, 
-  options: ErrorOptions = {
-    showToast: true,
-    logToConsole: true,
-    sendToChat: false,
-    useCollector: false
+const defaultOptions: ErrorDisplayOptions = {
+  showToast: true,
+  logToConsole: true,
+  source: 'client'
+};
+
+/**
+ * Display an error with various output options
+ * @param error The error to display
+ * @param options Display options
+ */
+export function displayError(error: Error | string, options: ErrorDisplayOptions = {}) {
+  const opts = { ...defaultOptions, ...options };
+  const errorMessage = typeof error === 'string' ? error : error.message;
+  const errorStack = typeof error === 'string' ? undefined : error.stack;
+  
+  // Create error data for collector
+  const errorData: ErrorData = {
+    message: errorMessage,
+    stack: errorStack,
+    source: opts.source || 'client',
+    timestamp: Date.now(),
+    component: opts.component,
+    details: opts.details
+  };
+
+  // Log to console if enabled
+  if (opts.logToConsole) {
+    console.error('[Error]', errorMessage);
+    if (errorStack) {
+      console.error(errorStack);
+    }
+    if (opts.details) {
+      console.error('Details:', opts.details);
+    }
   }
-) {
-  const {
-    title = "Σφάλμα", 
-    showToast = true, 
-    logToConsole = true, 
-    sendToChat = false,
-    useCollector = false
-  } = options;
-  
-  // Μετατροπή του σφάλματος σε Error object αν είναι string
-  const errorObj = typeof error === 'string' ? new Error(error) : error;
-  
-  // Εμφάνιση toast αν ζητηθεί
-  if (showToast) {
-    toast.error(title, {
-      description: errorObj.message,
-      duration: 5000,
-      action: sendToChat ? {
-        label: "Αποστολή στο Chat",
-        onClick: () => sendErrorToChat(errorObj),
-      } : undefined
-    });
+
+  // Add to error collector
+  errorCollector.captureError(error, {
+    component: opts.component,
+    source: opts.source,
+    details: opts.details
+  });
+
+  // Show toast if enabled
+  if (opts.showToast) {
+    toast.error(errorMessage);
+  }
+
+  return errorData;
+}
+
+/**
+ * Format error message for display
+ */
+export function formatErrorMessage(error: Error | string): string {
+  if (typeof error === 'string') {
+    return error;
   }
   
-  // Καταγραφή στην κονσόλα αν ζητηθεί
-  if (logToConsole) {
-    console.error(errorObj);
-  }
-  
-  // Αποστολή στο chat αν ζητηθεί
-  if (sendToChat) {
-    sendErrorToChat(errorObj);
-  }
-  
-  // Χρήση του collector αν ζητηθεί
-  if (useCollector) {
-    // Convert to ErrorData format before adding
-    const errorData: ErrorData = {
-      message: errorObj.message,
-      stack: errorObj.stack,
-      timestamp: Date.now()
-    };
-    errorCollector.addError(errorData);
-  }
-  
-  return errorObj;
+  return error.message || 'An unknown error occurred';
 }

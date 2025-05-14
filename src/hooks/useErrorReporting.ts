@@ -1,91 +1,54 @@
 
 import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { errorCollector, type ErrorData } from '@/utils/error-handling/collector';
-import { sendErrorToChat } from '@/utils/error-handling/sendErrorToChat';
-
-interface ReportOptions {
-  showToast?: boolean;
-  logToConsole?: boolean;
-  saveToDatabase?: boolean;
-  sendToChatInterface?: boolean;
-}
+import { errorCollector } from '@/utils/error-handling/collector';
 
 export function useErrorReporting() {
   const [isReporting, setIsReporting] = useState(false);
-  
-  // Report error with various methods
-  const reportError = useCallback((error: Error, options: ReportOptions = {}) => {
-    const { 
-      showToast = true, 
-      logToConsole = true, 
-      saveToDatabase = false,
-      sendToChatInterface = false 
-    } = options;
+
+  /**
+   * Report an error to the backend
+   */
+  const reportError = useCallback(async (error: Error | string, component?: string, details?: any) => {
+    setIsReporting(true);
     
-    // Log to console
-    if (logToConsole) {
-      console.error("Reported error:", error);
-    }
-    
-    // Add to error collector with conversion to ErrorData
-    const errorData: ErrorData = {
-      message: error.message,
-      stack: error.stack,
-      timestamp: Date.now()
-    };
-    errorCollector.addError(errorData);
-    
-    // Show toast
-    if (showToast) {
-      toast.error(error.message, {
-        description: "Μπορείτε να αποστείλετε αναφορά σφάλματος στο chat για ανάλυση",
-        action: {
-          label: "Αποστολή",
-          onClick: () => sendErrorToChat(error)
-        }
+    try {
+      const errorMessage = typeof error === 'string' ? error : error.message;
+      const errorStack = typeof error === 'string' ? '' : error.stack || '';
+      
+      // Add to error collector first
+      errorCollector.captureError(error, {
+        component,
+        details,
+        source: 'client'
       });
-    }
-    
-    // Send to chat interface
-    if (sendToChatInterface) {
-      sendErrorToChat(error);
-    }
-    
-    // Save to database (future feature)
-    if (saveToDatabase) {
-      console.log("Saving error to database (future feature):", error);
-    }
-    
-    return error;
-  }, []);
-  
-  // Send all collected errors to server
-  const reportCollectedErrors = useCallback(async () => {
-    setIsReporting(true);
-    try {
-      await errorCollector.reportErrors();
-      return "success";
-    } catch (e) {
-      console.error("Error reporting collected errors:", e);
-      toast.error("Πρόβλημα αποστολής συλλεγμένων σφαλμάτων");
-      return "error";
-    } finally {
-      setIsReporting(false);
-    }
-  }, []);
-  
-  // Send error directly to chat
-  const sendErrorToLovableChat = useCallback((message: string, stack?: string) => {
-    setIsReporting(true);
-    try {
-      sendErrorToChat(new Error(message), { stack });
-      toast.success("Το σφάλμα στάλθηκε για ανάλυση");
-      return "success";
-    } catch (e) {
-      console.error("Error sending to chat:", e);
-      toast.error("Πρόβλημα αποστολής σφάλματος");
-      return "error";
+      
+      // Report to Supabase if available
+      if (supabase) {
+        const { error: supabaseError } = await supabase.rpc('log_error', {
+          p_error_message: errorMessage,
+          p_error_stack: errorStack,
+          p_component: component || 'unknown',
+          p_source: 'client',
+          p_browser_info: details ? JSON.stringify(details) : null
+        });
+        
+        if (supabaseError) {
+          console.error('Failed to report error to backend:', supabaseError);
+          toast.error('Failed to report error to server');
+          return false;
+        }
+        
+        toast.success('Error reported successfully');
+        return true;
+      }
+      
+      return false;
+    } catch (reportingError) {
+      console.error('Error during error reporting:', reportingError);
+      toast.error('Failed to report error');
+      return false;
     } finally {
       setIsReporting(false);
     }
@@ -93,8 +56,6 @@ export function useErrorReporting() {
   
   return {
     reportError,
-    reportCollectedErrors,
-    sendErrorToChat: sendErrorToLovableChat,
     isReporting
   };
 }

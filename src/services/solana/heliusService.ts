@@ -94,10 +94,11 @@ export class HeliusService {
           return await backupFn();
         } catch (backupError) {
           console.error(`Backup endpoint also failed for ${options.endpoint}:`, backupError);
-          errorCollector.captureError(backupError, {
+          errorCollector.captureError(backupError as Error, {
             component: 'HeliusService',
             method: options.endpoint,
-            details: 'Backup endpoint failed'
+            details: 'Backup endpoint failed',
+            source: 'client'
           });
           throw backupError;
         }
@@ -185,9 +186,10 @@ export class HeliusService {
 // Initialize the key manager when the service is imported
 HeliusService.initialize().catch(err => {
   console.error("Failed to initialize HeliusService:", err);
-  errorCollector.captureError(err, {
+  errorCollector.captureError(err as Error, {
     component: 'HeliusService',
     method: 'initialize',
-    details: 'Failed during service import'
+    details: 'Failed during service import',
+    source: 'client'
   });
 });

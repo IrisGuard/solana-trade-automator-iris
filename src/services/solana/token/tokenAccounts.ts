@@ -1,64 +1,94 @@
 
 import { Connection, PublicKey } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { Token } from '@/types/wallet';
-import { HeliusService } from '../heliusService';
 import { errorCollector } from '@/utils/error-handling/collector';
+import { RPC_ENDPOINT } from '../config';
+import { Token } from '@/types/wallet';
+
+// Cache token accounts to avoid repeated RPC calls
+const tokenAccountsCache = new Map<string, Token[]>();
+const cacheTTL = 10 * 60 * 1000; // 10 minutes in milliseconds
+const cacheTimestamps = new Map<string, number>();
 
 /**
- * Fetches all token accounts for a given wallet address
- * with enhanced error handling and rate limit protection
+ * Get all token accounts for the specified wallet
  */
-export async function getParsedTokenAccounts(walletAddress: string): Promise<Token[]> {
-  try {
-    console.log("Fetching token accounts for address:", walletAddress);
-    
-    // Create connection using Helius RPC endpoint with key rotation
-    const connection = new Connection(HeliusService.getRpcEndpoint());
-    
-    // Convert string address to PublicKey
-    const pubKey = new PublicKey(walletAddress);
-    
-    // Get all token accounts for this wallet
-    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
-      pubKey,
-      { programId: TOKEN_PROGRAM_ID },
-      'confirmed'
-    );
-    
-    // Map token accounts to our Token type
-    const tokens: Token[] = tokenAccounts.value
-      .filter(account => {
-        const tokenAmount = account.account.data.parsed.info.tokenAmount;
-        // Filter out tokens with zero balance
-        return Number(tokenAmount.amount) > 0;
-      })
-      .map(account => {
-        const accountData = account.account.data.parsed.info;
-        const tokenAmount = accountData.tokenAmount;
-        const mint = accountData.mint;
+export async function getTokenAccounts(walletAddress: string): Promise<Token[]> {
+    try {
+        // Check cache first
+        const cacheKey = `tokens_${walletAddress}`;
+        const cachedData = tokenAccountsCache.get(cacheKey);
+        const cacheTimestamp = cacheTimestamps.get(cacheKey) || 0;
         
-        return {
-          address: mint,
-          owner: walletAddress, 
-          symbol: mint.substring(0, 4),  // Temporary symbol - will be updated with token metadata
-          name: `Token ${mint.substring(0, 8)}...`, // Temporary name
-          logo: "", // Will be updated with token metadata
-          amount: parseFloat(tokenAmount.uiAmountString || '0'),
-          decimals: tokenAmount.decimals,
-          usdValue: 0, // Will be updated with price data
-        };
-      });
-    
-    console.log(`Found ${tokens.length} tokens for wallet ${walletAddress}`);
-    return tokens;
-  } catch (error) {
-    console.error("Error fetching token accounts:", error);
-    errorCollector.captureError(error, {
-      component: 'TokenService',
-      method: 'getParsedTokenAccounts',
-      walletAddress
-    });
-    return [];
-  }
+        // Return cached data if valid
+        if (cachedData && (Date.now() - cacheTimestamp < cacheTTL)) {
+            console.log(`Using cached token accounts for ${walletAddress}`);
+            return cachedData;
+        }
+        
+        // Create connection
+        const connection = new Connection(RPC_ENDPOINT);
+        const pubkey = new PublicKey(walletAddress);
+        
+        // Get all token accounts owned by the wallet
+        const tokenResp = await connection.getParsedTokenAccountsByOwner(
+            pubkey,
+            { programId: TOKEN_PROGRAM_ID },
+            'confirmed'
+        );
+        
+        // Transform to the Token interface
+        const tokens: Token[] = tokenResp.value
+            .filter(item => {
+                const amount = Number(item.account.data.parsed.info.tokenAmount.amount);
+                const decimals = item.account.data.parsed.info.tokenAmount.decimals;
+                return amount > 0;
+            })
+            .map(item => {
+                const accountData = item.account.data.parsed.info;
+                const mintAddress = accountData.mint;
+                const amount = Number(accountData.tokenAmount.amount);
+                const decimals = accountData.tokenAmount.decimals;
+                const uiAmount = amount / Math.pow(10, decimals);
+                
+                return {
+                    mint: mintAddress,
+                    address: item.pubkey.toString(),
+                    amount: uiAmount,
+                    decimals: decimals,
+                    uiAmount: uiAmount.toString()
+                };
+            });
+        
+        // Update cache
+        tokenAccountsCache.set(cacheKey, tokens);
+        cacheTimestamps.set(cacheKey, Date.now());
+        
+        return tokens;
+    } catch (error) {
+        errorCollector.captureError(error as Error, {
+            component: 'tokenAccounts',
+            method: 'getTokenAccounts',
+            details: { walletAddress },
+            source: 'client'
+        });
+        console.error('Error fetching token accounts:', error);
+        return [];
+    }
+}
+
+/**
+ * Clear the token accounts cache for a specific wallet or all wallets
+ */
+export function clearTokenAccountsCache(walletAddress?: string): void {
+    if (walletAddress) {
+        const cacheKey = `tokens_${walletAddress}`;
+        tokenAccountsCache.delete(cacheKey);
+        cacheTimestamps.delete(cacheKey);
+        console.log(`Cleared token accounts cache for ${walletAddress}`);
+    } else {
+        tokenAccountsCache.clear();
+        cacheTimestamps.clear();
+        console.log('Cleared all token accounts cache');
+    }
 }

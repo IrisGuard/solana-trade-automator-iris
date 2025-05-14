@@ -18,7 +18,15 @@ export const HELIUS_API_KEYS = {
   eclipse: "",
   
   // WebSocket endpoints
-  websocket: "ddb32813-1f4b-459d-8964-310b1b73a053"
+  websocket: "ddb32813-1f4b-459d-8964-310b1b73a053",
+  
+  // Additional keys for different purposes (all 6 keys)
+  key1: "ddb32813-1f4b-459d-8964-310b1b73a053",
+  key2: "ddb32813-1f4b-459d-8964-310b1b73a053",
+  key3: "ddb32813-1f4b-459d-8964-310b1b73a053",
+  key4: "ddb32813-1f4b-459d-8964-310b1b73a053",
+  key5: "ddb32813-1f4b-459d-8964-310b1b73a053",
+  key6: "ddb32813-1f4b-459d-8964-310b1b73a053"
 };
 
 // Helius API endpoints configuration
@@ -47,7 +55,8 @@ export const registerHeliusApiKeys = async (userId: string): Promise<boolean> =>
     const results = await Promise.all([
       registerMainnetRpcKey(userId),
       registerApiV0Key(userId),
-      registerWebSocketKey(userId)
+      registerWebSocketKey(userId),
+      registerAdditionalKeys(userId)
     ]);
     
     // Initialize the key manager after registration
@@ -63,6 +72,73 @@ export const registerHeliusApiKeys = async (userId: string): Promise<boolean> =>
   } catch (error) {
     console.error('Σφάλμα κατά την προσθήκη των κλειδιών Helius:', error);
     toast.error('Σφάλμα κατά την προσθήκη των κλειδιών Helius');
+    return false;
+  }
+};
+
+/**
+ * Register the additional 6 Helius keys
+ */
+const registerAdditionalKeys = async (userId: string): Promise<boolean> => {
+  try {
+    let successCount = 0;
+    
+    // Register each of the 6 additional keys with different service names
+    const keyMappings = [
+      { key: HELIUS_API_KEYS.key1, service: 'helius-key1', name: 'Helius Key 1' },
+      { key: HELIUS_API_KEYS.key2, service: 'helius-key2', name: 'Helius Key 2' },
+      { key: HELIUS_API_KEYS.key3, service: 'helius-key3', name: 'Helius Key 3' },
+      { key: HELIUS_API_KEYS.key4, service: 'helius-key4', name: 'Helius Key 4' },
+      { key: HELIUS_API_KEYS.key5, service: 'helius-key5', name: 'Helius Key 5' },
+      { key: HELIUS_API_KEYS.key6, service: 'helius-key6', name: 'Helius Key 6' }
+    ];
+    
+    for (const mapping of keyMappings) {
+      if (!mapping.key) continue;
+      
+      // Check if key already exists
+      const { data: existingKeys, error: checkError } = await supabase
+        .from('api_keys_storage')
+        .select('*')
+        .eq('key_value', mapping.key)
+        .eq('service', mapping.service);
+      
+      if (checkError) {
+        console.error(`Error checking for ${mapping.name}:`, checkError);
+        continue;
+      }
+      
+      if (existingKeys && existingKeys.length > 0) {
+        console.log(`${mapping.name} already exists`);
+        successCount++;
+        continue;
+      }
+      
+      // Insert the key
+      const { error } = await supabase
+        .from('api_keys_storage')
+        .insert({
+          name: mapping.name,
+          key_value: mapping.key,
+          service: mapping.service,
+          description: `Additional Helius API key ${mapping.name.split(' ').pop()}`,
+          status: "active",
+          user_id: userId,
+          is_encrypted: false
+        });
+        
+      if (error) {
+        console.error(`Error adding ${mapping.name}:`, error);
+        continue;
+      }
+      
+      console.log(`Successfully added ${mapping.name}`);
+      successCount++;
+    }
+    
+    return successCount > 0;
+  } catch (error) {
+    console.error('Error adding additional Helius keys:', error);
     return false;
   }
 };
