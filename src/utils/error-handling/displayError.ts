@@ -37,13 +37,15 @@ export function displayError(
   // Add to error collector if requested
   let errorId = '';
   if (useCollector) {
-    const result = errorCollector.captureError(error, {
+    // Call captureError without trying to use its return value
+    errorCollector.captureError(error, {
       component,
       source,
       details
     });
-    // Make sure we always have a string to return
-    errorId = result || '';
+    // Since we cannot use the return value from captureError (it's void),
+    // we'll just create a generic error ID
+    errorId = `error-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
   }
 
   // Show toast if requested
