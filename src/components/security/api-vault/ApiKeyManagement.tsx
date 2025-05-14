@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Lock, Unlock, Copy, Eye, EyeOff } from "lucide-react";
-import { ApiKey } from "@/types/api";
+import { ApiKey } from "@/components/security/apiVault/types";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
@@ -35,7 +35,7 @@ export function ApiKeyManagement({
   
   const copyKeyToClipboard = (key: string) => {
     navigator.clipboard.writeText(key);
-    toast.success("API Key copied to clipboard");
+    toast.success("API Key αντιγράφηκε στο πρόχειρο");
   };
   
   return (
@@ -47,17 +47,17 @@ export function ApiKeyManagement({
             <>
               <Button onClick={handleCreateKey} size="sm" variant="outline">
                 <Plus className="h-4 w-4 mr-1" />
-                Create Key
+                Δημιουργία Κλειδιού
               </Button>
               <Button onClick={handleLockVault} size="sm" variant="ghost">
                 <Lock className="h-4 w-4 mr-1" />
-                Lock
+                Κλείδωμα
               </Button>
             </>
           ) : (
             <Button onClick={handleUnlockVault} size="sm">
               <Unlock className="h-4 w-4 mr-1" />
-              Unlock Vault
+              Ξεκλείδωμα Θησαυροφυλακίου
             </Button>
           )}
         </div>
@@ -66,20 +66,20 @@ export function ApiKeyManagement({
         {!isUnlocked ? (
           <div className="py-8 text-center">
             <Lock className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">API Key Vault is Locked</h3>
+            <h3 className="text-lg font-medium mb-2">Το Θησαυροφυλάκιο API Keys είναι κλειδωμένο</h3>
             <p className="text-muted-foreground mb-4">
-              Unlock the vault to view and manage your API keys
+              Ξεκλειδώστε το θησαυροφυλάκιο για να δείτε και να διαχειριστείτε τα API keys σας
             </p>
             <Button onClick={handleUnlockVault}>
-              Unlock Vault
+              Ξεκλείδωμα Θησαυροφυλακίου
             </Button>
           </div>
         ) : apiKeys.length === 0 ? (
           <div className="py-8 text-center">
-            <p className="text-muted-foreground mb-4">You don't have any API keys yet</p>
+            <p className="text-muted-foreground mb-4">Δεν έχετε ακόμη API keys</p>
             <Button onClick={handleCreateKey}>
               <Plus className="h-4 w-4 mr-1" />
-              Create Your First Key
+              Δημιουργήστε το πρώτο σας κλειδί
             </Button>
           </div>
         ) : (
@@ -92,10 +92,10 @@ export function ApiKeyManagement({
                 <div className="flex justify-between items-center mb-2">
                   <div>
                     <h3 className="font-medium">{key.name}</h3>
-                    <p className="text-xs text-muted-foreground">Created: {new Date(key.created).toLocaleDateString()}</p>
+                    <p className="text-xs text-muted-foreground">Δημιουργήθηκε: {new Date(key.created || key.createdAt || '').toLocaleDateString()}</p>
                   </div>
-                  <Badge variant={key.status === 'active' ? 'success' : 'secondary'}>
-                    {key.status || 'active'}
+                  <Badge variant={key.status === 'active' ? "success" : "secondary"}>
+                    {key.status || 'ενεργό'}
                   </Badge>
                 </div>
                 
@@ -127,14 +127,14 @@ export function ApiKeyManagement({
                 
                 <div className="flex justify-between">
                   <div className="flex items-center space-x-2">
-                    <p className="text-xs">Permissions: {key.permissions?.join(', ') || 'Default'}</p>
+                    <p className="text-xs">Δικαιώματα: {key.permissions?.join(', ') || 'Προεπιλογή'}</p>
                   </div>
                   <Button 
                     variant="destructive"
                     size="sm"
                     onClick={() => handleRevokeKey(key.id)}
                   >
-                    Revoke
+                    Ανάκληση
                   </Button>
                 </div>
               </div>

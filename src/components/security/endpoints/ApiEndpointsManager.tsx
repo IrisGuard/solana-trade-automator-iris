@@ -1,104 +1,71 @@
 
 import React, { useState, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Plus, RefreshCw } from "lucide-react";
 import { EndpointsList } from "./EndpointsList";
 import { useGetEndpoints } from "@/hooks/useGetEndpoints";
-import { ApiEndpoint } from "@/types/api";
+import { toast } from "sonner";
 
-interface ApiEndpointsManagerProps {
-  onAddEndpoint?: () => void;
+export interface ApiEndpoint {
+  id: string;
+  name: string;
+  url: string;
+  category: string;
+  is_active: boolean;
+  is_public: boolean;
 }
 
-export function ApiEndpointsManager({ onAddEndpoint }: ApiEndpointsManagerProps) {
-  const [activeTab, setActiveTab] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const { endpoints, loading, error } = useGetEndpoints();
+export function ApiEndpointsManager() {
+  const { endpoints, isLoading, error, refetch } = useGetEndpoints();
+  const [showAddEndpoint, setShowAddEndpoint] = useState(false);
 
-  // Group endpoints by category
-  const groupedEndpoints = React.useMemo(() => {
-    if (!endpoints) return {};
-    
-    return endpoints.reduce((acc: Record<string, ApiEndpoint[]>, endpoint: ApiEndpoint) => {
-      const category = endpoint.category || 'Uncategorized';
-      if (!acc[category]) {
-        acc[category] = [];
-      }
-      acc[category].push(endpoint);
-      return acc;
-    }, { 'All': endpoints });
-  }, [endpoints]);
-
-  // Filter endpoints based on search query
-  const filteredEndpoints = React.useMemo(() => {
-    if (!groupedEndpoints) return {};
-    
-    if (!searchQuery) return groupedEndpoints;
-    
-    const result: Record<string, ApiEndpoint[]> = {};
-    
-    Object.entries(groupedEndpoints).forEach(([category, endpointsList]) => {
-      const filtered = endpointsList.filter(endpoint => 
-        endpoint.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        endpoint.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        endpoint.url.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      
-      if (filtered.length > 0) {
-        result[category] = filtered;
-      }
+  const handleRefresh = () => {
+    toast.promise(refetch(), {
+      loading: 'Ανανέωση endpoints...',
+      success: 'Τα endpoints ανανεώθηκαν με επιτυχία',
+      error: 'Αποτυχία ανανέωσης endpoints'
     });
-    
-    return result;
-  }, [groupedEndpoints, searchQuery]);
+  };
 
-  // Get unique categories for tabs
-  const categories = React.useMemo(() => {
-    if (!groupedEndpoints) return ['All'];
-    return ['All', ...Object.keys(groupedEndpoints).filter(cat => cat !== 'All')];
-  }, [groupedEndpoints]);
+  useEffect(() => {
+    if (error) {
+      toast.error('Σφάλμα φόρτωσης endpoints', {
+        description: error
+      });
+    }
+  }, [error]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">API Endpoints</h2>
-        <Button onClick={onAddEndpoint}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Endpoint
-        </Button>
-      </div>
-      
-      <div className="relative">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search endpoints by name, description or URL"
-          className="pl-8"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>API Endpoints</CardTitle>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
+            Ανανέωση
+          </Button>
+          <Button 
+            size="sm"
+            onClick={() => setShowAddEndpoint(true)}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Προσθήκη
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <EndpointsList 
+          endpoints={endpoints} 
+          loading={isLoading} 
+          error={error} 
         />
-      </div>
-      
-      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full overflow-auto">
-          {categories.map((category) => (
-            <TabsTrigger key={category} value={category.toLowerCase()}>
-              {category}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        
-        {categories.map((category) => (
-          <TabsContent key={category} value={category.toLowerCase()}>
-            <EndpointsList 
-              endpoints={activeTab === "all" ? endpoints : filteredEndpoints[category] || []}
-              loading={loading}
-              error={error}
-            />
-          </TabsContent>
-        ))}
-      </Tabs>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

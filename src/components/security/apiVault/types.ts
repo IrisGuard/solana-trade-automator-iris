@@ -4,13 +4,12 @@ export interface ApiKey {
   name: string;
   key: string;
   service: string;
-  createdAt: string;
+  created: string;
+  createdAt?: string;
+  status?: string;
   description?: string;
-  expires?: string;
-  status?: 'active' | 'expired' | 'revoked';
   isWorking?: boolean;
-  source?: string;
-  connected?: boolean;
+  permissions?: string[];
 }
 
 export interface ApiKeyStats {
@@ -18,12 +17,10 @@ export interface ApiKeyStats {
   active: number;
   expired: number;
   revoked: number;
-  working?: number;
-  notWorking?: number;
 }
 
 export interface ServiceInfo {
   name: string;
   count: number;
-  workingCount?: number;
+  icon?: React.ReactNode;
 }
