@@ -1,36 +1,48 @@
 
-/**
- * Format token amount based on decimals
- */
-export const formatTokenAmount = (amount: number, decimals: number = 0): string => {
-  const precision = decimals > 0 ? Math.min(decimals, 6) : 2;
-  return amount.toFixed(precision);
-};
+import { Token } from "@/types/wallet";
 
 /**
- * Format token price to USD format
+ * Format token amounts with proper decimals for display
  */
-export const formatTokenPrice = (price: number | undefined): string => {
-  if (price === undefined || isNaN(price)) return '$0.00';
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 6
-  }).format(price);
-};
+export function formatTokenAmount(token: Token, decimals: number = 4): string {
+  if (!token || token.amount === undefined) {
+    return "0.0000"; // Default value when token or amount is undefined
+  }
+
+  // First convert to number if it's a string
+  const amountNumber = typeof token.amount === 'string' ? parseFloat(token.amount) : token.amount;
+  
+  // Handle NaN or undefined cases
+  if (isNaN(amountNumber) || amountNumber === undefined) {
+    return "0.0000";
+  }
+
+  try {
+    return amountNumber.toFixed(decimals);
+  } catch (error) {
+    console.error("Error formatting token amount:", error);
+    return "0.0000";
+  }
+}
 
 /**
- * Calculate USD value from token amount and price
+ * Format price change with + or - sign
  */
-export const calculateUSDValue = (amount: number, price: number | undefined): string => {
-  if (!price || isNaN(price)) return '$0.00';
-  return formatTokenPrice(amount * price);
-};
+export function formatPriceChange(change: number): string {
+  if (!change) return "0.00%";
+  
+  const sign = change >= 0 ? "+" : "";
+  return `${sign}${change.toFixed(2)}%`;
+}
 
 /**
- * Format token symbol with ellipsis if too long
+ * Calculate token value in USD based on price
  */
-export const formatTokenSymbol = (symbol: string, maxLength: number = 6): string => {
-  return symbol.length > maxLength ? `${symbol.slice(0, maxLength)}...` : symbol;
-};
+export function calculateTokenValue(token: Token, price?: number): number {
+  if (!token?.amount || price === undefined || isNaN(price)) {
+    return 0;
+  }
+  
+  const amount = typeof token.amount === 'string' ? parseFloat(token.amount) : token.amount;
+  return amount * price;
+}

@@ -1,73 +1,47 @@
 
-/**
- * Interface for token data structure
- */
 export interface Token {
   address: string;
-  name: string;
-  symbol: string;
-  amount: number;
-  decimals: number;
+  name?: string;
+  symbol?: string;
+  logo?: string;
+  decimals?: number;
+  amount?: number;
   balance?: number;
   uiBalance?: number;
   mint?: string;
-  logo?: string;
 }
 
-/**
- * Interface for transaction data structure
- */
-export interface Transaction {
+export interface TokenPrice {
+  price: number;
+  priceChange24h: number;
+  volume24h?: number;
+  marketCap?: number;
+  lastUpdated?: Date;
+}
+
+export interface WalletTransaction {
   id: string;
   type: 'send' | 'receive' | 'swap' | 'other';
   amount: number;
   token: string;
-  tokenSymbol: string;
-  date: Date | string;
+  timestamp: Date | string;
   status: 'confirmed' | 'pending' | 'failed';
   from?: string;
   to?: string;
+  signature?: string;
   fee?: number;
 }
 
-/**
- * Interface for wallet data structure
- */
-export interface WalletData {
-  address: string;
-  balance: number;
+export interface WalletBalance {
+  sol: number;
   tokens: Token[];
-  transactions: Transaction[];
 }
 
-/**
- * Interface for price data structure
- */
-export interface PriceData {
-  symbol: string;
-  price: number;
-  change24h: number;
-  volume24h?: number;
-  marketCap?: number;
-}
+export type WalletProvider = 'phantom' | 'solflare' | 'slope' | 'sollet' | 'other';
 
-/**
- * Interface for wallet settings
- */
-export interface WalletSettings {
-  autoRefresh: boolean;
-  refreshInterval: number;
-  showTestTokens: boolean;
-  defaultCurrency: string;
-}
-
-/**
- * Interface for wallet connection state
- */
-export interface WalletConnectionState {
+export interface WalletStatus {
   isConnected: boolean;
   isConnecting: boolean;
-  wallet: string | null;
-  provider: any;
-  error: string | null;
+  address?: string;
+  provider?: WalletProvider;
 }

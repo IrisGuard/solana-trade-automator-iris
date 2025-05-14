@@ -1,34 +1,70 @@
 
-import { useCallback } from "react";
-import { displayError } from "@/utils/errorUtils";
-import { errorCollector } from "@/utils/error-handling/collector";
-import type { ErrorOptions } from "@/utils/error-handling/types";
+import { useCallback } from 'react';
+import { errorCollector } from '@/utils/error-handling/collector';
+import { captureException, captureMessage } from '@/utils/error-handling/errorReporting';
+import { toast } from 'sonner';
 
+export interface ErrorReportingOptions {
+  component?: string;
+  details?: Record<string, any>;
+  source?: string;
+  showToast?: boolean;
+}
+
+/**
+ * Hook to provide error reporting functionality
+ */
 export function useErrorReporting() {
-  // Συνάρτηση για αναφορά σφάλματος
-  const reportError = useCallback((error: Error | string, options?: ErrorOptions) => {
-    return displayError(error, options);
+  const reportError = useCallback((error: Error, options: ErrorReportingOptions = {}) => {
+    const {
+      component = 'unknown',
+      details = {},
+      source = 'client',
+      showToast = false
+    } = options;
+
+    // Capture the error for monitoring
+    captureException(error);
+    
+    // Add to error collector for internal display
+    errorCollector.addError({
+      message: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString(),
+      component,
+      source,
+      details: JSON.stringify(details)
+    });
+    
+    // Show a toast if requested
+    if (showToast) {
+      toast.error('An error occurred', {
+        description: error.message
+      });
+    }
+    
+    console.error(`[${component}] Error:`, error);
+    
+    // Return the error for chaining
+    return error;
   }, []);
 
-  // Συνάρτηση για καταγραφή σφάλματος στο Supabase
-  const captureError = useCallback(async (error: Error, options: ErrorOptions = {}) => {
-    return errorCollector.captureError(error, options);
-  }, []);
-
-  // Συνάρτηση για λήψη όλων των σφαλμάτων
-  const getAllErrors = useCallback(() => {
-    return errorCollector.getAllErrors();
-  }, []);
-
-  // Συνάρτηση για καθαρισμό όλων των σφαλμάτων
-  const clearAllErrors = useCallback(() => {
-    errorCollector.clearAllErrors();
+  const reportMessage = useCallback((message: string, level: 'error' | 'warning' | 'info' = 'info', options: ErrorReportingOptions = {}) => {
+    captureMessage(message, level);
+    
+    if (options.showToast) {
+      if (level === 'error') {
+        toast.error(message);
+      } else if (level === 'warning') {
+        toast.warning(message);
+      } else {
+        toast.info(message);
+      }
+    }
   }, []);
 
   return {
     reportError,
-    captureError,
-    getAllErrors,
-    clearAllErrors
+    reportMessage
   };
 }

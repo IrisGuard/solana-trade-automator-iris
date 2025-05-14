@@ -1,83 +1,43 @@
 
 import { Token } from '@/types/wallet';
 
+export type BotStatus = 'idle' | 'running' | 'paused';
+
 export interface TradingBotConfig {
   selectedToken: string | null;
-  strategy: 'simple' | 'advanced' | 'custom';
-  tradeAmount: number;
   buyThreshold: number;
   sellThreshold: number;
   stopLoss: number;
   takeProfit: number;
-  autoRebalance: boolean;
-  trailingStop: boolean;
+  maxBudget: number;
+  enabledStrategies: {
+    dca: boolean;
+    grid: boolean;
+    momentum: boolean;
+  };
 }
 
-export interface TokenPriceInfo {
-  currentPrice: number;
-  priceChange24h: number;
-  highPrice24h: number;
-  lowPrice24h: number;
-  volume24h: number;
-  marketCap: number;
-  lastUpdated: Date;
-}
-
-export interface Bot {
+export interface TradingOrder {
   id: string;
-  name: string;
-  status: 'running' | 'idle' | 'paused' | 'error';
-  token: string;
-  strategy: string;
-  profitLoss: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ActiveOrder {
-  id: string;
-  type: 'buy' | 'sell' | 'stop-loss' | 'take-profit';
-  token: string;
-  amount: number;
-  price: number;
-  status: 'pending' | 'executed' | 'canceled';
-  createdAt: string;
-}
-
-export interface BotAction {
-  type: 'buy' | 'sell' | 'stop-loss' | 'take-profit';
-  token: string;
+  type: 'buy' | 'sell' | 'stop-loss' | 'take-profit' | 'limit-buy' | 'limit-sell';
   price: number;
   amount: number;
-  timestamp: Date;
-  status: 'pending' | 'executed' | 'failed';
+  tokenAddress: string;
+  status: 'pending' | 'executed' | 'cancelled';
+  createdAt: Date;
+  executedAt?: Date;
 }
 
 export interface TradingBotHook {
-  // Bot state
-  bots: Bot[];
-  activeBot: Bot | null;
-  isCreating: boolean;
-  isLoading: boolean;
-  selectedToken: string | null;
-  tokenPrice: number;
-  botStatus: 'running' | 'idle' | 'paused';
-  activeOrders: ActiveOrder[];
-  selectedTokenPrice: TokenPriceInfo | null;
-  selectedTokenDetails: Token | undefined;
-  tokens: Token[];
-  connected: boolean;
-  
-  // Bot configuration
   config: TradingBotConfig;
   updateConfig: (config: Partial<TradingBotConfig>) => void;
-  
-  // Bot actions
-  loadBots: () => Promise<Bot[]>;
   selectToken: (token: string | null) => Promise<void>;
-  setActiveBot: (bot: Bot | null) => void;
-  createBot: (config: TradingBotConfig) => Promise<Bot | null>;
   startBot: () => void;
   stopBot: () => void;
-  cleanup: () => void;
+  isLoading: boolean;
+  botStatus: BotStatus;
+  activeOrders: TradingOrder[];
+  selectedTokenPrice: { price: number; priceChange24h: number } | null;
+  selectedTokenDetails: Token | undefined;
+  tokens: Token[];
 }
