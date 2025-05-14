@@ -19,70 +19,93 @@ export function ConnectWalletCard({ isConnecting = false, isPhantomInstalled = t
   const handleConnectClick = () => {
     setVisible(true);
   };
-  
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+    <div className="flex flex-col gap-4">
+      <Card>
         <CardHeader>
           <CardTitle>{t("platform.welcomeMessage")}</CardTitle>
           <CardDescription>
             {t("platform.welcomeDescription")}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="bg-background/80 p-4 rounded-lg">
-            <h3 className="text-lg font-medium mb-2">Για να ξεκινήσετε:</h3>
-            <ul className="space-y-2 list-disc pl-5">
-              <li>Συνδέστε το πορτοφόλι Phantom Wallet</li>
-              <li>Εξερευνήστε τα διαθέσιμα tokens σας</li>
-              <li>Δημιουργήστε το πρώτο σας trading bot</li>
-              <li>Ρυθμίστε τις παραμέτρους συναλλαγών</li>
-              <li>Παρακολουθήστε την απόδοση σε πραγματικό χρόνο</li>
-            </ul>
-          </div>
-          
-          {!isPhantomInstalled && (
-            <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-lg text-yellow-600 dark:text-yellow-400">
-              <h4 className="font-medium mb-1">Το Phantom Wallet δεν είναι εγκατεστημένο</h4>
-              <p className="text-sm">
-                Για να χρησιμοποιήσετε την πλατφόρμα μας, χρειάζεστε το Phantom Wallet. 
-                <a href="https://phantom.app/" target="_blank" rel="noopener noreferrer" className="font-medium underline ml-1">
-                  Εγκαταστήστε το Phantom
-                </a>
-              </p>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="bg-muted p-4 rounded-lg">
+              <h3 className="font-medium mb-2">{t("platform.howItWorks")}</h3>
+              <ul className="space-y-2">
+                <li className="flex items-center gap-2">
+                  <span className="bg-primary/10 text-primary p-1 rounded-full">✓</span>
+                  {t("platform.feature1")}
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="bg-primary/10 text-primary p-1 rounded-full">✓</span>
+                  {t("platform.feature2")}
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="bg-primary/10 text-primary p-1 rounded-full">✓</span>
+                  {t("platform.feature3")}
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="bg-primary/10 text-primary p-1 rounded-full">✓</span>
+                  {t("platform.feature4")}
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="bg-primary/10 text-primary p-1 rounded-full">✓</span>
+                  {t("platform.feature5")}
+                </li>
+              </ul>
             </div>
-          )}
+          </div>
         </CardContent>
         <CardFooter>
           <Button 
             className="w-full" 
-            size="lg" 
-            onClick={handleConnectClick}
+            onClick={handleConnectClick} 
             disabled={isConnecting || !isPhantomInstalled}
           >
-            {isConnecting ? "Σύνδεση..." : "Σύνδεση Πορτοφολιού"} 
-            <ArrowRight className="ml-2 h-4 w-4" />
+            {!isPhantomInstalled ? (
+              "Εγκατάσταση Phantom Wallet"
+            ) : isConnecting ? (
+              "Σύνδεση..."
+            ) : (
+              <>
+                {t("hero.connectWallet")} <ArrowRight className="ml-2 h-4 w-4" />
+              </>
+            )}
           </Button>
         </CardFooter>
       </Card>
-
+      
       <Card>
         <CardHeader>
-          <CardTitle>{t("platform.title")}</CardTitle>
-          <CardDescription>{t("platform.subtitle")}</CardDescription>
+          <CardTitle>{t("platform.gettingStarted")}</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <p>{t("platform.description")}</p>
-          
-          <div className="bg-muted p-4 rounded-lg">
-            <h3 className="font-medium mb-2">{t("platform.howItWorks")}</h3>
-            <ul className="space-y-2 list-disc pl-5 text-sm">
-              <li>{t("platform.feature1")}</li>
-              <li>{t("platform.feature2")}</li>
-              <li>{t("platform.feature3")}</li>
-              <li>{t("platform.feature4")}</li>
-              <li>{t("platform.feature5")}</li>
-            </ul>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-start gap-2">
+                <div className="bg-primary/10 text-primary rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">1</div>
+                <div>
+                  <h4 className="font-medium">{t("platform.step1Title")}</h4>
+                  <p className="text-sm text-muted-foreground">{t("platform.step1Desc")}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <div className="bg-primary/10 text-primary rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">2</div>
+                <div>
+                  <h4 className="font-medium">{t("platform.step2Title")}</h4>
+                  <p className="text-sm text-muted-foreground">{t("platform.step2Desc")}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <div className="bg-primary/10 text-primary rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">3</div>
+                <div>
+                  <h4 className="font-medium">{t("platform.step3Title")}</h4>
+                  <p className="text-sm text-muted-foreground">{t("platform.step3Desc")}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

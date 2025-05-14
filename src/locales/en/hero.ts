@@ -1,7 +1,30 @@
 
 export const hero = {
-  tagline: "Manage your cryptocurrencies, automate your transactions, and monitor your funds - all in one place",
+  tagline: "Manage your crypto, automate your transactions, and monitor your funds - all in one place",
   dashboardToast: "Navigate to Dashboard",
+  botControlToast: "Navigate to Trading Bots",
   dashboard: "Enter Dashboard",
-  botControlToast: "Navigate to Trading Bots"
+  welcomeMessage: "Welcome to Solana Trade Automator!",
+  welcomeDescription: "The leading automated trading platform for the Solana blockchain.",
+  getStartedButton: "Get Started Now",
+  learnMoreButton: "Learn More",
+  tradeAutomationTitle: "Trade Automation",
+  tradeAutomationDesc: "Let the bots execute trades based on your strategy 24/7",
+  marketMonitoringTitle: "Market Monitoring",
+  marketMonitoringDesc: "Analyzing data and identifying opportunities in real-time",
+  portfolioManagementTitle: "Portfolio Management",
+  portfolioManagementDesc: "Track all your tokens and their performance in detail",
+  securityFeaturesTitle: "Advanced Security",
+  securityFeaturesDesc: "Your funds always remain under your control",
+  analyticsTitle: "Advanced Analytics",
+  analyticsDesc: "Detailed statistics and reports to optimize your strategy",
+  multiStrategyTitle: "Multiple Strategies",
+  multiStrategyDesc: "Choose between different trading strategies for optimal results",
+  // Token related translations
+  noActiveBots: "No Active Bots",
+  noActiveBotsDesc: "You don't have any active bots at the moment. Start a bot to begin trading.",
+  createNewBot: "Create New Bot",
+  connectWallet: "Connect Wallet",
+  connectWalletToViewTokens: "Connect Your Wallet to View Tokens",
+  needToConnectWallet: "You need to connect your wallet to manage your tokens"
 };
