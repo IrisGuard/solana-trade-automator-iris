@@ -1,3 +1,4 @@
+
 import { defineConfig, type ConfigEnv, type PluginOption } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -16,8 +17,9 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     },
     plugins: [
       react({
-        // Use the options that are actually supported by the plugin
-        plugins: [["@swc/plugin-transform-react", { useBuiltins: true }]],
+        // Use options that are actually supported by the SWC React plugin
+        // Remove reference to the non-existent @swc/plugin-transform-react
+        tsDecorators: true,
       }),
       mode === 'development' && componentTagger(),
     ].filter(Boolean) as PluginOption[],
