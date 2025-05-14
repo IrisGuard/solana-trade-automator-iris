@@ -67,7 +67,7 @@ export function PublishErrorMonitor() {
               console.log("Επιτυχής σύνδεση με το Supabase");
             })
             .catch(error => {
-              displayError(new Error(`Σφάλμα σύνδεσης με το Supabase: ${error.message}`), {
+              displayError(error, {
                 title: "Σφάλμα κατά τη δημοσίευση",
                 showToast: true,
                 logToConsole: true,

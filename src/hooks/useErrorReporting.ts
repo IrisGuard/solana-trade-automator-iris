@@ -1,6 +1,6 @@
 
 import { useCallback } from "react";
-import { displayError, type ErrorDisplayOptions } from "@/utils/error-handling/displayError";
+import { displayError, type ErrorDisplayOptions } from "@/utils/errorUtils";
 import { errorCollector } from "@/utils/error-handling/collector";
 
 export function useErrorReporting() {

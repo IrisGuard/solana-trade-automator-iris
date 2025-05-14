@@ -2,42 +2,60 @@
 import { toast } from "sonner";
 import { errorCollector, type ErrorData } from './collector';
 
-type ErrorOptions = {
+export type ErrorDisplayOptions = {
   component?: string;
   showToast?: boolean;
   details?: any;
+  title?: string;
+  logToConsole?: boolean;
+  sendToChat?: boolean;
+  useCollector?: boolean;
+  toastDuration?: number;
 };
 
 /**
  * Εμφανίζει ένα σφάλμα στη διασύνδεση χρήστη και το καταγράφει
  * στον συλλέκτη σφαλμάτων.
  *
- * @param message Το μήνυμα σφάλματος που θα εμφανιστεί
+ * @param error Το σφάλμα που θα εμφανιστεί (μπορεί να είναι Error ή string)
  * @param options Πρόσθετες επιλογές για την εμφάνιση του σφάλματος
  */
-export function displayError(message: string, options: ErrorOptions = {}): void {
-  const { component, showToast = true, details } = options;
+export function displayError(error: Error | string, options: ErrorDisplayOptions = {}): void {
+  // Εξαγωγή του μηνύματος σφάλματος
+  const message = error instanceof Error ? error.message : error;
+  const stack = error instanceof Error ? error.stack : undefined;
   
-  // Καταγραφή στην κονσόλα
-  if (component) {
-    console.error(`[${component}] ${message}`, details || '');
-  } else {
-    console.error(message, details || '');
+  const { component, showToast = true, details, title, logToConsole = true, sendToChat = false, useCollector = true, toastDuration = 5000 } = options;
+  
+  // Καταγραφή στην κονσόλα αν ζητηθεί
+  if (logToConsole) {
+    if (component) {
+      console.error(`[${component}] ${message}`, details || '');
+    } else {
+      console.error(message, details || '');
+    }
   }
   
-  // Προσθήκη στον συλλέκτη σφαλμάτων
-  errorCollector.captureError(new Error(message), {
-    component,
-    details: JSON.stringify(details),
-    source: 'client'
-  });
+  // Προσθήκη στον συλλέκτη σφαλμάτων αν ζητηθεί
+  if (useCollector) {
+    errorCollector.captureError(error instanceof Error ? error : new Error(message), {
+      component,
+      details: JSON.stringify(details),
+      source: 'client'
+    });
+  }
   
   // Εμφάνιση toast αν ζητηθεί
   if (showToast) {
-    toast.error(message, {
+    toast.error(title || message, {
       description: component ? `Στο: ${component}` : undefined,
-      duration: 5000
+      duration: toastDuration
     });
+  }
+  
+  // Αποστολή στο chat αν ζητηθεί
+  if (sendToChat) {
+    sendErrorToChat(message, component, details);
   }
 }
 
@@ -59,12 +77,14 @@ export function sendErrorToChat(message: string, component?: string, details?: a
 /**
  * Αναφέρει ένα σφάλμα στο Supabase για καταγραφή
  */
-export async function reportErrorToSupabase(error: Error, options: ErrorOptions = {}): Promise<void> {
+export async function reportErrorToSupabase(error: Error | string, options: ErrorDisplayOptions = {}): Promise<void> {
   const { component, details } = options;
+  const message = error instanceof Error ? error.message : error;
+  const stack = error instanceof Error ? error.stack : undefined;
   
   try {
     // Προσθήκη στον συλλέκτη σφαλμάτων
-    errorCollector.captureError(error, {
+    errorCollector.captureError(error instanceof Error ? error : new Error(message), {
       component,
       details: JSON.stringify(details),
       source: 'client'

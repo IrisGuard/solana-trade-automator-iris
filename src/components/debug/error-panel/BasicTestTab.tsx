@@ -3,21 +3,11 @@ import { Button } from '@/components/ui/button';
 import { useErrorOptions } from './ErrorOptionsContext';
 import { ErrorOptions } from './ErrorOptions';
 import { displayError } from '@/utils/errorUtils';
-
-// Create a temporary generateTestError function since it doesn't exist
-function generateTestError(message: string, options: any) {
-  const error = new Error(message);
-  displayError(error, options);
-}
-
-// Create a temporary clearAllErrors function 
-function clearAllErrors() {
-  console.log('Clearing all errors');
-  // This would typically clear errors from various systems
-}
+import { useErrorReporting } from '@/hooks/useErrorReporting';
 
 export function BasicTestTab() {
   const { errorMessage, showToast, logToConsole, sendToChat, useCollector } = useErrorOptions();
+  const { clearAllErrors } = useErrorReporting();
   
   const handleGenerateError = () => {
     // Create error options object to pass to generateTestError
@@ -30,7 +20,8 @@ export function BasicTestTab() {
     };
     
     // Generate test error with the specified options
-    generateTestError(errorMessage, options);
+    const error = new Error(errorMessage);
+    displayError(error, options);
   };
 
   return (
