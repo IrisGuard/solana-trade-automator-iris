@@ -11,13 +11,8 @@ export interface ErrorData {
   timestamp: string | number;
 }
 
-export interface ErrorOptions {
-  component?: string;
-  details?: any;
-  source?: string;
-  url?: string;
-  browserInfo?: Record<string, any>;
-}
+// Import the ErrorOptions from the central types file
+export type { ErrorOptions } from '../types';
 
 export type ErrorDisplayOptions = {
   toastDuration?: number;

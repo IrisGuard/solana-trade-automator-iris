@@ -11,6 +11,10 @@ export interface ErrorOptions {
   useCollector?: boolean;
   rethrow?: boolean;
   silent?: boolean;
+  // Adding the missing properties that are being used across the app
+  component?: string;
+  details?: any;
+  source?: string;
 }
 
 /**
@@ -22,6 +26,9 @@ export type ErrorDisplayOptions = ErrorOptions;
 /**
  * Επιλογές για τον έλεγχο σφαλμάτων στα τεστ
  */
-export type TestErrorOptions = ErrorOptions & {
+export interface TestErrorOptions {
   errorType?: "type" | "promise" | "async" | "reference" | "syntax" | "timeout" | "render" | "prop" | "state" | "network";
-};
+  component?: string;
+  details?: any;
+  source?: string;
+}

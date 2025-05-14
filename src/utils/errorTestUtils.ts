@@ -1,21 +1,11 @@
 
 import { errorCollector } from './error-handling/collector';
-import { ErrorDisplayOptions } from './error-handling/types';
-
-/**
- * Interface για τις επιλογές κατά την παραγωγή δοκιμαστικών σφαλμάτων
- */
-export interface TestErrorOptions {
-  errorType?: 'reference' | 'type' | 'syntax' | 'promise' | 'async' | 'timeout' | 'render' | 'prop' | 'state' | 'network';
-  component?: string;
-  details?: any;
-  source?: string;
-}
+import { ErrorOptions, TestErrorOptions } from './error-handling/types';
 
 /**
  * Παράγει ένα απλό σφάλμα για δοκιμές
  */
-export function generateTestError(message: string, options?: ErrorDisplayOptions): void {
+export function generateTestError(message: string, options?: ErrorOptions): void {
   const error = new Error(message);
   error.name = "TestError";
   
