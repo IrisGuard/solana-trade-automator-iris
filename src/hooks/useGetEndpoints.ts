@@ -1,83 +1,132 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ApiEndpoint } from '@/types/api';
+import { toast } from 'sonner';
 
-export function useGetEndpoints() {
+// Mock endpoints data
+const mockEndpoints: ApiEndpoint[] = [
+  {
+    id: '1',
+    name: 'Solana Mainnet RPC',
+    url: 'https://api.mainnet-beta.solana.com',
+    active: true,
+    apiKey: 'sol_xxxx1234',
+    description: 'Primary Solana RPC endpoint'
+  },
+  {
+    id: '2',
+    name: 'Solana Testnet RPC',
+    url: 'https://api.testnet.solana.com',
+    active: true,
+    description: 'Testnet RPC for development'
+  },
+  {
+    id: '3',
+    name: 'Custom API',
+    url: 'https://my-custom-api.example.com',
+    active: false,
+    apiKey: 'custom_api_key',
+    description: 'Custom API for special features'
+  }
+];
+
+export const useGetEndpoints = () => {
   const [endpoints, setEndpoints] = useState<ApiEndpoint[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchEndpoints = async () => {
-      setLoading(true);
-      try {
-        // In a real application, this would fetch from an API
-        // For now, we'll use mock data
-        const mockEndpoints: ApiEndpoint[] = [
-          {
-            id: '1',
-            name: 'Get Token Balance',
-            url: '/api/v1/tokens/{address}/balance',
-            description: 'Retrieve the token balance for a specific address',
-            method: 'GET',
-            category: 'Tokens',
-            requiresAuth: true,
-            status: 'active'
-          },
-          {
-            id: '2',
-            name: 'Get Wallet Transactions',
-            url: '/api/v1/wallets/{address}/transactions',
-            description: 'Fetch recent transactions for a wallet address',
-            method: 'GET',
-            category: 'Transactions',
-            requiresAuth: true,
-            status: 'active'
-          },
-          {
-            id: '3',
-            name: 'Create Trade Order',
-            url: '/api/v1/trading/orders',
-            description: 'Create a new trading order',
-            method: 'POST',
-            category: 'Trading',
-            requiresAuth: true,
-            status: 'active'
-          },
-          {
-            id: '4',
-            name: 'Update API Key',
-            url: '/api/v1/auth/keys/{id}',
-            description: 'Update an existing API key',
-            method: 'PUT',
-            category: 'Authentication',
-            requiresAuth: true,
-            status: 'active'
-          },
-          {
-            id: '5',
-            name: 'Delete API Key',
-            url: '/api/v1/auth/keys/{id}',
-            description: 'Remove an API key',
-            method: 'DELETE',
-            category: 'Authentication',
-            requiresAuth: true,
-            status: 'active'
-          }
-        ];
-        
-        setEndpoints(mockEndpoints);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching endpoints:', err);
-        setError('Failed to load API endpoints');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchEndpoints = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-    fetchEndpoints();
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Use mock data
+      setEndpoints(mockEndpoints);
+    } catch (err: any) {
+      console.error('Error fetching endpoints:', err);
+      setError(err.message || 'Failed to load endpoints');
+      toast.error('Failed to load endpoints');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { endpoints, loading, error };
-}
+  const addEndpoint = useCallback(async (endpoint: Omit<ApiEndpoint, 'id'>) => {
+    setLoading(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const newEndpoint: ApiEndpoint = {
+        ...endpoint,
+        id: `${Date.now()}`,
+      };
+      
+      setEndpoints(prev => [...prev, newEndpoint]);
+      toast.success('Endpoint added successfully');
+      return newEndpoint;
+    } catch (err: any) {
+      console.error('Error adding endpoint:', err);
+      toast.error('Failed to add endpoint');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const updateEndpoint = useCallback(async (endpoint: ApiEndpoint) => {
+    setLoading(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setEndpoints(prev => prev.map(ep => 
+        ep.id === endpoint.id ? endpoint : ep
+      ));
+      
+      toast.success('Endpoint updated successfully');
+      return endpoint;
+    } catch (err: any) {
+      console.error('Error updating endpoint:', err);
+      toast.error('Failed to update endpoint');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const deleteEndpoint = useCallback(async (id: string) => {
+    setLoading(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setEndpoints(prev => prev.filter(ep => ep.id !== id));
+      toast.success('Endpoint deleted successfully');
+      return true;
+    } catch (err: any) {
+      console.error('Error deleting endpoint:', err);
+      toast.error('Failed to delete endpoint');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchEndpoints();
+  }, [fetchEndpoints]);
+
+  return {
+    endpoints,
+    loading,
+    error,
+    fetchEndpoints,
+    addEndpoint,
+    updateEndpoint,
+    deleteEndpoint
+  };
+};

@@ -2,8 +2,6 @@
 import React from "react";
 import { formatTokenAmount } from "@/utils/tokenUtils";
 import { Token } from "@/types/wallet";
-import Image from "@/components/ui/image";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { cn } from "@/lib/utils";
 
 interface TokenItemProps {
@@ -55,19 +53,23 @@ export function TokenItem({
       onClick={handleClick}
     >
       <div className="flex items-center space-x-3">
-        <div className="w-8 h-8 overflow-hidden rounded-full bg-muted">
-          <AspectRatio ratio={1/1}>
-            <Image 
+        <div className="w-8 h-8 overflow-hidden rounded-full bg-muted flex items-center justify-center">
+          {token.logo ? (
+            <img 
               src={tokenLogo}
               alt={token.symbol}
               className="object-cover"
-              fallback={
-                <div className="flex items-center justify-center w-full h-full bg-primary/5 text-primary font-medium">
-                  {token.symbol.substring(0, 2)}
-                </div>
-              }
+              onError={(e) => {
+                e.currentTarget.onerror = null; 
+                e.currentTarget.src = '';
+                e.currentTarget.parentElement!.innerHTML = token.symbol.substring(0, 2);
+              }}
             />
-          </AspectRatio>
+          ) : (
+            <div className="flex items-center justify-center w-full h-full bg-primary/5 text-primary font-medium">
+              {token.symbol.substring(0, 2)}
+            </div>
+          )}
         </div>
         
         <div>

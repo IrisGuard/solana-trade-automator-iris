@@ -1,91 +1,81 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 
 interface UserProfile {
   id: string;
-  username?: string;
-  avatar_url?: string;
-  created_at?: string;
+  email: string;
+  username: string;
+  role: string;
+  avatar?: string;
+  isVerified: boolean;
 }
 
+const mockProfile: UserProfile = {
+  id: 'user123',
+  email: 'demo@example.com',
+  username: 'traderuser',
+  role: 'premium',
+  avatar: 'https://github.com/shadcn.png',
+  isVerified: true
+};
+
 export function useUser() {
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function getUserProfile() {
-      try {
-        setLoading(true);
-        
-        // Get current session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          throw sessionError;
-        }
-        
-        if (!session) {
-          setUser(null);
-          setProfile(null);
-          return;
-        }
-        
-        // Set user from session
-        setUser(session.user);
-        
-        // Get user profile
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-          
-        if (profileError && profileError.code !== 'PGRST116') {
-          // PGRST116 means no rows returned, which is expected for new users
-          throw profileError;
-        }
-        
-        setProfile(profileData || { id: session.user.id });
-        setError(null);
-        
-      } catch (err) {
-        console.error('Error loading user:', err);
-        setError('Failed to load user profile');
-      } finally {
-        setLoading(false);
-      }
+  
+  const fetchUserProfile = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Simulate API call
+      await new Promise(r => setTimeout(r, 800));
+      
+      // For demo, use mock data
+      setUser(mockProfile);
+    } catch (err: any) {
+      console.error('Error fetching user profile:', err);
+      setError(err.message || 'Failed to load user profile');
+      toast.error('Failed to load user profile');
+    } finally {
+      setLoading(false);
     }
-    
-    getUserProfile();
-    
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user || null);
-        // When auth state changes, refresh profile
-        if (session?.user) {
-          getUserProfile();
-        } else {
-          setProfile(null);
-        }
-      }
-    );
-    
-    // Clean up subscription
-    return () => {
-      subscription.unsubscribe();
-    };
   }, []);
-
+  
+  const updateUserProfile = useCallback(async (updates: Partial<UserProfile>) => {
+    setLoading(true);
+    
+    try {
+      // Simulate API call
+      await new Promise(r => setTimeout(r, 800));
+      
+      setUser(prev => {
+        if (!prev) return null;
+        return { ...prev, ...updates };
+      });
+      
+      toast.success('Profile updated successfully');
+      return true;
+    } catch (err: any) {
+      console.error('Error updating profile:', err);
+      toast.error('Failed to update profile');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  
+  useEffect(() => {
+    fetchUserProfile();
+  }, [fetchUserProfile]);
+  
   return {
     user,
-    profile,
-    isLoading: loading,
+    loading,
     error,
-    isAuthenticated: !!user,
-    userId: user?.id
+    fetchUserProfile,
+    updateUserProfile
   };
 }
