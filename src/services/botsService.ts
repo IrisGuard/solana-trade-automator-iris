@@ -20,6 +20,6 @@ export const botsService = {
   getBotPerformance: botPerformanceService.getBotPerformance,
   
   // Bot templates
-  getBotTemplates: botTemplateService.getBotTemplates,
+  getBotTemplates: botTemplateService.getAllTemplates,
   createBotFromTemplate: botTemplateService.createBotFromTemplate
 };

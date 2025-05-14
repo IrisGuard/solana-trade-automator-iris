@@ -1,104 +1,38 @@
+// API Keys configuration file
 
-import { API_ENDPOINTS, API_KEYS } from './config';
-
-// Βασικές κλάσεις για διαχείριση των API endpoints
-export class ApiEndpointManager {
-  // Επιστρέφει το κατάλληλο API endpoint με βάση το όνομα της υπηρεσίας
-  static getEndpoint(apiName: keyof typeof API_ENDPOINTS): string {
-    return API_ENDPOINTS[apiName] || '';
-  }
-
-  // Προσθέτει το API key στο URL αν χρειάζεται
-  static getUrlWithApiKey(apiName: keyof typeof API_KEYS, endpoint: string, paramName: string = 'api_key'): string {
-    const apiKey = this.getApiKey(apiName);
-    if (!apiKey) return endpoint;
-    
-    const separator = endpoint.includes('?') ? '&' : '?';
-    return `${endpoint}${separator}${paramName}=${apiKey}`;
-  }
-
-  // Επιστρέφει το API key με βάση το όνομα της υπηρεσίας
-  static getApiKey(apiName: keyof typeof API_KEYS): string | null {
-    return API_KEYS[apiName] || null;
-  }
-
-  // Δημιουργεί ένα πλήρες URL για κλήση API συνδυάζοντας το βασικό endpoint με ένα path
-  static buildUrl(apiName: keyof typeof API_ENDPOINTS, path: string): string {
-    const baseUrl = this.getEndpoint(apiName);
-    // Αφαίρεση τυχόν trailing slash από το baseUrl και leading slash από το path
-    const sanitizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-    const sanitizedPath = path.startsWith('/') ? path.slice(1) : path;
-    
-    return `${sanitizedBaseUrl}/${sanitizedPath}`;
-  }
-}
-
-// Έτοιμα API URLs για συχνές λειτουργίες
-export const SolanaApis = {
-  // Jupiter API
-  jupiter: {
-    quote: (inputMint: string, outputMint: string, amount: string) => 
-      `${API_ENDPOINTS.JUPITER}/quote?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amount}`,
-    swap: `${API_ENDPOINTS.JUPITER}/swap`,
-    price: (ids: string) => 
-      `${API_ENDPOINTS.JUPITER}/price?ids=${ids}`
-  },
+// Central place to store and access API keys
+export const apiKeys = {
+  // Helius API keys
+  helius: process.env.HELIUS_API_KEYS ? process.env.HELIUS_API_KEYS.split(',') : [],
   
-  // Raydium API
-  raydium: {
-    pairs: `${API_ENDPOINTS.RAYDIUM}/v2/main/pairs`,
-    pools: `${API_ENDPOINTS.RAYDIUM}/v2/main/pools`,
-    price: (id: string) => 
-      `${API_ENDPOINTS.RAYDIUM}/v2/main/price?fsyms=${id}`
-  },
+  // Jupiter API keys
+  jupiter: process.env.JUPITER_API_KEYS ? process.env.JUPITER_API_KEYS.split(',') : [],
   
-  // CoinGecko API
-  coingecko: {
-    price: (ids: string, currencies: string = 'usd') => {
-      const apiKey = API_KEYS.COINGECKO;
-      const baseUrl = `${API_ENDPOINTS.COINGECKO}/simple/price?ids=${ids}&vs_currencies=${currencies}`;
-      return apiKey ? `${baseUrl}&x_cg_pro_api_key=${apiKey}` : baseUrl;
-    },
-    markets: (vs_currency: string = 'usd', category: string = 'solana-ecosystem', order: string = 'market_cap_desc') => {
-      const apiKey = API_KEYS.COINGECKO;
-      const baseUrl = `${API_ENDPOINTS.COINGECKO}/coins/markets?vs_currency=${vs_currency}&category=${category}&order=${order}`;
-      return apiKey ? `${baseUrl}&x_cg_pro_api_key=${apiKey}` : baseUrl;
-    }
-  },
+  // Solana API keys
+  solana: process.env.SOLANA_API_KEYS ? process.env.SOLANA_API_KEYS.split(',') : [],
   
-  // Solscan API
-  solscan: {
-    account: (address: string) => 
-      `${API_ENDPOINTS.SOLSCAN}/account/${address}`,
-    transaction: (signature: string) => 
-      `${API_ENDPOINTS.SOLSCAN}/transaction/${signature}`,
-    token: (address: string) => 
-      `${API_ENDPOINTS.SOLSCAN}/token/${address}`
-  }
+  // Other services can be added as needed
+  birdeye: process.env.BIRDEYE_API_KEYS ? process.env.BIRDEYE_API_KEYS.split(',') : [],
+  
+  // Demo keys for testing
+  demo: ['demo-key-1', 'demo-key-2', 'demo-key-3']
 };
 
-// Κεφαλίδες για τα API requests
-export const API_HEADERS = {
-  'Content-Type': 'application/json',
-  'Accept': 'application/json'
+// RPC endpoint configuration
+export const rpcEndpoints = {
+  mainnet: process.env.SOLANA_MAINNET_RPC || 'https://api.mainnet-beta.solana.com',
+  devnet: process.env.SOLANA_DEVNET_RPC || 'https://api.devnet.solana.com',
+  testnet: process.env.SOLANA_TESTNET_RPC || 'https://api.testnet.solana.com'
 };
 
-// Timeout για τα API requests (σε milliseconds)
-export const API_TIMEOUT = 10000;
+// Default configuration
+export const defaultNetwork = 'mainnet';
+export const defaultCluster = rpcEndpoints[defaultNetwork as keyof typeof rpcEndpoints];
 
-// Διαχείριση σφαλμάτων API
-export class ApiErrorHandler {
-  static handleError(error: any, apiName: string): Error {
-    console.error(`API Error (${apiName}):`, error);
-    
-    if (error.response) {
-      return new Error(`${apiName} API Error: ${error.response.status} - ${error.response.data?.message || 'Unknown error'}`);
-    }
-    
-    if (error.request) {
-      return new Error(`${apiName} API Request Error: No response received`);
-    }
-    
-    return new Error(`${apiName} API Error: ${error.message || 'Unknown error'}`);
-  }
-}
+// Export for use in other modules
+export default {
+  apiKeys,
+  rpcEndpoints,
+  defaultNetwork,
+  defaultCluster
+};

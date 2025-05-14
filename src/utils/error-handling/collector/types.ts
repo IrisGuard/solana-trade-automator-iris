@@ -1,54 +1,64 @@
 
-// Type definitions for error collector
+/**
+ * Defines the type of error source for clearer error categorization
+ */
+export type ErrorSource = 
+  | 'api'
+  | 'database'
+  | 'network'
+  | 'wallet'
+  | 'transaction'
+  | 'validation'
+  | 'authentication'
+  | 'authorization'
+  | 'parsing'
+  | 'user-input'
+  | 'external-service'
+  | 'helius-api'
+  | 'sendRpcRequest'
+  | 'getEnhancedTransaction'
+  | 'getEnhancedTransactions'
+  | 'getEnhancedTransactionHistory'
+  | 'getAddressAssets'
+  | 'parseTransactionData'
+  | 'getNftEvents'
+  | 'verifyConnection'
+  | string;  // Allow string for extensibility
 
-export type ErrorSource = 'client' | 'server' | 'network' | 'test' | 'helius';
+/**
+ * Error severity levels
+ */
+export type ErrorSeverity = 'info' | 'warning' | 'error' | 'critical';
 
-export interface ErrorOptions {
-  component?: string;
-  source?: ErrorSource;
-  url?: string;
-  title?: string;
-  details?: Record<string, any>;
-  browserInfo?: Record<string, any>;
-}
-
-export interface TestErrorOptions extends ErrorOptions {
-  errorType?: string;
-  message?: string;
-}
-
+/**
+ * Data structure for collected errors
+ */
 export interface ErrorData {
-  id?: string;
   message: string;
-  stack?: string;
-  component?: string;
   source: ErrorSource;
-  url?: string;
-  browserInfo?: Record<string, any>;
-  timestamp: Date;
+  severity: ErrorSeverity;
+  timestamp?: Date;
+  raw?: any; // Original error object or related data
+  userId?: string;
+  sessionId?: string;
+  context?: Record<string, any>;
 }
 
-export interface ErrorDisplayOptions {
-  title?: string;
-  showStack?: boolean;
-  showReportButton?: boolean;
-  showToast?: boolean;
-  logToConsole?: boolean;
-  sendToChat?: boolean;
-  component?: string;
-  details?: any;
-  source?: string;
-  useCollector?: boolean;
-  notifyUser?: boolean;
+/**
+ * Options for error collection
+ */
+export interface ErrorOptions {
+  shouldLog?: boolean;
+  shouldToast?: boolean;
+  shouldReportToAnalytics?: boolean;
 }
 
+/**
+ * Interface for error collector functionality
+ */
 export interface ErrorCollector {
-  captureError: (error: Error | unknown, options?: ErrorOptions) => string;
-  getErrors: () => ErrorData[];
+  collectError: (data: ErrorData, options?: ErrorOptions) => void;
+  getRecentErrors: () => ErrorData[];
   clearErrors: () => void;
-  logError: (errorData: ErrorData) => Promise<string | null>;
-  // Added for backward compatibility
-  addError: (error: Error | unknown, options?: ErrorOptions) => string;
-  getAllErrors: () => ErrorData[];
-  clearAllErrors: () => void;
+  hasCriticalErrors: () => boolean;
 }

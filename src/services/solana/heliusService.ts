@@ -1,209 +1,291 @@
 
-import { apiConfig } from './apiConfig';
+import type { ErrorCollector } from '@/utils/error-handling/collector/types';
+import { apiKeys } from './apiConfig';
 import { errorCollector } from '@/utils/error-handling/collector';
-import { toast } from 'sonner';
 
-// Helper function to get API key from configuration
+// Define the base URL for Helius API
+const HELIUS_BASE_URL = 'https://api.helius.xyz/v0';
+
+// Get a valid Helius API key from the configured keys
 const getHeliusApiKey = (): string => {
-  if (!apiConfig || !apiConfig.keys || !apiConfig.keys.helius) {
-    throw new Error('Helius API key is not configured');
+  // If we have specific API keys for Helius, use them
+  if (apiKeys && apiKeys.helius && apiKeys.helius.length > 0) {
+    return apiKeys.helius[Math.floor(Math.random() * apiKeys.helius.length)];
   }
-  return apiConfig.keys.helius;
+  
+  // Fallback to demo key
+  return 'demo-key';  // Replace with your actual demo key if available
 };
 
-// Helper to get API URL with key
-const getHeliusApiUrl = (): string => {
+/**
+ * Send an RPC request to the Helius API
+ * @param method The RPC method to call
+ * @param params The parameters to pass to the method
+ * @returns The result of the RPC call
+ */
+export const sendRpcRequest = async (
+  method: string, 
+  params: any[], 
+  collector?: ErrorCollector
+): Promise<any> => {
   const apiKey = getHeliusApiKey();
-  return `https://api.helius.xyz/v0?api-key=${apiKey}`;
-};
-
-// Interface for RPC request parameters
-interface RpcRequestParams {
-  method: string;
-  params: any[];
-}
-
-// Send a JSON-RPC request to Helius API
-async function sendRpcRequest<T>(params: RpcRequestParams): Promise<T> {
+  const url = `${HELIUS_BASE_URL}/rpc?api-key=${apiKey}`;
+  
   try {
-    const response = await fetch(getHeliusApiUrl(), {
+    const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         jsonrpc: '2.0',
-        id: Date.now(),
-        method: params.method,
-        params: params.params
-      })
+        id: 'helius-proxy',
+        method,
+        params,
+      }),
     });
-
+    
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! Status: ${response.status}`);
     }
-
+    
     const data = await response.json();
+    
     if (data.error) {
-      throw new Error(`API error: ${data.error.message}`);
+      throw new Error(data.error.message || 'Unknown RPC error');
     }
-
+    
     return data.result;
   } catch (error) {
-    errorCollector.captureError(error, {
-      component: 'HeliusService',
+    collector?.collectError({
+      message: `Helius RPC request failed: ${(error as Error).message}`,
       source: 'sendRpcRequest',
-      context: { method: params.method }
+      severity: 'error',
+      raw: error
     });
     throw error;
   }
-}
+};
 
-// API functions
-export const heliusService = {
-  // Get enhanced transaction details
-  async getEnhancedTransaction(signature: string): Promise<any> {
-    try {
-      return await sendRpcRequest({
-        method: 'getEnhancedTransaction',
-        params: [signature]
-      });
-    } catch (error) {
-      errorCollector.captureError(error, {
-        component: 'HeliusService',
-        source: 'getEnhancedTransaction',
-        context: { signature }
-      });
-      throw error;
+/**
+ * Get enhanced transaction details for a specific signature
+ */
+export const getEnhancedTransaction = async (signature: string): Promise<any> => {
+  try {
+    const apiKey = getHeliusApiKey();
+    const url = `${HELIUS_BASE_URL}/transactions?api-key=${apiKey}&commitment=confirmed`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ transactions: [signature] }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
     }
-  },
-
-  // Get multiple enhanced transactions
-  async getEnhancedTransactions(signatures: string[]): Promise<any[]> {
-    try {
-      return await sendRpcRequest({
-        method: 'getEnhancedTransactions',
-        params: [{ transactionHashes: signatures }]
-      });
-    } catch (error) {
-      errorCollector.captureError(error, {
-        component: 'HeliusService',
-        source: 'getEnhancedTransactions',
-        context: { signatures }
-      });
-      throw error;
-    }
-  },
-
-  // Get enhanced transaction history for address
-  async getEnhancedTransactionHistory(
-    address: string,
-    options: { before?: string; until?: string; limit?: number } = {}
-  ): Promise<any[]> {
-    try {
-      const params: any = { account: address };
-      
-      if (options.before) params.before = options.before;
-      if (options.until) params.until = options.until;
-      if (options.limit) params.limit = options.limit;
-      
-      return await sendRpcRequest({
-        method: 'getEnhancedTransactionHistory',
-        params: [params]
-      });
-    } catch (error) {
-      errorCollector.captureError(error, {
-        component: 'HeliusService',
-        source: 'getEnhancedTransactionHistory',
-        context: { address, options }
-      });
-      throw error;
-    }
-  },
-
-  // Get address assets (NFTs and tokens)
-  async getAddressAssets(address: string): Promise<any> {
-    try {
-      return await sendRpcRequest({
-        method: 'getAssetsByOwner',
-        params: [address, { page: 1, limit: 100 }]
-      });
-    } catch (error) {
-      errorCollector.captureError(error, {
-        component: 'HeliusService',
-        source: 'getAddressAssets',
-        context: { address }
-      });
-      throw error;
-    }
-  },
-
-  // Parse transaction data
-  async parseTransactionData(rawTransaction: string): Promise<any> {
-    try {
-      return await sendRpcRequest({
-        method: 'parseTransactionData',
-        params: [rawTransaction]
-      });
-    } catch (error) {
-      errorCollector.captureError(error, {
-        component: 'HeliusService',
-        source: 'parseTransactionData'
-      });
-      throw error;
-    }
-  },
-
-  // Get NFT events
-  async getNftEvents(
-    options: {
-      query?: Record<string, any>;
-      options?: { limit?: number; page?: number };
-    } = {}
-  ): Promise<any> {
-    try {
-      const params = [{}];
-      
-      if (options.query) params[0] = { ...options.query };
-      if (options.options) params.push(options.options);
-      
-      return await sendRpcRequest({
-        method: 'getNftEvents',
-        params
-      });
-    } catch (error) {
-      errorCollector.captureError(error, {
-        component: 'HeliusService',
-        source: 'getNftEvents'
-      });
-      throw error;
-    }
-  },
-
-  // Verify API connection and key validity
-  async verifyConnection(): Promise<boolean> {
-    try {
-      // Try a simple request to verify the connection
-      await this.getEnhancedTransactions(['5werj5j6wtP8y6DmbMeE5Xqfg89Q93o579n3Yj4tX6G9w75jC9ac2vTvqYFGJvBsjEqeTGhho8jNeJ9zafaVeqS']);
-      toast.success('Helius API connection verified');
-      return true;
-    } catch (error) {
-      toast.error('Helius API connection failed');
-      errorCollector.captureError(error, {
-        component: 'HeliusService',
-        source: 'verifyConnection'
-      });
-      return false;
-    }
-  },
-
-  // Set API key - note this is a front-end safe way to set the key during runtime
-  // but it won't persist between sessions
-  setApiKey(key: string): void {
-    if (!apiConfig.keys) {
-      apiConfig.keys = { helius: key };
-    } else {
-      apiConfig.keys.helius = key;
-    }
+    
+    const data = await response.json();
+    return data[0];
+  } catch (error) {
+    errorCollector.collectError({
+      message: `Failed to get enhanced transaction: ${(error as Error).message}`,
+      source: 'getEnhancedTransaction',
+      severity: 'error',
+      raw: error
+    });
+    throw error;
   }
 };
 
-export default heliusService;
+/**
+ * Get enhanced transaction details for multiple signatures
+ */
+export const getEnhancedTransactions = async (signatures: string[]): Promise<any[]> => {
+  try {
+    const apiKey = getHeliusApiKey();
+    const url = `${HELIUS_BASE_URL}/transactions?api-key=${apiKey}&commitment=confirmed`;
+    
+    // Process signatures in batches of 100 (Helius API limit)
+    const batchSize = 100;
+    let results: any[] = [];
+    
+    for (let i = 0; i < signatures.length; i += batchSize) {
+      const batch = signatures.slice(i, i + batchSize);
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ transactions: batch }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      results = results.concat(data);
+    }
+    
+    return results;
+  } catch (error) {
+    errorCollector.collectError({
+      message: `Failed to get enhanced transactions: ${(error as Error).message}`,
+      source: 'getEnhancedTransactions',
+      severity: 'error',
+      raw: error
+    });
+    throw error;
+  }
+};
+
+/**
+ * Get transaction history for an address with enhanced details
+ */
+export const getEnhancedTransactionHistory = async (address: string, options?: { limit?: number }): Promise<any[]> => {
+  try {
+    const apiKey = getHeliusApiKey();
+    const limit = options?.limit || 100;
+    const url = `${HELIUS_BASE_URL}/addresses/${address}/transactions?api-key=${apiKey}&type=ALL&limit=${limit}`;
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    errorCollector.collectError({
+      message: `Failed to get transaction history: ${(error as Error).message}`,
+      source: 'getEnhancedTransactionHistory',
+      severity: 'error',
+      raw: error
+    });
+    throw error;
+  }
+};
+
+/**
+ * Get all assets owned by an address
+ */
+export const getAddressAssets = async (address: string): Promise<any> => {
+  try {
+    const apiKey = getHeliusApiKey();
+    const url = `${HELIUS_BASE_URL}/addresses/${address}/balances?api-key=${apiKey}`;
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    errorCollector.collectError({
+      message: `Failed to get address assets: ${(error as Error).message}`,
+      source: 'getAddressAssets',
+      severity: 'error',
+      raw: error
+    });
+    throw error;
+  }
+};
+
+/**
+ * Parse transaction data using Helius API
+ */
+export const parseTransactionData = async (transactionData: string): Promise<any> => {
+  try {
+    const apiKey = getHeliusApiKey();
+    const url = `${HELIUS_BASE_URL}/transactions/parse?api-key=${apiKey}`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ transactions: [transactionData] }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data[0];
+  } catch (error) {
+    errorCollector.collectError({
+      message: `Failed to parse transaction data: ${(error as Error).message}`,
+      source: 'parseTransactionData',
+      severity: 'error',
+      raw: error
+    });
+    throw error;
+  }
+};
+
+/**
+ * Get NFT events by address
+ */
+export const getNftEvents = async (address: string, options?: { limit?: number }): Promise<any[]> => {
+  try {
+    const apiKey = getHeliusApiKey();
+    const limit = options?.limit || 100;
+    const url = `${HELIUS_BASE_URL}/nft-events?api-key=${apiKey}&sourceAddress=${address}&limit=${limit}`;
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    errorCollector.collectError({
+      message: `Failed to get NFT events: ${(error as Error).message}`,
+      source: 'getNftEvents',
+      severity: 'error',
+      raw: error
+    });
+    throw error;
+  }
+};
+
+/**
+ * Verify if the Helius connection is working
+ */
+export const verifyConnection = async (): Promise<boolean> => {
+  try {
+    const apiKey = getHeliusApiKey();
+    // Just check if we can access the API with a simple request
+    const url = `${HELIUS_BASE_URL}/status?api-key=${apiKey}`;
+    
+    const response = await fetch(url);
+    return response.ok;
+  } catch (error) {
+    errorCollector.collectError({
+      message: `Failed to verify Helius connection: ${(error as Error).message}`,
+      source: 'verifyConnection',
+      severity: 'warning',
+      raw: error
+    });
+    return false;
+  }
+};
+
+// Export as default for module interoperability
+export default {
+  sendRpcRequest,
+  getEnhancedTransaction,
+  getEnhancedTransactions,
+  getEnhancedTransactionHistory,
+  getAddressAssets,
+  parseTransactionData,
+  getNftEvents,
+  verifyConnection
+};
