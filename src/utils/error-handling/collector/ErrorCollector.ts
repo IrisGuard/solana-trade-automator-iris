@@ -1,129 +1,100 @@
 
+import { toast } from 'sonner';
+
+// Define the error data type
 export interface ErrorData {
   message: string;
-  source: 'client' | 'server' | 'network';
-  timestamp?: Date;
   stack?: string;
-  details?: Record<string, any>;
-  component?: string;
-  url?: string;
-  browserInfo?: {
-    userAgent: string;
-    language: string;
-    platform: string;
-  };
+  code?: string | number;
+  timestamp: number;
+  context?: Record<string, any>;
 }
 
 /**
- * A class that collects errors for logging and reporting
+ * ErrorCollector - Collects application errors for later processing
  */
 export class ErrorCollector {
+  private static instance: ErrorCollector;
   private errors: ErrorData[] = [];
   private maxErrors: number = 50;
-  
+  private showToasts: boolean = true;
+
+  private constructor() {
+    // Singleton initialization
+  }
+
+  public static getInstance(): ErrorCollector {
+    if (!ErrorCollector.instance) {
+      ErrorCollector.instance = new ErrorCollector();
+    }
+    return ErrorCollector.instance;
+  }
+
   /**
-   * Add an error to the collector
-   * @param error The error data to add
-   * @returns A unique error code for reference
+   * Collect an error with optional context
    */
-  addError(error: ErrorData): string {
-    // Add timestamp if not provided
-    const errorWithTimestamp = {
-      ...error,
-      timestamp: error.timestamp || new Date()
+  public collect(error: Error | string, context?: Record<string, any>): void {
+    const errorData: ErrorData = {
+      message: typeof error === 'string' ? error : error.message,
+      stack: typeof error === 'string' ? undefined : error.stack,
+      timestamp: Date.now(),
+      context
     };
+
+    this.errors.unshift(errorData);
     
-    this.errors.unshift(errorWithTimestamp);
-    
-    // Keep only the most recent errors
+    // Trim the errors array if it exceeds the maximum size
     if (this.errors.length > this.maxErrors) {
       this.errors = this.errors.slice(0, this.maxErrors);
     }
-    
-    // Log to console for debugging
-    console.error('Error collected:', errorWithTimestamp);
-    
-    // Generate a simple error code
-    const errorCode = `ERR-${Math.random().toString(36).substring(2, 8)}`;
-    return errorCode;
-  }
-  
-  /**
-   * Log an error and optionally notify the user
-   * @param error The error to log
-   * @param source The source component/module name
-   */
-  logErrorAndNotify(error: Error, source: string): void {
-    const errorData: ErrorData = {
-      message: error.message,
-      source: 'client',
-      stack: error.stack,
-      component: source
-    };
-    
-    this.addError(errorData);
-    console.error(`[${source}]`, error);
-  }
-  
-  /**
-   * Report all collected errors to a monitoring service or chat interface
-   */
-  async reportErrors(): Promise<void> {
-    if (this.errors.length === 0) {
-      console.log('No errors to report');
-      return;
+
+    // Show toast notification if enabled
+    if (this.showToasts) {
+      toast.error(errorData.message, {
+        description: context ? JSON.stringify(context) : undefined
+      });
     }
-    
-    console.log(`Reporting ${this.errors.length} errors...`);
-    
-    try {
-      // In a production app, this would send errors to a monitoring service
-      const data = {
-        errors: this.getErrors(),
-        timestamp: new Date().toISOString(),
-        userAgent: navigator.userAgent
-      };
-      
-      console.log('Reporting errors:', data);
-      
-      // For now just log to console, in a real app this would be an API call
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate async operation
-      
-      console.log('Errors reported successfully');
-    } catch (error) {
-      console.error('Failed to report errors:', error);
-    }
+
+    // Log to console for development
+    console.error('Error collected:', errorData);
   }
-  
+
   /**
    * Get all collected errors
    */
-  getErrors(): ErrorData[] {
+  public getErrors(): ErrorData[] {
     return [...this.errors];
   }
-  
+
   /**
    * Clear all collected errors
    */
-  clearErrors(): void {
+  public clearErrors(): void {
     this.errors = [];
   }
-  
+
   /**
-   * Get errors filtered by source
-   * @param source The source to filter by
+   * Configure the error collector
    */
-  getErrorsBySource(source: ErrorData['source']): ErrorData[] {
-    return this.errors.filter(error => error.source === source);
+  public configure(options: { maxErrors?: number; showToasts?: boolean }): void {
+    if (options.maxErrors !== undefined) {
+      this.maxErrors = options.maxErrors;
+    }
+    if (options.showToasts !== undefined) {
+      this.showToasts = options.showToasts;
+    }
   }
-  
+
   /**
-   * Get the count of errors
+   * Get the latest error, if any
    */
-  getErrorCount(): number {
-    return this.errors.length;
+  public getLatestError(): ErrorData | null {
+    return this.errors.length > 0 ? this.errors[0] : null;
   }
 }
 
-// Create a singleton instance
-export const errorCollector = new ErrorCollector();
+// Export a singleton instance of the error collector
+export const errorCollector = ErrorCollector.getInstance();
+
+// Export default for backward compatibility
+export default errorCollector;

@@ -1,24 +1,28 @@
 
-import { fetchTokenPrices, getTokenPrice } from './fetchPrice';
-import { setupPriceSubscription, cancelPriceSubscription, subscribeToPriceUpdates } from './subscription';
+// Export all price related functionality
 
-// Fix the re-export with proper syntax for isolated modules
-export type { TokenPriceData } from './types';
+import { fetchTokenPriceFromAPI, fetchAllPricesFromAPI } from './fetchPrice';
+import { setupPriceSubscription, cancelPriceSubscription } from './subscription';
+import type { PriceData, PriceSubscriptionConfig, TokenPriceMap } from './types';
 
-// Export individual functions
-export {
-  fetchTokenPrices,
-  getTokenPrice,
-  setupPriceSubscription,
-  cancelPriceSubscription,
-  subscribeToPriceUpdates
-};
+// Re-export functions for direct use
+export const fetchTokenPrice = fetchTokenPriceFromAPI;
+export const fetchTokenPrices = fetchAllPricesFromAPI;
+export const getTokenPrice = fetchTokenPriceFromAPI; // Alias for backward compatibility
+export const subscribeToPriceUpdates = setupPriceSubscription; 
+export const unsubscribeFromPriceUpdates = cancelPriceSubscription;
 
-// Export price service object for backward compatibility
+// Export types
+export type { PriceData, PriceSubscriptionConfig, TokenPriceMap };
+
+// Export service object for backward compatibility
 export const priceService = {
-  getTokenPrice,
-  fetchTokenPrices,
-  setupPriceSubscription,
-  cancelPriceSubscription,
-  subscribeToPriceUpdates
+  fetchTokenPrice: fetchTokenPriceFromAPI,
+  fetchTokenPrices: fetchAllPricesFromAPI,
+  getTokenPrice: fetchTokenPriceFromAPI,
+  subscribeToPriceUpdates: setupPriceSubscription,
+  unsubscribeFromPriceUpdates: cancelPriceSubscription
 };
+
+// Export default as the service for named imports
+export default priceService;
