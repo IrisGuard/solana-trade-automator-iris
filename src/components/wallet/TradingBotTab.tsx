@@ -4,10 +4,11 @@ import { TabsContent } from "@/components/ui/tabs";
 import { ConnectPrompt } from "./maker-bot/ConnectPrompt";
 import { useTradingBot } from "@/hooks/useTradingBot";
 import { TradingBotContent } from "./trading-bot/TradingBotContent";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 export function TradingBotTab() {
+  const { connected } = useWallet();
   const tradingBotState = useTradingBot();
-  const { connected } = tradingBotState;
   
   const [tab, setTab] = useState("settings");
   

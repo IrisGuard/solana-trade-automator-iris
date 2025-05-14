@@ -5,7 +5,7 @@ import { WalletConnectedContent } from "@/components/home/WalletConnectedContent
 import { ConnectWalletCard } from "@/components/home/ConnectWalletCard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Wallet } from "lucide-react";
-import { usePhantomConnection } from "@/hooks/usePhantomConnection";
+import { useWalletConnection } from "@/hooks/useWalletConnection";
 import { TokenBot } from "@/components/wallet/TokenBot";
 
 export default function Home() {
@@ -16,13 +16,11 @@ export default function Home() {
     tokens, 
     isConnecting, 
     isLoadingTokens, 
-    error: connectionError,
-    isPhantomInstalled,
+    tokenPrices,
     connectWallet,
     disconnectWallet,
-    refreshWalletData,
     selectTokenForTrading
-  } = usePhantomConnection();
+  } = useWalletConnection();
   
   console.log("WalletConnection hook loaded, connection status:", isConnected);
   
@@ -32,14 +30,20 @@ export default function Home() {
     "Δεν έχει συνδεθεί πορτοφόλι";
   
   // Convert complex token prices to simple format for compatibility
-  const tokenPrices: Record<string, number> = {};
-  tokens.forEach(token => {
-    tokenPrices[token.address] = Math.random() * 10; // Mock prices for demo
-  });
+  const simplifiedTokenPrices: Record<string, number> = {};
+  if (tokenPrices) {
+    Object.entries(tokenPrices).forEach(([address, priceData]) => {
+      simplifiedTokenPrices[address] = priceData.price;
+    });
+  }
   
   useEffect(() => {
     console.log("Home page loaded. Connection status:", isConnected ? "Connected" : "Not connected");
   }, [isConnected]);
+
+  const handleConnectClick = async () => {
+    await connectWallet();
+  };
 
   return (
     <div className="space-y-6">
@@ -56,30 +60,21 @@ export default function Home() {
           </div>
         </CardHeader>
         <CardContent>
-          {connectionError && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Σφάλμα σύνδεσης: {connectionError}. Παρακαλώ δοκιμάστε ξανά αργότερα.
-              </AlertDescription>
-            </Alert>
-          )}
-          
           {isConnected ? (
             <WalletConnectedContent 
-              walletAddress={walletAddress} 
+              walletAddress={walletAddress}
               displayAddress={displayAddress}
               solBalance={solBalance}
               tokens={tokens}
-              tokenPrices={tokenPrices}
+              tokenPrices={simplifiedTokenPrices}
               isLoadingTokens={isLoadingTokens}
-              connectionError={connectionError}
+              onDisconnect={disconnectWallet}
               selectTokenForTrading={selectTokenForTrading}
             />
           ) : (
             <ConnectWalletCard 
               isConnecting={isConnecting}
-              isPhantomInstalled={isPhantomInstalled}
+              onConnect={handleConnectClick}
             />
           )}
         </CardContent>

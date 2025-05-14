@@ -1,58 +1,65 @@
 
-import { PublicKey } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { useConnection } from '@solana/wallet-adapter-react';
-import { useEffect, useState } from 'react';
-import { TokenAccount } from '@/types/tokenTypes';
-import { logError } from '@/utils/errorUtils';
+import { Connection, PublicKey } from '@solana/web3.js';
+import { Token } from '@/types/wallet';
+import { RPC_ENDPOINTS } from '../config';
+import { errorCollector } from '@/utils/error-handling/collector';
 
-const useTokenAccounts = (pubKey: string | null | undefined) => {
-  const { connection } = useConnection();
-  const [tokenAccounts, setTokenAccounts] = useState<TokenAccount[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+export interface TokenWithMetadata extends Token {
+  logo?: string;
+}
 
-  useEffect(() => {
-    const fetchTokenAccounts = async () => {
-      if (!connection || !pubKey) {
-        return;
-      }
+/**
+ * Fetches all token accounts for a given wallet address
+ * @param walletAddress - The public key of the wallet
+ * @returns Promise with array of tokens
+ */
+export async function fetchAllTokenAccounts(walletAddress: string): Promise<TokenWithMetadata[]> {
+  try {
+    if (!walletAddress) {
+      throw new Error('Wallet address is required');
+    }
 
-      setIsLoading(true);
-      setError(null);
+    // Create connection
+    const connection = new Connection(RPC_ENDPOINTS.mainnet);
+    
+    // Convert string to PublicKey
+    const wallet = new PublicKey(walletAddress);
+    
+    // Get all token accounts
+    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(wallet, {
+      programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA')
+    });
 
-      try {
-        const accounts = await connection.getParsedTokenAccountsByOwner(
-          new PublicKey(pubKey),
-          { programId: TOKEN_PROGRAM_ID }
-        );
+    const tokens: TokenWithMetadata[] = tokenAccounts.value.map(account => {
+      const accountData = account.account.data.parsed.info;
+      const mintAddress = accountData.mint;
+      const amount = parseFloat(accountData.tokenAmount.amount);
+      const decimals = accountData.tokenAmount.decimals;
+      const uiAmount = amount / Math.pow(10, decimals);
+      
+      // We'd usually fetch these from a token list or API
+      // For now, using placeholders
+      return {
+        address: mintAddress,
+        name: `Token ${mintAddress.substring(0, 8)}`,
+        symbol: `TKN-${mintAddress.substring(0, 4)}`,
+        amount: uiAmount,
+        decimals
+      };
+    })
+    .filter(token => token.amount > 0); // Only show tokens with balance
 
-        const parsedAccounts: TokenAccount[] = accounts.value.map((account) => {
-          const parsedInfo = account.account.data.parsed.info;
-          return {
-            address: account.pubkey.toBase58(),
-            mint: parsedInfo.mint,
-            owner: parsedInfo.owner,
-            tokenAmount: parsedInfo.tokenAmount.amount,
-            decimals: parsedInfo.tokenAmount.decimals,
-            uiAmount: parsedInfo.tokenAmount.uiAmount,
-            uiAmountString: parsedInfo.tokenAmount.uiAmountString,
-          };
-        });
-
-        setTokenAccounts(parsedAccounts);
-      } catch (err: any) {
-        setError(err);
-        logError(err, 'useTokenAccounts', { publicKey: pubKey });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchTokenAccounts();
-  }, [connection, pubKey]);
-
-  return { tokenAccounts, isLoading, error };
-};
-
-export default useTokenAccounts;
+    // Enrich with metadata if we have it
+    // This would be where you'd call an API to get token metadata
+    
+    return tokens;
+  } catch (error) {
+    errorCollector.reportError(error instanceof Error ? error : new Error('Unknown error fetching token accounts'), {
+      component: 'fetchAllTokenAccounts',
+      severity: 'warning',
+      message: 'Error fetching token accounts',
+      code: 'TOKEN_ACCOUNTS_ERROR'
+    });
+    return [];
+  }
+}

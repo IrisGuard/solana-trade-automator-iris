@@ -1,11 +1,11 @@
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useConfig } from './trading-bot/useConfig';
 import { useBotActions } from './trading-bot/useBotActions';
 import { usePriceSubscription } from './trading-bot/usePriceSubscription';
 import { useTokens } from './trading-bot/useTokens';
-import { TradingBotHook } from './trading-bot/types';
+import { TradingBotHook, BotStatus, ActiveOrder } from './trading-bot/types';
 
 export function useTradingBot(): TradingBotHook {
   const { connected } = useWallet();
@@ -68,7 +68,7 @@ export function useTradingBot(): TradingBotHook {
     isLoading,
     selectedToken: config.selectedToken,
     tokenPrice: price,
-    botStatus,
+    botStatus: botStatus as BotStatus,
     activeOrders,
     selectedTokenPrice,
     selectedTokenDetails,

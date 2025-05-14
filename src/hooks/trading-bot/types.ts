@@ -13,6 +13,8 @@ export interface TradingBotConfig {
   trailingStop: boolean;
 }
 
+export type BotStatus = 'running' | 'idle' | 'paused';
+
 export interface TokenPriceInfo {
   currentPrice: number;
   priceChange24h: number;
@@ -32,6 +34,16 @@ export interface Bot {
   profitLoss: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface TradingOrder {
+  id: string;
+  type: 'buy' | 'sell' | 'stop-loss' | 'take-profit';
+  token: string;
+  amount: number;
+  price: number;
+  status: 'pending' | 'executed' | 'canceled';
+  createdAt: string;
 }
 
 export interface ActiveOrder {
@@ -61,7 +73,7 @@ export interface TradingBotHook {
   isLoading: boolean;
   selectedToken: string | null;
   tokenPrice: number;
-  botStatus: 'running' | 'idle' | 'paused';
+  botStatus: BotStatus;
   activeOrders: ActiveOrder[];
   selectedTokenPrice: TokenPriceInfo | null;
   selectedTokenDetails: Token | undefined;

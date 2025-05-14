@@ -60,7 +60,7 @@ export default function Transactions() {
             <CardTitle className="text-2xl font-bold">10</CardTitle>
           </CardHeader>
           <CardContent>
-            <Badge variant="success">+2 από προηγούμενο μήνα</Badge>
+            <Badge variant="secondary">+2 από προηγούμενο μήνα</Badge>
           </CardContent>
         </Card>
         <Card>

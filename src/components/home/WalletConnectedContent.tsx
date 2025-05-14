@@ -18,6 +18,7 @@ interface WalletConnectedContentProps {
   isLoadingTokens?: boolean;
   connectionError?: string | null;
   selectTokenForTrading?: (tokenAddress: string) => any;
+  onDisconnect?: () => void;
 }
 
 export function WalletConnectedContent({ 
@@ -28,7 +29,8 @@ export function WalletConnectedContent({
   tokenPrices,
   isLoadingTokens,
   connectionError,
-  selectTokenForTrading
+  selectTokenForTrading,
+  onDisconnect
 }: WalletConnectedContentProps) {
   // Format wallet address for display if not provided
   const shortAddress = displayAddress || (walletAddress && typeof walletAddress === 'string' ? 
@@ -40,6 +42,7 @@ export function WalletConnectedContent({
       <WalletInfoCard 
         walletAddress={walletAddress} 
         balance={solBalance || 0}
+        onDisconnect={onDisconnect}
       />
       <PlatformInfoCard />
       {tokens && tokens.length > 0 ? (
