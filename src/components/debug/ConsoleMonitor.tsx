@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import { useErrorReporting } from "@/hooks/useErrorReporting";
-import { displayError } from "@/utils/errorUtils";
+import { displayError } from "@/utils/error-handling/displayError";
 
 interface LogRecord {
   type: 'error' | 'warn' | 'info';
@@ -92,9 +92,8 @@ export function ConsoleMonitor() {
                 if (response.status >= 500) {
                   displayError(errorObj, {
                     title: 'Σφάλμα Supabase Server',
-                    showToast: true,
                     logToConsole: true,
-                    sendToChat: false
+                    component: 'ConsoleMonitor'
                   });
                 } else {
                   console.warn(`Supabase client error: ${errorMessage}`);
@@ -107,9 +106,8 @@ export function ConsoleMonitor() {
                 if (recentApiErrors.current.count <= 3) {
                   displayError(errorObj, {
                     title: 'Σφάλμα API Server',
-                    showToast: true,
                     logToConsole: true,
-                    sendToChat: false
+                    component: 'ConsoleMonitor'
                   });
                 } else if (recentApiErrors.current.count === 4) {
                   // Show a consolidated message when we hit too many errors
@@ -144,18 +142,16 @@ export function ConsoleMonitor() {
               const networkError = new Error('Network error: check your internet connection');
               displayError(networkError, {
                 title: 'Σφάλμα δικτύου',
-                showToast: true,
                 logToConsole: true,
-                sendToChat: false
+                component: 'ConsoleMonitor'
               });
             } else if (isCorsError) {
               console.warn('CORS error detected:', error);
             } else {
               displayError(error, {
                 title: 'Σφάλμα δικτύου',
-                showToast: true,
                 logToConsole: true,
-                sendToChat: false
+                component: 'ConsoleMonitor'
               });
             }
           }

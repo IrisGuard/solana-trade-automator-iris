@@ -1,8 +1,8 @@
 
 import React, { MouseEvent } from 'react';
 import { Button } from "@/components/ui/button";
-import { generateVariousErrors } from '@/utils/errorTestUtils';
-import { TestErrorOptions } from '@/utils/errorTestUtils';
+import { triggerTestError } from '@/utils/errorTestUtils';
+import { TestErrorOptions } from '@/utils/error-handling/collector/types';
 
 interface TestButtonProps {
   label: string;
@@ -13,7 +13,7 @@ interface TestButtonProps {
 export function TestButton({ label, options, className = "w-full" }: TestButtonProps) {
   const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    generateVariousErrors(options);
+    triggerTestError(options.errorType || 'js', options);
   };
 
   return (

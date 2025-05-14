@@ -14,6 +14,7 @@ export interface ErrorOptions {
 
 export interface TestErrorOptions extends ErrorOptions {
   errorType?: string;
+  message?: string;
 }
 
 export interface ErrorData {
@@ -31,6 +32,14 @@ export interface ErrorDisplayOptions {
   title?: string;
   showStack?: boolean;
   showReportButton?: boolean;
+  showToast?: boolean;
+  logToConsole?: boolean;
+  sendToChat?: boolean;
+  component?: string;
+  details?: any;
+  source?: string;
+  useCollector?: boolean;
+  notifyUser?: boolean;
 }
 
 export interface ErrorCollector {

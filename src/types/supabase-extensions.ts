@@ -1,30 +1,11 @@
 
-// TypeScript definitions for Supabase extensions
-
-export interface BotConfig {
-  selectedToken?: string;
-  quoteToken?: string;
-  allocation?: number;
-  maxTrade?: number;
-  takeProfit?: number;
-  stopLoss?: number;
-  riskLevel?: number;
-  autoCompound?: boolean;
-  profit?: string;
-  timeRunning?: string;
-  enabledStrategies?: {
-    dca: boolean;
-    grid: boolean;
-    momentum: boolean;
-  };
-}
-
+// Extended types for Supabase tables
 export interface ProfileRow {
   id: string;
-  full_name?: string;
-  avatar_url?: string;
-  updated_at?: string;
-  created_at?: string;
+  full_name?: string | null;
+  avatar_url?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 export interface WalletRow {
@@ -33,9 +14,9 @@ export interface WalletRow {
   address: string;
   blockchain: string;
   is_primary: boolean;
-  created_at?: string;
-  updated_at?: string;
-  last_connected?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  last_connected?: string | null;
 }
 
 export interface TokenRow {
@@ -44,24 +25,24 @@ export interface TokenRow {
   token_address: string;
   name: string;
   symbol: string;
-  amount?: number;
-  logo?: string;
-  created_at?: string;
-  updated_at?: string;
+  amount?: number | null;
+  logo?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 export interface TransactionRow {
   id: string;
-  user_id: string;
-  wallet_address: string;
   signature: string;
+  wallet_address: string;
+  user_id: string;
   type: string;
   status: string;
   amount: string;
-  source?: string;
-  destination?: string;
-  block_time?: string;
-  created_at?: string;
+  source?: string | null;
+  destination?: string | null;
+  block_time?: string | null;
+  created_at?: string | null;
 }
 
 export interface BotRow {
@@ -69,10 +50,31 @@ export interface BotRow {
   user_id: string;
   name: string;
   strategy: string;
-  active?: boolean;
-  config?: BotConfig;
-  created_at?: string;
-  updated_at?: string;
+  active?: boolean | null;
+  config?: BotConfig | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface BotConfig {
+  selectedToken?: string | null;
+  buyThreshold?: number | null;
+  sellThreshold?: number | null;
+  stopLoss?: number | null;
+  takeProfit?: number | null;
+  tradeAmount?: number | null;
+  maxBudget?: number | null;
+  strategy?: string | null;
+  autoRebalance?: boolean | null;
+  trailingStop?: boolean | null;
+  profit?: string | null;
+  timeRunning?: string | null;
+  quoteToken?: string | null;
+  enabledStrategies?: {
+    dca?: boolean;
+    grid?: boolean;
+    momentum?: boolean;
+  } | null;
 }
 
 export interface ApiKeysRow {
@@ -81,9 +83,9 @@ export interface ApiKeysRow {
   name: string;
   key_value: string;
   service: string;
-  description?: string;
-  status?: string;
-  is_encrypted?: boolean;
-  created_at?: string;
-  updated_at?: string;
+  description?: string | null;
+  status?: string | null;
+  is_encrypted?: boolean | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 }

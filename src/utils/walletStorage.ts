@@ -23,15 +23,17 @@ export const saveWalletToSupabase = async (
   
   try {
     // Check if this wallet already exists for this user
-    const { data: existingWallets } = await supabase
+    const { data: existingWallets, error: fetchError } = await supabase
       .from('wallets')
       .select('*')
       .eq('user_id', userId)
       .eq('address', address);
       
+    if (fetchError) throw fetchError;
+    
     if (existingWallets && existingWallets.length > 0) {
       // Update existing wallet
-      await supabase
+      const { error: updateError } = await supabase
         .from('wallets')
         .update({
           last_connected: new Date().toISOString(),
@@ -39,23 +41,29 @@ export const saveWalletToSupabase = async (
         })
         .eq('id', existingWallets[0].id);
         
+      if (updateError) throw updateError;
+      
       // Set all other wallets as non-primary
-      await supabase
+      const { error: updateOthersError } = await supabase
         .from('wallets')
         .update({ is_primary: false })
         .eq('user_id', userId)
         .neq('id', existingWallets[0].id);
       
+      if (updateOthersError) throw updateOthersError;
+      
       return true;
     } else {
       // Set all existing wallets as non-primary
-      await supabase
+      const { error: resetError } = await supabase
         .from('wallets')
         .update({ is_primary: false })
         .eq('user_id', userId);
         
+      if (resetError) throw resetError;
+      
       // Create new wallet record
-      await supabase
+      const { error: insertError } = await supabase
         .from('wallets')
         .insert({
           address,
@@ -64,6 +72,8 @@ export const saveWalletToSupabase = async (
           is_primary: true,
           last_connected: new Date().toISOString()
         });
+      
+      if (insertError) throw insertError;
       
       return true;
     }
@@ -82,9 +92,7 @@ export const loadWalletFromSupabase = async (userId: string): Promise<{address: 
       .from('wallets')
       .select('*')
       .eq('user_id', userId)
-      .eq('is_primary', true)
-      .order('last_connected', { ascending: false })
-      .limit(1);
+      .eq('is_primary', true);
       
     if (!error && wallets && wallets.length > 0) {
       return {

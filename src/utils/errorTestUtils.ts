@@ -1,19 +1,14 @@
 
 import { errorCollector } from '@/utils/error-handling/collector';
+import { TestErrorOptions } from '@/utils/error-handling/collector/types';
 
 // Export functions needed by other files
 export function clearAllErrors(): void {
-  errorCollector.clearErrors();
+  errorCollector.clearAllErrors();
 }
 
 export function getAllErrors() {
-  return errorCollector.getErrors();
-}
-
-export interface TestErrorOptions {
-  errorType?: string;
-  message?: string;
-  details?: Record<string, any>;
+  return errorCollector.getAllErrors();
 }
 
 export function triggerTestError(type: string, options?: TestErrorOptions): void {
@@ -54,7 +49,7 @@ function triggerJsError(options?: TestErrorOptions): void {
     
     if (errorType === 'reference') {
       // @ts-ignore - Intentionally causing an error
-      const nonExistentVar = undefinedVariable.property;
+      const nonExistentVar = undefinedVariable?.property;
     } else if (errorType === 'type') {
       // Create an intentional type error that won't be caught by TS compiler
       // @ts-ignore - Intentionally causing an error

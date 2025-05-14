@@ -49,11 +49,11 @@ function handleRateLimit(error: Error, context: string): void {
   errorCollector.captureError(error, {
     component: context,
     source: 'helius',
-    details: JSON.stringify({
+    details: {
       type: 'rate_limit',
       timestamp: new Date().toISOString(),
       context
-    })
+    }
   });
 
   // Show user-friendly notification
@@ -85,11 +85,11 @@ function handleAuthError(error: Error, context: string): void {
   errorCollector.captureError(error, {
     component: context,
     source: 'helius',
-    details: JSON.stringify({
+    details: {
       type: 'auth_error',
       timestamp: new Date().toISOString(),
       context
-    })
+    }
   });
 
   // Show user-friendly notification
@@ -107,10 +107,10 @@ function logHeliusError(error: Error, context: string): void {
   errorCollector.captureError(error, {
     component: context,
     source: 'helius',
-    details: JSON.stringify({
+    details: {
       timestamp: new Date().toISOString(),
       context
-    })
+    }
   });
 
   // Show generic notification

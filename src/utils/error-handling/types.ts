@@ -10,24 +10,24 @@ export interface ErrorDisplayOptions {
   showToast?: boolean;
   source?: string;
   sendToChat?: boolean;
-  title?: string; // Added missing property
-  useCollector?: boolean; // Added missing property
-  notifyUser?: boolean; // Added missing property
+  title?: string;
+  useCollector?: boolean;
+  notifyUser?: boolean;
 }
 
 export interface ErrorReportOptions {
   component?: string;
   details?: any;
   user?: any;
-  source?: string; // Added missing property
+  source?: string;
 }
 
 export interface TestErrorOptions {
   message?: string;
   component?: string;
   details?: any;
-  errorType?: string; // Added missing property
-  simulateDelay?: number; // Added missing property
+  errorType?: string;
+  simulateDelay?: number;
 }
 
 export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';

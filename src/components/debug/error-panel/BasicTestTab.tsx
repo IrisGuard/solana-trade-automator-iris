@@ -12,8 +12,11 @@ export function BasicTestTab() {
   const handleGenerateError = () => {
     // Create error options object to pass to generateTestError
     const options = {
+      title: 'Test Error',
       showToast,
       logToConsole,
+      sendToChat,
+      useCollector,
       component: 'ErrorTestPanel'
     };
     
