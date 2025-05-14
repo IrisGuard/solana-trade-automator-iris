@@ -3,7 +3,7 @@ import { TokenPriceData } from './types';
 import { getTokenPrice } from './fetchPrice';
 
 // Subscribe to price updates for a token
-export function subscribeToPriceUpdates(
+export function setupPriceSubscription(
   tokenAddress: string,
   callback: (priceData: TokenPriceData) => void
 ): () => void {
@@ -16,3 +16,13 @@ export function subscribeToPriceUpdates(
   // Return unsubscribe function
   return () => clearInterval(intervalId);
 }
+
+// Cancel a price subscription
+export function cancelPriceSubscription(unsubscribeFunction: () => void): void {
+  if (typeof unsubscribeFunction === 'function') {
+    unsubscribeFunction();
+  }
+}
+
+// Alias for subscribeToPriceUpdates to maintain compatibility
+export const subscribeToPriceUpdates = setupPriceSubscription;

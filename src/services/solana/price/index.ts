@@ -1,6 +1,6 @@
 
 import { fetchTokenPrices, getTokenPrice } from './fetchPrice';
-import { setupPriceSubscription, cancelPriceSubscription } from './subscription';
+import { setupPriceSubscription, cancelPriceSubscription, subscribeToPriceUpdates } from './subscription';
 
 // Re-export types correctly with 'export type'
 export type { TokenPriceData } from './types';
@@ -10,7 +10,8 @@ export {
   fetchTokenPrices,
   getTokenPrice,
   setupPriceSubscription,
-  cancelPriceSubscription
+  cancelPriceSubscription,
+  subscribeToPriceUpdates
 };
 
 // Export price service object for backward compatibility
@@ -18,5 +19,6 @@ export const priceService = {
   getTokenPrice,
   fetchTokenPrices,
   setupPriceSubscription,
-  cancelPriceSubscription
+  cancelPriceSubscription,
+  subscribeToPriceUpdates
 };

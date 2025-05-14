@@ -38,12 +38,14 @@ export function displayError(error: Error, options?: ErrorDisplayOptions): strin
     message: errorMessage,
     stack: error.stack,
     source: 'client',
-    url: window.location.href,
-    component: opts.component, // Now part of ErrorData interface
-    browserInfo: {
-      userAgent: navigator.userAgent,
-      language: navigator.language,
-      platform: navigator.platform
+    component: opts.component,
+    details: {
+      browserInfo: {
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        platform: navigator.platform
+      },
+      url: window.location.href
     }
   };
   
@@ -66,7 +68,7 @@ export function displayError(error: Error, options?: ErrorDisplayOptions): strin
     console.log("Αποστολή σφάλματος στο chat support");
   }
   
-  return errorCode;
+  return errorCode || '';
 }
 
 export function formatErrorMessage(error: unknown): string {

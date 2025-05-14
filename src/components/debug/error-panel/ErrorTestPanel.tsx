@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -70,7 +69,7 @@ export function ErrorTestPanel() {
   };
 
   const reportCollectedErrors = async () => {
-    // Use the newly added reportErrors method
+    // Use the reportErrors method that we've added to ErrorCollector
     await errorCollector.reportErrors();
   };
 
