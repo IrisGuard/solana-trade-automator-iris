@@ -1,63 +1,67 @@
 
 /**
- * Ρυθμίζει τη συλλογή σφαλμάτων console.error και console.warn
+ * Ρυθμίσεις για καθολικό χειρισμό σφαλμάτων στην εφαρμογή
  */
-export function setupGlobalErrorHandling() {
-  // Αποθήκευση των αρχικών συναρτήσεων
-  const originalConsoleError = console.error;
-  const originalConsoleWarn = console.warn;
-  
-  // Αντικατάσταση της console.error
-  console.error = function(...args) {
-    // Καλούμε την αρχική console.error
-    originalConsoleError.apply(console, args);
+import { errorCollector } from "./collector";
+import { toast } from "sonner";
+
+export function setupGlobalErrorHandling(): void {
+  // Χειρισμός μη διαχειρίσιμων σφαλμάτων
+  window.addEventListener('error', (event) => {
+    console.error('Global error caught:', event.error);
     
-    // Έλεγχος για σφάλματα
-    const errorArg = args.find(arg => arg instanceof Error);
+    const error = event.error || new Error('Unknown error');
+    errorCollector.addError(error);
     
-    if (errorArg && errorArg instanceof Error) {
-      // Αποθήκευση του σφάλματος
-      try {
-        const consoleErrors = JSON.parse(localStorage.getItem('console_errors') || '[]');
-        consoleErrors.push({
-          message: errorArg.message,
-          stack: errorArg.stack,
-          timestamp: new Date().toISOString(),
-          url: window.location.href
-        });
-        localStorage.setItem('console_errors', JSON.stringify(consoleErrors.slice(-20)));
-      } catch (e) {
-        // Αγνοούμε σφάλματα κατά την αποθήκευση
-      }
-    }
-  };
-  
-  // Αντικατάσταση της console.warn
-  console.warn = function(...args) {
-    // Καλούμε την αρχική console.warn
-    originalConsoleWarn.apply(console, args);
+    // Αποφυγή πολλαπλών ίδιων μηνυμάτων
+    const errorKey = `error_${error.message}`;
+    const hasShown = sessionStorage.getItem(errorKey);
     
-    // Αποθήκευση των warnings
-    try {
-      const warningMessage = args.map(arg => 
-        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-      ).join(' ');
-      
-      const consoleWarnings = JSON.parse(localStorage.getItem('console_warnings') || '[]');
-      consoleWarnings.push({
-        message: warningMessage,
-        timestamp: new Date().toISOString(),
-        url: window.location.href
+    if (!hasShown) {
+      toast.error("Προέκυψε σφάλμα στην εφαρμογή", {
+        description: error.message,
+        duration: 5000,
       });
-      localStorage.setItem('console_warnings', JSON.stringify(consoleWarnings.slice(-10)));
-    } catch (e) {
-      // Αγνοούμε σφάλματα κατά την αποθήκευση
+      
+      // Αποθήκευση για αποφυγή επανάληψης για 1 λεπτό
+      sessionStorage.setItem(errorKey, "shown");
+      setTimeout(() => {
+        sessionStorage.removeItem(errorKey);
+      }, 60000);
     }
-  };
+  });
   
-  // Επιστροφή συνάρτησης καθαρισμού
-  return function cleanup() {
-    console.error = originalConsoleError;
-    console.warn = originalConsoleWarn;
-  };
+  // Χειρισμός unhandled promise rejections
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('Unhandled promise rejection:', event.reason);
+    
+    let error: Error;
+    if (event.reason instanceof Error) {
+      error = event.reason;
+    } else {
+      error = new Error(typeof event.reason === 'string' ? 
+        event.reason : 'Απροσδιόριστο σφάλμα υπόσχεσης (Promise)');
+    }
+    
+    errorCollector.addError(error);
+    
+    // Αποφυγή πολλαπλών ίδιων μηνυμάτων
+    const errorKey = `promise_error_${error.message}`;
+    const hasShown = sessionStorage.getItem(errorKey);
+    
+    if (!hasShown) {
+      toast.error("Αποτυχία ασύγχρονης λειτουργίας", {
+        description: error.message,
+        duration: 5000,
+      });
+      
+      // Αποθήκευση για αποφυγή επανάληψης για 1 λεπτό
+      sessionStorage.setItem(errorKey, "shown");
+      setTimeout(() => {
+        sessionStorage.removeItem(errorKey);
+      }, 60000);
+    }
+  });
+  
+  console.log("Global error handling set up successfully");
 }

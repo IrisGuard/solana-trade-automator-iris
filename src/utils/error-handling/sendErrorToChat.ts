@@ -1,55 +1,42 @@
 
-import { toast } from "sonner";
-
 /**
- * Αποστέλλει ένα σφάλμα στο Lovable Chat για διάγνωση
+ * Αποστολή σφάλματος στο chat για ανάλυση
  */
-export function sendErrorToChat(error: Error | string, stack?: string) {
+export function sendErrorToChat(error: Error | string, additionalInfo?: any): void {
   try {
-    // Προετοιμασία των δεδομένων σφάλματος
-    const errorMessage = typeof error === 'string' ? error : error.message;
-    const errorStack = typeof error === 'string' ? stack : error.stack;
-    const timestamp = new Date().toISOString();
-    const url = window.location.href;
+    // Μετατροπή string σε Error αν χρειάζεται
+    const errorObject = typeof error === 'string' ? new Error(error) : error;
     
-    // Δημιουργία αντικειμένου σφάλματος
+    // Δημιουργία αντικειμένου δεδομένων για το chat
     const errorData = {
       type: 'error',
-      message: errorMessage,
-      stack: errorStack,
-      timestamp,
-      url
+      message: errorObject.message,
+      stack: errorObject.stack,
+      additionalInfo,
+      url: window.location.href,
+      timestamp: new Date().toISOString(),
     };
     
     // Αποθήκευση στο localStorage για το Lovable Chat
-    const storedErrors = JSON.parse(localStorage.getItem('lovable_chat_errors') || '[]');
-    storedErrors.push(errorData);
-    localStorage.setItem('lovable_chat_errors', JSON.stringify(storedErrors));
-    
-    // Αντιγραφή στο clipboard για εύκολο paste
     try {
-      const errorText = `
-Παρακαλώ διορθώστε το παρακάτω σφάλμα:
-
-Μήνυμα: ${errorMessage}
-
-${errorStack ? `Stack: ${errorStack}` : ''}
-Χρονοσήμανση: ${new Date().toLocaleString()}
-URL: ${url}
-`;
-      
-      navigator.clipboard.writeText(errorText);
-      toast.success('Αντιγράφηκε στο πρόχειρο, επικολλήστε το στο chat');
-    } catch (clipboardErr) {
-      console.error('Αδυναμία αντιγραφής στο πρόχειρο:', clipboardErr);
+      const storedErrors = JSON.parse(localStorage.getItem('lovable_chat_errors') || '[]');
+      storedErrors.push(errorData);
+      localStorage.setItem('lovable_chat_errors', JSON.stringify(storedErrors));
+    } catch (e) {
+      console.error("Error storing error for chat:", e);
     }
     
-    // Αποστολή γεγονότος για να ενημερώσει το Lovable
-    window.dispatchEvent(new CustomEvent('lovable-error', { detail: errorData }));
+    // Αποστολή custom event για να ενημερώσει το Lovable Chat
+    try {
+      const event = new CustomEvent('lovable-error', { detail: errorData });
+      window.dispatchEvent(event);
+      
+      console.log('Error sent to chat successfully');
+    } catch (e) {
+      console.error('Failed to dispatch error event to chat:', e);
+    }
     
-    return true;
   } catch (e) {
-    console.error('Σφάλμα κατά την αποστολή σφάλματος στο chat:', e);
-    return false;
+    console.error("Error in sendErrorToChat:", e);
   }
 }

@@ -1,88 +1,67 @@
 
-import { toast } from "sonner";
-import { displayGroupedErrors } from "../../errorUtils";
-
-// Διάστημα ομαδοποίησης σφαλμάτων (ms)
-const ERROR_GROUPING_INTERVAL = 2000;
-
 /**
- * Κλάση για τη συλλογή και αποστολή πολλαπλών σφαλμάτων μαζί
+ * Συλλογή σφαλμάτων για ομαδική επεξεργασία και αναφορά
  */
 export class ErrorCollector {
-  private errors: (Error | string)[] = [];
-  private timeoutId: number | null = null;
-
+  private errors: Error[] = [];
+  private maxErrors: number = 20;
+  
+  constructor() {
+    this.errors = [];
+  }
+  
   /**
-   * Προσθέτει ένα σφάλμα στη συλλογή και προγραμματίζει την αποστολή τους
-   * @param error Το σφάλμα που προέκυψε
+   * Προσθέτει ένα σφάλμα στη συλλογή
    */
-  addError(error: Error | string) {
-    // Προσθήκη του σφάλματος στη συλλογή
+  public addError(error: Error): void {
     this.errors.push(error);
     
-    // Εμφάνιση badge για τον αριθμό των σφαλμάτων
-    this.updateErrorCountBadge();
-    
-    // Ακυρώνουμε τυχόν υπάρχοντα χρονοδιακόπτη
-    if (this.timeoutId !== null) {
-      window.clearTimeout(this.timeoutId);
+    // Διατήρηση περιορισμένου αριθμού σφαλμάτων για αποφυγή διαρροής μνήμης
+    if (this.errors.length > this.maxErrors) {
+      this.errors.shift();
     }
     
-    // Προγραμματίζουμε νέα αποστολή
-    this.timeoutId = window.setTimeout(() => {
-      this.sendCollectedErrors();
-    }, ERROR_GROUPING_INTERVAL);
+    console.error("Error collected:", error);
   }
   
   /**
-   * Ενημερώνει το badge αριθμού σφαλμάτων
+   * Επιστρέφει όλα τα συλλεγμένα σφάλματα
    */
-  private updateErrorCountBadge() {
-    // Αν υπάρχουν σφάλματα, εμφανίζουμε toast με τον αριθμό τους
-    if (this.errors.length > 1) {
-      // Εμφανίζουμε μικρό toast με τον αριθμό των σφαλμάτων
-      toast.error(`${this.errors.length} σφάλματα σε αναμονή`, {
-        description: "Πατήστε για άμεση αποστολή",
-        duration: 3000,
-        action: {
-          label: "Αποστολή τώρα",
-          onClick: () => this.sendCollectedErrors()
-        }
-      });
-    }
+  public getErrors(): Error[] {
+    return [...this.errors];
   }
   
   /**
-   * Αποστέλλει όλα τα συλλεγμένα σφάλματα μαζί
+   * Καθαρίζει τη συλλογή σφαλμάτων
    */
-  sendCollectedErrors() {
-    if (this.errors.length === 0) return;
-    
-    // Αν υπάρχει χρονοδιακόπτης, τον ακυρώνουμε
-    if (this.timeoutId !== null) {
-      window.clearTimeout(this.timeoutId);
-      this.timeoutId = null;
-    }
-    
-    // Αντιγράφουμε τα σφάλματα και καθαρίζουμε τη συλλογή
-    const errorsToSend = [...this.errors];
+  public clearErrors(): void {
     this.errors = [];
-    
-    // Αποστολή των σφαλμάτων μαζί
-    displayGroupedErrors(errorsToSend);
   }
   
   /**
-   * Καθαρίζει όλα τα συλλεγμένα σφάλματα
+   * Επιστρέφει ένα συγκεκριμένο σφάλμα με βάση τον δείκτη
    */
-  clearErrors() {
-    // Ακυρώνουμε τυχόν χρονοδιακόπτη
-    if (this.timeoutId !== null) {
-      window.clearTimeout(this.timeoutId);
-      this.timeoutId = null;
+  public getErrorAt(index: number): Error | undefined {
+    return this.errors[index];
+  }
+  
+  /**
+   * Επιστρέφει τον αριθμό των συλλεγμένων σφαλμάτων
+   */
+  public getErrorCount(): number {
+    return this.errors.length;
+  }
+  
+  /**
+   * Αποστολή όλων των σφαλμάτων για αναφορά
+   */
+  public reportErrors(): void {
+    if (this.errors.length === 0) {
+      return;
     }
     
-    // Καθαρίζουμε τη συλλογή
-    this.errors = [];
+    console.log(`Reporting ${this.errors.length} collected errors`);
+    
+    // Εδώ θα μπορούσαμε να προσθέσουμε κώδικα για αποστολή σφαλμάτων σε κάποιο σύστημα παρακολούθησης
   }
 }
