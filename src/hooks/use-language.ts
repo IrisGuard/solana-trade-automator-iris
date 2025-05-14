@@ -1,15 +1,13 @@
-import { useLanguage as useLanguageContext } from "@/providers/LanguageProvider";
 
-// Re-export with proper interface that matches how it's being used
-export const useLanguage = () => {
-  const { t: originalT, ...rest } = useLanguageContext();
+import { useContext } from "react";
+import { LanguageContext } from "@/providers/LanguageProvider";
+
+export function useLanguage() {
+  const context = useContext(LanguageContext);
   
-  // Wrap the original t function to accept an optional fallback string
-  const t = (key: string, fallback?: string) => {
-    // If the translation exists for the key, return it
-    // Otherwise return the fallback or the key itself
-    return originalT(key) || fallback || key;
-  };
+  if (context === undefined) {
+    throw new Error("useLanguage must be used within a LanguageProvider");
+  }
   
-  return { t, ...rest };
-};
+  return context;
+}

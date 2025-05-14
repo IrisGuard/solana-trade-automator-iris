@@ -31,7 +31,7 @@ export function HeroSection() {
         {isConnected ? (
           <Button
             size="lg"
-            onClick={() => handleNavigateWithToast('/home', t("hero.dashboardToast"))}
+            onClick={() => handleNavigateWithToast('/dashboard', t("hero.dashboardToast"))}
             className="gap-2 w-full md:w-auto"
           >
             <Zap className="h-5 w-5" />

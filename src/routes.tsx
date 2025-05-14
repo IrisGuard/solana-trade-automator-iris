@@ -1,10 +1,9 @@
 
 import React, { Suspense } from 'react';
-import { Route, Routes as RouterRoutes, Navigate } from 'react-router-dom';
+import { Route, Routes as RouterRoutes, Navigate, useLocation } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 
 // Import pages
-const HomePage = React.lazy(() => import('@/pages/Home'));
 const IndexPage = React.lazy(() => import('@/pages/Index'));
 const DashboardPage = React.lazy(() => import('@/pages/Dashboard'));
 const WalletPage = React.lazy(() => import('@/pages/Wallet'));
@@ -31,12 +30,15 @@ export function Routes() {
   return (
     <Suspense fallback={<PageLoading />}>
       <RouterRoutes>
+        {/* Landing page at root */}
         <Route path="/" element={<IndexPage />} />
         <Route path="/auth" element={<AuthPage />} />
         
+        {/* Redirect /home to root */}
+        <Route path="/home" element={<Navigate to="/" replace />} />
+        
         {/* Authenticated Pages with Layout */}
         <Route element={<Layout />}>
-          <Route path="/home" element={<HomePage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/wallet" element={<WalletPage />} />
           <Route path="/portfolio" element={<PortfolioPage />} />

@@ -22,11 +22,6 @@ export function Sidebar() {
 
   const mainNavItems = [
     {
-      title: t("general.home"),
-      href: "/home",
-      icon: Home,
-    },
-    {
       title: t("general.dashboard"),
       href: "/dashboard",
       icon: BarChart3,

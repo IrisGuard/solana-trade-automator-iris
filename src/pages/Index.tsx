@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { HeroSection } from "@/components/home/HeroSection";
 import { BotExplanationSection } from "@/components/home/BotExplanationSection";
 import { FooterSection } from "@/components/home/FooterSection";
@@ -12,10 +12,19 @@ import { BookOpenText, Coins, LightbulbIcon, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePhantomConnection } from "@/hooks/usePhantomConnection";
 import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "sonner";
 
 export default function Index() {
   const { t } = useLanguage();
   const { isConnected } = usePhantomConnection();
+  
+  // Check if translations are working
+  useEffect(() => {
+    console.log("Checking translations:", {
+      welcomeMessage: t("hero.welcomeMessage"),
+      tagline: t("hero.tagline"),
+    });
+  }, [t]);
   
   return (
     <div className="flex flex-col min-h-screen">
@@ -23,7 +32,7 @@ export default function Index() {
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-xl font-bold">Solana Trade Automator</h1>
           <div className="flex items-center gap-4">
-            <Link to="/home" className="text-primary hover:underline">{t("general.home")}</Link>
+            <Link to="/dashboard" className="text-primary hover:underline">{t("general.dashboard")}</Link>
             <Link to="/bot-control" className="text-primary hover:underline">{t("makerBot.botSettings")}</Link>
             <WalletConnectButtonSafe variant="outline" size="sm" />
             <ThemeToggleHeader />
@@ -39,7 +48,7 @@ export default function Index() {
             <p className="text-xl mb-8 max-w-3xl mx-auto">{t("hero.welcomeDescription")}</p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Button asChild size="lg" className="px-8">
-                <Link to={isConnected ? "/home" : "/wallet"}>{t("hero.getStartedButton")}</Link>
+                <Link to={isConnected ? "/dashboard" : "/wallet"}>{t("hero.getStartedButton")}</Link>
               </Button>
               <Button asChild variant="outline" size="lg">
                 <a href="#bot-explanation">{t("hero.learnMoreButton")}</a>
