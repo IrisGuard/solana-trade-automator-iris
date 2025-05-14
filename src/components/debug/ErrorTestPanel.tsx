@@ -11,6 +11,7 @@ import {
   clearAllErrors 
 } from '@/utils/errorTestUtils';
 import { displayError } from '@/utils/errorUtils';
+import { EnhancedError, createEnhancedError } from '@/types/errorTypes';
 
 export function ErrorTestPanel() {
   const [errorMessage, setErrorMessage] = useState('Δοκιμαστικό σφάλμα');
@@ -40,9 +41,7 @@ export function ErrorTestPanel() {
   
   const handleApiError = () => {
     // Προσομοίωση σφάλματος API
-    const apiError = new Error('Δεν έχετε δικαιώματα πρόσβασης σε αυτόν τον πόρο');
-    // Προσθήκη επιπλέον πληροφοριών στο σφάλμα
-    Object.assign(apiError, {
+    const apiError = createEnhancedError('Δεν έχετε δικαιώματα πρόσβασης σε αυτόν τον πόρο', {
       status: 403,
       code: 'FORBIDDEN'
     });
@@ -58,9 +57,7 @@ export function ErrorTestPanel() {
   
   const handleValidationError = () => {
     // Προσομοίωση σφάλματος επικύρωσης
-    const validationError = new Error('Μη έγκυρα δεδομένα φόρμας');
-    // Προσθήκη λεπτομερειών σφαλμάτων
-    Object.assign(validationError, {
+    const validationError = createEnhancedError('Μη έγκυρα δεδομένα φόρμας', {
       errors: {
         username: ['Το όνομα χρήστη είναι υποχρεωτικό'],
         email: ['Μη έγκυρη διεύθυνση email'],
@@ -79,9 +76,7 @@ export function ErrorTestPanel() {
   
   const handleDatabaseError = () => {
     // Προσομοίωση σφάλματος βάσης δεδομένων
-    const dbError = new Error('Σφάλμα βάσης δεδομένων');
-    // Προσθήκη λεπτομερειών
-    Object.assign(dbError, {
+    const dbError = createEnhancedError('Σφάλμα βάσης δεδομένων', {
       details: 'Foreign key constraint violation',
       table: 'users',
       constraint: 'users_profile_id_fkey'
