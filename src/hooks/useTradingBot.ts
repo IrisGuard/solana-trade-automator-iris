@@ -26,7 +26,7 @@ export function useTradingBot(): TradingBotHook {
   } = useBotActions();
   
   const {
-    tokenPrice,
+    price: tokenPrice,
     selectedTokenPrice,
     selectedTokenDetails,
     setupPriceSubscription,
@@ -39,9 +39,9 @@ export function useTradingBot(): TradingBotHook {
     
     // Find token details and setup price subscription
     const tokenDetails = findTokenDetails(token);
-    await setupPriceSubscription(token, tokenDetails, tokens);
+    await setupPriceSubscription(token);
     
-  }, [updateConfig, findTokenDetails, setupPriceSubscription, tokens]);
+  }, [updateConfig, findTokenDetails, setupPriceSubscription]);
 
   // Start the trading bot with current configuration
   const startBot = useCallback(() => {
