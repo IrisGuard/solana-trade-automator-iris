@@ -1,92 +1,61 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import en from "../locales/en";
-import el from "../locales/el";
 
-// Define a type for translations using the en object as reference
-type Translations = typeof en;
+import React, { createContext, useState, useContext, ReactNode } from 'react';
+import { enTranslations } from '@/locales/en';
+import { elTranslations } from '@/locales/el';
+import { TranslationKeys } from '@/types/language';
 
-// Types for the language context
+type Language = 'en' | 'el';
+
 interface LanguageContextType {
-  t: (key: string, section?: string) => string;
-  translations: Translations;
-  language: "en" | "el";
-  setLanguage: (lang: "en" | "el") => void;
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: string, defaultValue?: string) => string;
+  translations: TranslationKeys;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
-
-export function useLanguage() {
-  const context = useContext(LanguageContext);
-  if (!context) {
-    throw new Error("useLanguage must be used within a LanguageProvider");
-  }
-  return context;
-}
 
 interface LanguageProviderProps {
   children: ReactNode;
 }
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  const [language, setLanguage] = useState<"en" | "el">("el"); // Default to Greek
-  const [translations, setTranslations] = useState<Translations>(language === "en" ? en : el as unknown as Translations);
+  const [language, setLanguage] = useState<Language>('el');
+  
+  // Ορίζουμε τον τύπο εδώ για να αποφύγουμε τα TypeScript errors
+  const translations = language === 'en' 
+    ? enTranslations as unknown as TranslationKeys
+    : elTranslations as unknown as TranslationKeys;
 
-  // Update translations when language changes
-  useEffect(() => {
-    setTranslations(language === "en" ? en : el as unknown as Translations);
-    document.documentElement.setAttribute("lang", language);
-  }, [language]);
-
-  // Keep the selected language in localStorage
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem("app-language");
-    if (savedLanguage === "en" || savedLanguage === "el") {
-      setLanguage(savedLanguage);
-    }
-  }, []);
-
-  // Save the selected language when it changes
-  useEffect(() => {
-    localStorage.setItem("app-language", language);
-  }, [language]);
-
-  // Helper function to get translations with dot notation (e.g., "general.save")
-  const t = (key: string, section?: string): string => {
-    try {
-      if (!key) return "";
-      
-      const keys = key.split(".");
-      let result: any = translations;
-      
-      if (section) {
-        result = result[section];
-        if (!result) return key;
-        return result[keys[0]] || key;
-      }
-      
-      for (const k of keys) {
-        if (!result) return key;
-        result = result[k];
-        if (result === undefined) return key;
-      }
-      
-      return typeof result === 'string' ? result : key;
-    } catch (error) {
-      console.error("Translation error:", error, key);
-      return key;
-    }
+  const handleSetLanguage = (lang: Language) => {
+    setLanguage(lang);
+    localStorage.setItem('language', lang);
   };
 
-  const value = {
-    t,
-    translations,
-    language,
-    setLanguage
+  // Helper function για να πάρουμε μια τιμή από ένα ένθετο αντικείμενο με βάση ένα string path
+  const getNestedValue = (obj: any, path: string) => {
+    return path.split('.').reduce((prev, curr) => {
+      return prev && prev[curr] !== undefined ? prev[curr] : undefined;
+    }, obj);
+  };
+
+  // Translate function
+  const t = (key: string, defaultValue: string = key) => {
+    const value = getNestedValue(translations, key);
+    return value !== undefined ? value : defaultValue;
   };
 
   return (
-    <LanguageContext.Provider value={value}>
+    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t, translations }}>
       {children}
     </LanguageContext.Provider>
   );
 }
+
+export const useLanguage = () => {
+  const context = useContext(LanguageContext);
+  if (context === undefined) {
+    throw new Error('useLanguage must be used within a LanguageProvider');
+  }
+  return context;
+};
