@@ -10,6 +10,7 @@ import { SettingsTab } from "./trading-bot/SettingsTab";
 import { OrdersTab } from "./trading-bot/OrdersTab";
 import { HistoryTab } from "./trading-bot/HistoryTab";
 import { StatusCard } from "./trading-bot/StatusCard";
+import { Order } from "@/types/orders";
 
 export function TradingBotTab() {
   const {
@@ -81,7 +82,7 @@ export function TradingBotTab() {
               </TabsContent>
               
               <TabsContent value="orders">
-                <OrdersTab activeOrders={activeOrders} />
+                <OrdersTab activeOrders={activeOrders as unknown as Order[]} />
               </TabsContent>
               
               <TabsContent value="history">

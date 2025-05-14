@@ -4,16 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, TrendingDown, TrendingUp, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-interface Order {
-  id: string;
-  tokenAddress: string;
-  price: number;
-  amount: number;
-  type: string;
-  status: string;
-  created: string;
-}
+import { Order } from "@/types/orders";
 
 interface OrdersTabProps {
   activeOrders: Order[];
@@ -37,12 +28,16 @@ export function OrdersTab({ activeOrders, onCancelOrder }: OrdersTabProps) {
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'stop_loss':
+      case 'stop-loss':
         return <TrendingDown className="h-4 w-4 text-red-500" />;
       case 'take_profit':
+      case 'take-profit':
         return <TrendingUp className="h-4 w-4 text-green-500" />;
       case 'buy':
+      case 'limit-buy':
         return <TrendingUp className="h-4 w-4 text-blue-500" />;
       case 'sell':
+      case 'limit-sell':
         return <TrendingDown className="h-4 w-4 text-orange-500" />;
       default:
         return <Wallet className="h-4 w-4" />;
@@ -52,12 +47,16 @@ export function OrdersTab({ activeOrders, onCancelOrder }: OrdersTabProps) {
   const getTypeLabel = (type: string) => {
     switch (type) {
       case 'stop_loss':
+      case 'stop-loss':
         return 'Stop Loss';
       case 'take_profit':
+      case 'take-profit':
         return 'Take Profit';
       case 'buy':
+      case 'limit-buy':
         return 'Αγορά';
       case 'sell':
+      case 'limit-sell':
         return 'Πώληση';
       default:
         return type;
@@ -67,12 +66,16 @@ export function OrdersTab({ activeOrders, onCancelOrder }: OrdersTabProps) {
   const getTypeBadgeColor = (type: string) => {
     switch (type) {
       case 'stop_loss':
+      case 'stop-loss':
         return 'border-red-200 bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
       case 'take_profit':
+      case 'take-profit':
         return 'border-green-200 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
       case 'buy':
+      case 'limit-buy':
         return 'border-blue-200 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
       case 'sell':
+      case 'limit-sell':
         return 'border-orange-200 bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
       default:
         return '';

@@ -32,12 +32,9 @@ export function useErrorReporting() {
     const errorData: ErrorData = {
       message: error.message,
       stack: error.stack,
-      timestamp: Date.now(),
-      context: {
-        source: 'client'
-      }
+      timestamp: Date.now()
     };
-    errorCollector.collect(error, { source: 'client' });
+    errorCollector.collect(error);
     
     // Show toast
     if (showToast) {
@@ -68,9 +65,11 @@ export function useErrorReporting() {
     setIsReporting(true);
     try {
       await errorCollector.reportErrors();
+      return "success";
     } catch (e) {
       console.error("Error reporting collected errors:", e);
       toast.error("Πρόβλημα αποστολής συλλεγμένων σφαλμάτων");
+      return "error";
     } finally {
       setIsReporting(false);
     }
@@ -82,9 +81,11 @@ export function useErrorReporting() {
     try {
       sendErrorToChat(new Error(message), { stack });
       toast.success("Το σφάλμα στάλθηκε για ανάλυση");
+      return "success";
     } catch (e) {
       console.error("Error sending to chat:", e);
       toast.error("Πρόβλημα αποστολής σφάλματος");
+      return "error";
     } finally {
       setIsReporting(false);
     }

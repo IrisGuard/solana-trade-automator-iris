@@ -1,6 +1,21 @@
 
-import { fetchTokenPrice, fetchTokenPrices } from './fetchPrice';
 import { TokenPriceData } from './types';
+import { fetchTokenPrices } from './fetchPrice';
+
+// For backward compatibility
+export const fetchTokenPrice = async (tokenAddress: string): Promise<TokenPriceData> => {
+  const prices = await fetchTokenPrices([tokenAddress]);
+  if (prices && prices[tokenAddress]) {
+    return prices[tokenAddress];
+  }
+  
+  // Return default data if not found
+  return {
+    price: 0,
+    priceChange24h: 0,
+    lastUpdated: new Date()
+  };
+};
 
 // Price subscription type
 export interface PriceSubscription {
@@ -94,12 +109,8 @@ export const priceService = new PriceService();
 
 // Re-export individual functions for direct usage
 export { 
-  fetchTokenPrice,
   fetchTokenPrices 
 };
 
 // Re-export types
-export type { 
-  TokenPriceData,
-  PriceSubscription 
-};
+export type { TokenPriceData };

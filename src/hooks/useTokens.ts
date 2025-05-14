@@ -60,7 +60,7 @@ export function useTokens() {
       // Safely extract price values from the returned data
       Object.entries(priceData).forEach(([address, data]) => {
         if (data && typeof data === 'object' && 'price' in data) {
-          simplePrices[address] = data.price;
+          simplePrices[address] = Number(data.price);
         }
       });
       

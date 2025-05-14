@@ -6,10 +6,10 @@ export function setupGlobalErrorHandling(): () => void {
   
   window.onerror = (message, source, lineno, colno, error) => {
     if (error instanceof Error) {
-      errorCollector.logErrorAndNotify(error, "GlobalErrorHandler");
+      errorCollector.collect(error, { source: "GlobalErrorHandler" });
     } else {
       const genericError = new Error(String(message));
-      errorCollector.logErrorAndNotify(genericError, "GlobalErrorHandler");
+      errorCollector.collect(genericError, { source: "GlobalErrorHandler" });
     }
     
     // Κλήση του προηγούμενου χειριστή αν υπάρχει
@@ -34,7 +34,7 @@ export function setupGlobalErrorHandling(): () => void {
       error = new Error(String(event.reason));
     }
     
-    errorCollector.logErrorAndNotify(error, "UnhandledRejectionHandler");
+    errorCollector.collect(error, { source: "UnhandledRejectionHandler" });
   };
   
   // Add event listener for unhandled rejections

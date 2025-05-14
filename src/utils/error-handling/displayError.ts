@@ -61,8 +61,8 @@ export function displayError(
     // Convert to ErrorData format before adding
     const errorData: ErrorData = {
       message: errorObj.message,
-      source: 'client', // Default source
-      stack: errorObj.stack
+      stack: errorObj.stack,
+      timestamp: Date.now()
     };
     errorCollector.addError(errorData);
   }

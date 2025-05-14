@@ -1,4 +1,3 @@
-
 export interface Token {
   address: string;
   name: string;
@@ -6,6 +5,7 @@ export interface Token {
   amount: number;
   logo?: string;
   price?: number;
+  decimals?: number;
 }
 
 export interface Transaction {
