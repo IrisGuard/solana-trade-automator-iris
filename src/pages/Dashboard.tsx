@@ -31,6 +31,15 @@ export default function Dashboard() {
     selectTokenForTrading
   } = useWalletConnection();
 
+  // Convert tokenPrices to the expected format for WalletConnectedContent
+  const simplifiedTokenPrices: Record<string, number> = {};
+  
+  if (tokenPrices) {
+    Object.entries(tokenPrices).forEach(([address, priceData]) => {
+      simplifiedTokenPrices[address] = priceData.price;
+    });
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -112,7 +121,7 @@ export default function Dashboard() {
             walletAddress={walletAddress}
             solBalance={solBalance}
             tokens={tokens}
-            tokenPrices={tokenPrices}
+            tokenPrices={simplifiedTokenPrices}
             isLoadingTokens={isLoadingTokens}
             selectTokenForTrading={selectTokenForTrading}
           />

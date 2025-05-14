@@ -1,48 +1,28 @@
 
-/**
- * Αντιπροσωπεύει ένα token 
- */
 export interface Token {
   address: string;
+  name?: string;
   symbol: string;
-  name: string;
-  amount: number; 
+  amount: number;
   decimals: number;
-  logo?: string;
-  price?: number;
-  balance?: number; 
+  balance?: number;
   uiBalance?: number;
-  mint?: string; // Added to support old code references
+  mint?: string;
 }
 
-/**
- * Αντιπροσωπεύει μια συναλλαγή
- */
-export interface WalletTransaction {
-  // Basic transaction properties
+export interface WalletBalance {
+  sol: number;
+  tokens: Token[];
+}
+
+export interface Transaction {
   signature: string;
-  blockTime: number;
   timestamp: number;
+  blockTime?: number;
   status: string;
   type: string;
-  
-  // Amount and value information
-  amount?: string;  // Πάντα string, όχι number
-  price?: string | number;
-  value?: string | number;
-  
-  // Token information
-  token?: string;
-  tokenAddress?: string;
-  
-  // Transaction parties
+  amount?: number | string;
   from?: string;
   to?: string;
-  
-  // Additional information
-  bot?: string;
-  id?: string;
+  tokenAddress?: string;
 }
-
-// Re-export the Transaction type from transaction.ts for backward compatibility
-export type { Transaction } from '@/types/transaction';
