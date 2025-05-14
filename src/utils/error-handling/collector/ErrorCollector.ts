@@ -60,6 +60,46 @@ export class ErrorCollector {
   }
 
   /**
+   * Add an error to the collector
+   */
+  public addError(errorData: ErrorData): void {
+    this.errors.unshift(errorData);
+    
+    if (this.errors.length > this.maxErrors) {
+      this.errors = this.errors.slice(0, this.maxErrors);
+    }
+    
+    // Log to console for development
+    console.error('Error added:', errorData);
+  }
+
+  /**
+   * Report all collected errors to a monitoring service
+   * This is a placeholder implementation that will be enhanced later
+   */
+  public async reportErrors(): Promise<void> {
+    if (this.errors.length === 0) {
+      toast.info('Δεν υπάρχουν σφάλματα για αναφορά');
+      return;
+    }
+    
+    try {
+      // In a real implementation, we would send the errors to a monitoring service
+      // For now, we'll just log them to the console
+      console.log('Reporting collected errors:', this.errors);
+      
+      // Display confirmation toast
+      toast.success(`Αναφέρθηκαν ${this.errors.length} σφάλματα επιτυχώς`);
+      
+      // In a production environment, we might clear errors after reporting
+      // this.clearErrors();
+    } catch (error) {
+      console.error('Error reporting collected errors:', error);
+      toast.error('Σφάλμα κατά την αναφορά σφαλμάτων');
+    }
+  }
+
+  /**
    * Get all collected errors
    */
   public getErrors(): ErrorData[] {

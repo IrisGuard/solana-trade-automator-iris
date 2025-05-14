@@ -14,7 +14,7 @@ interface ReportOptions {
 export function useErrorReporting() {
   const [isReporting, setIsReporting] = useState(false);
   
-  // Αναφορά σφάλματος με διάφορες μεθόδους
+  // Report error with various methods
   const reportError = useCallback((error: Error, options: ReportOptions = {}) => {
     const { 
       showToast = true, 
@@ -23,20 +23,23 @@ export function useErrorReporting() {
       sendToChatInterface = false 
     } = options;
     
-    // Καταγραφή στην κονσόλα
+    // Log to console
     if (logToConsole) {
       console.error("Reported error:", error);
     }
     
-    // Προσθήκη στον συλλέκτη σφαλμάτων με μετατροπή σε ErrorData
+    // Add to error collector with conversion to ErrorData
     const errorData: ErrorData = {
       message: error.message,
-      source: 'client',
-      stack: error.stack
+      stack: error.stack,
+      timestamp: Date.now(),
+      context: {
+        source: 'client'
+      }
     };
-    errorCollector.addError(errorData);
+    errorCollector.collect(error, { source: 'client' });
     
-    // Εμφάνιση toast
+    // Show toast
     if (showToast) {
       toast.error(error.message, {
         description: "Μπορείτε να αποστείλετε αναφορά σφάλματος στο chat για ανάλυση",
@@ -47,12 +50,12 @@ export function useErrorReporting() {
       });
     }
     
-    // Αποστολή στο chat interface
+    // Send to chat interface
     if (sendToChatInterface) {
       sendErrorToChat(error);
     }
     
-    // Αποθήκευση στη βάση δεδομένων (σε μελλοντική έκδοση)
+    // Save to database (future feature)
     if (saveToDatabase) {
       console.log("Saving error to database (future feature):", error);
     }
@@ -60,7 +63,20 @@ export function useErrorReporting() {
     return error;
   }, []);
   
-  // Αποστολή σφάλματος απευθείας στο chat
+  // Send all collected errors to server
+  const reportCollectedErrors = useCallback(async () => {
+    setIsReporting(true);
+    try {
+      await errorCollector.reportErrors();
+    } catch (e) {
+      console.error("Error reporting collected errors:", e);
+      toast.error("Πρόβλημα αποστολής συλλεγμένων σφαλμάτων");
+    } finally {
+      setIsReporting(false);
+    }
+  }, []);
+  
+  // Send error directly to chat
   const sendErrorToLovableChat = useCallback((message: string, stack?: string) => {
     setIsReporting(true);
     try {
@@ -76,6 +92,7 @@ export function useErrorReporting() {
   
   return {
     reportError,
+    reportCollectedErrors,
     sendErrorToChat: sendErrorToLovableChat,
     isReporting
   };

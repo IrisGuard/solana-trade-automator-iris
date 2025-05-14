@@ -1,28 +1,105 @@
 
-// Export all price related functionality
+import { fetchTokenPrice, fetchTokenPrices } from './fetchPrice';
+import { TokenPriceData } from './types';
 
-import { fetchTokenPriceFromAPI, fetchAllPricesFromAPI } from './fetchPrice';
-import { setupPriceSubscription, cancelPriceSubscription } from './subscription';
-import type { PriceData, PriceSubscriptionConfig, TokenPriceMap } from './types';
+// Price subscription type
+export interface PriceSubscription {
+  id: string;
+  tokenAddress: string;
+  interval: number;
+  callback: (price: TokenPriceData) => void;
+  timerId: number;
+}
 
-// Re-export functions for direct use
-export const fetchTokenPrice = fetchTokenPriceFromAPI;
-export const fetchTokenPrices = fetchAllPricesFromAPI;
-export const getTokenPrice = fetchTokenPriceFromAPI; // Alias for backward compatibility
-export const subscribeToPriceUpdates = setupPriceSubscription; 
-export const unsubscribeFromPriceUpdates = cancelPriceSubscription;
+// Price service class
+class PriceService {
+  private subscriptions: Map<string, PriceSubscription> = new Map();
+  
+  /**
+   * Get price for a specific token
+   */
+  public async getTokenPrice(tokenAddress: string): Promise<TokenPriceData> {
+    return fetchTokenPrice(tokenAddress);
+  }
+  
+  /**
+   * Get prices for multiple tokens
+   */
+  public async getTokenPrices(tokenAddresses: string[]): Promise<Record<string, TokenPriceData>> {
+    return fetchTokenPrices(tokenAddresses);
+  }
+  
+  /**
+   * Subscribe to price updates for a token
+   */
+  public subscribeToPriceUpdates(options: {
+    tokenAddress: string;
+    callback: (price: TokenPriceData) => void;
+    interval?: number;
+  }): string {
+    const { tokenAddress, callback, interval = 60000 } = options;
+    
+    // Generate a subscription ID
+    const subscriptionId = `${tokenAddress}-${Date.now()}`;
+    
+    // Set up interval to fetch price updates
+    const timerId = window.setInterval(async () => {
+      try {
+        const price = await this.getTokenPrice(tokenAddress);
+        callback(price);
+      } catch (error) {
+        console.error(`Error fetching price update for ${tokenAddress}:`, error);
+      }
+    }, interval);
+    
+    // Save subscription
+    this.subscriptions.set(subscriptionId, {
+      id: subscriptionId,
+      tokenAddress,
+      callback,
+      interval,
+      timerId
+    });
+    
+    // Initial price fetch
+    this.getTokenPrice(tokenAddress)
+      .then(callback)
+      .catch(error => console.error(`Error fetching initial price for ${tokenAddress}:`, error));
+    
+    return subscriptionId;
+  }
+  
+  /**
+   * Unsubscribe from price updates
+   */
+  public unsubscribeFromPriceUpdates(subscriptionId: string): boolean {
+    const subscription = this.subscriptions.get(subscriptionId);
+    
+    if (!subscription) {
+      return false;
+    }
+    
+    // Clear the interval
+    clearInterval(subscription.timerId);
+    
+    // Remove the subscription
+    this.subscriptions.delete(subscriptionId);
+    
+    return true;
+  }
+}
 
-// Export types
-export type { PriceData, PriceSubscriptionConfig, TokenPriceMap };
+// Create singleton instance
+export const priceService = new PriceService();
 
-// Export service object for backward compatibility
-export const priceService = {
-  fetchTokenPrice: fetchTokenPriceFromAPI,
-  fetchTokenPrices: fetchAllPricesFromAPI,
-  getTokenPrice: fetchTokenPriceFromAPI,
-  subscribeToPriceUpdates: setupPriceSubscription,
-  unsubscribeFromPriceUpdates: cancelPriceSubscription
+// Re-export individual functions for direct usage
+export { 
+  fetchTokenPrice,
+  fetchTokenPrices 
 };
 
-// Export default as the service for named imports
-export default priceService;
+// Re-export types
+export type { 
+  TokenPriceData,
+  PriceSubscription 
+};
