@@ -1,252 +1,106 @@
 
-import { toast } from 'sonner';
-import { heliusKeyManager } from '@/services/solana/HeliusKeyManager';
+import { toast } from "sonner";
 
-interface RetryConfig {
-  maxRetries: number;
-  initialDelay: number;
-  maxDelay: number;
-  backoffFactor: number;
-  endpoint?: string;
-}
+// Rate limit error timeout configuration
+const RATE_LIMIT_RETRY_DELAYS = [1000, 2000, 5000, 10000]; // Growing delays between retries
+const MAX_RETRIES = RATE_LIMIT_RETRY_DELAYS.length;
+const RATE_LIMIT_TOAST_ID = "rate-limit-warning";
 
-const DEFAULT_RETRY_CONFIG: RetryConfig = {
-  maxRetries: 3,         // Μειωμένες επαναπροσπάθειες από 5 σε 3
-  initialDelay: 2000,    // Αυξημένο από 1500ms σε 2000ms
-  maxDelay: 10000,       // Μειωμένο από 15000ms σε 10000ms
-  backoffFactor: 1.5     // Μειωμένο από 2 σε 1.5
-};
+// Tracking for rate limit notifications to avoid spamming the user
+const rateLimitWarningTimers: Record<string, {
+  lastShown: number;
+  count: number;
+}> = {};
 
-// Μητρώο για την παρακολούθηση των επαναπροσπαθειών ανά endpoint
-const retryRegistry = new Map<string, {
-  lastAttempt: number;
-  attempts: number;
-  inProgress: boolean;
-  lastNotification: number;
-}>();
-
-// Cache σφαλμάτων για αποφυγή πολλαπλών ειδοποιήσεων
-const errorNotificationCache = new Map<string, number>();
-const ERROR_NOTIFICATION_COOLDOWN = 10000; // 10 seconds
-
-// Έλεγχος αν ένα σφάλμα οφείλεται σε rate limiting
-export function isRateLimitError(error: unknown): boolean {
-  const errorStr = String(error);
-  return errorStr.includes('rate limit') || 
-         errorStr.includes('429') || 
-         errorStr.includes('-32429') ||
-         errorStr.includes('Too many requests') ||
-         errorStr.includes('exceeded') && errorStr.includes('limit');
-}
-
-// Παράκαμψη για δοκιμές: ελέγχουμε αν έχουμε πολύ πρόσφατη κλήση στο ίδιο endpoint
-function shouldSkipRequest(endpoint: string): boolean {
-  const info = retryRegistry.get(endpoint);
-  if (!info) return false;
+/**
+ * Check if an error appears to be a rate limit error (HTTP 429)
+ */
+export function isRateLimitError(error: any): boolean {
+  if (!error) return false;
   
-  const now = Date.now();
-  // Αν έχει περάσει λιγότερο από 5 δευτερόλεπτα από την τελευταία αποτυχημένη προσπάθεια
-  // και έχουμε ήδη κάνει τουλάχιστον 2 προσπάθειες, παραλείπουμε το αίτημα
-  return (now - info.lastAttempt < 5000 && info.attempts >= 2);
-}
-
-// Καταγραφή αποτυχημένης προσπάθειας
-function recordFailedAttempt(endpoint: string) {
-  const now = Date.now();
-  const info = retryRegistry.get(endpoint) || { 
-    lastAttempt: 0, 
-    attempts: 0, 
-    inProgress: false,
-    lastNotification: 0 
-  };
+  // Check HTTP status
+  if (error.status === 429 || error.statusCode === 429) return true;
   
-  info.lastAttempt = now;
-  info.attempts += 1;
-  retryRegistry.set(endpoint, info);
-  
-  return info;
-}
-
-// Καταγραφή επιτυχημένης προσπάθειας
-function recordSuccessfulAttempt(endpoint: string) {
-  const info = retryRegistry.get(endpoint);
-  if (info) {
-    // Μειώνουμε τις προσπάθειες αλλά δεν τις μηδενίζουμε αμέσως
-    // για να διατηρούμε ένα ιστορικό πρόσφατης συμπεριφοράς
-    info.attempts = Math.max(0, info.attempts - 1);
-    info.inProgress = false;
-    retryRegistry.set(endpoint, info);
-  } else {
-    retryRegistry.delete(endpoint);
-  }
-}
-
-// Κοινή λογική εμφάνισης ειδοποιήσεων για rate limit
-function showRateLimitNotification(endpoint: string, severity: 'info' | 'warn' | 'error' = 'info') {
-  const now = Date.now();
-  const lastNotif = errorNotificationCache.get(endpoint) || 0;
-  
-  // Έλεγχος αν πρέπει να εμφανίσουμε νέα ειδοποίηση
-  if (now - lastNotif < ERROR_NOTIFICATION_COOLDOWN) {
-    return; // Αποφυγή πολλαπλών ειδοποιήσεων
-  }
-  
-  // Καταγραφή χρόνου ειδοποίησης
-  errorNotificationCache.set(endpoint, now);
-  
-  // Ενημέρωση χρόνου τελευταίας ειδοποίησης στο registry
-  const info = retryRegistry.get(endpoint);
-  if (info) {
-    info.lastNotification = now;
-    retryRegistry.set(endpoint, info);
-  }
-  
-  // Εμφάνιση της κατάλληλης ειδοποίησης
-  const endpointName = endpoint.includes('-') 
-    ? endpoint.split('-')[0] 
-    : endpoint;
-    
-  if (severity === 'error') {
-    toast.error(`${endpointName} API rate limit exceeded`, {
-      description: 'Using cached data if available.',
-      id: `rate-limit-${endpointName}`,
-      duration: 5000
-    });
-  } else if (severity === 'warn') {
-    toast.warning(`${endpointName} API rate limit approaching`, {
-      description: 'Some requests may be throttled.',
-      id: `rate-limit-warn-${endpointName}`,
-      duration: 3000
-    });
-  } else {
-    toast.info(`${endpointName} API request throttled`, {
-      id: `rate-limit-info-${endpointName}`,
-      duration: 3000
-    });
-  }
-}
-
-// Συνάρτηση που ελέγχει αν πρέπει να γίνει εναλλαγή κλειδιών Helius
-function shouldRotateHeliusKey(endpoint: string): boolean {
-  if (!endpoint.includes('helius')) return false;
-  
-  const info = retryRegistry.get(endpoint);
-  if (!info) return false;
-  
-  // Αν έχουμε αποτυχημένες προσπάθειες, προτείνουμε εναλλαγή κλειδιού
-  return info.attempts >= 2;
+  // Check for rate limit error message
+  const errorMessage = (error.message || error.toString()).toLowerCase();
+  return (
+    errorMessage.includes('rate limit') ||
+    errorMessage.includes('too many requests') ||
+    errorMessage.includes('429') ||
+    errorMessage.includes('rpc request rate exceeded')
+  );
 }
 
 /**
- * Εκτέλεση συνάρτησης με αυτόματη επαναπροσπάθεια για σφάλματα Rate Limit
+ * Wrapper function that handles rate limit errors with automatic retries
+ * @param asyncFn The API function to call
+ * @param options Configuration options for retry behavior
+ * @returns The result of the async function
  */
 export async function withRateLimitRetry<T>(
-  fn: () => Promise<T>, 
-  options: Partial<RetryConfig> & { endpoint?: string } = {}
+  asyncFn: () => Promise<T>,
+  options: {
+    maxRetries?: number;
+    endpoint?: string;
+    silent?: boolean;
+  } = {}
 ): Promise<T> {
-  const config = { ...DEFAULT_RETRY_CONFIG, ...options };
-  const endpoint = options.endpoint || 'default';
+  const maxRetries = options.maxRetries || MAX_RETRIES;
+  const endpointId = options.endpoint || 'api-call';
+  const silent = options.silent || false;
   
-  // Έλεγχος αν πρέπει να παραλείψουμε το αίτημα και να επιστρέψουμε αμέσως σφάλμα
-  if (shouldSkipRequest(endpoint)) {
-    console.warn(`Skipping request to ${endpoint} due to recent rate limit errors`);
-    throw new Error("Παραλείπεται το αίτημα λόγω πρόσφατων περιορισμών ρυθμού (rate limit)");
-  }
+  let lastError: any;
   
-  // Κλείδωμα αυτού του endpoint για να αποφύγουμε παράλληλα αιτήματα
-  const info = retryRegistry.get(endpoint) || { 
-    lastAttempt: 0, 
-    attempts: 0, 
-    inProgress: false,
-    lastNotification: 0
-  };
-  
-  if (info.inProgress) {
-    console.warn(`Request to ${endpoint} already in progress, skipping duplicate`);
-    throw new Error("Παράλληλο αίτημα παραλείπεται");
-  }
-  
-  info.inProgress = true;
-  retryRegistry.set(endpoint, info);
-  
-  let delay = config.initialDelay;
-  let attempt = 0;
-  
-  try {
-    while (true) {
-      try {
-        const result = await fn();
-        recordSuccessfulAttempt(endpoint);
-        return result;
-      } catch (error) {
-        attempt++;
-        const isRateLimitDetected = isRateLimitError(error);
-        
-        // Αν δεν είναι σφάλμα rate limit ή έχουμε υπερβεί τις προσπάθειες, προωθούμε το σφάλμα
-        if (!isRateLimitDetected || attempt >= config.maxRetries) {
-          if (isRateLimitDetected) {
-            const updatedInfo = recordFailedAttempt(endpoint);
-            console.warn(`Rate limit persists after ${attempt} attempts. Giving up.`);
-            
-            // Εμφανίζουμε ένα μήνυμα σφάλματος για το rate limit
-            showRateLimitNotification(endpoint, 'error');
-            
-            // Εναλλαγή κλειδιών Helius αν χρειάζεται
-            if (shouldRotateHeliusKey(endpoint) && heliusKeyManager.getKeyCount() > 1) {
-              const newKey = heliusKeyManager.rotateKey();
-              console.log(`Rotating Helius API key due to rate limits`);
-            }
-          }
-          throw error;
-        }
-        
-        recordFailedAttempt(endpoint);
-        console.log(`Rate limit hit. Retrying in ${delay}ms (attempt ${attempt}/${config.maxRetries})`);
-        
-        // Εμφανίζουμε μήνυμα toast μόνο στην πρώτη προσπάθεια επανάληψης
-        if (attempt === 1) {
-          showRateLimitNotification(endpoint, 'info');
-          
-          // Εναλλαγή κλειδιών Helius αν χρειάζεται
-          if (shouldRotateHeliusKey(endpoint)) {
-            const newKey = heliusKeyManager.rotateKey();
-            console.log(`Rotating Helius API key for retry`);
-          }
-        }
-        
-        // Αναμονή πριν την επόμενη προσπάθεια
-        await new Promise(resolve => setTimeout(resolve, delay));
-        
-        // Αύξηση καθυστέρησης για την επόμενη προσπάθεια (εκθετική αύξηση)
-        delay = Math.min(delay * config.backoffFactor, config.maxDelay);
+  // Try the initial request plus retries
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      // Attempt the API call
+      return await asyncFn();
+    } catch (error) {
+      lastError = error;
+      
+      // If not a rate limit error, throw immediately
+      if (!isRateLimitError(error)) {
+        throw error;
       }
-    }
-  } finally {
-    // Βεβαιωνόμαστε ότι απελευθερώνουμε το κλείδωμα
-    const currentInfo = retryRegistry.get(endpoint);
-    if (currentInfo) {
-      currentInfo.inProgress = false;
-      retryRegistry.set(endpoint, currentInfo);
+      
+      // Last retry failed, show warning and throw
+      if (attempt === maxRetries) {
+        // Only show the warning once per endpoint every 30 seconds
+        const now = Date.now();
+        const warningRecord = rateLimitWarningTimers[endpointId] || { lastShown: 0, count: 0 };
+        
+        if (now - warningRecord.lastShown > 30000) {
+          if (!silent) {
+            toast.warning(
+              `Το API έχει φτάσει το όριο αιτημάτων. Δοκιμάστε αργότερα.`,
+              { id: `${RATE_LIMIT_TOAST_ID}-${endpointId}`, duration: 5000 }
+            );
+          }
+          
+          rateLimitWarningTimers[endpointId] = {
+            lastShown: now,
+            count: warningRecord.count + 1
+          };
+        } else {
+          // Increment count without showing toast
+          rateLimitWarningTimers[endpointId] = {
+            lastShown: warningRecord.lastShown,
+            count: warningRecord.count + 1
+          };
+        }
+        
+        console.log(`Rate limit exceeded for ${endpointId} (${warningRecord.count + 1} times in the last 30 seconds)`);
+        throw error;
+      }
+      
+      // Wait before retry with increasing backoff
+      const delay = RATE_LIMIT_RETRY_DELAYS[attempt];
+      console.log(`Rate limit hit for ${endpointId}. Retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
-}
-
-/**
- * Χειρισμός σφαλμάτων rate limit με φιλικό UI
- */
-export function handleRateLimitError(error: unknown, fallbackValue: any = null): any {
-  if (isRateLimitError(error)) {
-    console.warn('Rate limit error handled:', error);
-    
-    // Χρησιμοποιούμε ένα μοναδικό ID για το toast ώστε να μην εμφανίζονται πολλά
-    toast.error('Solana API rate limit exceeded', {
-      description: 'Please try again in a moment.',
-      position: 'top-center',
-      duration: 5000,
-      id: 'global-rate-limit'
-    });
-    
-    return fallbackValue;
-  }
-  throw error;
+  
+  // This should never be reached due to the loop's exit condition
+  throw lastError;
 }

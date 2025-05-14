@@ -4,8 +4,13 @@ import { API_HEADERS, API_TIMEOUT } from './apiConfig';
 import { heliusKeyManager } from './HeliusKeyManager';
 import { withRateLimitRetry, isRateLimitError } from '@/utils/error-handling/rateLimitHandler';
 import { toast } from 'sonner';
+import { errorCollector } from '@/utils/error-handling/collector';
 
 export class HeliusService {
+  // Special endpoints to use
+  private static API_V0_ENDPOINT = 'https://api.helius.xyz/v0';
+  private static ECLIPSE_ENDPOINT = 'https://eclipse.helius-rpc.com/';
+  
   // Initialize the key manager when the service is first used
   static async initialize(): Promise<void> {
     await heliusKeyManager.initialize();
@@ -26,6 +31,13 @@ export class HeliusService {
     return `${baseUrl}${path}${separator}api-key=${apiKey}`;
   }
 
+  // Get V0 API endpoint (alternative API format)
+  static getV0Endpoint(path: string): string {
+    const apiKey = this.getApiKey();
+    const separator = path.includes('?') ? '&' : '?';
+    return `${this.API_V0_ENDPOINT}${path}${separator}api-key=${apiKey}`;
+  }
+
   static getRpcEndpoint(): string {
     return `https://mainnet.helius-rpc.com/?api-key=${this.getApiKey()}`;
   }
@@ -35,15 +47,55 @@ export class HeliusService {
   }
 
   static getEclipseEndpoint(): string {
-    return 'https://eclipse.helius-rpc.com/';
+    return this.ECLIPSE_ENDPOINT;
   }
 
   // Endpoints για συγκεκριμένες λειτουργίες
   static endpoints = {
+    // V0 API endpoints (alternative format)
+    v0: {
+      getTransactions: () => this.getV0Endpoint('/transactions'),
+      getAddressTransactions: (address: string) => this.getV0Endpoint(`/addresses/${address}/transactions`)
+    },
+    // Legacy API endpoints
     getTransactions: () => this.getEndpoint('/transactions/'),
     getAddressTransactions: (address: string) => this.getEndpoint(`/addresses/${address}/transactions/`),
     getTransactionsBySignatures: () => this.getEndpoint('/transactions/')
   };
+
+  // Try multiple endpoints for the same data to maximize success rate
+  private static async tryMultipleEndpoints<T>(
+    primaryFn: () => Promise<T>,
+    backupFn: () => Promise<T>,
+    options: { endpoint: string }
+  ): Promise<T> {
+    try {
+      // First try with the primary endpoint
+      return await withRateLimitRetry(primaryFn, options);
+    } catch (error) {
+      // Log the error from primary endpoint
+      console.warn(`Primary endpoint failed for ${options.endpoint}:`, error);
+      
+      // Only try backup if primary failed due to rate limit
+      if (isRateLimitError(error)) {
+        console.log(`Trying backup endpoint for ${options.endpoint}`);
+        try {
+          return await backupFn();
+        } catch (backupError) {
+          console.error(`Backup endpoint also failed for ${options.endpoint}:`, backupError);
+          errorCollector.captureError(backupError, {
+            component: 'HeliusService',
+            method: options.endpoint,
+            details: 'Backup endpoint failed'
+          });
+          throw backupError;
+        }
+      }
+      
+      // For non-rate limit errors, just throw the original error
+      throw error;
+    }
+  }
 
   // Βοηθητική μέθοδος για κλήσεις Fetch με αυτόματη εναλλαγή κλειδιών σε περίπτωση rate limit
   static async fetchFromHelius(endpoint: string, options = {}): Promise<any> {
@@ -96,20 +148,35 @@ export class HeliusService {
     }
   }
 
-  // Παράδειγμα μεθόδου για λήψη των συναλλαγών διεύθυνσης
+  // Παράδειγμα μεθόδου για λήψη των συναλλαγών διεύθυνσης με πολλαπλές προσπάθειες
   static async getAddressTransactions(address: string, limit = 10): Promise<any> {
-    const endpoint = this.endpoints.getAddressTransactions(address) + `&limit=${limit}`;
-    return this.fetchFromHelius(endpoint);
+    return this.tryMultipleEndpoints(
+      // Primary endpoint - standard API
+      () => this.fetchFromHelius(this.endpoints.getAddressTransactions(address) + `&limit=${limit}`),
+      // Backup endpoint - V0 API (alternative format)
+      () => this.fetchFromHelius(this.endpoints.v0.getAddressTransactions(address) + `&limit=${limit}`),
+      { endpoint: `address-transactions-${address.substring(0, 8)}` }
+    );
   }
 
-  // Μέθοδος για λήψη συναλλαγής από signature
+  // Μέθοδος για λήψη συναλλαγής από signature με πολλαπλές προσπάθειες
   static async getTransaction(signature: string): Promise<any> {
-    const endpoint = this.endpoints.getTransactions() + `&signatures[]=${signature}`;
-    return this.fetchFromHelius(endpoint);
+    return this.tryMultipleEndpoints(
+      // Primary endpoint - standard API
+      () => this.fetchFromHelius(this.endpoints.getTransactions() + `&signatures[]=${signature}`),
+      // Backup endpoint - V0 API
+      () => this.fetchFromHelius(this.endpoints.v0.getTransactions() + `&signatures[]=${signature}`),
+      { endpoint: `transaction-${signature.substring(0, 8)}` }
+    );
   }
 }
 
 // Initialize the key manager when the service is imported
 HeliusService.initialize().catch(err => {
   console.error("Failed to initialize HeliusService:", err);
+  errorCollector.captureError(err, {
+    component: 'HeliusService',
+    method: 'initialize',
+    details: 'Failed during service import'
+  });
 });

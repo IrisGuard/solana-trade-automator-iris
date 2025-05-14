@@ -1,6 +1,6 @@
 
 import { getParsedTokenAccounts } from './tokenAccounts';
-import { getTokenPrice } from '../price';
+import { fetchTokenPrice } from '../price';
 import { Token } from '@/types/wallet';
 import { isRateLimitError } from '@/utils/error-handling/rateLimitHandler';
 import { toast } from 'sonner';
@@ -70,5 +70,5 @@ export async function fetchAllTokenBalances(walletAddress: string): Promise<Toke
 
 export const tokenService = {
   getTokenAccounts: fetchAllTokenBalances,
-  getTokenPrice
+  getTokenPrice: fetchTokenPrice
 };
