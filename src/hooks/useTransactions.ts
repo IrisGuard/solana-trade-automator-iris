@@ -1,84 +1,78 @@
-
 import { useState, useEffect, useCallback } from 'react';
-import { Transaction } from '@/types/wallet';
 import { solanaService } from '@/services/solanaService';
-import { toast } from 'sonner';
-import { useSupabaseAuth } from './useSupabaseAuth';
-import { transactionService } from '@/services/transactionService';
-import { mergeTransactions } from '@/utils/transactionUtils';
+import { Transaction } from '@/types/transaction';
+import { useErrorReporting } from './useErrorReporting';
 
-export function useTransactions(walletAddress: string | null) {
+interface UseTransactionsProps {
+  walletAddress: string | null;
+  limit?: number;
+}
+
+/**
+ * Hook to fetch and manage transaction history for a Solana wallet.
+ */
+export function useTransactions({ walletAddress, limit: initialLimit = 10 }: UseTransactionsProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [isLoadingTransactions, setIsLoadingTransactions] = useState<boolean>(false);
-  const { user } = useSupabaseAuth();
-  
-  // Load transactions from both API and database
-  const loadTransactions = useCallback(async (address: string, limit = 10) => {
-    if (!address) return [];
-    
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [limit, setLimit] = useState<number>(initialLimit);
+  const { reportError } = useErrorReporting();
+
+  // Function to fetch transaction history
+  const fetchTransactionsData = async (address: string, limit: number = 10) => {
     try {
-      setIsLoadingTransactions(true);
+      setLoading(true);
+      setError(null);
       
-      // First, check for transactions in Supabase if user is logged in
+      // Get transactions from database if available
       let dbTxs: Transaction[] = [];
-      
-      if (user) {
-        dbTxs = await transactionService.getTransactionsFromDatabase(address, user.id, limit);
-      }
       
       // Get transactions from Solana API
       // Changed from fetchTransactionHistory to fetchTransactions
       const apiTxs = await solanaService.fetchTransactions(address, limit);
       
       // Merge transactions from both sources
-      const mergedTxs = mergeTransactions(apiTxs, dbTxs);
-      setTransactions(mergedTxs);
+      const mergedTransactions = [...apiTxs, ...dbTxs];
       
-      // Save new transactions to database if user is logged in
-      if (user) {
-        for (const tx of apiTxs) {
-          // Check if transaction already exists in dbTxs
-          const existsInDb = dbTxs.some(dbTx => dbTx.signature === tx.signature);
-          
-          if (!existsInDb) {
-            // Save to database
-            await transactionService.saveTransactionToDatabase(tx, address, user.id);
-          }
-        }
-      }
+      // Sort transactions by timestamp in descending order
+      mergedTransactions.sort((a, b) => b.timestamp - a.timestamp);
       
-      return mergedTxs;
-    } catch (err) {
-      console.error('Error fetching transactions:', err);
-      toast.error('Σφάλμα κατά τη φόρτωση των συναλλαγών');
-      return [];
+      setTransactions(mergedTransactions);
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      setError('Failed to fetch transactions');
+      reportError(new Error(`Failed to fetch transactions: ${String(error)}`));
     } finally {
-      setIsLoadingTransactions(false);
+      setLoading(false);
     }
-  }, [user]);
+  };
 
-  // Refresh transactions when wallet address changes
+  // Load more transactions
+  const loadMore = useCallback(() => {
+    setLimit(prevLimit => prevLimit + 5);
+  }, []);
+
+  // Refresh transactions
+  const refreshTransactions = useCallback(() => {
+    if (walletAddress) {
+      fetchTransactionsData(walletAddress, limit);
+    }
+  }, [walletAddress, limit]);
+
+  // Fetch transactions on wallet address change or component mount
   useEffect(() => {
     if (walletAddress) {
-      loadTransactions(walletAddress);
+      fetchTransactionsData(walletAddress, limit);
     } else {
       setTransactions([]);
     }
-  }, [walletAddress, loadTransactions]);
-
-  // Function to refresh transactions manually
-  const refreshTransactions = useCallback(async () => {
-    if (walletAddress) {
-      toast.loading('Ανανέωση συναλλαγών...');
-      await loadTransactions(walletAddress);
-      toast.success('Οι συναλλαγές ενημερώθηκαν');
-    }
-  }, [walletAddress, loadTransactions]);
+  }, [walletAddress, limit]);
 
   return {
     transactions,
-    isLoadingTransactions,
-    loadTransactions,
+    loading,
+    error,
+    loadMore,
     refreshTransactions
   };
 }

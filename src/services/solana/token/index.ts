@@ -22,8 +22,8 @@ export const tokenService = {
   // Add getTokenBalance method that was missing
   getTokenBalance: async (address: string, tokenAddress: string): Promise<number> => {
     try {
-      const tokenData = await fetchTokenBalance(address, tokenAddress);
-      return tokenData.amount || 0;
+      const tokenData = await fetchTokenBalance(tokenAddress, address);
+      return tokenData || 0;
     } catch (error) {
       console.error("Error fetching token balance:", error);
       return 0;
