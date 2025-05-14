@@ -12,6 +12,8 @@ import { SupabaseApiKeysList } from "@/components/security/SupabaseApiKeysList";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Key, Loader2 } from "lucide-react";
 import { heliusKeyManager } from "@/services/solana/HeliusKeyManager";
+import { ApiKeyCheckButton } from "@/components/security/ApiKeyCheckButton";
+import { HeliusSyncButton } from "@/components/HeliusSyncButton";
 
 export default function ApiVault() {
   const [keyCount, setKeyCount] = useState(0);
@@ -57,6 +59,7 @@ export default function ApiVault() {
           </p>
         </div>
         <div className="flex gap-2">
+          <ApiKeyCheckButton />
           <Button 
             variant="outline"
             onClick={handleRefreshKeys}

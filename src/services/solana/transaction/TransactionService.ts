@@ -1,16 +1,16 @@
 
 import { Connection } from "@solana/web3.js";
-import { Transaction } from "@/types/transaction";
+import type { Transaction } from "@/types/transaction";
 import { parseTransactions } from "./parseTransaction";
 
 export class TransactionService {
   /**
-   * Get transactions for a wallet address
+   * Λήψη συναλλαγών για μια διεύθυνση πορτοφολιού
    */
   static async getTransactions(address: string): Promise<Transaction[]> {
     try {
-      // Simplified implementation for now
-      // In a real app, you would fetch real transactions from the blockchain
+      // Απλοποιημένη υλοποίηση προς το παρόν
+      // Σε μια πραγματική εφαρμογή, θα φέρναμε πραγματικές συναλλαγές από το blockchain
       const mockTransactions = [
         { 
           id: "tx1",
@@ -20,8 +20,8 @@ export class TransactionService {
           status: "success",
           amount: "1.5",
           type: "transfer",
-          source: address,
-          destination: "destination1"
+          // Αντικατάσταση των source/destination με συμβατά πεδία
+          wallet_address: address,
         },
         { 
           id: "tx2",
@@ -31,10 +31,9 @@ export class TransactionService {
           status: "success",
           amount: "0.5",
           type: "swap",
-          source: "source2",
-          destination: address
+          wallet_address: address,
         }
-      ] as Transaction[];
+      ] as unknown as Transaction[];
 
       return mockTransactions;
     } catch (error) {
