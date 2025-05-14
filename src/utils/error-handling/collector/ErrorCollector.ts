@@ -63,5 +63,13 @@ export class ErrorCollector {
     console.log(`Reporting ${this.errors.length} collected errors`);
     
     // Εδώ θα μπορούσαμε να προσθέσουμε κώδικα για αποστολή σφαλμάτων σε κάποιο σύστημα παρακολούθησης
+    // For compatibility with previous code that might call sendCollectedErrors
+  }
+  
+  /**
+   * Alias for reportErrors for backward compatibility
+   */
+  public sendCollectedErrors(): void {
+    this.reportErrors();
   }
 }

@@ -1,3 +1,4 @@
+
 /**
  * Βοηθητικές συναρτήσεις για δοκιμή των σφαλμάτων και του συστήματος καταγραφής
  */
@@ -76,7 +77,7 @@ export function generateVariousErrors() {
   // Πίνακας με τα σφάλματα που θα δημιουργηθούν
   const errors = [
     new Error('Δοκιμαστικό σφάλμα 1: Απλό σφάλμα'),
-    'Δοκιμαστικό σφάλμα 2: Σφάλμα ως string χωρίς stack trace',
+    new Error('Δοκιμαστικό σφάλμα 2: Σφάλμα ως string χωρίς stack trace'),
     new Error('Δοκιμαστικό σφάλμα 3: Προσομοίωση σφάλματος Supabase'),
     new Error('Δοκιμαστικό σφάλμα 4: Προσομοίωση σφάλματος δικτύου')
   ];
@@ -90,7 +91,8 @@ export function generateVariousErrors() {
   
   // Αποστολή μετά από 3 δευτερόλεπτα όλων των σφαλμάτων αν δεν έχουν σταλεί ακόμα
   setTimeout(() => {
-    errorCollector.sendCollectedErrors();
+    // Using reportErrors instead of sendCollectedErrors which doesn't exist
+    errorCollector.reportErrors();
   }, 3000);
 }
 
