@@ -66,15 +66,15 @@ export function useBotActions() {
     // This is a simplified strategy - in reality this would be more complex
     const { buyThreshold, sellThreshold } = config;
     
-    if (priceInfo.priceChange24h <= -buyThreshold) {
+    if (priceInfo.priceChange24h <= -(buyThreshold || 0)) {
       // Price dropped below threshold - buy opportunity
-      const success = await executeBuy(token, config.amount, priceInfo.price);
+      const success = await executeBuy(token, config.amount || 0, priceInfo.price);
       if (success) {
         return 'BUY';
       }
-    } else if (priceInfo.priceChange24h >= sellThreshold) {
+    } else if (priceInfo.priceChange24h >= (sellThreshold || 0)) {
       // Price rose above threshold - sell opportunity
-      const success = await executeSell(token, config.amount, priceInfo.price);
+      const success = await executeSell(token, config.amount || 0, priceInfo.price);
       if (success) {
         return 'SELL';
       }

@@ -24,6 +24,9 @@ export function EnhancedTradingBotTab() {
     tokens
   } = useTradingBot();
 
+  // Convert 'error' status to 'idle' to match the expected types in EnhancedStatusPanel
+  const displayBotStatus = botStatus === 'error' ? 'idle' : botStatus;
+
   return (
     <TabsContent value="trading-bot">
       {!connected ? (
@@ -45,14 +48,14 @@ export function EnhancedTradingBotTab() {
                 selectedTokenDetails={selectedTokenDetails}
                 tokens={tokens}
                 isLoading={isLoading}
-                botStatus={botStatus === 'error' ? 'idle' : botStatus}
+                botStatus={displayBotStatus}
                 startBot={startBot}
                 stopBot={stopBot}
               />
             </div>
             
             <EnhancedStatusPanel 
-              botStatus={botStatus === 'error' ? 'idle' : botStatus}
+              botStatus={displayBotStatus}
               selectedTokenDetails={selectedTokenDetails}
               selectedTokenPrice={selectedTokenPrice}
               activeOrders={activeOrders}
