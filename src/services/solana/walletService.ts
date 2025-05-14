@@ -1,76 +1,46 @@
-
-import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
+import { useSolana } from '@providers/SolanaWalletProvider';
+import { useEffect, useState } from 'react';
 import { logError } from '@/utils/errorUtils';
 
-/**
- * Service for wallet-related operations
- */
-export const walletService = {
-  /**
-   * Check if a Solana address is valid
-   */
-  isValidSolanaAddress(address: string): boolean {
+interface WalletService {
+  publicKey: PublicKey | null;
+  isConnected: boolean;
+  connect: () => Promise<void>;
+  disconnect: () => Promise<void>;
+}
+
+export const useWalletService = (): WalletService => {
+  const { publicKey, connect, disconnect } = useSolana();
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    setIsConnected(!!publicKey);
+  }, [publicKey]);
+
+  const handleConnect = async () => {
     try {
-      new PublicKey(address);
-      return true;
-    } catch {
-      return false;
+      await connect();
+      setIsConnected(true);
+    } catch (error: any) {
+      logError(error, 'useWalletService', 'Error connecting wallet');
+      setIsConnected(false);
     }
-  },
-  
-  /**
-   * Get SOL balance for an address
-   */
-  async getSolBalance(connection: Connection, address: string): Promise<number> {
+  };
+
+  const handleDisconnect = async () => {
     try {
-      if (!this.isValidSolanaAddress(address)) {
-        throw new Error('Invalid Solana address');
-      }
-      
-      const publicKey = new PublicKey(address);
-      const balance = await connection.getBalance(publicKey);
-      return balance / LAMPORTS_PER_SOL;
-    } catch (error) {
-      logError('Failed to get SOL balance', 'walletService', { address });
-      throw error;
+      await disconnect();
+      setIsConnected(false);
+    } catch (error: any) {
+      logError(error, 'useWalletService', 'Error disconnecting wallet');
     }
-  },
-  
-  /**
-   * Get account info for a Solana address
-   */
-  async getAccountInfo(connection: Connection, address: string) {
-    try {
-      if (!this.isValidSolanaAddress(address)) {
-        throw new Error('Invalid Solana address');
-      }
-      
-      const publicKey = new PublicKey(address);
-      const accountInfo = await connection.getAccountInfo(publicKey);
-      return accountInfo;
-    } catch (error) {
-      logError('Failed to get account info', 'walletService', { address });
-      throw error;
-    }
-  },
-  
-  /**
-   * Request an airdrop to an address (devnet only)
-   */
-  async requestAirdrop(connection: Connection, address: string, amount = 1): Promise<string> {
-    try {
-      if (!this.isValidSolanaAddress(address)) {
-        throw new Error('Invalid Solana address');
-      }
-      
-      const publicKey = new PublicKey(address);
-      const signature = await connection.requestAirdrop(publicKey, amount * LAMPORTS_PER_SOL);
-      
-      await connection.confirmTransaction(signature);
-      return signature;
-    } catch (error) {
-      logError('Failed to request airdrop', 'walletService', { address, error: String(error) });
-      throw error;
-    }
-  }
+  };
+
+  return {
+    publicKey,
+    isConnected,
+    connect: handleConnect,
+    disconnect: handleDisconnect,
+  };
 };

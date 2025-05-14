@@ -85,3 +85,6 @@ export async function reportErrorToSupabase(error: Error | string, options: Erro
     console.error("Error reporting to Supabase:", err);
   }
 }
+
+// Εξάγουμε τον τύπο ErrorDisplayOptions για να τον κάνουμε διαθέσιμο σε άλλα αρχεία
+export type { ErrorDisplayOptions } from './types';

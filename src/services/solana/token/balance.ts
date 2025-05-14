@@ -1,67 +1,41 @@
-
-import { Connection, PublicKey } from '@solana/web3.js';
+import { clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { logError } from '@/utils/errorUtils';
 
 /**
- * Get SPL token balance for a wallet
- * @param connection Solana connection
- * @param walletAddress Wallet address
- * @param tokenAddress SPL token address
- * @returns Token balance as number
+ * Fetches the balance of a specific token for a given wallet address.
+ *
+ * @param walletAddress The public key of the wallet to fetch the balance for.
+ * @param tokenMintAddress The mint address of the token to fetch the balance for.
+ * @returns The balance of the token for the wallet, or null if an error occurs.
  */
-export async function getTokenBalance(
-  connection: Connection, 
-  walletAddress: string, 
-  tokenAddress: string
-): Promise<number> {
+export async function getTokenBalance(walletAddress: string, tokenMintAddress: string): Promise<number | null> {
   try {
+    // Setup connection and public keys
+    const connection = new Connection(clusterApiUrl('mainnet-beta'));
     const walletPublicKey = new PublicKey(walletAddress);
-    const tokenPublicKey = new PublicKey(tokenAddress);
-    
-    // Find associated token account
-    const tokenAccounts = await connection.getTokenAccountsByOwner(
-      walletPublicKey,
-      { mint: tokenPublicKey }
-    );
-    
-    if (tokenAccounts.value.length === 0) {
-      return 0; // No token account found
-    }
-    
-    // Get the token account info
-    const accountInfo = tokenAccounts.value[0].account;
-    const data = Buffer.from(accountInfo.data);
-    
-    // Extract the balance (64-bit integer at offset 64)
-    const balance = data.readBigUInt64LE(64);
-    
-    return Number(balance);
-  } catch (error) {
-    logError(`Failed to get token balance for ${tokenAddress}`, 'tokenBalance', error);
-    throw error;
-  }
-}
+    const tokenMintPublicKey = new PublicKey(tokenMintAddress);
 
-/**
- * Get SOL balance for a wallet
- * @param connection Solana connection
- * @param walletAddress Wallet address
- * @returns SOL balance as number
- */
-export async function getSolBalance(
-  connection: Connection,
-  walletAddress: string
-): Promise<number> {
-  try {
-    const walletPublicKey = new PublicKey(walletAddress);
-    const balance = await connection.getBalance(walletPublicKey);
-    return balance / 1_000_000_000; // Convert lamports to SOL
-  } catch (error) {
-    logError('Failed to get SOL balance', 'solBalance', { 
-      walletAddress, 
-      tokenAddress: 'SOL' 
+    // Fetch token accounts associated with the wallet
+    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(walletPublicKey, {
+      programId: TOKEN_PROGRAM_ID,
     });
-    throw error;
+
+    // Find the specific token account matching the tokenMintAddress
+    const targetTokenAccount = tokenAccounts.value.find(
+      (account) => account.account.data.parsed.info.mint === tokenMintPublicKey.toBase58()
+    );
+
+    // If the token account is not found, return 0
+    if (!targetTokenAccount) {
+      return 0;
+    }
+
+    // Extract and return the balance
+    const balance = targetTokenAccount.account.data.parsed.info.tokenAmount.uiAmount;
+    return balance !== undefined ? balance : 0;
+  } catch (error: any) {
+    logError(error, 'getTokenBalance', { walletAddress, tokenMintAddress });
+    return null;
   }
 }

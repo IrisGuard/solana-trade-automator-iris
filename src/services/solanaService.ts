@@ -1,91 +1,53 @@
-
-import { Connection, clusterApiUrl } from '@solana/web3.js';
-import { walletService } from './solana/walletService';
-import { tokenService } from './solana/token';
-import { Transaction } from '@/types/transaction';
-import { TransactionService } from './solana/transaction/TransactionService';
-import { parseTransactions } from './solana/transaction/parseTransaction';
+import { clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
+import { Program, AnchorProvider, web3 } from '@project-serum/anchor';
+import { IDL } from './idl';
 import { logError } from '@/utils/errorUtils';
 
-// Create a default connection to the Solana network
-const connection = new Connection(clusterApiUrl('mainnet-beta'), 'confirmed');
+const programIdl = IDL;
+const programId = new PublicKey(IDL.metadata.address);
 
-/**
- * Unified service to interact with Solana blockchain
- */
-export const solanaService = {
-  /**
-   * Get SOL balance for an address
-   */
-  async getSolBalance(address: string): Promise<number> {
-    try {
-      return await walletService.getSolBalance(connection, address);
-    } catch (error) {
-      logError('Error fetching SOL balance', 'solanaService'); 
-      return 0;
+const network = clusterApiUrl('devnet');
+
+const opts = {
+  preflightCommitment: 'processed',
+};
+
+export const getProvider = () => {
+  const connection = new Connection(network, opts.preflightCommitment);
+  const provider = new AnchorProvider(
+    connection,
+    window.solana,
+    opts.preflightCommitment,
+  );
+  return provider;
+};
+
+export const useAnchor = () => {
+  try {
+    const provider = getProvider();
+    const program = new Program(programIdl, programId, provider);
+    return program;
+  } catch (error) {
+    logError(error, 'useAnchor');
+  }
+};
+
+export const getCandyMachineState = async (
+  candyMachineAddress: PublicKey,
+  connection: Connection,
+) => {
+  try {
+    const candyMachineAccount = await connection.getAccountInfo(
+      candyMachineAddress,
+    );
+    if (candyMachineAccount) {
+      const candyMachineState = await useAnchor().coder.accounts.decode(
+        'CandyMachine',
+        candyMachineAccount.data,
+      );
+      return candyMachineState;
     }
-  },
-  
-  /**
-   * Send SOL to another address
-   */
-  async sendSol(from: string, to: string, amount: number): Promise<string> {
-    try {
-      // Implementation would go here
-      // This is just a stub for now
-      return 'transaction-signature-placeholder';
-    } catch (error) {
-      logError('Error sending SOL', 'solanaService'); 
-      throw error;
-    }
-  },
-  
-  /**
-   * Fetch all transactions for a wallet
-   */
-  async fetchTransactions(address: string, limit = 10): Promise<Transaction[]> {
-    try {
-      return await TransactionService.getTransactions(address);
-    } catch (error) {
-      logError('Error fetching transactions', 'solanaService');
-      return [];
-    }
-  },
-  
-  /**
-   * Fetch token balances for a wallet
-   */
-  async fetchAllTokenBalances(address: string) {
-    try {
-      // Implement token fetching logic here
-      return [];
-    } catch (error) {
-      logError('Error fetching token balances', 'solanaService');
-      return [];
-    }
-  },
-  
-  /**
-   * Fetch price data for a token
-   */
-  async fetchTokenPrices(tokenAddress: string) {
-    try {
-      // Placeholder token price logic 
-      // In a real app you'd call CoinGecko, Pyth, or another price oracle
-      return {
-        price: Math.random() * 100, 
-        priceChange24h: (Math.random() * 20) - 10
-      };
-    } catch (error) {
-      logError('Error fetching token prices', 'solanaService');
-      return { price: 0, priceChange24h: 0 };
-    }
-  },
-  
-  /**
-   * Check if a Solana address is valid
-   */
-  isValidSolanaAddress(address: string): boolean {
-    return walletService.isValidSolanaAddress(address);
+  } catch (error) {
+    logError(error, 'getCandyMachineState');
   }
 };
