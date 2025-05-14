@@ -29,9 +29,23 @@ export const dbClient = {
         }),
         data: [],
         error: null
-      })
+      }),
+      order: (column: string, { ascending }: { ascending: boolean }) => ({
+        data: [],
+        error: null
+      }),
+      match: (criteria: any) => ({
+        data: [],
+        error: null
+      }),
+      data: [],
+      error: null
     }),
     insert: (data: any) => ({
+      select: () => ({
+        data: null,
+        error: null
+      }),
       data: null,
       error: null
     }),
@@ -39,13 +53,25 @@ export const dbClient = {
       eq: (column: string, value: any) => ({
         data: null,
         error: null
-      })
+      }),
+      match: (criteria: any) => ({
+        data: null,
+        error: null
+      }),
+      data: null,
+      error: null
     }),
     delete: () => ({
       eq: (column: string, value: any) => ({
         data: null,
         error: null
-      })
+      }),
+      match: (criteria: any) => ({
+        data: null,
+        error: null
+      }),
+      data: null,
+      error: null
     })
   })
 };
@@ -61,12 +87,26 @@ export const supabase = {
   },
   auth: {
     getUser: () => Promise.resolve({ data: { user: null }, error: null }),
-    signIn: () => Promise.resolve({ error: null }),
+    getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+    signIn: () => Promise.resolve({ data: { user: null }, error: null }),
     signInWithPassword: ({ email, password }: { email: string; password: string }) => 
-      Promise.resolve({ data: { user: null }, error: null }),
+      Promise.resolve({ data: { user: null, session: null }, error: null }),
     signUp: ({ email, password }: { email: string; password: string }) =>
-      Promise.resolve({ data: { user: null }, error: null }),
-    signOut: () => Promise.resolve({ error: null })
+      Promise.resolve({ data: { user: null, session: null }, error: null }),
+    signOut: () => Promise.resolve({ error: null }),
+    // Adding the missing onAuthStateChange method
+    onAuthStateChange: (callback: (event: string, session: any) => void) => {
+      console.log('Mock onAuthStateChange registered');
+      return {
+        data: { 
+          subscription: {
+            unsubscribe: () => {
+              console.log('Mock unsubscribe from auth state change');
+            }
+          } 
+        }
+      };
+    }
   },
   from: (table: string) => ({
     select: (columns = '*') => ({
@@ -85,9 +125,23 @@ export const supabase = {
         }),
         data: [],
         error: null
-      })
+      }),
+      order: (column: string, { ascending }: { ascending: boolean }) => ({
+        data: [],
+        error: null
+      }),
+      match: (criteria: any) => ({
+        data: [],
+        error: null
+      }),
+      data: [],
+      error: null
     }),
     insert: (data: any) => ({
+      select: () => ({
+        data: null,
+        error: null
+      }),
       data: null,
       error: null
     }),
@@ -95,13 +149,25 @@ export const supabase = {
       eq: (column: string, value: any) => ({
         data: null,
         error: null
-      })
+      }),
+      match: (criteria: any) => ({
+        data: null,
+        error: null
+      }),
+      data: null,
+      error: null
     }),
     delete: () => ({
       eq: (column: string, value: any) => ({
         data: null,
         error: null
-      })
+      }),
+      match: (criteria: any) => ({
+        data: null,
+        error: null
+      }),
+      data: null,
+      error: null
     })
   })
 };

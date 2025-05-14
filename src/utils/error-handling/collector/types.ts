@@ -4,24 +4,43 @@ export interface ErrorData {
   message: string;
   stack?: string;
   component?: string;
-  details?: string | Record<string, any>;
   source?: string;
+  timestamp: string;
   url?: string;
   browserInfo?: Record<string, any>;
-  timestamp: string | number;
+  resolved?: boolean;
+  errorType?: string;
+  code?: string;
 }
 
-// Import the ErrorOptions from the central types file
-export type { ErrorOptions } from '../types';
-
-export type ErrorDisplayOptions = {
-  toastDuration?: number;
+export interface ErrorOptions {
   component?: string;
-  details?: Record<string, any>;
   source?: string;
+  url?: string;
+  errorType?: string;
+  title?: string; // Adding missing property
+  browserInfo?: Record<string, any>;
+}
+
+export interface TestErrorOptions {
+  simulateDelay?: number;
+  errorType?: string; // Adding missing property
+}
+
+export interface ErrorDisplayOptions {
   showToast?: boolean;
   logToConsole?: boolean;
   sendToChat?: boolean;
   useCollector?: boolean;
-  title?: string;
-};
+  notifyUser?: boolean;
+  title?: string; // Adding missing property
+}
+
+export interface ErrorCollector {
+  addError: (errorData: ErrorData) => string;
+  getErrors: () => ErrorData[];
+  getAllErrors: () => ErrorData[]; // Add missing method
+  clearErrors: () => void;
+  clearAllErrors: () => void; // Add missing method
+  captureError: (error: Error, options?: ErrorOptions) => string; // Add missing method
+}

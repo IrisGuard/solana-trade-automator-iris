@@ -67,32 +67,44 @@ export function useSupabaseAuth(): AuthContextType {
     // Αρχική φόρτωση του session
     fetchInitialSession();
 
-    // Εγγραφή στις αλλαγές του session
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
-        if (mounted) {
-          setSession(newSession);
-          setUser(newSession?.user || null);
-          
-          // Ανανέωση προφίλ κατά τη σύνδεση ή αλλαγή χρήστη
-          if (newSession?.user) {
-            try {
-              const userProfile = await profileService.getProfile(newSession.user.id);
-              setProfile(userProfile);
-            } catch (profileError) {
-              console.error('Error fetching profile:', profileError);
+    // Handle the auth state change with our mock implementation
+    try {
+      // Use the mock onAuthStateChange function
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, newSession) => {
+          console.log('Auth state changed:', event, newSession);
+          if (mounted) {
+            setSession(newSession);
+            setUser(newSession?.user || null);
+            
+            // Ανανέωση προφίλ κατά τη σύνδεση ή αλλαγή χρήστη
+            if (newSession?.user) {
+              try {
+                const userProfile = await profileService.getProfile(newSession.user.id);
+                setProfile(userProfile);
+              } catch (profileError) {
+                console.error('Error fetching profile:', profileError);
+              }
+            } else {
+              setProfile(null);
             }
-          } else {
-            setProfile(null);
           }
         }
-      }
-    );
+      );
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+      // Cleanup function
+      return () => {
+        mounted = false;
+        if (subscription?.unsubscribe) {
+          subscription.unsubscribe();
+        }
+      };
+    } catch (error) {
+      console.error('Error setting up auth state change listener:', error);
+      return () => {
+        mounted = false;
+      };
+    }
   }, []);
 
   const signOut = async () => {

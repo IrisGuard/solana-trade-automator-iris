@@ -1,38 +1,34 @@
 
 import { useCallback } from 'react';
 import { errorCollector } from '@/utils/error-handling/collector';
+import { captureException } from '@/utils/error-handling/errorReporting';
 import { displayError } from '@/utils/error-handling/displayError';
 
-/**
- * Hook για αναφορά σφαλμάτων με συνεπή τρόπο
- */
 export function useErrorReporting() {
-  const reportError = useCallback((error: Error | string, options: {
-    component?: string;
-    details?: any;
-  } = {}) => {
-    const errorObj = typeof error === 'string' ? new Error(error) : error;
+  const reportError = useCallback((error: Error, options = {}) => {
+    // Log to console
+    console.error('Error reported:', error);
     
-    // Καταγραφή στον collector
-    errorCollector.captureError(errorObj, {
-      component: options.component || 'unknown',
-      details: options.details || {},
-      source: 'client'
+    // Add to error collector
+    const errorId = errorCollector.captureError(error, {
+      component: (options as any).component || 'unknown',
+      source: (options as any).source || 'client',
+      ...(options as any)
     });
     
-    // Εμφάνιση στο UI με toast
-    displayError(errorObj, {
-      showToast: true,
-      logToConsole: true,
-      component: options.component || 'unknown',
-      details: options.details || {}
-    });
+    // Send to error reporting service
+    captureException(error);
     
-    return {
-      success: false,
-      error: errorObj.message
-    };
+    // Display error UI if needed
+    if ((options as any).showUI) {
+      displayError(error, {
+        showToast: true,
+        ...(options as any)
+      });
+    }
+    
+    return errorId;
   }, []);
-
+  
   return { reportError };
 }

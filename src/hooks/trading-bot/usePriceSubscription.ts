@@ -1,81 +1,85 @@
 
-import { useState, useCallback, useEffect } from 'react';
-import { Token } from '@/types/wallet';
-import { TokenPriceInfo } from './types';
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
-/**
- * Hook για να διαχειριστεί τις συνδρομές τιμών για tokens
- */
-export function usePriceSubscription() {
-  const [price, setPrice] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [selectedTokenPrice, setSelectedTokenPrice] = useState<TokenPriceInfo | null>(null);
-  const [selectedTokenDetails, setSelectedTokenDetails] = useState<Token | undefined>(undefined);
-  const [subscriptionActive, setSubscriptionActive] = useState<boolean>(false);
-
-  // Function to setup price subscription for a token
-  const setupPriceSubscription = useCallback(async (tokenAddress: string) => {
-    try {
-      setIsLoading(true);
-      console.log(`Setting up price subscription for token: ${tokenAddress}`);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Create mock price data for the token
-      const mockPrice = Math.random() * 1000;
-      setPrice(mockPrice);
-      
-      // Set the selected token price info
-      setSelectedTokenPrice({
-        currentPrice: mockPrice,
-        priceChange24h: (Math.random() * 10) - 5, // -5% to +5%
-        highPrice24h: mockPrice * (1 + Math.random() * 0.1),
-        lowPrice24h: mockPrice * (1 - Math.random() * 0.1),
-        volume24h: Math.random() * 1000000,
-        marketCap: Math.random() * 10000000000,
-        lastUpdated: new Date()
-      });
-      
-      setSubscriptionActive(true);
-      
-      // Setup interval to update price periodically
-      const interval = setInterval(() => {
-        const newPrice = price * (1 + (Math.random() * 0.02) - 0.01); // -1% to +1%
-        setPrice(newPrice);
-        setSelectedTokenPrice(prev => {
-          if (!prev) return null;
-          return {
-            ...prev,
-            currentPrice: newPrice,
-            lastUpdated: new Date()
-          };
-        });
-      }, 5000);
-      
-      // Cleanup interval on component unmount
-      return () => clearInterval(interval);
-    } catch (error) {
-      console.error("Error setting up price subscription:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [price]);
-
-  // Cleanup subscription when component unmounts
-  const cleanupSubscription = useCallback(() => {
-    console.log("Cleaning up price subscription");
-    setSubscriptionActive(false);
-    setSelectedTokenPrice(null);
-  }, []);
-
-  // Return values and functions
-  return {
-    price,
-    isLoading,
-    selectedTokenPrice,
-    selectedTokenDetails,
-    setupPriceSubscription,
-    cleanupSubscription
-  };
+// Define the TokenPriceInfo type to include all necessary properties
+export interface TokenPriceInfo {
+  price: number;
+  change24h: number;
+  highPrice24h?: number; // Make this property optional
+  lowPrice24h?: number;
+  volume24h?: number;
+  marketCap?: number;
+  lastUpdated?: Date;
 }
+
+export const usePriceSubscription = (tokenAddress: string | null) => {
+  const [priceInfo, setPriceInfo] = useState<TokenPriceInfo>({
+    price: 0,
+    change24h: 0,
+  });
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    if (!tokenAddress) return;
+
+    // Simulate price subscription
+    let intervalId: ReturnType<typeof setInterval>;
+    
+    const setupPriceUpdates = () => {
+      // Initial update
+      updatePrice();
+      
+      // Subscribe to price updates
+      intervalId = setInterval(() => {
+        updatePrice();
+      }, 10000); // Update every 10 seconds
+      
+      setIsSubscribed(true);
+    };
+    
+    const updatePrice = () => {
+      try {
+        // Generate random price changes to simulate real updates
+        const basePrice = 100; // Base price for all tokens
+        const variance = Math.random() * 10 - 5; // Random variance between -5 and +5
+        const newPrice = basePrice + variance;
+        const change = ((newPrice - basePrice) / basePrice) * 100;
+        
+        // Update with valid properties for our TokenPriceInfo type
+        setPriceInfo({
+          price: newPrice,
+          change24h: change,
+          highPrice24h: newPrice + (Math.random() * 5),
+          lowPrice24h: newPrice - (Math.random() * 5),
+          volume24h: 1000000 + (Math.random() * 500000),
+          marketCap: 100000000 + (Math.random() * 10000000),
+          lastUpdated: new Date(),
+        });
+        
+        setLastUpdate(new Date());
+        setError(null);
+      } catch (err) {
+        setError(err as Error);
+        toast.error('Failed to update token price');
+        console.error('Price subscription error:', err);
+      }
+    };
+    
+    setupPriceUpdates();
+    
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+      setIsSubscribed(false);
+    };
+  }, [tokenAddress]);
+  
+  return {
+    priceInfo,
+    isSubscribed,
+    error,
+    lastUpdate,
+  };
+};

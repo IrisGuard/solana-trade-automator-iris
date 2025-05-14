@@ -1,76 +1,85 @@
 
-/**
- * ErrorCollector: Utility for collecting multiple errors and processing them together
- */
+import { v4 as uuidv4 } from 'uuid';
+import type { ErrorCollector as IErrorCollector, ErrorData, ErrorOptions } from './types';
 
-export interface ErrorData {
-  error: Error | string;
-  component?: string;
-  details?: any;
-  timestamp?: Date;
-}
-
-export interface ErrorOptions {
-  component?: string;
-  details?: any;
-}
-
-export class ErrorCollector {
+class ErrorCollector implements IErrorCollector {
   private errors: ErrorData[] = [];
-  private maxErrors: number;
+  private maxErrors: number = 50;
 
-  constructor(maxErrors = 10) {
-    this.maxErrors = maxErrors;
+  constructor(maxErrors?: number) {
+    if (maxErrors) {
+      this.maxErrors = maxErrors;
+    }
   }
-
+  
   /**
-   * Add an error to the collection
+   * Adds an error to the collector
    */
-  addError(error: Error | string, options: ErrorOptions = {}): void {
-    if (this.errors.length >= this.maxErrors) {
-      console.warn('Maximum error limit reached. Dropping oldest error.');
-      this.errors.shift();
+  addError(errorData: ErrorData): string {
+    // Generate ID if not provided
+    const id = errorData.id || uuidv4();
+    const errorWithId = { ...errorData, id };
+    
+    // Add to beginning of array for newest-first sorting
+    this.errors.unshift(errorWithId);
+    
+    // Trim the array if it exceeds maxErrors
+    if (this.errors.length > this.maxErrors) {
+      this.errors = this.errors.slice(0, this.maxErrors);
     }
     
-    this.errors.push({
-      error,
-      component: options.component,
-      details: options.details,
-      timestamp: new Date()
-    });
+    return id;
   }
-
+  
   /**
-   * Get all collected errors
+   * Gets all collected errors
    */
   getErrors(): ErrorData[] {
-    return [...this.errors];
+    return this.errors;
   }
-
+  
   /**
-   * Get the count of collected errors
+   * Alias for getErrors() for compatibility
    */
-  getErrorCount(): number {
-    return this.errors.length;
+  getAllErrors(): ErrorData[] {
+    return this.getErrors();
   }
-
+  
   /**
-   * Clear all collected errors
+   * Clears all errors
    */
   clearErrors(): void {
     this.errors = [];
   }
-
+  
   /**
-   * Process all errors with the given callback function
+   * Alias for clearErrors() for compatibility
    */
-  processErrors(callback: (errors: ErrorData[]) => void): void {
-    if (this.errors.length > 0) {
-      callback([...this.errors]);
-      this.clearErrors();
-    }
+  clearAllErrors(): void {
+    this.clearErrors();
+  }
+  
+  /**
+   * Captures an Error object and adds it to the collector
+   */
+  captureError(error: Error, options?: ErrorOptions): string {
+    const errorData: ErrorData = {
+      message: error.message,
+      stack: error.stack,
+      component: options?.component || 'unknown',
+      source: options?.source || 'client',
+      timestamp: new Date().toISOString(),
+      url: options?.url || (typeof window !== 'undefined' ? window.location.href : undefined),
+      browserInfo: options?.browserInfo,
+      errorType: options?.errorType
+    };
+    
+    return this.addError(errorData);
   }
 }
 
-// Create and export a singleton instance
+// Create a singleton instance
 export const errorCollector = new ErrorCollector();
+
+// Type exports
+export type { ErrorData, ErrorOptions };

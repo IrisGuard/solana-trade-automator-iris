@@ -1,163 +1,104 @@
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { authService } from '@/services/authService';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
-export const useAuthForms = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [passwordStrength, setPasswordStrength] = useState(0);
+interface UseAuthFormsOptions {
+  redirectTo?: string;
+  onSuccess?: (user: any) => void;
+  onError?: (error: any) => void;
+}
+
+export function useAuthForms(options: UseAuthFormsOptions = {}) {
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const navigate = useNavigate();
-
-  // Απλή επαλήθευση κωδικού - μόνο για το μήκος
-  const checkPasswordStrength = (pwd: string) => {
-    if (!pwd) {
-      setPasswordStrength(0);
-      return 0;
-    }
-    
-    // Απλοποιημένη εκδοχή - μόνο έλεγχος ελάχιστου μήκους
-    const strength = pwd.length >= 6 ? 1 : 0;
-    
-    setPasswordStrength(strength);
-    return strength;
+  
+  const { redirectTo = '/', onSuccess, onError } = options;
+  
+  const clearError = () => setFormError(null);
+  
+  const handleError = (error: Error | any) => {
+    const message = error.message || 'An error occurred';
+    setFormError(message);
+    toast.error(message);
+    if (onError) onError(error);
+    return { error };
   };
-
-  // Clear error when switching tabs
-  const handleTabChange = () => {
-    setAuthError(null);
+  
+  const handleSuccess = (user: any) => {
+    clearError();
+    if (onSuccess) onSuccess(user);
+    if (redirectTo) navigate(redirectTo);
+    return { user };
   };
-
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAuthError(null);
-    setLoading(true);
-    
-    if (!email || !password) {
-      setAuthError('Παρακαλώ συμπληρώστε όλα τα πεδία.');
-      setLoading(false);
-      return;
-    }
-    
+  
+  const signIn = async (email: string, password: string) => {
     try {
-      console.log('Attempting to sign in with:', email);
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        console.error("Sign in error:", error);
-        if (error.message?.includes('Invalid login credentials')) {
-          setAuthError('Λάθος email ή κωδικός πρόσβασης.');
-        } else {
-          setAuthError(error.message);
-        }
-        setLoading(false);
-        return;
+      setLoading(true);
+      clearError();
+      
+      if (!email || !password) {
+        return handleError(new Error('Email and password are required'));
       }
       
-      if (data.session) {
-        console.log('Login successful, redirecting...');
-        toast.success('Συνδεθήκατε με επιτυχία!');
-        navigate('/dashboard');
+      // Mock Supabase response
+      const response = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (response.error) {
+        return handleError(response.error);
       }
-    } catch (err) {
-      console.error('Unexpected login error:', err);
-      setAuthError('Παρουσιάστηκε ένα απρόσμενο σφάλμα κατά τη σύνδεση.');
+      
+      toast.success('Logged in successfully');
+      return handleSuccess(response.data.user);
+    } catch (error) {
+      return handleError(error as Error);
     } finally {
       setLoading(false);
     }
   };
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAuthError(null);
-    setLoading(true);
-    
-    if (!email || !password) {
-      setAuthError('Παρακαλώ συμπληρώστε όλα τα πεδία.');
-      setLoading(false);
-      return;
-    }
-    
-    // Βασικός έλεγχος μήκους κωδικού
-    if (password.length < 6) {
-      setAuthError('Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες');
-      setLoading(false);
-      return;
-    }
-    
+  
+  const signUp = async (email: string, password: string) => {
     try {
-      // Attempt to check if user exists by sign-in attempt with wrong password
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: 'temporaryCheckPassword123!' // Intentionally wrong password
-      });
+      setLoading(true);
+      clearError();
       
-      // If the error isn't "Invalid credentials", the user likely exists
-      if (signInError && !signInError.message?.includes('Invalid login credentials')) {
-        setAuthError('Αυτό το email χρησιμοποιείται ήδη. Παρακαλώ δοκιμάστε να συνδεθείτε.');
-        setLoading(false);
-        return;
+      if (!email || !password) {
+        return handleError(new Error('Email and password are required'));
       }
       
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
+      if (password.length < 6) {
+        return handleError(new Error('Password must be at least 6 characters'));
+      }
+      
+      // Mock Supabase response
+      const response = await supabase.auth.signUp({ 
+        email, 
+        password, 
         options: {
-          emailRedirectTo: window.location.origin,
-        }
+          emailRedirectTo: window.location.origin
+        } 
       });
       
-      if (error) {
-        console.error("Sign up error:", error);
-        if (error.message?.includes('already registered') || error.message?.includes('already exists')) {
-          setAuthError('Αυτό το email χρησιμοποιείται ήδη. Παρακαλώ δοκιμάστε να συνδεθείτε.');
-        } else {
-          setAuthError(error.message);
-        }
-        setLoading(false);
-        return;
+      if (response.error) {
+        return handleError(response.error);
       }
       
-      if (data.session) {
-        console.log('Signup successful, redirecting...');
-        toast.success('Η εγγραφή ολοκληρώθηκε με επιτυχία!');
-        navigate('/dashboard');
-      } else if (data.user) {
-        // For services with email confirmation enabled
-        toast.success('Η εγγραφή ολοκληρώθηκε! Παρακαλώ επιβεβαιώστε το email σας.');
-        setEmail('');
-        setPassword('');
-      }
-    } catch (err) {
-      console.error('Unexpected signup error:', err);
-      setAuthError('Παρουσιάστηκε ένα απρόσμενο σφάλμα κατά την εγγραφή.');
+      toast.success('Signed up successfully');
+      return handleSuccess(response.data.user);
+    } catch (error) {
+      return handleError(error as Error);
     } finally {
       setLoading(false);
     }
   };
-
+  
   return {
-    email,
-    setEmail,
-    password,
-    setPassword,
-    showPassword,
-    setShowPassword,
-    authError,
-    setAuthError,
-    passwordStrength,
-    checkPasswordStrength,
-    handleTabChange,
-    handleSignIn,
-    handleSignUp,
-    loading
+    loading,
+    formError,
+    signIn,
+    signUp,
+    clearError,
   };
-};
+}
