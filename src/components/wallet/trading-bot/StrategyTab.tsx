@@ -188,7 +188,7 @@ export function StrategyTab({ config, updateConfig }: StrategyTabProps) {
               </div>
               <Switch
                 id="trailingStop"
-                checked={config.trailingStop}
+                checked={Boolean(config.trailingStop)}
                 onCheckedChange={(checked) => handleChange('trailingStop', checked)}
               />
             </div>
@@ -202,7 +202,7 @@ export function StrategyTab({ config, updateConfig }: StrategyTabProps) {
               </div>
               <Switch
                 id="autoRebalance"
-                checked={config.autoRebalance}
+                checked={Boolean(config.autoRebalance)}
                 onCheckedChange={(checked) => handleChange('autoRebalance', checked)}
               />
             </div>

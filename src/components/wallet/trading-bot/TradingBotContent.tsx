@@ -8,7 +8,7 @@ import { SettingsTab } from "./SettingsTab";
 import { StrategyTab } from "./StrategyTab";
 import { MonitorTab } from "./MonitorTab";
 import { Button } from "@/components/ui/button";
-import { TradingBotHook } from "@/hooks/trading-bot/types";
+import { TradingBotHook, ActiveOrder } from "@/hooks/trading-bot/types";
 
 interface TradingBotContentProps {
   tradingBotState: TradingBotHook;
@@ -100,7 +100,7 @@ export function TradingBotContent({
                 botStatus={botStatus}
                 selectedTokenDetails={selectedTokenDetails}
                 selectedTokenPrice={selectedTokenPrice}
-                activeOrders={activeOrders}
+                activeOrders={activeOrders as ActiveOrder[]}
               />
             </TabsContent>
           </Tabs>

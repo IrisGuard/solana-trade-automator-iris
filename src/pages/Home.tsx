@@ -1,61 +1,57 @@
 
-import React, { useState, useCallback } from "react";
+import React from "react";
+import { useWallet } from "@/hooks/useWallet";
 import { WalletConnectedContent } from "@/components/home/WalletConnectedContent";
 import { WalletDisconnectedContent } from "@/components/home/WalletDisconnectedContent";
-import { useWalletConnection } from "@/hooks/useWalletConnection";
-import { useErrorReporting } from "@/hooks/useErrorReporting";
-import { toast } from "sonner";
 
 export default function HomePage() {
-  const { isConnected, isConnecting, connectWallet, disconnectWallet } = useWalletConnection();
-  const [isLoading, setIsLoading] = useState(false);
-  const { reportError } = useErrorReporting();
-  
-  const handleConnect = useCallback(async () => {
-    if (isConnecting || isLoading) return;
-    
-    try {
-      setIsLoading(true);
-      
-      // Call the connect function from the hook
-      const success = await connectWallet();
-      
-      if (success) {
-        toast.success("Wallet connected successfully");
-      } else {
-        toast.error("Failed to connect wallet");
-      }
+  const { 
+    isConnected, 
+    isConnecting, 
+    walletAddress, 
+    connectWallet, 
+    disconnectWallet,
+    tokens
+  } = useWallet();
 
-      // Return void to match the Promise<void> type
-      return;
+  const handleConnect = async () => {
+    try {
+      await connectWallet();
     } catch (error) {
-      reportError(error as Error, {
-        component: 'HomePage',
-        source: 'wallet',
-        showToast: true
-      });
-    } finally {
-      setIsLoading(false);
+      console.error("Failed to connect wallet:", error);
     }
-  }, [connectWallet, isConnecting, isLoading, reportError]);
-  
-  const handleDisconnect = useCallback(() => {
-    disconnectWallet();
-    toast.info("Wallet disconnected");
-  }, [disconnectWallet]);
-  
+  };
+
+  const handleDisconnect = () => {
+    try {
+      disconnectWallet();
+    } catch (error) {
+      console.error("Failed to disconnect wallet:", error);
+    }
+  };
+
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-6">Solana Trading Dashboard</h1>
-      
-      {isConnected ? (
-        <WalletConnectedContent onDisconnect={handleDisconnect} />
-      ) : (
-        <WalletDisconnectedContent 
-          onConnect={handleConnect}
-          isConnecting={isConnecting || isLoading}
-        />
-      )}
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tight">
+          {isConnected ? "Dashboard" : "Welcome"}
+        </h2>
+      </div>
+
+      <div className="space-y-6">
+        {isConnected ? (
+          <WalletConnectedContent 
+            walletAddress={walletAddress}
+            tokens={tokens}
+            onDisconnect={handleDisconnect}
+          />
+        ) : (
+          <WalletDisconnectedContent 
+            onConnect={handleConnect}
+            isConnecting={isConnecting}
+          />
+        )}
+      </div>
     </div>
   );
 }

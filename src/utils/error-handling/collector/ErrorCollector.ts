@@ -1,3 +1,4 @@
+
 export interface ErrorData {
   message: string;
   stack?: string;
@@ -5,6 +6,12 @@ export interface ErrorData {
   component?: string;
   source?: string;
   details?: string;
+}
+
+export interface ErrorCapturingOptions {
+  component?: string;
+  details?: any;
+  source?: string;
 }
 
 class ErrorCollector {
@@ -23,6 +30,22 @@ class ErrorCollector {
   }
 
   /**
+   * Capture error with more context options
+   */
+  captureError(error: Error, options: ErrorCapturingOptions = {}): void {
+    const { component = 'unknown', details = {}, source = 'client' } = options;
+    
+    this.addError({
+      message: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString(),
+      component,
+      source,
+      details: typeof details === 'string' ? details : JSON.stringify(details)
+    });
+  }
+
+  /**
    * Get all collected errors
    */
   getErrors(): ErrorData[] {
@@ -30,10 +53,24 @@ class ErrorCollector {
   }
 
   /**
+   * Get all collected errors - alias for backward compatibility
+   */
+  getAllErrors(): ErrorData[] {
+    return this.getErrors();
+  }
+
+  /**
    * Clear all errors
    */
   clearAll(): void {
     this.errors = [];
+  }
+
+  /**
+   * Clear all errors - alias for backward compatibility
+   */
+  clearAllErrors(): void {
+    this.clearAll();
   }
 
   /**

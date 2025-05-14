@@ -1,42 +1,62 @@
 
-/**
- * Error reporting utilities to centralize error capture and reporting
- */
-
-type ErrorLevel = 'error' | 'warning' | 'info';
+import { errorCollector } from './collector';
+import { toast } from 'sonner';
+import { ErrorOptions } from './types';
 
 /**
- * Captures an exception for error reporting
- * @param error The error to capture
- * @param context Additional context about the error
+ * Capture an exception for monitoring
  */
-export function captureException(error: Error, context: Record<string, any> = {}): void {
-  // In a real app, this would send the error to a service like Sentry
-  console.error('[Error Reporting] Captured exception:', error, context);
+export function captureException(error: Error, options: ErrorOptions = {}): void {
+  const { component = 'unknown', details = {}, source = 'client', showToast = false } = options;
+  
+  // Log to console
+  console.error(`[${component}] Error:`, error, details);
+  
+  // Add to error collector
+  errorCollector.captureError(error, { component, details, source });
+  
+  // Show toast if requested
+  if (showToast) {
+    toast.error(error.message, {
+      description: component !== 'unknown' ? `Error in ${component}` : undefined
+    });
+  }
 }
 
 /**
- * Captures a message for error reporting
- * @param message The message to capture
- * @param level The severity level
- * @param context Additional context about the message
+ * Capture a message for monitoring
  */
-export function captureMessage(message: string, level: ErrorLevel = 'info', context: Record<string, any> = {}): void {
-  // In a real app, this would send the message to a service like Sentry
-  console[level]('[Error Reporting] Captured message:', message, context);
+export function captureMessage(message: string, level: 'error' | 'warning' | 'info' = 'info', options: ErrorOptions = {}): void {
+  const { component = 'unknown', details = {}, showToast = false } = options;
+  
+  // Create error object for consistent handling
+  const error = new Error(message);
+  
+  // Log to console
+  console[level](`[${component}] ${level.charAt(0).toUpperCase() + level.slice(1)}:`, message, details);
+  
+  // Add to error collector
+  errorCollector.captureError(error, { 
+    component, 
+    details: { ...details, level },
+    source: 'message'
+  });
+  
+  // Show toast if requested
+  if (showToast) {
+    if (level === 'error') {
+      toast.error(message);
+    } else if (level === 'warning') {
+      toast.warning(message);
+    } else {
+      toast.info(message);
+    }
+  }
 }
 
 /**
- * Clears all errors from the error collector
+ * Clear all errors from the collector
  */
 export function clearAllErrors(): void {
-  try {
-    // Import the error collector and clear errors
-    const { errorCollector } = require('../error-handling/collector');
-    if (errorCollector && typeof errorCollector.clearAll === 'function') {
-      errorCollector.clearAll();
-    }
-  } catch (error) {
-    console.error('Failed to clear errors:', error);
-  }
+  errorCollector.clearAll();
 }
