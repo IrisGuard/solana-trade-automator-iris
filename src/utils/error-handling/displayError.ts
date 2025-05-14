@@ -37,11 +37,13 @@ export function displayError(
   // Add to error collector if requested
   let errorId = '';
   if (useCollector) {
-    errorId = errorCollector.captureError(error, {
+    const result = errorCollector.captureError(error, {
       component,
       source,
       details
     });
+    // Make sure we always have a string to return
+    errorId = result || '';
   }
 
   // Show toast if requested
