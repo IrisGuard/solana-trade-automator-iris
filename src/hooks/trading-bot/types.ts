@@ -1,16 +1,7 @@
 
-import { Token } from "@/types/wallet";
+import { Token } from '@/types/wallet';
 
-export type BotStatus = 'idle' | 'running' | 'paused' | 'error';
-
-export type StrategyType = 'simple' | 'dca' | 'grid' | 'momentum';
-
-export interface BotMetrics {
-  profit: number;
-  profitPercent: number;
-  trades: number;
-  successRate: number;
-}
+export type BotStatus = 'idle' | 'running' | 'paused';
 
 export interface TradingBotConfig {
   selectedToken: string | null;
@@ -18,11 +9,11 @@ export interface TradingBotConfig {
   sellThreshold: number;
   stopLoss: number;
   takeProfit: number;
-  tradeAmount: number;
   maxBudget: number;
-  strategy: StrategyType;
-  autoRebalance: boolean;
-  trailingStop: boolean;
+  tradeAmount?: number;
+  trailingStop?: number;
+  autoRebalance?: boolean;
+  strategy?: string;
   enabledStrategies: {
     dca: boolean;
     grid: boolean;
@@ -32,22 +23,19 @@ export interface TradingBotConfig {
 
 export interface TradingOrder {
   id: string;
-  type: 'buy' | 'sell' | 'stop-loss' | 'take-profit';
+  type: 'buy' | 'sell' | 'stop-loss' | 'take-profit' | 'limit-buy' | 'limit-sell';
   price: number;
   amount: number;
   tokenAddress: string;
-  token: string;  // This is the token address or symbol
   status: 'pending' | 'executed' | 'cancelled';
   createdAt: Date;
+  executedAt?: Date;
 }
-
-// For backward compatibility with ActiveOrder
-export type ActiveOrder = TradingOrder;
 
 export interface TradingBotHook {
   config: TradingBotConfig;
   updateConfig: (config: Partial<TradingBotConfig>) => void;
-  selectToken: (tokenAddress: string | null) => Promise<void>;
+  selectToken: (token: string | null) => Promise<void>;
   startBot: () => void;
   stopBot: () => void;
   isLoading: boolean;
@@ -57,4 +45,33 @@ export interface TradingBotHook {
   selectedTokenDetails: Token | undefined;
   tokens: Token[];
   connected: boolean;
+}
+
+export interface ActiveOrder {
+  id: string;
+  type: string;
+  price: number;
+  amount: number;
+  token: string;
+  timestamp: Date;
+}
+
+export interface TokenPriceInfo {
+  price: number;
+  priceChange24h: number;
+  volume24h?: number;
+  lastUpdated: Date;
+}
+
+export interface Bot {
+  id: string;
+  name: string;
+  status: BotStatus;
+  token: string;
+  createdAt: Date;
+  stats: {
+    profit: number;
+    trades: number;
+    winRate: number;
+  };
 }

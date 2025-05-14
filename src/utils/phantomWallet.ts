@@ -87,9 +87,9 @@ export const registerPhantomEvents = (
   }
   
   // Χειριστής γεγονότων για σύνδεση
-  const handleConnect = ({ publicKey }: { publicKey: any }) => {
-    console.log("Phantom event: connected", publicKey.toString());
-    if (onConnect) onConnect(publicKey.toString());
+  const handleConnect = (publicKey: string) => {
+    console.log("Phantom event: connected", publicKey);
+    if (onConnect) onConnect(publicKey);
   };
   
   // Χειριστής γεγονότων για αποσύνδεση

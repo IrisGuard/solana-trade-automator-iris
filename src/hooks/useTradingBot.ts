@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useWalletConnection } from './useWalletConnection';
 import { useErrorReporting } from './useErrorReporting';
+import { BotStatus, TradingBotConfig, TradingOrder, TradingBotHook } from './trading-bot/types';
 import { Token } from '@/types/wallet';
-import { BotStatus, TradingBotConfig, TradingOrder } from './trading-bot/types';
 
 const defaultConfig: TradingBotConfig = {
   selectedToken: null,
@@ -11,11 +11,11 @@ const defaultConfig: TradingBotConfig = {
   sellThreshold: 5,
   stopLoss: 10,
   takeProfit: 20,
-  tradeAmount: 10,
   maxBudget: 100,
-  strategy: 'simple',
+  tradeAmount: 0.1,
+  trailingStop: 5,
   autoRebalance: false,
-  trailingStop: false,
+  strategy: 'dca',
   enabledStrategies: {
     dca: true,
     grid: false,
@@ -23,7 +23,7 @@ const defaultConfig: TradingBotConfig = {
   }
 };
 
-export function useTradingBot() {
+export function useTradingBot(): TradingBotHook {
   const { walletAddress, tokens, isConnected } = useWalletConnection();
   const [config, setConfig] = useState<TradingBotConfig>(defaultConfig);
   const [botStatus, setBotStatus] = useState<BotStatus>('idle');
@@ -57,11 +57,10 @@ export function useTradingBot() {
         updateConfig({ selectedToken: null });
         setSelectedTokenPrice(null);
       }
+      return Promise.resolve();
     } catch (error) {
-      reportError(error instanceof Error ? error : new Error('Unknown error selecting token'), { 
-        component: 'TradingBot', 
-        source: 'client' 
-      });
+      reportError(error as Error, { component: 'TradingBot', source: 'client' });
+      return Promise.reject(error);
     } finally {
       setIsLoading(false);
     }
@@ -73,28 +72,26 @@ export function useTradingBot() {
       setIsLoading(true);
       
       // Generate some mock orders
-      const mockOrders = [
+      const mockOrders: TradingOrder[] = [
         { 
-          id: `order-${Date.now()}-1`,
+          id: 'order1',
           type: 'stop-loss',
           price: selectedTokenPrice?.price ? selectedTokenPrice.price * 0.9 : 0,
-          amount: 0.5,
+          amount: config.tradeAmount || 0.1,
           tokenAddress: config.selectedToken || '',
-          token: config.selectedToken || '',  // Added to match ActiveOrder
           status: 'pending',
           createdAt: new Date()
         },
-        { 
-          id: `order-${Date.now()}-2`,
-          type: 'take-profit', 
+        {
+          id: 'order2',
+          type: 'take-profit',
           price: selectedTokenPrice?.price ? selectedTokenPrice.price * 1.2 : 0,
-          amount: 0.5,
+          amount: config.tradeAmount || 0.1,
           tokenAddress: config.selectedToken || '',
-          token: config.selectedToken || '',  // Added to match ActiveOrder
           status: 'pending',
           createdAt: new Date()
         }
-      ] as TradingOrder[];
+      ];
       
       setActiveOrders(mockOrders);
       setBotStatus('running');
@@ -102,10 +99,7 @@ export function useTradingBot() {
       // Show success message
       console.log("Bot started with config:", config);
     } catch (error) {
-      reportError(error instanceof Error ? error : new Error('Unknown error starting bot'), { 
-        component: 'TradingBot', 
-        source: 'client' 
-      });
+      reportError(error as Error, { component: 'TradingBot', source: 'client' });
     } finally {
       setIsLoading(false);
     }
@@ -121,10 +115,7 @@ export function useTradingBot() {
       // Show success message
       console.log("Bot stopped");
     } catch (error) {
-      reportError(error instanceof Error ? error : new Error('Unknown error stopping bot'), { 
-        component: 'TradingBot', 
-        source: 'client' 
-      });
+      reportError(error as Error, { component: 'TradingBot', source: 'client' });
     } finally {
       setIsLoading(false);
     }

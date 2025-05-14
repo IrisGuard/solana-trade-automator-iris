@@ -1,32 +1,37 @@
 
-import { useEffect } from 'react';
-import { registerPhantomEvents } from '@/utils/phantomWallet';
+import { useEffect, useCallback } from 'react';
+import { registerPhantomEvents, isPhantomInstalled } from '@/utils/phantomWallet';
 
 /**
- * Hook για τη διαχείριση των γεγονότων του wallet
+ * Hook to manage wallet events
  */
 export function useWalletEvents(
-  onConnected?: (publicKey: string) => void,
-  onDisconnected?: () => void
+  onConnected: (address: string) => void, 
+  onDisconnected: () => void
 ) {
+  // Register for wallet events
   useEffect(() => {
-    // Εγγραφή στα γεγονότα του Phantom Wallet
+    if (!isPhantomInstalled()) return;
+    
+    console.log("Registering for wallet events");
+    
+    // Setup event handlers
     const cleanup = registerPhantomEvents(
-      // Όταν συνδεθεί το πορτοφόλι
+      // Handler for connection
       (publicKey) => {
-        console.log("Wallet connected event received:", publicKey);
-        if (onConnected) onConnected(publicKey);
+        console.log("Wallet connected from event:", publicKey);
+        onConnected(publicKey);
       },
-      // Όταν αποσυνδεθεί το πορτοφόλι
+      // Handler for disconnection  
       () => {
-        console.log("Wallet disconnected event received");
-        if (onDisconnected) onDisconnected();
+        console.log("Wallet disconnected from event");
+        onDisconnected();
       }
     );
     
-    // Cleanup function για την αποεγγραφή από τα events
     return cleanup;
   }, [onConnected, onDisconnected]);
-
+  
+  // No additional state needed as all handlers are passed via parameters
   return {};
 }

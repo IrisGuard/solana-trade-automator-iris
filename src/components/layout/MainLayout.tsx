@@ -1,14 +1,8 @@
 
-import React from 'react';
-import { Outlet } from 'react-router-dom';
-import { useWalletConnection } from '@/hooks/useWalletConnection';
+import React from "react";
+import { Outlet } from "react-router-dom";
+import { Layout } from "./Layout";
 
 export function MainLayout() {
-  const { isConnected } = useWalletConnection();
-
-  return (
-    <div className="container mx-auto p-4 md:p-6">
-      <Outlet />
-    </div>
-  );
+  return <Layout />;
 }

@@ -1,7 +1,7 @@
 
 import { useCallback } from 'react';
 import { errorCollector } from '@/utils/error-handling/collector';
-import { captureException, captureMessage } from '@/utils/error-handling/errorReporting';
+import { captureException, captureMessage, clearAllErrors } from '@/utils/error-handling/errorReporting';
 import { toast } from 'sonner';
 
 export interface ErrorReportingOptions {
@@ -63,13 +63,14 @@ export function useErrorReporting() {
     }
   }, []);
 
-  const clearAllErrors = useCallback(() => {
-    errorCollector.clearAllErrors();
+  // Add the clearAllErrors function
+  const clearErrors = useCallback(() => {
+    clearAllErrors();
   }, []);
 
   return {
     reportError,
     reportMessage,
-    clearAllErrors
+    clearAllErrors: clearErrors
   };
 }
