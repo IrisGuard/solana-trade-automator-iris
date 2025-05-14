@@ -7,18 +7,7 @@ import { Plus } from "lucide-react";
 import { NewEndpointDialog } from "./NewEndpointDialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-
-// Define ApiEndpoint consistent with EndpointsList
-export interface ApiEndpoint {
-  id: string;
-  name: string;
-  url: string;
-  category: string;
-  is_active: boolean;
-  is_public: boolean;
-  created_at?: string;
-  updated_at?: string;
-}
+import { ApiEndpoint } from "@/types/api";
 
 interface ApiEndpointsManagerProps {
   category: string;

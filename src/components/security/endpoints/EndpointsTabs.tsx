@@ -1,17 +1,7 @@
 
 import React, { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ApiEndpointsManager, ApiEndpoint as ManagerApiEndpoint } from "./ApiEndpointsManager";
-import { ApiEndpoint as EndpointApiType } from "@/types/api";
-
-// Helper function to convert between the two types
-const convertEndpoints = (endpoints: EndpointApiType[]): ManagerApiEndpoint[] => {
-  return endpoints.map(endpoint => ({
-    ...endpoint,
-    is_active: endpoint.is_active || true,
-    is_public: endpoint.is_public || true
-  }));
-};
+import { ApiEndpointsManager } from "./ApiEndpointsManager";
 
 export function EndpointsTabs() {
   const [activeTab, setActiveTab] = useState("solana");
@@ -38,4 +28,3 @@ export function EndpointsTabs() {
     </Tabs>
   );
 }
-

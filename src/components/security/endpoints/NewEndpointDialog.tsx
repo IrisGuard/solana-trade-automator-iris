@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { ApiEndpoint } from "@/components/security/apiVault/types";
+import { ApiEndpoint } from "@/types/api";
 
 export interface NewEndpointDialogProps {
   category: string;

@@ -24,7 +24,7 @@ export interface ApiEndpoint {
   is_public: boolean;
   created_at?: string;
   updated_at?: string;
-  method?: string;  // Add method to match other interface
+  method?: string;
 }
 
 export interface ServiceInfo {

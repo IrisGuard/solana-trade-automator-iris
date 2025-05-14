@@ -10,8 +10,8 @@ export interface ApiKey {
   expires?: string;
   permissions?: string[];  
   source?: string;
-  isWorking?: boolean;  // Add the isWorking property
-  connected?: boolean;  // Add the connected property
+  isWorking?: boolean;
+  connected?: boolean;
 }
 
 export interface ApiEndpoint {
@@ -22,7 +22,7 @@ export interface ApiEndpoint {
   description?: string;
   is_active: boolean; 
   is_public: boolean; 
-  category?: string;  // Add the category property
+  category: string;  // Make this required to match the other interface
 }
 
 export interface ApiKeyStats {
@@ -41,5 +41,5 @@ export interface ServiceInfo {
   name: string;    
   workingCount: number;  
   expiredCount: number;  
-  count: number;  // Add the count property
+  count: number;
 }
