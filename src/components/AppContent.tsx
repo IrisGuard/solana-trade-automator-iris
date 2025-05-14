@@ -1,4 +1,3 @@
-
 import React from "react";
 import { BrowserRouter } from "react-router-dom";
 import { Routes } from "@/routes";
@@ -22,19 +21,15 @@ const queryClient = new QueryClient({
 });
 
 function logWalletError(error: Error, info: React.ErrorInfo) {
-  // Capture error for debugging
   console.error("[unknown]", error, info);
   
-  // Collect error for display in error panel
-  errorCollector.addError({
-    message: error.message,
-    stack: error.stack,
-    timestamp: new Date().toISOString(),
+  errorCollector.captureError(error, {
     component: "WalletProvider",
     source: "wallet",
+    details: info,
+    severity: 'high'
   });
   
-  // Send to error reporting service if available
   captureException(error);
 }
 

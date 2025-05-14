@@ -1,19 +1,38 @@
 
-import { ErrorData, ErrorOptions } from "../types";
+export interface ErrorData {
+  id?: string;
+  message: string;
+  component?: string;
+  details?: any;
+  timestamp: Date;
+  source?: string;
+  stack?: string;
+  url?: string;
+  browserInfo?: any;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+}
 
-/**
- * Interface defining the functionality of the error collector
- */
+export interface ErrorOptions {
+  component?: string;
+  source?: string;
+  url?: string;
+  details?: any;
+  browserInfo?: any;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+}
+
+export interface TestErrorOptions {
+  message?: string;
+  component?: string;
+  details?: any;
+  errorType?: 'js' | 'async' | 'ui' | 'network';
+  simulateDelay?: number;
+}
+
 export interface ErrorCollector {
   captureError(error: Error | string, options?: ErrorOptions): string;
   getErrors(): ErrorData[];
   clearErrors(): void;
   hasCriticalErrors(): boolean;
   getRecentErrors(count?: number): ErrorData[];
-  collectError(error: Error | string, options?: ErrorOptions): string;
 }
-
-/**
- * Options for configuring an error 
- */
-export { type ErrorOptions, type ErrorData } from "../types";

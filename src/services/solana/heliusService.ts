@@ -1,5 +1,4 @@
-
-import type { ErrorCollector } from '@/utils/error-handling/collector/types';
+import type { ErrorCollector, ErrorData } from '@/utils/error-handling/collector/types';
 import { apiKeys } from './apiConfig';
 import { errorCollector } from '@/utils/error-handling/collector';
 
@@ -17,17 +16,31 @@ const getHeliusApiKey = (): string => {
   return 'demo-key';  // Replace with your actual demo key if available
 };
 
+const handleHeliusError = (error: unknown, source: string) => {
+  const errorData: ErrorData = {
+    message: error instanceof Error ? error.message : String(error),
+    timestamp: new Date(),
+    component: 'HeliusService',
+    source,
+    stack: error instanceof Error ? error.stack : undefined
+  };
+  
+  errorCollector.captureError(errorData.message, {
+    component: 'HeliusService',
+    source,
+    details: error
+  });
+  
+  throw error;
+};
+
 /**
  * Send an RPC request to the Helius API
  * @param method The RPC method to call
  * @param params The parameters to pass to the method
  * @returns The result of the RPC call
  */
-export const sendRpcRequest = async (
-  method: string, 
-  params: any[], 
-  collector?: ErrorCollector
-): Promise<any> => {
+export const sendRpcRequest = async (method: string, params: any[]): Promise<any> => {
   const apiKey = getHeliusApiKey();
   const url = `${HELIUS_BASE_URL}/rpc?api-key=${apiKey}`;
   
@@ -57,13 +70,7 @@ export const sendRpcRequest = async (
     
     return data.result;
   } catch (error) {
-    collector?.collectError({
-      message: `Helius RPC request failed: ${(error as Error).message}`,
-      source: 'sendRpcRequest',
-      severity: 'error',
-      raw: error
-    });
-    throw error;
+    handleHeliusError(error, 'sendRpcRequest');
   }
 };
 
@@ -90,13 +97,7 @@ export const getEnhancedTransaction = async (signature: string): Promise<any> =>
     const data = await response.json();
     return data[0];
   } catch (error) {
-    errorCollector.collectError({
-      message: `Failed to get enhanced transaction: ${(error as Error).message}`,
-      source: 'getEnhancedTransaction',
-      severity: 'error',
-      raw: error
-    });
-    throw error;
+    handleHeliusError(error, 'getEnhancedTransaction');
   }
 };
 
@@ -133,13 +134,7 @@ export const getEnhancedTransactions = async (signatures: string[]): Promise<any
     
     return results;
   } catch (error) {
-    errorCollector.collectError({
-      message: `Failed to get enhanced transactions: ${(error as Error).message}`,
-      source: 'getEnhancedTransactions',
-      severity: 'error',
-      raw: error
-    });
-    throw error;
+    handleHeliusError(error, 'getEnhancedTransactions');
   }
 };
 
@@ -160,13 +155,7 @@ export const getEnhancedTransactionHistory = async (address: string, options?: {
     
     return await response.json();
   } catch (error) {
-    errorCollector.collectError({
-      message: `Failed to get transaction history: ${(error as Error).message}`,
-      source: 'getEnhancedTransactionHistory',
-      severity: 'error',
-      raw: error
-    });
-    throw error;
+    handleHeliusError(error, 'getEnhancedTransactionHistory');
   }
 };
 
@@ -186,13 +175,7 @@ export const getAddressAssets = async (address: string): Promise<any> => {
     
     return await response.json();
   } catch (error) {
-    errorCollector.collectError({
-      message: `Failed to get address assets: ${(error as Error).message}`,
-      source: 'getAddressAssets',
-      severity: 'error',
-      raw: error
-    });
-    throw error;
+    handleHeliusError(error, 'getAddressAssets');
   }
 };
 
@@ -219,13 +202,7 @@ export const parseTransactionData = async (transactionData: string): Promise<any
     const data = await response.json();
     return data[0];
   } catch (error) {
-    errorCollector.collectError({
-      message: `Failed to parse transaction data: ${(error as Error).message}`,
-      source: 'parseTransactionData',
-      severity: 'error',
-      raw: error
-    });
-    throw error;
+    handleHeliusError(error, 'parseTransactionData');
   }
 };
 
@@ -246,13 +223,7 @@ export const getNftEvents = async (address: string, options?: { limit?: number }
     
     return await response.json();
   } catch (error) {
-    errorCollector.collectError({
-      message: `Failed to get NFT events: ${(error as Error).message}`,
-      source: 'getNftEvents',
-      severity: 'error',
-      raw: error
-    });
-    throw error;
+    handleHeliusError(error, 'getNftEvents');
   }
 };
 
@@ -268,12 +239,7 @@ export const verifyConnection = async (): Promise<boolean> => {
     const response = await fetch(url);
     return response.ok;
   } catch (error) {
-    errorCollector.collectError({
-      message: `Failed to verify Helius connection: ${(error as Error).message}`,
-      source: 'verifyConnection',
-      severity: 'warning',
-      raw: error
-    });
+    handleHeliusError(error, 'verifyConnection');
     return false;
   }
 };
