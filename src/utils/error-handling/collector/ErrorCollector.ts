@@ -1,95 +1,54 @@
-
-import { ErrorOptions } from '../types';
-
 export interface ErrorData {
-  id?: string;
   message: string;
   stack?: string;
   timestamp: string;
-  details?: string;
-  source?: string;
   component?: string;
-  resolved?: boolean;
+  source?: string;
+  details?: string;
 }
 
 class ErrorCollector {
   private errors: ErrorData[] = [];
-  private maxErrors: number = 100;
+  private maxErrors: number = 50;
 
   /**
    * Add an error to the collector
    */
   addError(error: ErrorData): void {
-    // Add a unique ID if not provided
-    if (!error.id) {
-      error.id = Math.random().toString(36).substring(2, 15);
-    }
-
-    // Add to the beginning for most recent first
     this.errors.unshift(error);
-    
-    // Limit the number of errors stored
+    // Keep only the latest errors to prevent memory leaks
     if (this.errors.length > this.maxErrors) {
       this.errors = this.errors.slice(0, this.maxErrors);
     }
-    
-    // Log to console for immediate feedback
-    console.log(`[ErrorCollector] Added error: ${error.message}`);
   }
 
   /**
-   * Capture an error with additional metadata
+   * Get all collected errors
    */
-  captureError(error: Error, options: ErrorOptions = {}): void {
-    this.addError({
-      message: error.message,
-      stack: error.stack,
-      timestamp: new Date().toISOString(),
-      details: JSON.stringify(options.details || {}),
-      source: options.source || 'unknown',
-      component: options.component || 'unknown'
-    });
-  }
-
-  /**
-   * Get all errors
-   */
-  getAllErrors(): ErrorData[] {
+  getErrors(): ErrorData[] {
     return [...this.errors];
   }
 
   /**
    * Clear all errors
    */
-  clearAllErrors(): void {
+  clearAll(): void {
     this.errors = [];
-    console.log('[ErrorCollector] All errors cleared');
   }
 
   /**
-   * Get errors by source
+   * Get the most recent error
    */
-  getErrorsBySource(source: string): ErrorData[] {
-    return this.errors.filter(err => err.source === source);
+  getLatestError(): ErrorData | null {
+    return this.errors.length > 0 ? this.errors[0] : null;
   }
 
   /**
-   * Mark an error as resolved
+   * Check if there are any errors
    */
-  resolveError(id: string): void {
-    const errorIndex = this.errors.findIndex(err => err.id === id);
-    if (errorIndex !== -1) {
-      this.errors[errorIndex].resolved = true;
-    }
-  }
-
-  /**
-   * Report a new error (alias for captureError)
-   */
-  reportError(error: Error, metadata: ErrorOptions = {}): void {
-    this.captureError(error, metadata);
+  hasErrors(): boolean {
+    return this.errors.length > 0;
   }
 }
 
-// Create a singleton instance
 export const errorCollector = new ErrorCollector();

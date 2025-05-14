@@ -4,7 +4,13 @@ import { Token } from "@/types/wallet";
 /**
  * Format token amounts with proper decimals for display
  */
-export function formatTokenAmount(token: Token, decimals: number = 4): string {
+export function formatTokenAmount(token: Token | number, decimals: number = 4): string {
+  // Handle the case where a number is passed directly
+  if (typeof token === 'number') {
+    return token.toFixed(decimals);
+  }
+
+  // Handle the case where a Token object is passed
   if (!token || token.amount === undefined) {
     return "0.0000"; // Default value when token or amount is undefined
   }

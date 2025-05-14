@@ -10,6 +10,10 @@ export interface TradingBotConfig {
   stopLoss: number;
   takeProfit: number;
   maxBudget: number;
+  tradeAmount?: number;
+  trailingStop?: number;
+  autoRebalance?: boolean;
+  strategy?: string;
   enabledStrategies: {
     dca: boolean;
     grid: boolean;
@@ -40,4 +44,34 @@ export interface TradingBotHook {
   selectedTokenPrice: { price: number; priceChange24h: number } | null;
   selectedTokenDetails: Token | undefined;
   tokens: Token[];
+  connected: boolean;
+}
+
+export interface ActiveOrder {
+  id: string;
+  type: string;
+  price: number;
+  amount: number;
+  token: string;
+  timestamp: Date;
+}
+
+export interface TokenPriceInfo {
+  price: number;
+  priceChange24h: number;
+  volume24h?: number;
+  lastUpdated: Date;
+}
+
+export interface Bot {
+  id: string;
+  name: string;
+  status: BotStatus;
+  token: string;
+  createdAt: Date;
+  stats: {
+    profit: number;
+    trades: number;
+    winRate: number;
+  };
 }

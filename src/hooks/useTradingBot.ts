@@ -2,23 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useWalletConnection } from './useWalletConnection';
 import { useErrorReporting } from './useErrorReporting';
+import { BotStatus, TradingBotConfig, TradingOrder, TradingBotHook } from './trading-bot/types';
 import { Token } from '@/types/wallet';
-
-export type BotStatus = 'idle' | 'running' | 'paused';
-
-export interface TradingBotConfig {
-  selectedToken: string | null;
-  buyThreshold: number;
-  sellThreshold: number;
-  stopLoss: number;
-  takeProfit: number;
-  maxBudget: number;
-  enabledStrategies: {
-    dca: boolean;
-    grid: boolean;
-    momentum: boolean;
-  };
-}
 
 const defaultConfig: TradingBotConfig = {
   selectedToken: null,
@@ -27,6 +12,10 @@ const defaultConfig: TradingBotConfig = {
   stopLoss: 10,
   takeProfit: 20,
   maxBudget: 100,
+  tradeAmount: 0.1,
+  trailingStop: 5,
+  autoRebalance: false,
+  strategy: 'dca',
   enabledStrategies: {
     dca: true,
     grid: false,
@@ -34,12 +23,12 @@ const defaultConfig: TradingBotConfig = {
   }
 };
 
-export function useTradingBot() {
-  const { walletAddress, tokens } = useWalletConnection();
+export function useTradingBot(): TradingBotHook {
+  const { walletAddress, tokens, isConnected } = useWalletConnection();
   const [config, setConfig] = useState<TradingBotConfig>(defaultConfig);
   const [botStatus, setBotStatus] = useState<BotStatus>('idle');
   const [isLoading, setIsLoading] = useState(false);
-  const [activeOrders, setActiveOrders] = useState<any[]>([]);
+  const [activeOrders, setActiveOrders] = useState<TradingOrder[]>([]);
   const [selectedTokenPrice, setSelectedTokenPrice] = useState<{ price: number; priceChange24h: number } | null>(null);
   const { reportError } = useErrorReporting();
 
@@ -68,8 +57,10 @@ export function useTradingBot() {
         updateConfig({ selectedToken: null });
         setSelectedTokenPrice(null);
       }
+      return Promise.resolve();
     } catch (error) {
       reportError(error as Error, { component: 'TradingBot', source: 'client' });
+      return Promise.reject(error);
     } finally {
       setIsLoading(false);
     }
@@ -81,9 +72,25 @@ export function useTradingBot() {
       setIsLoading(true);
       
       // Generate some mock orders
-      const mockOrders = [
-        { type: 'stop-loss', price: selectedTokenPrice?.price ? selectedTokenPrice.price * 0.9 : 0 },
-        { type: 'take-profit', price: selectedTokenPrice?.price ? selectedTokenPrice.price * 1.2 : 0 }
+      const mockOrders: TradingOrder[] = [
+        { 
+          id: 'order1',
+          type: 'stop-loss',
+          price: selectedTokenPrice?.price ? selectedTokenPrice.price * 0.9 : 0,
+          amount: config.tradeAmount || 0.1,
+          tokenAddress: config.selectedToken || '',
+          status: 'pending',
+          createdAt: new Date()
+        },
+        {
+          id: 'order2',
+          type: 'take-profit',
+          price: selectedTokenPrice?.price ? selectedTokenPrice.price * 1.2 : 0,
+          amount: config.tradeAmount || 0.1,
+          tokenAddress: config.selectedToken || '',
+          status: 'pending',
+          createdAt: new Date()
+        }
       ];
       
       setActiveOrders(mockOrders);
@@ -125,6 +132,7 @@ export function useTradingBot() {
     activeOrders,
     selectedTokenPrice,
     selectedTokenDetails,
-    tokens
+    tokens,
+    connected: isConnected
   };
 }
