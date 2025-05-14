@@ -1,43 +1,33 @@
 
-/**
- * This file patches React Router DOM to ensure compatibility with our React setup
- */
+import * as React from 'react';
 
-import * as React from 'react';  // Add proper React import to fix TS2686 errors
+// Βεβαιώνουμε ότι τα βασικά React hooks είναι διαθέσιμα για το react-router-dom
+// χωρίς να εξαρτώνται από την εισαγωγή τους από άλλα modules
 
-// Ensure proper React exports are available for React Router DOM
-if (typeof window !== 'undefined') {
-  // Make core React hooks and methods available globally to fix issues with React Router DOM
-  try {
-    // Instead of creating a new object, store reference to needed methods
-    if (!window.React) {
-      // If React isn't defined on window, create it as an empty object first
-      window.React = {} as typeof React;
-    }
-    
-    // Add essential React methods that react-router-dom needs
-    // TypeScript will allow property assignments to window.React
-    window.React.createElement = window.React.createElement || React.createElement;
-    window.React.useContext = window.React.useContext || React.useContext;
-    window.React.useState = window.React.useState || React.useState;
-    window.React.useEffect = window.React.useEffect || React.useEffect;
-    window.React.useRef = window.React.useRef || React.useRef;
-    window.React.createContext = window.React.createContext || React.createContext;
-    
-    // Store the key methods separately for direct reference if needed
-    (window as any).patchedReactRouter = {
-      createElement: React.createElement,
-      useContext: React.useContext,
-      useState: React.useState,
-      useEffect: React.useEffect,
-      useRef: React.useRef,
-      createContext: React.createContext
-    };
-    
-    console.log('React Router patches applied successfully');
-  } catch (error) {
-    console.error('Failed to apply React Router patches:', error);
+// Προσθήκη τύπων για το window object
+declare global {
+  interface Window {
+    React: typeof React;
   }
 }
 
-export default {};
+if (typeof window !== 'undefined') {
+  // Κάνουμε τα core React hooks και μεθόδους διαθέσιμα παγκοσμίως για να διορθώσουμε προβλήματα με το React Router DOM
+  try {
+    // Δημιουργία πλήρους αντιγράφου του React στο window για να αποφύγουμε το σφάλμα TS2740
+    window.React = { ...React };
+    
+    // Πρόσθεση debugger πληροφορίας
+    console.log('React Router patches applied successfully - React version:', React.version);
+  } catch (error) {
+    console.error('Error applying React Router patches:', error);
+  }
+}
+
+// Εξαγωγή βοηθητικής συνάρτησης για να ελέγξουμε αν το παράθυρο έχει React
+export function checkReactPatch() {
+  if (typeof window !== 'undefined') {
+    return !!window.React && !!window.React.createElement;
+  }
+  return false;
+}

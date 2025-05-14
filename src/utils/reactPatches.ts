@@ -1,56 +1,23 @@
 
-/**
- * Ensures React compatibility by patching missing or problematic exports
- * that might be required by third-party libraries
- */
+import * as React from 'react';
 
-// This function ensures React exports are available globally
-export function ensureReactCompatibility() {
-  if (typeof window !== 'undefined') {
-    // Import React dynamically to avoid circular dependencies
-    import('react').then(React => {
-      // Ensure React is available globally
-      if (!window.React) {
-        window.React = React;
-      }
-      
-      // Patch any missing exports that libraries might expect
-      if (window.React && !window.React.createContext && React.createContext) {
-        window.React.createContext = React.createContext;
-      }
-      
-      if (window.React && !window.React.useState && React.useState) {
-        window.React.useState = React.useState;
-      }
-      
-      if (window.React && !window.React.useEffect && React.useEffect) {
-        window.React.useEffect = React.useEffect;
-      }
-      
-      if (window.React && !window.React.useRef && React.useRef) {
-        window.React.useRef = React.useRef;
-      }
-      
-      if (window.React && !window.React.useContext && React.useContext) {
-        window.React.useContext = React.useContext;
-      }
-      
-      console.log('React compatibility patches applied');
-    }).catch(err => {
-      console.error('Failed to apply React compatibility patches:', err);
-    });
-    
-    // Ensure require is available for CommonJS modules
-    if (!window.require) {
-      window.require = function(id: string) {
-        console.warn(`Module "${id}" was required but require() is not fully implemented in the browser environment`);
-        // Return an empty object to prevent errors
-        return {};
-      } as any;
-    }
+// Βεβαιώνουμε ότι το React είναι διαθέσιμο στο window για προβλήματα συμβατότητας
+
+// Προσθήκη τύπων για το window object
+declare global {
+  interface Window {
+    React: typeof React;
   }
-  
-  return true;
 }
 
-export default ensureReactCompatibility;
+if (typeof window !== 'undefined') {
+  try {
+    // Δημιουργία πλήρους αντιγράφου του React στο window
+    window.React = window.React || { ...React };
+    
+    // Καταγραφή επιτυχίας
+    console.log('React patches applied successfully');
+  } catch (error) {
+    console.error('Error applying React patches:', error);
+  }
+}
