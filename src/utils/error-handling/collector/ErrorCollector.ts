@@ -1,95 +1,100 @@
 
-import { ErrorOptions } from '../types';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface ErrorData {
-  id?: string;
+  id: string;
   message: string;
   stack?: string;
   timestamp: string;
-  details?: string;
-  source?: string;
   component?: string;
+  source?: string;
+  details?: any;
   resolved?: boolean;
 }
+
+export type ErrorOptions = {
+  component?: string;
+  details?: any;
+  source?: string;
+  logToConsole?: boolean;
+  showToast?: boolean;
+};
 
 class ErrorCollector {
   private errors: ErrorData[] = [];
   private maxErrors: number = 100;
 
-  /**
-   * Add an error to the collector
-   */
-  addError(error: ErrorData): void {
-    // Add a unique ID if not provided
-    if (!error.id) {
-      error.id = Math.random().toString(36).substring(2, 15);
+  constructor() {
+    // Φόρτωση σφαλμάτων από το localStorage αν υπάρχουν
+    try {
+      const savedErrors = localStorage.getItem('errorCollector');
+      if (savedErrors) {
+        this.errors = JSON.parse(savedErrors);
+      }
+    } catch (e) {
+      console.error('Failed to load errors from localStorage', e);
     }
-
-    // Add to the beginning for most recent first
-    this.errors.unshift(error);
-    
-    // Limit the number of errors stored
-    if (this.errors.length > this.maxErrors) {
-      this.errors = this.errors.slice(0, this.maxErrors);
-    }
-    
-    // Log to console for immediate feedback
-    console.log(`[ErrorCollector] Added error: ${error.message}`);
   }
 
-  /**
-   * Capture an error with additional metadata
-   */
-  captureError(error: Error, options: ErrorOptions = {}): void {
-    this.addError({
+  public captureError(error: Error, options: ErrorOptions = {}): string {
+    const { component = 'unknown', source = 'client', details } = options;
+    
+    const errorData: ErrorData = {
+      id: uuidv4(),
       message: error.message,
       stack: error.stack,
       timestamp: new Date().toISOString(),
-      details: JSON.stringify(options.details || {}),
-      source: options.source || 'unknown',
-      component: options.component || 'unknown'
-    });
+      component,
+      source,
+      details,
+      resolved: false
+    };
+
+    this.errors.unshift(errorData);
+    
+    // Περιορισμός του μεγέθους του πίνακα σφαλμάτων
+    if (this.errors.length > this.maxErrors) {
+      this.errors = this.errors.slice(0, this.maxErrors);
+    }
+
+    // Αποθήκευση στο localStorage
+    try {
+      localStorage.setItem('errorCollector', JSON.stringify(this.errors));
+    } catch (e) {
+      console.error('Failed to save errors to localStorage', e);
+    }
+
+    return errorData.id;
   }
 
-  /**
-   * Get all errors
-   */
-  getAllErrors(): ErrorData[] {
+  public getError(id: string): ErrorData | undefined {
+    return this.errors.find(error => error.id === id);
+  }
+
+  public getAllErrors(): ErrorData[] {
     return [...this.errors];
   }
 
-  /**
-   * Clear all errors
-   */
-  clearAllErrors(): void {
+  public clearAllErrors(): void {
     this.errors = [];
-    console.log('[ErrorCollector] All errors cleared');
-  }
-
-  /**
-   * Get errors by source
-   */
-  getErrorsBySource(source: string): ErrorData[] {
-    return this.errors.filter(err => err.source === source);
-  }
-
-  /**
-   * Mark an error as resolved
-   */
-  resolveError(id: string): void {
-    const errorIndex = this.errors.findIndex(err => err.id === id);
-    if (errorIndex !== -1) {
-      this.errors[errorIndex].resolved = true;
+    try {
+      localStorage.removeItem('errorCollector');
+    } catch (e) {
+      console.error('Failed to clear errors from localStorage', e);
     }
   }
 
-  /**
-   * Report a new error (alias for captureError)
-   */
-  reportError(error: Error, metadata: ErrorOptions = {}): void {
-    this.captureError(error, metadata);
+  public resolveError(id: string): void {
+    const errorIndex = this.errors.findIndex(error => error.id === id);
+    if (errorIndex !== -1) {
+      this.errors[errorIndex].resolved = true;
+      try {
+        localStorage.setItem('errorCollector', JSON.stringify(this.errors));
+      } catch (e) {
+        console.error('Failed to save resolved error to localStorage', e);
+      }
+    }
   }
 }
 
-// Create a singleton instance
 export const errorCollector = new ErrorCollector();

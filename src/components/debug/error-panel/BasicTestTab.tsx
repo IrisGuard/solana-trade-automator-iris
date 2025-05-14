@@ -1,21 +1,19 @@
 
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useErrorOptions } from './ErrorOptionsContext';
 import { ErrorOptions } from './ErrorOptions';
 import { displayError } from '@/utils/error-handling/displayError';
-import { useErrorReporting } from '@/hooks/useErrorReporting';
+import { clearAllErrors } from '@/utils/errorTestUtils';
 
 export function BasicTestTab() {
   const { errorMessage, showToast, logToConsole, sendToChat, useCollector } = useErrorOptions();
-  const { clearAllErrors } = useErrorReporting();
   
   const handleGenerateError = () => {
     // Create error options object to pass to generateTestError
     const options = {
       showToast,
       logToConsole,
-      sendToChat,
-      useCollector,
       component: 'ErrorTestPanel'
     };
     

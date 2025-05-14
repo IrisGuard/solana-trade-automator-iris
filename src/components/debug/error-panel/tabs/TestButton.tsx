@@ -2,7 +2,7 @@
 import React, { MouseEvent } from 'react';
 import { Button } from "@/components/ui/button";
 import { generateVariousErrors } from '@/utils/errorTestUtils';
-import { TestErrorOptions } from '@/utils/error-handling/types';
+import { TestErrorOptions } from '@/utils/errorTestUtils';
 
 interface TestButtonProps {
   label: string;
