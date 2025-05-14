@@ -25,7 +25,7 @@ export interface TestErrorOptions {
   message?: string;
   component?: string;
   details?: any;
-  errorType?: string; // Change this from enum to string to allow more flexible error types
+  errorType?: string; // Using string type to allow more flexible error types
   simulateDelay?: number;
 }
 
