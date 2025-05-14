@@ -1,70 +1,88 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { useErrorReporting } from './useErrorReporting';
-import { Token, WalletStatus } from '@/types/wallet';
+import { useState, useCallback, useEffect } from 'react';
+import { isPhantomInstalled } from '@/utils/phantomWallet';
+import { useWalletAddress } from './wallet/useWalletAddress';
+import { useWalletData } from './wallet/useWalletData';
+import { useWalletEvents } from './wallet/useWalletEvents';
+import { useWalletInit } from './wallet/useWalletInit';
+import { useDataRefresh } from './wallet/useDataRefresh';
 
-// Sample data for demonstration
-const sampleTokens: Token[] = [
-  {
-    address: '9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E',
-    symbol: 'SOL',
-    name: 'Solana',
-    logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png',
-    decimals: 9,
-    amount: 2.5
-  },
-  {
-    address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-    symbol: 'USDC',
-    name: 'USD Coin',
-    logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
-    decimals: 6,
-    amount: 150.75
-  }
-];
-
+/**
+ * Main wallet connection hook that combines all wallet functionality
+ */
 export function useWalletConnection() {
-  const [isConnected, setIsConnected] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [walletAddress, setWalletAddress] = useState<string | undefined>(undefined);
-  const [tokens, setTokens] = useState<Token[]>(sampleTokens);
-  const [balance, setBalance] = useState<number>(0);
-  const { reportError } = useErrorReporting();
+  // Get wallet address and connection status
+  const {
+    isConnected,
+    walletAddress,
+    isConnecting,
+    error,
+    connectWallet,
+    disconnectWallet,
+    setWalletAddress,
+    setIsConnected,
+  } = useWalletAddress();
 
-  const connectWallet = useCallback(async () => {
-    try {
-      setIsConnecting(true);
-      
-      // Simulate connection delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock successful connection
+  // Get wallet data (balance and tokens)
+  const {
+    solBalance,
+    tokens,
+    tokenPrices,
+    isLoadingTokens,
+    loadWalletData,
+    refreshWalletData,
+    selectTokenForTrading
+  } = useWalletData();
+
+  // Handle wallet connection events
+  useWalletEvents(
+    // On connected handler
+    (publicKey) => {
+      setWalletAddress(publicKey);
       setIsConnected(true);
-      setWalletAddress('8xft7ixwvoK21LE2X5k7QQ4mF51HuKAKQ6Z1wNhWm2Kk');
-      setBalance(2.5);
-      
-      return true;
-    } catch (error) {
-      reportError(error as Error, { component: 'WalletConnection', source: 'wallet' });
-      return false;
-    } finally {
-      setIsConnecting(false);
+      loadWalletData(publicKey);
+    },
+    // On disconnected handler
+    () => {
+      setWalletAddress('');
+      setIsConnected(false);
     }
-  }, [reportError]);
+  );
 
-  const disconnectWallet = useCallback(() => {
-    setIsConnected(false);
-    setWalletAddress(undefined);
-    setBalance(0);
-  }, []);
+  // Initialize wallet on component mount
+  useWalletInit(
+    setWalletAddress,
+    setIsConnected,
+    (address) => loadWalletData(address)
+  );
+
+  // Setup periodic data refresh
+  useDataRefresh(
+    isConnected,
+    walletAddress,
+    refreshWalletData
+  );
 
   return {
+    // Wallet state
     isConnected,
-    isConnecting,
     walletAddress,
+    isConnecting,
+    error,
+    
+    // Wallet data
+    solBalance,
     tokens,
-    balance,
+    tokenPrices,
+    isLoadingTokens,
+    
+    // Actions
     connectWallet,
-    disconnectWallet
+    disconnectWallet,
+    refreshWalletData: () => refreshWalletData(walletAddress, isConnected),
+    selectTokenForTrading,
+    
+    // Utility properties
+    isPhantomInstalled: isPhantomInstalled(),
   };
 }

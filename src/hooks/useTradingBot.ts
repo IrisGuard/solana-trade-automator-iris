@@ -1,138 +1,93 @@
 
-import { useState, useEffect } from 'react';
-import { useWalletConnection } from './useWalletConnection';
-import { useErrorReporting } from './useErrorReporting';
-import { BotStatus, TradingBotConfig, TradingOrder, TradingBotHook } from './trading-bot/types';
-import { Token } from '@/types/wallet';
-
-const defaultConfig: TradingBotConfig = {
-  selectedToken: null,
-  buyThreshold: 3,
-  sellThreshold: 5,
-  stopLoss: 10,
-  takeProfit: 20,
-  maxBudget: 100,
-  tradeAmount: 0.1,
-  trailingStop: 5,
-  autoRebalance: false,
-  strategy: 'dca',
-  enabledStrategies: {
-    dca: true,
-    grid: false,
-    momentum: false
-  }
-};
+import { useCallback } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useConfig } from './trading-bot/useConfig';
+import { useBotActions } from './trading-bot/useBotActions';
+import { usePriceSubscription } from './trading-bot/usePriceSubscription';
+import { useTokens } from './trading-bot/useTokens';
+import { TradingBotHook } from './trading-bot/types';
 
 export function useTradingBot(): TradingBotHook {
-  const { walletAddress, tokens, isConnected } = useWalletConnection();
-  const [config, setConfig] = useState<TradingBotConfig>(defaultConfig);
-  const [botStatus, setBotStatus] = useState<BotStatus>('idle');
-  const [isLoading, setIsLoading] = useState(false);
-  const [activeOrders, setActiveOrders] = useState<TradingOrder[]>([]);
-  const [selectedTokenPrice, setSelectedTokenPrice] = useState<{ price: number; priceChange24h: number } | null>(null);
-  const { reportError } = useErrorReporting();
+  const { connected } = useWallet();
+  const { config, updateConfig } = useConfig();
+  const { tokens, findTokenDetails } = useTokens();
+  const {
+    bots,
+    activeBot,
+    setActiveBot,
+    isCreating,
+    isLoading,
+    botStatus,
+    activeOrders,
+    loadBots,
+    startBot: startBotAction,
+    stopBot,
+    createBot
+  } = useBotActions();
+  
+  const {
+    price,
+    isLoading: isPriceLoading,
+    selectedTokenPrice,
+    selectedTokenDetails,
+    setupPriceSubscription,
+    cleanupSubscription
+  } = usePriceSubscription();
 
-  // Get selected token details
-  const selectedTokenDetails = tokens.find(token => token.address === config.selectedToken);
-
-  // Update config
-  const updateConfig = (newConfig: Partial<TradingBotConfig>) => {
-    setConfig(prevConfig => ({ ...prevConfig, ...newConfig }));
-  };
-
-  // Select token
-  const selectToken = async (tokenAddress: string | null) => {
-    try {
-      if (tokenAddress) {
-        setIsLoading(true);
-        // Here we would fetch the latest price data for the token
-        // Simulating price data for demo
-        setSelectedTokenPrice({
-          price: Math.random() * 100,
-          priceChange24h: (Math.random() * 20) - 10
-        });
-        
-        updateConfig({ selectedToken: tokenAddress });
-      } else {
-        updateConfig({ selectedToken: null });
-        setSelectedTokenPrice(null);
-      }
-      return Promise.resolve();
-    } catch (error) {
-      reportError(error as Error, { component: 'TradingBot', source: 'client' });
-      return Promise.reject(error);
-    } finally {
-      setIsLoading(false);
+  // Select token for trading
+  const selectToken = useCallback(async (tokenAddress: string | null) => {
+    updateConfig({ selectedToken: tokenAddress });
+    
+    // Find token details and setup price subscription
+    const tokenDetails = tokenAddress ? findTokenDetails(tokenAddress) : undefined;
+    if (tokenAddress && tokenDetails) {
+      await setupPriceSubscription(tokenAddress);
     }
-  };
+    
+  }, [updateConfig, findTokenDetails, setupPriceSubscription]);
 
-  // Start bot
-  const startBot = () => {
-    try {
-      setIsLoading(true);
-      
-      // Generate some mock orders
-      const mockOrders: TradingOrder[] = [
-        { 
-          id: 'order1',
-          type: 'stop-loss',
-          price: selectedTokenPrice?.price ? selectedTokenPrice.price * 0.9 : 0,
-          amount: config.tradeAmount || 0.1,
-          tokenAddress: config.selectedToken || '',
-          status: 'pending',
-          createdAt: new Date()
-        },
-        {
-          id: 'order2',
-          type: 'take-profit',
-          price: selectedTokenPrice?.price ? selectedTokenPrice.price * 1.2 : 0,
-          amount: config.tradeAmount || 0.1,
-          tokenAddress: config.selectedToken || '',
-          status: 'pending',
-          createdAt: new Date()
-        }
-      ];
-      
-      setActiveOrders(mockOrders);
-      setBotStatus('running');
-      
-      // Show success message
-      console.log("Bot started with config:", config);
-    } catch (error) {
-      reportError(error as Error, { component: 'TradingBot', source: 'client' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Start the trading bot with current configuration
+  const startBot = useCallback(() => {
+    startBotAction(config, selectedTokenPrice);
+  }, [startBotAction, config, selectedTokenPrice]);
 
-  // Stop bot
-  const stopBot = () => {
-    try {
-      setIsLoading(true);
-      setActiveOrders([]);
-      setBotStatus('idle');
-      
-      // Show success message
-      console.log("Bot stopped");
-    } catch (error) {
-      reportError(error as Error, { component: 'TradingBot', source: 'client' });
-    } finally {
-      setIsLoading(false);
+  // Cleanup on unmount
+  const cleanup = useCallback(() => {
+    cleanupSubscription();
+    
+    if (botStatus === 'running') {
+      stopBot();
     }
-  };
+  }, [cleanupSubscription, botStatus, stopBot]);
 
   return {
-    config,
-    updateConfig,
-    selectToken,
-    startBot,
-    stopBot,
+    // Bot state
+    bots,
+    activeBot,
+    isCreating,
     isLoading,
+    selectedToken: config.selectedToken,
+    tokenPrice: price,
     botStatus,
     activeOrders,
     selectedTokenPrice,
     selectedTokenDetails,
     tokens,
-    connected: isConnected
+    connected,
+    
+    // Bot configuration
+    config,
+    updateConfig,
+    
+    // Bot actions
+    loadBots,
+    selectToken,
+    setActiveBot,
+    createBot,
+    startBot,
+    stopBot,
+    cleanup
   };
 }
+
+export default useTradingBot;

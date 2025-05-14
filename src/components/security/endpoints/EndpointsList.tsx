@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ApiEndpoint } from "@/types/api"; // Use consistent import
+import { ApiEndpoint } from "@/types/api";
 import { Loader2, ExternalLink } from "lucide-react";
 
 export interface EndpointsListProps {

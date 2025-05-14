@@ -7,7 +7,7 @@ import { Plus } from "lucide-react";
 import { NewEndpointDialog } from "./NewEndpointDialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { ApiEndpoint } from "@/types/api"; // Use consistent import from types
+import { ApiEndpoint } from "@/types/api";
 
 interface ApiEndpointsManagerProps {
   category: string;

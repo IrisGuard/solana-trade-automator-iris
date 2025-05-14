@@ -1,18 +1,14 @@
 
 import React, { useState } from "react";
+import { NavLink as RouterNavLink } from "react-router-dom";
 import { SidebarNav } from "./SidebarNav";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { 
   ArrowLeft, 
-  ArrowRight, 
-  Home,
-  Settings,
-  Shield,
-  Wallet
+  ArrowRight 
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { NavItem } from "@/types/nav";
 
 interface SidebarProps {
   className?: string;
@@ -21,34 +17,6 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const isMobile = useIsMobile();
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
-
-  const sidebarItems: NavItem[] = [
-    {
-      title: "Home",
-      href: "/home",
-      icon: Home
-    },
-    {
-      title: "Dashboard",
-      href: "/dashboard",
-      icon: Home
-    },
-    {
-      title: "Wallet",
-      href: "/wallet",
-      icon: Wallet
-    },
-    {
-      title: "Security",
-      href: "/security",
-      icon: Shield
-    },
-    {
-      title: "Settings",
-      href: "/settings",
-      icon: Settings
-    }
-  ];
 
   return (
     <div
@@ -79,7 +47,7 @@ export function Sidebar({ className }: SidebarProps) {
       </div>
       
       <div className="flex-1 overflow-auto px-4">
-        <SidebarNav items={sidebarItems} isCollapsed={isCollapsed} />
+        <SidebarNav isCollapsed={isCollapsed} />
       </div>
       
       {/* User profile section */}

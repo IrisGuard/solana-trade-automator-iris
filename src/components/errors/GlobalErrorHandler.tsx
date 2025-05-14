@@ -1,126 +1,103 @@
 
-import { useEffect, useRef } from 'react';
-import { useErrorReporting } from '@/hooks/useErrorReporting';
+import React, { useState, useEffect } from 'react';
+import { Toast, ToastAction } from '@/components/ui/toast';
 import { errorCollector } from '@/utils/error-handling/collector';
+import { ErrorData } from '@/utils/error-handling/collector/types';
+import { Button } from '@/components/ui/button';
+import { AlertCircle, X } from 'lucide-react';
+import { displayError } from '@/utils/errorUtils';
+import { sendErrorToChat } from '@/utils/error-handling/displayError';
+import { useErrorReporting } from '@/hooks/useErrorReporting';
 
-interface GlobalErrorHandlerProps {
-  children: React.ReactNode;
-}
-
-export function GlobalErrorHandler({ children }: GlobalErrorHandlerProps) {
+export function GlobalErrorHandler() {
+  const [errors, setErrors] = useState<ErrorData[]>([]);
+  const [lastError, setLastError] = useState<ErrorData | null>(null);
   const { reportError } = useErrorReporting();
-  const errorHandlerSet = useRef(false);
-
-  useEffect(() => {
-    if (errorHandlerSet.current) return;
-    
-    const originalConsoleError = console.error;
-    const originalConsoleWarn = console.warn;
-    
-    // Override console.error
-    console.error = (...args: any[]) => {
-      // Call the original console.error
-      originalConsoleError.apply(console, args);
-      
-      // Extract error message or object
-      const errorMessage = args.map(arg => {
-        if (arg instanceof Error) {
-          return arg.message;
-        } else if (typeof arg === 'string') {
-          return arg;
-        } else {
-          try {
-            return JSON.stringify(arg);
-          } catch {
-            return String(arg);
-          }
-        }
-      }).join(' ');
-      
-      // Create an error object if a string was passed
-      const errorObject = args[0] instanceof Error 
-        ? args[0] 
-        : new Error(errorMessage);
-      
-      // Report the error
-      errorCollector.addError({
-        message: errorObject.message,
-        stack: errorObject.stack,
-        timestamp: new Date().toISOString(),
-        component: 'GlobalErrorHandler',
-        source: 'console'
-      });
-    };
-    
-    // Override console.warn
-    console.warn = (...args: any[]) => {
-      // Call the original console.warn
-      originalConsoleWarn.apply(console, args);
-      
-      // Extract warning message
-      const warningMessage = args.map(arg => {
-        if (typeof arg === 'string') {
-          return arg;
-        } else {
-          try {
-            return JSON.stringify(arg);
-          } catch {
-            return String(arg);
-          }
-        }
-      }).join(' ');
-      
-      // Report the warning as an info message
-      errorCollector.addError({
-        message: `Warning: ${warningMessage}`,
-        timestamp: new Date().toISOString(),
-        component: 'GlobalErrorHandler',
-        source: 'console'
-      });
-    };
-    
-    // Global error handler
-    const handleGlobalError = (event: ErrorEvent) => {
-      event.preventDefault();
-      const error = event.error || new Error(event.message);
-      reportError(error, {
-        component: 'Window',
-        source: 'global',
-        details: {
-          fileName: event.filename,
-          lineNumber: event.lineno,
-          columnNumber: event.colno
-        }
-      });
-    };
-    
-    // Unhandled promise rejection handler
-    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      event.preventDefault();
-      const error = event.reason instanceof Error 
-        ? event.reason 
-        : new Error(String(event.reason));
-      
-      reportError(error, {
-        component: 'Promise',
-        source: 'unhandledRejection'
-      });
-    };
-    
-    // Add event listeners
-    window.addEventListener('error', handleGlobalError);
-    window.addEventListener('unhandledrejection', handleUnhandledRejection);
-    
-    errorHandlerSet.current = true;
-    
-    // Cleanup
-    return () => {
-      console.error = originalConsoleError;
-      console.warn = originalConsoleWarn;
-      window.removeEventListener('error', handleGlobalError);
-      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
-    };
-  }, [reportError]);
   
-  return <>{children}</>;
+  // Λήψη των σφαλμάτων από τον collector
+  useEffect(() => {
+    const checkForErrors = () => {
+      const allErrors = errorCollector.getAllErrors();
+      setErrors(allErrors);
+      
+      // Εάν υπάρχει νέο σφάλμα, το αποθηκεύουμε ως το τελευταίο
+      if (allErrors.length > 0 && (!lastError || allErrors[0].id !== lastError.id)) {
+        setLastError(allErrors[0]);
+      }
+    };
+    
+    // Αρχική λήψη σφαλμάτων
+    checkForErrors();
+    
+    // Περιοδικός έλεγχος για νέα σφάλματα
+    const intervalId = setInterval(checkForErrors, 3000);
+    
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [lastError]);
+  
+  // Διαχείριση αποστολής σφάλματος σε υποστήριξη
+  const handleSendToSupport = (error: ErrorData) => {
+    try {
+      const supportMessage = `
+        Error Report:
+        - Message: ${error.message}
+        - Component: ${error.component}
+        - Source: ${error.source}
+        - Timestamp: ${error.timestamp}
+      `;
+      
+      // Αποστολή του σφάλματος (για την προσομοίωση)
+      console.log("Sending error to support:", supportMessage);
+      // Καλούμε τη συνάρτηση για αποστολή στο chat
+      sendErrorToChat(error.message);
+      
+      // Ενημέρωση του χρήστη
+      displayError("Το σφάλμα στάλθηκε στην υποστήριξη", { 
+        showToast: true
+      });
+      
+    } catch (e) {
+      console.error("Σφάλμα κατά την αποστολή του σφάλματος:", e);
+      reportError("Αποτυχία αποστολής σφάλματος στην υποστήριξη");
+    }
+  };
+
+  if (!lastError) return null;
+
+  return (
+    <Toast className="bg-destructive text-white">
+      <div className="flex items-start gap-2">
+        <AlertCircle className="h-5 w-5 mt-0.5" />
+        <div className="flex-1">
+          <div className="font-semibold">Σφάλμα Εφαρμογής</div>
+          <div className="text-sm opacity-90">{lastError.message}</div>
+          <div className="text-xs opacity-75 mt-1">
+            Στο: {lastError.component} | {new Date(lastError.timestamp).toLocaleTimeString()}
+          </div>
+        </div>
+      </div>
+      <ToastAction className="flex gap-2" asChild altText="Αποστολή στην υποστήριξη">
+        <div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="bg-transparent hover:bg-white/10 text-white border-white/20"
+            onClick={() => handleSendToSupport(lastError)}
+          >
+            Αναφορά
+          </Button>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="bg-transparent hover:bg-white/10 text-white border-white/20"
+            onClick={() => setLastError(null)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </ToastAction>
+    </Toast>
+  );
 }

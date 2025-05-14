@@ -1,91 +1,95 @@
 
+import { ErrorOptions } from '../types';
+
 export interface ErrorData {
+  id?: string;
   message: string;
   stack?: string;
   timestamp: string;
-  component?: string;
-  source?: string;
   details?: string;
-}
-
-export interface ErrorCapturingOptions {
-  component?: string;
-  details?: any;
   source?: string;
+  component?: string;
+  resolved?: boolean;
 }
 
 class ErrorCollector {
   private errors: ErrorData[] = [];
-  private maxErrors: number = 50;
+  private maxErrors: number = 100;
 
   /**
    * Add an error to the collector
    */
   addError(error: ErrorData): void {
+    // Add a unique ID if not provided
+    if (!error.id) {
+      error.id = Math.random().toString(36).substring(2, 15);
+    }
+
+    // Add to the beginning for most recent first
     this.errors.unshift(error);
-    // Keep only the latest errors to prevent memory leaks
+    
+    // Limit the number of errors stored
     if (this.errors.length > this.maxErrors) {
       this.errors = this.errors.slice(0, this.maxErrors);
     }
+    
+    // Log to console for immediate feedback
+    console.log(`[ErrorCollector] Added error: ${error.message}`);
   }
 
   /**
-   * Capture error with more context options
+   * Capture an error with additional metadata
    */
-  captureError(error: Error, options: ErrorCapturingOptions = {}): void {
-    const { component = 'unknown', details = {}, source = 'client' } = options;
-    
+  captureError(error: Error, options: ErrorOptions = {}): void {
     this.addError({
       message: error.message,
       stack: error.stack,
       timestamp: new Date().toISOString(),
-      component,
-      source,
-      details: typeof details === 'string' ? details : JSON.stringify(details)
+      details: JSON.stringify(options.details || {}),
+      source: options.source || 'unknown',
+      component: options.component || 'unknown'
     });
   }
 
   /**
-   * Get all collected errors
-   */
-  getErrors(): ErrorData[] {
-    return [...this.errors];
-  }
-
-  /**
-   * Get all collected errors - alias for backward compatibility
+   * Get all errors
    */
   getAllErrors(): ErrorData[] {
-    return this.getErrors();
+    return [...this.errors];
   }
 
   /**
    * Clear all errors
    */
-  clearAll(): void {
-    this.errors = [];
-  }
-
-  /**
-   * Clear all errors - alias for backward compatibility
-   */
   clearAllErrors(): void {
-    this.clearAll();
+    this.errors = [];
+    console.log('[ErrorCollector] All errors cleared');
   }
 
   /**
-   * Get the most recent error
+   * Get errors by source
    */
-  getLatestError(): ErrorData | null {
-    return this.errors.length > 0 ? this.errors[0] : null;
+  getErrorsBySource(source: string): ErrorData[] {
+    return this.errors.filter(err => err.source === source);
   }
 
   /**
-   * Check if there are any errors
+   * Mark an error as resolved
    */
-  hasErrors(): boolean {
-    return this.errors.length > 0;
+  resolveError(id: string): void {
+    const errorIndex = this.errors.findIndex(err => err.id === id);
+    if (errorIndex !== -1) {
+      this.errors[errorIndex].resolved = true;
+    }
+  }
+
+  /**
+   * Report a new error (alias for captureError)
+   */
+  reportError(error: Error, metadata: ErrorOptions = {}): void {
+    this.captureError(error, metadata);
   }
 }
 
+// Create a singleton instance
 export const errorCollector = new ErrorCollector();
