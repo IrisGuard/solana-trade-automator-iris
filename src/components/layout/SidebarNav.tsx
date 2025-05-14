@@ -12,15 +12,15 @@ import { NavItem } from "@/types/nav";
 
 interface SidebarNavProps {
   items: NavItem[];
-  isCollapsed?: boolean; // Add this prop
+  isCollapsed?: boolean;
 }
 
-export function SidebarNav({ items, isCollapsed = false }: SidebarNavProps) {
+export function SidebarNav({ items = [], isCollapsed = false }: SidebarNavProps) {
   const location = useLocation();
   
   return (
     <nav className="grid gap-2 px-2">
-      {items.map((item, index) => {
+      {items && items.map((item, index) => {
         const Icon = item.icon;
         return (
           item.href && (
