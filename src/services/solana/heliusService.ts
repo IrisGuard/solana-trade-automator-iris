@@ -1,4 +1,3 @@
-
 import { API_ENDPOINTS } from './config';
 import { API_HEADERS, API_TIMEOUT } from './apiConfig';
 import { heliusKeyManager } from './HeliusKeyManager';
@@ -179,6 +178,93 @@ export class HeliusService {
       () => this.fetchFromHelius(this.endpoints.getTransactions() + `&signatures[]=${signature}`),
       { endpoint: `transaction-${signature.substring(0, 8)}` }
     );
+  }
+
+  // Helper method for making requests with rate limit handling
+  private static async withRateLimitHandling<T>(fn: () => Promise<T>, options: { endpoint: string }): Promise<T> {
+    try {
+      return await fn();
+    } catch (error) {
+      if (isRateLimitError(error)) {
+        console.log("Rate limit hit, rotating API key and retrying...");
+        await this.rotateApiKey();
+        return this.withRateLimitHandling(fn, options);
+      }
+      throw error;
+    }
+  }
+
+  // Method for rotating the API key
+  private static async rotateApiKey(): Promise<void> {
+    const newKey = heliusKeyManager.rotateKey();
+    console.log("API key rotated to:", newKey);
+  }
+
+  // Method for making requests with rate limit handling and exponential backoff
+  static async makeRequest<T>(endpoint: string, method: string, params: any[] = [], apiKey?: string): Promise<T> {
+    try {
+      // Handle rate limit and retry logic
+      return await this.withRateLimitHandling(async () => {
+        const key = apiKey || await this.getApiKey();
+        
+        if (!key) {
+          throw new Error("No Helius API key available");
+        }
+        
+        // Build request URL with endpoint and API key
+        const url = `https://api.helius.xyz/v0/${endpoint}?api-key=${key}`;
+        
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: Date.now(),
+            method,
+            params
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Helius API error: ${response.status} ${response.statusText}`);
+        }
+
+        return await response.json();
+      }, { endpoint: endpoint });
+    } catch (error) {
+      // If rate limit error, try rotating the key and try again
+      if (isRateLimitError(error)) {
+        console.log("Rate limit hit, rotating API key and retrying...");
+        await this.rotateApiKey();
+        return this.makeRequest(endpoint, method, params);
+      }
+      throw error;
+    }
+  }
+
+  // Helper method for making requests with rate limit handling and exponential backoff
+  private static async callWithRetry<T>(endpoint: string, apiKeyFn: () => Promise<string | null>, makeRequestFn: (key: string) => Promise<T>): Promise<T> {
+    try {
+      return await this.withRateLimitHandling(async () => {
+        const key = await apiKeyFn();
+        
+        if (!key) {
+          throw new Error("No Helius API key available");
+        }
+        
+        return makeRequestFn(key);
+      }, { endpoint: endpoint });
+    } catch (error) {
+      // If rate limit error, try rotating the key and try again
+      if (isRateLimitError(error)) {
+        console.log("Rate limit hit, rotating API key and retrying...");
+        await this.rotateApiKey();
+        return this.callWithRetry(endpoint, apiKeyFn, makeRequestFn);
+      }
+      throw error;
+    }
   }
 }
 
