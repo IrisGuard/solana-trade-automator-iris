@@ -7,6 +7,9 @@ import { TransactionPagination } from "@/components/transactions/Pagination";
 import { TransactionSummary } from "@/components/transactions/TransactionSummary";
 import { TokenActivity } from "@/components/transactions/TokenActivity";
 import { transactions, getUniqueTokens, formatDate } from "@/components/transactions/TransactionsData";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function TransactionsEnhanced() {
   // State for filters and pagination
@@ -34,13 +37,13 @@ export default function TransactionsEnhanced() {
     // Date filtering
     let withinDateRange = true;
     if (startDate) {
-      const txDate = new Date(tx.timestamp); // Changed from tx.date to tx.timestamp
+      const txDate = new Date(tx.timestamp);
       const start = new Date(startDate);
       start.setHours(0, 0, 0, 0);
       withinDateRange = withinDateRange && txDate >= start;
     }
     if (endDate) {
-      const txDate = new Date(tx.timestamp); // Changed from tx.date to tx.timestamp
+      const txDate = new Date(tx.timestamp);
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
       withinDateRange = withinDateRange && txDate <= end;
@@ -62,12 +65,41 @@ export default function TransactionsEnhanced() {
 
   return (
     <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Προηγμένες Συναλλαγές</h2>
+          <p className="text-muted-foreground">
+            Αναλύστε τις συναλλαγές σας με προηγμένα φίλτρα και εργαλεία οπτικοποίησης
+          </p>
+        </div>
+      </div>
+
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Αυτή η σελίδα παρέχει προηγμένες λειτουργίες φιλτραρίσματος και ανάλυσης συναλλαγών.
+          Χρησιμοποιήστε τα φίλτρα για να περιορίσετε τα αποτελέσματα και τα γραφήματα για ανάλυση.
+        </AlertDescription>
+      </Alert>
+
       <Card className="overflow-hidden">
         <CardHeader>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <CardTitle>Ιστορικό Συναλλαγών</CardTitle>
-              <CardDescription>Προβολή όλων των συναλλαγών σας</CardDescription>
+              <div className="flex items-center gap-2">
+                <CardTitle>Ιστορικό Συναλλαγών</CardTitle>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">Χρησιμοποιήστε τα φίλτρα για να εντοπίσετε συγκεκριμένες συναλλαγές βάσει κριτηρίων. Μπορείτε να φιλτράρετε κατά τύπο, token και χρονικό διάστημα.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <CardDescription>Προβολή και ανάλυση όλων των συναλλαγών σας</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -117,6 +149,37 @@ export default function TransactionsEnhanced() {
           uniqueTokens={uniqueTokens} 
         />
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Οδηγίες Χρήσης Προηγμένων Φίλτρων</CardTitle>
+          <CardDescription>
+            Μάθετε πώς να αξιοποιήσετε στο μέγιστο τα εργαλεία ανάλυσης συναλλαγών
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="bg-card border rounded-md p-4">
+              <h3 className="font-medium mb-2">Αναζήτηση</h3>
+              <p className="text-sm text-muted-foreground">
+                Πληκτρολογήστε για να αναζητήσετε ID συναλλαγών, ονόματα token ή bots που εκτέλεσαν τις συναλλαγές.
+              </p>
+            </div>
+            <div className="bg-card border rounded-md p-4">
+              <h3 className="font-medium mb-2">Φίλτρα Τύπου</h3>
+              <p className="text-sm text-muted-foreground">
+                Επιλέξτε τύπο συναλλαγής για να προβάλετε μόνο αγορές, πωλήσεις ή άλλες κατηγορίες συναλλαγών.
+              </p>
+            </div>
+            <div className="bg-card border rounded-md p-4">
+              <h3 className="font-medium mb-2">Φίλτρα Ημερομηνίας</h3>
+              <p className="text-sm text-muted-foreground">
+                Ορίστε χρονικό διάστημα για να δείτε συναλλαγές που πραγματοποιήθηκαν μόνο σε συγκεκριμένη περίοδο.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
