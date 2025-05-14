@@ -1,15 +1,22 @@
 
 import React from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Loader2 } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { ApiEndpoint } from "./ApiEndpointsManager";
+import { Loader2, ExternalLink } from "lucide-react";
 
 export interface EndpointsListProps {
   endpoints: ApiEndpoint[];
   loading: boolean;
-  error: string | null;
+  error: string;
 }
 
 export function EndpointsList({ endpoints, loading, error }: EndpointsListProps) {
@@ -20,64 +27,57 @@ export function EndpointsList({ endpoints, loading, error }: EndpointsListProps)
       </div>
     );
   }
-
+  
   if (error) {
     return (
-      <div className="py-4 text-center text-destructive">
-        <p>Σφάλμα φόρτωσης endpoints</p>
+      <div className="bg-destructive/10 p-4 rounded-md text-destructive text-center">
+        {error}
       </div>
     );
   }
-
+  
   if (endpoints.length === 0) {
     return (
-      <div className="py-8 text-center text-muted-foreground">
-        <p>Δεν υπάρχουν διαθέσιμα endpoints</p>
+      <div className="text-center py-8 text-muted-foreground">
+        No endpoints found for this category
       </div>
     );
   }
-
+  
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Όνομα</TableHead>
-            <TableHead>Κατηγορία</TableHead>
-            <TableHead>URL</TableHead>
-            <TableHead>Κατάσταση</TableHead>
-            <TableHead>Πρόσβαση</TableHead>
-            <TableHead className="w-[100px]">Ενεργό</TableHead>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Name</TableHead>
+          <TableHead>URL</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Visibility</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {endpoints.map((endpoint) => (
+          <TableRow key={endpoint.id}>
+            <TableCell>{endpoint.name}</TableCell>
+            <TableCell className="font-mono text-sm">{endpoint.url}</TableCell>
+            <TableCell>
+              <Badge variant={endpoint.is_active ? "success" : "secondary"}>
+                {endpoint.is_active ? "Active" : "Inactive"}
+              </Badge>
+            </TableCell>
+            <TableCell>
+              <Badge variant={endpoint.is_public ? "outline" : "default"}>
+                {endpoint.is_public ? "Public" : "Private"}
+              </Badge>
+            </TableCell>
+            <TableCell className="text-right">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            </TableCell>
           </TableRow>
-        </TableHeader>
-        <TableBody>
-          {endpoints.map((endpoint) => (
-            <TableRow key={endpoint.id}>
-              <TableCell className="font-medium">{endpoint.name}</TableCell>
-              <TableCell>{endpoint.category}</TableCell>
-              <TableCell className="font-mono text-xs truncate max-w-[200px]">
-                {endpoint.url}
-              </TableCell>
-              <TableCell>
-                <Badge variant={endpoint.is_active ? "success" : "secondary"}>
-                  {endpoint.is_active ? 'Ενεργό' : 'Ανενεργό'}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Badge variant={endpoint.is_public ? "outline" : "default"}>
-                  {endpoint.is_public ? 'Δημόσιο' : 'Ιδιωτικό'}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Switch 
-                  checked={endpoint.is_active} 
-                  onCheckedChange={() => {}} 
-                />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+        ))}
+      </TableBody>
+    </Table>
   );
 }

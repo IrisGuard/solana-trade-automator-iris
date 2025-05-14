@@ -1,70 +1,45 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { priceService } from '@/services/solana/price';
-import { Token } from '@/types/wallet';
-import { TokenPriceInfo } from './types';
 
-export function usePriceSubscription() {
-  const [tokenPrice, setTokenPrice] = useState<any>(null);
-  const [priceSubscription, setPriceSubscription] = useState<any>(null);
-  const [selectedTokenPrice, setSelectedTokenPrice] = useState<TokenPriceInfo | null>(null);
-  const [selectedTokenDetails, setSelectedTokenDetails] = useState<Token | undefined>(undefined);
+export function usePriceSubscription(tokenAddress: string | null, refreshInterval: number = 10000) {
+  const [price, setPrice] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Set up token price subscription
-  const setupPriceSubscription = useCallback(async (token: string | null, tokenDetails: Token | undefined, tokens: Token[]) => {
-    setSelectedTokenDetails(tokenDetails);
-    
-    if (!token) {
-      setSelectedTokenPrice(null);
+  useEffect(() => {
+    if (!tokenAddress) {
+      setPrice(null);
+      setIsLoading(false);
       return;
     }
+
+    setIsLoading(true);
     
-    try {
-      // Clean up existing subscription
-      if (priceSubscription) {
-        priceService.unsubscribeFromPriceUpdates(priceSubscription);
+    // Initial fetch
+    const fetchPrice = async () => {
+      try {
+        const priceData = await priceService.fetchTokenPrice(tokenAddress);
+        if (priceData) {
+          setPrice(priceData.price);
+        }
+      } catch (error) {
+        console.error("Error fetching token price:", error);
+      } finally {
+        setIsLoading(false);
       }
-      
-      // Simulate price data for now
-      const mockPrice: TokenPriceInfo = {
-        price: 25.75,
-        priceChange24h: 3.5
-      };
-      setSelectedTokenPrice(mockPrice);
-      
-      // Create new price subscription
-      const newSubscription = priceService.subscribeToPriceUpdates({
-        tokenAddress: token,
-        callback: (price) => setTokenPrice(price),
-        interval: 30000 // 30 seconds
-      });
-      
-      setPriceSubscription(newSubscription);
-    } catch (error) {
-      console.error("Error setting up token price tracking:", error);
-    }
-  }, [priceSubscription]);
+    };
+    
+    fetchPrice();
+    
+    // Setup subscription
+    const unsubscribe = priceService.subscribeToPrice(tokenAddress, (newPrice) => {
+      setPrice(newPrice);
+    });
+    
+    return () => {
+      unsubscribe();
+    };
+  }, [tokenAddress, refreshInterval]);
 
-  // Cleanup subscription on unmount
-  const cleanupSubscription = useCallback(() => {
-    if (priceSubscription) {
-      priceService.unsubscribeFromPriceUpdates(priceSubscription);
-      setPriceSubscription(null);
-    }
-  }, [priceSubscription]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return cleanupSubscription;
-  }, [cleanupSubscription]);
-
-  return {
-    tokenPrice,
-    priceSubscription,
-    selectedTokenPrice,
-    selectedTokenDetails,
-    setSelectedTokenDetails,
-    setupPriceSubscription,
-    cleanupSubscription
-  };
+  return { price, isLoading };
 }
