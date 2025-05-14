@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
 import { TransactionList } from "./transaction/TransactionList";
 import { TransactionFooter } from "./transaction/TransactionFooter";
-import { Transaction } from "@/types/wallet";
+import { Transaction } from "@/types/wallet"; // Using wallet Transaction type consistently
 
 export function TransactionHistory({ walletAddress, limit = 10 }: { walletAddress: string | null, limit?: number }) {
   const [isLoading] = useState(false);
-  const transactions: Transaction[] = []; // Εδώ θα μπορούσαν να φορτωθούν δεδομένα
+  // Empty array with explicit Transaction type from wallet
+  const transactions: Transaction[] = []; 
   
   const getStatusBadgeClass = (status: string) => {
     return status === 'Success' 

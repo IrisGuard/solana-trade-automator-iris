@@ -12,10 +12,10 @@ export interface Token {
 export interface Transaction {
   signature: string;
   blockTime: number;
-  timestamp?: number; // Add timestamp to make it compatible
+  timestamp: number; // Changed from optional to required
   type: string;
   status: string;
-  amount?: string | number; // Change to accept number too
+  amount?: string; // Changed from string | number to string only
   from?: string;
   to?: string;
   tokenAddress?: string;

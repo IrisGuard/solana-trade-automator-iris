@@ -2,7 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
-import { Transaction } from "@/types/transaction";
+import { Transaction } from "@/types/wallet"; // Use wallet Transaction type consistently
 import { formatWalletAddress } from "@/utils/walletUtils";
 
 interface TransactionItemProps {
@@ -41,8 +41,8 @@ export function TransactionItem({ tx, getStatusBadgeClass, getTypeIcon }: Transa
         </div>
       </div>
       <div className="text-right">
-        <p className={`font-medium ${tx.amount?.toString().startsWith('+') ? 'text-green-600 dark:text-green-400' : 
-          tx.amount?.toString().startsWith('-') ? 'text-red-600 dark:text-red-400' : ''}`}>
+        <p className={`font-medium ${tx.amount?.startsWith('+') ? 'text-green-600 dark:text-green-400' : 
+          tx.amount?.startsWith('-') ? 'text-red-600 dark:text-red-400' : ''}`}>
           {tx.amount || '-'}
         </p>
         <div className="flex items-center justify-end gap-1">

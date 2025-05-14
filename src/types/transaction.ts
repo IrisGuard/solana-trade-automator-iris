@@ -8,7 +8,7 @@ export interface Transaction {
   type: string;
   
   // Amount and value information
-  amount?: string | number;
+  amount?: string;  // Changed from string | number to string only
   price?: string | number;
   value?: string | number;
   

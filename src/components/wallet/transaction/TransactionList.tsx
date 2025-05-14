@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Loader } from "lucide-react";
-import { Transaction } from "@/types/transaction";
+import { Transaction } from "@/types/wallet"; // Use wallet Transaction type consistently
 import { TransactionItem } from "./TransactionItem";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";

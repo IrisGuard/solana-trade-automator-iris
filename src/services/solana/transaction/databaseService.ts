@@ -19,7 +19,7 @@ export async function saveTransactionToDatabase(
         user_id: userId,
         type: transaction.type,
         status: transaction.status,
-        amount: transaction.amount || '',
+        amount: String(transaction.amount || ''), // Ensure amount is a string
         source: transaction.from,
         destination: transaction.to,
         block_time: transaction.blockTime ? new Date(transaction.blockTime).toISOString() : new Date().toISOString()

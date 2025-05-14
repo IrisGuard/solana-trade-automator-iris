@@ -184,9 +184,10 @@ export function parseTransaction(
   return {
     signature,
     blockTime: timestamp * 1000, // Convert to milliseconds
+    timestamp: timestamp * 1000, // Ensure timestamp is set to same value as blockTime
     type,
     status,
-    amount,
+    amount: amount ? String(amount) : undefined, // Ensure amount is a string
     from,
     to,
     tokenAddress

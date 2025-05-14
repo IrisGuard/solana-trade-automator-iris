@@ -1,7 +1,6 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { solanaService } from '@/services/solanaService';
-import { Transaction } from '@/types/transaction';
+import { Transaction } from '@/types/wallet';
 import { useErrorReporting } from './useErrorReporting';
 
 export interface UseTransactionsProps {
@@ -29,16 +28,15 @@ export function useTransactions({ walletAddress, limit: initialLimit = 10 }: Use
       let dbTxs: Transaction[] = [];
       
       // Get transactions from Solana API
-      // Using fetchTransactions instead of fetchTransactionHistory
       const apiTxs = await solanaService.fetchTransactions(address, limit);
       
       // Merge transactions from both sources
       const mergedTransactions = [...apiTxs, ...dbTxs];
       
-      // Sort transactions by blockTime in descending order (instead of timestamp)
+      // Sort transactions by blockTime in descending order
       mergedTransactions.sort((a, b) => b.blockTime - a.blockTime);
       
-      setTransactions(mergedTransactions);
+      setTransactions(mergedTransactions as Transaction[]);
     } catch (error) {
       console.error('Error fetching transactions:', error);
       setError('Failed to fetch transactions');
