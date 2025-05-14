@@ -1,79 +1,58 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, Database, Check } from "lucide-react";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { toast } from "sonner";
 import { registerHeliusApiKeys, registerHeliusEndpoints } from "@/utils/addHeliusApiKeys";
-import { heliusKeyManager } from "@/services/solana/HeliusKeyManager";
-import { importHeliusKeysFromSqlSchema } from "@/utils/importHeliusKeys";
+import { Loader2, Key } from "lucide-react";
 
 export function RegisterHeliusKeysButton() {
-  const [isRegistering, setIsRegistering] = useState(false);
-  const [isComplete, setIsComplete] = useState(false);
-  const [keyCount, setKeyCount] = useState(0);
   const { user } = useAuth();
-
-  React.useEffect(() => {
-    // Check how many keys are already loaded
-    const fetchKeyCount = async () => {
-      await heliusKeyManager.initialize();
-      setKeyCount(heliusKeyManager.getKeyCount());
-      setIsComplete(heliusKeyManager.getKeyCount() >= 3);
-    };
-    
-    fetchKeyCount();
-  }, []);
-
-  const handleRegisterKeys = async () => {
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const handleRegisterHeliusKeys = async () => {
     if (!user) {
-      toast.error("Πρέπει να συνδεθείτε για να προσθέσετε τα κλειδιά Helius");
+      toast.error("Πρέπει να συνδεθείτε για να εγγράψετε τα κλειδιά Helius");
       return;
     }
-
-    setIsRegistering(true);
+    
+    setIsLoading(true);
     try {
-      // First try to import keys using the SQL schema format
-      await importHeliusKeysFromSqlSchema(user.id);
+      // Εγγραφή των 6 κλειδιών API Helius
+      const keysResult = await registerHeliusApiKeys(user.id);
       
-      // Register the endpoints
-      await registerHeliusEndpoints();
+      // Εγγραφή των endpoints
+      const endpointsResult = await registerHeliusEndpoints();
       
-      // Register the API keys (this is a backup method)
-      await registerHeliusApiKeys(user.id);
-      
-      // Refresh the key manager and update count
-      await heliusKeyManager.initialize();
-      setKeyCount(heliusKeyManager.getKeyCount());
-      
-      setIsComplete(true);
+      if (keysResult && endpointsResult) {
+        toast.success("Τα κλειδιά Helius και τα endpoints καταχωρήθηκαν επιτυχώς!");
+      } else if (keysResult) {
+        toast.success("Τα κλειδιά Helius καταχωρήθηκαν επιτυχώς!");
+      } else {
+        toast.warning("Κάποιες εγγραφές δεν ολοκληρώθηκαν");
+      }
     } catch (error) {
-      console.error("Error registering Helius API keys:", error);
-      toast.error("Σφάλμα κατά την προσθήκη των κλειδιών");
+      console.error("Error registering Helius keys:", error);
+      toast.error("Σφάλμα κατά την εγγραφή των κλειδιών Helius");
     } finally {
-      setIsRegistering(false);
+      setIsLoading(false);
     }
   };
-
+  
   return (
-    <Button
-      variant={isComplete ? "outline" : "default"}
-      onClick={handleRegisterKeys}
-      disabled={isRegistering || !user || isComplete}
+    <Button 
+      onClick={handleRegisterHeliusKeys}
+      disabled={isLoading || !user}
+      variant="default"
+      size="sm"
       className="gap-2"
     >
-      {isRegistering ? (
-        <Loader2 size={16} className="animate-spin" />
-      ) : isComplete ? (
-        <Check size={16} />
+      {isLoading ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
       ) : (
-        <Database size={16} />
+        <Key className="h-4 w-4" />
       )}
-      {isComplete 
-        ? `${keyCount} Helius Κλειδιά`
-        : keyCount > 0 
-          ? `Προσθήκη περισσότερων κλειδιών` 
-          : "Προσθήκη όλων των κλειδιών Helius"}
+      Εγγραφή Helius
     </Button>
   );
 }

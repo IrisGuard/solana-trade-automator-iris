@@ -1,99 +1,86 @@
-// Define interface for error data
-export interface ErrorData {
-  id?: string;
-  message: string;
-  stack?: string;
-  source?: string;
-  component?: string;
-  details?: any;
-  timestamp?: number;
-  method?: string; // Added method property to fix TypeScript errors
-}
 
-class ErrorCollector {
+import { ErrorData } from './types';
+
+/**
+ * Κλάση που συλλέγει και διαχειρίζεται σφάλματα
+ */
+export class ErrorCollector {
   private errors: ErrorData[] = [];
-  private readonly MAX_ERRORS = 100;
-
-  // Capture an error and return the error ID
-  captureError(error: Error | string, options?: {
-    component?: string;
-    details?: any;
-    source?: string;
-    method?: string; // Added method property
-  }): string {
-    const errorMessage = typeof error === 'string' ? error : error.message;
-    const errorStack = typeof error === 'string' ? undefined : error.stack;
+  private maxErrors: number = 50;
+  
+  /**
+   * Προσθέτει νέο σφάλμα στη συλλογή
+   */
+  public reportError(error: Error | string, component?: string, details?: any, source: string = 'client'): ErrorData {
+    const errorData: ErrorData = this.createErrorData(error, component, details, source);
     
-    const errorData: ErrorData = {
-      id: `err_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+    // Προσθήκη στην αρχή της συλλογής
+    this.errors.unshift(errorData);
+    
+    // Διατήρηση μόνο των maxErrors πιο πρόσφατων σφαλμάτων
+    if (this.errors.length > this.maxErrors) {
+      this.errors = this.errors.slice(0, this.maxErrors);
+    }
+    
+    // Καταγραφή στην κονσόλα
+    console.error('[ErrorCollector]', errorData);
+    
+    return errorData;
+  }
+  
+  /**
+   * Δημιουργεί ένα αντικείμενο ErrorData από ένα σφάλμα
+   */
+  private createErrorData(error: Error | string, component?: string, details?: any, source: string = 'client'): ErrorData {
+    const now = new Date();
+    const errorMessage = typeof error === 'string' ? error : error.message;
+    const errorStack = typeof error === 'string' ? '' : error.stack || '';
+    
+    return {
+      id: crypto.randomUUID(),
       message: errorMessage,
       stack: errorStack,
-      timestamp: Date.now(),
-      source: options?.source || 'client',
-      component: options?.component,
-      details: options?.details,
-      method: options?.method // Added method property
+      component: component || 'unknown',
+      source,
+      details,
+      timestamp: now.toISOString()
     };
-    
-    this.addErrorToCollection(errorData);
-    return errorData.id || '';
   }
-
-  // Add error - alias for backward compatibility
-  addError(errorData: ErrorData | string): string {
-    if (typeof errorData === 'string') {
-      return this.captureError(errorData);
-    }
-    
-    const completeErrorData: ErrorData = {
-      ...errorData,
-      id: errorData.id || `err_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-      timestamp: errorData.timestamp || Date.now()
-    };
-    
-    this.addErrorToCollection(completeErrorData);
-    return completeErrorData.id || '';
-  }
-
-  // Log error and notify - for backward compatibility
-  logErrorAndNotify(error: Error | string, options?: {
-    component?: string;
-    details?: any;
-    source?: string;
-    method?: string;
-  }): string {
-    return this.captureError(error, options);
-  }
-
-  // Get all errors
-  getErrors(): ErrorData[] {
+  
+  /**
+   * Επιστρέφει όλα τα σφάλματα
+   */
+  public getErrors(): ErrorData[] {
     return [...this.errors];
   }
-
-  // Clear all errors
-  clearErrors(): void {
+  
+  /**
+   * Επιστρέφει το πιο πρόσφατο σφάλμα
+   */
+  public getLatestError(): ErrorData | null {
+    return this.errors.length > 0 ? this.errors[0] : null;
+  }
+  
+  /**
+   * Καθαρίζει όλα τα σφάλματα
+   */
+  public clearErrors(): void {
     this.errors = [];
   }
-
-  // Report errors to external system (placeholder)
-  reportErrors(): void {
-    console.log('Reporting errors to external system:', this.errors);
-    // Implementation would send errors to external system
-  }
-
-  // Private method to add error to collection
-  private addErrorToCollection(errorData: ErrorData): void {
-    // Keep collection size under control
-    if (this.errors.length >= this.MAX_ERRORS) {
-      this.errors.shift(); // Remove oldest error
-    }
+  
+  /**
+   * Καταγράφει σφάλμα στο Supabase
+   */
+  public async captureError(error: Error, options: { component?: string, details?: any, source?: string } = {}): Promise<string> {
+    const errorData = this.reportError(error, options.component, options.details, options.source || 'client');
     
-    this.errors.push(errorData);
+    // Εδώ θα μπορούσαμε να στείλουμε το σφάλμα σε κάποια υπηρεσία καταγραφής
+    console.log('Σφάλμα καταγράφηκε:', errorData);
     
-    // Log to console for debugging
-    console.error(`[ErrorCollector] ${errorData.component || 'unknown'}: ${errorData.message}`);
+    return errorData.id;
   }
 }
 
-// Export a singleton instance
 export const errorCollector = new ErrorCollector();
+
+export type { ErrorData } from './types';

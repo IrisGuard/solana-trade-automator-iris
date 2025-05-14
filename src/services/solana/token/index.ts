@@ -1,23 +1,7 @@
 
-import { fetchTokenBalance, fetchAllTokenBalances } from './balance';
-import { getTokenAccounts, getParsedTokenAccounts } from './tokenAccounts';
+// Επανεξαγωγή συναρτήσεων για τη διαχείριση token
 
-// Create the tokenService object with necessary methods
-export const tokenService = {
-  getTokenAccounts,
-  getParsedTokenAccounts,
-  getTokenPrice: async (tokenAddress: string): Promise<number> => {
-    // This is a placeholder implementation
-    return Math.random() * 100; // Return a random price for now
-  },
-  fetchTokenBalance,
-  fetchAllTokenBalances
-};
+export { fetchTokenBalance } from './balance';
 
-// Export individual functions
-export {
-  fetchTokenBalance,
-  fetchAllTokenBalances,
-  getTokenAccounts,
-  getParsedTokenAccounts
-};
+// Επανεξαγωγή τύπων
+export type { Token } from '@/types/wallet';
