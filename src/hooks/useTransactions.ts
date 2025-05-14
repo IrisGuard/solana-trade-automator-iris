@@ -1,9 +1,10 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { solanaService } from '@/services/solanaService';
 import { Transaction } from '@/types/transaction';
 import { useErrorReporting } from './useErrorReporting';
 
-interface UseTransactionsProps {
+export interface UseTransactionsProps {
   walletAddress: string | null;
   limit?: number;
 }
@@ -28,7 +29,7 @@ export function useTransactions({ walletAddress, limit: initialLimit = 10 }: Use
       let dbTxs: Transaction[] = [];
       
       // Get transactions from Solana API
-      // Changed from fetchTransactionHistory to fetchTransactions
+      // Using fetchTransactions instead of fetchTransactionHistory
       const apiTxs = await solanaService.fetchTransactions(address, limit);
       
       // Merge transactions from both sources

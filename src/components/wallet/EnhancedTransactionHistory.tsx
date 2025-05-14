@@ -21,7 +21,10 @@ export function EnhancedTransactionHistory({
   showTitle = true
 }: EnhancedTransactionHistoryProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const { transactions, isLoadingTransactions, refreshTransactions } = useTransactions(walletAddress || "");
+  const { transactions, loading: isLoadingTransactions, refreshTransactions } = useTransactions({ 
+    walletAddress, 
+    limit 
+  });
 
   const handleRefresh = useCallback(async () => {
     if (!walletAddress) return;

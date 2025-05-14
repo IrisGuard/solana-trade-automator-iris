@@ -19,11 +19,12 @@ export const tokenService = {
     const prices = await fetchTokenPrices([tokenAddress]);
     return prices[tokenAddress] || 0;
   },
-  // Add getTokenBalance method that was missing
+  // Fix the getTokenBalance method to match the expected return type
   getTokenBalance: async (address: string, tokenAddress: string): Promise<number> => {
     try {
-      const tokenData = await fetchTokenBalance(tokenAddress, address);
-      return tokenData || 0;
+      const tokenBalance = await fetchTokenBalance(tokenAddress, address);
+      // tokenBalance is already a number, so we just return it directly
+      return tokenBalance;
     } catch (error) {
       console.error("Error fetching token balance:", error);
       return 0;
