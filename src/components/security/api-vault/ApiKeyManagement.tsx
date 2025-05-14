@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Lock, Unlock, Copy, Eye, EyeOff } from "lucide-react";
 import { ApiKey } from "@/types/api";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 interface ApiKeyManagementProps {
   apiKeys: ApiKey[];
@@ -91,10 +92,10 @@ export function ApiKeyManagement({
                 <div className="flex justify-between items-center mb-2">
                   <div>
                     <h3 className="font-medium">{key.name}</h3>
-                    <p className="text-xs text-muted-foreground">Created: {new Date(key.createdAt).toLocaleDateString()}</p>
+                    <p className="text-xs text-muted-foreground">Created: {new Date(key.created).toLocaleDateString()}</p>
                   </div>
                   <Badge variant={key.status === 'active' ? 'success' : 'secondary'}>
-                    {key.status}
+                    {key.status || 'active'}
                   </Badge>
                 </div>
                 
@@ -126,7 +127,7 @@ export function ApiKeyManagement({
                 
                 <div className="flex justify-between">
                   <div className="flex items-center space-x-2">
-                    <p className="text-xs">Permissions: {key.permissions.join(', ')}</p>
+                    <p className="text-xs">Permissions: {key.permissions?.join(', ') || 'Default'}</p>
                   </div>
                   <Button 
                     variant="destructive"
@@ -144,6 +145,3 @@ export function ApiKeyManagement({
     </Card>
   );
 }
-
-// Reusing the Badge component
-import { Badge } from "@/components/ui/badge";

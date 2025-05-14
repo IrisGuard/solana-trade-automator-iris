@@ -92,12 +92,8 @@ export function ApiEndpointsManager({ onAddEndpoint }: ApiEndpointsManagerProps)
         {categories.map((category) => (
           <TabsContent key={category} value={category.toLowerCase()}>
             <EndpointsList 
-              endpoints={
-                activeTab === "all" 
-                  ? endpoints 
-                  : filteredEndpoints[category] || []
-              }
-              isLoading={loading}
+              endpoints={activeTab === "all" ? endpoints : filteredEndpoints[category] || []}
+              loading={loading}
               error={error}
             />
           </TabsContent>

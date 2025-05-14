@@ -21,9 +21,12 @@ export interface ApiKey {
   name: string;
   key: string;
   active: boolean;
+  status?: 'active' | 'expired' | 'revoked';
+  permissions?: string[];
+  createdAt?: Date;
+  created: Date;
   expiresAt?: Date;
   lastUsed?: Date;
-  created: Date;
 }
 
 export interface ApiKeyCreateRequest {

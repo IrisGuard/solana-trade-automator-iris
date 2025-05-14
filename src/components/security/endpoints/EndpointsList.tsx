@@ -9,11 +9,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 export interface EndpointsListProps {
   endpoints: ApiEndpoint[];
   loading?: boolean;
-  onEdit: (endpoint: ApiEndpoint) => void;
-  onDelete: (id: string) => Promise<void>;
+  error?: string | null;
+  onEdit?: (endpoint: ApiEndpoint) => void;
+  onDelete?: (id: string) => Promise<void>;
 }
 
-export function EndpointsList({ endpoints, loading, onEdit, onDelete }: EndpointsListProps) {
+export function EndpointsList({ endpoints, loading, error, onEdit, onDelete }: EndpointsListProps) {
   if (loading) {
     return (
       <div className="space-y-4">
@@ -27,6 +28,16 @@ export function EndpointsList({ endpoints, loading, onEdit, onDelete }: Endpoint
             </div>
           </div>
         ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-10 text-destructive">
+        <Shield className="h-10 w-10 mx-auto mb-2" />
+        <h3 className="font-medium">Σφάλμα φόρτωσης</h3>
+        <p className="text-sm">{error}</p>
       </div>
     );
   }
@@ -58,23 +69,27 @@ export function EndpointsList({ endpoints, loading, onEdit, onDelete }: Endpoint
               <p className="text-sm text-muted-foreground break-all">{endpoint.url}</p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => onEdit(endpoint)}
-              >
-                <Edit className="h-4 w-4 mr-1" /> 
-                Επεξεργασία
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="text-destructive"
-                onClick={() => onDelete(endpoint.id)}
-              >
-                <Trash2 className="h-4 w-4 mr-1" /> 
-                Διαγραφή
-              </Button>
+              {onEdit && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => onEdit(endpoint)}
+                >
+                  <Edit className="h-4 w-4 mr-1" /> 
+                  Επεξεργασία
+                </Button>
+              )}
+              {onDelete && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-destructive"
+                  onClick={() => onDelete(endpoint.id)}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" /> 
+                  Διαγραφή
+                </Button>
+              )}
             </div>
           </div>
           <div className="text-sm mt-2">
