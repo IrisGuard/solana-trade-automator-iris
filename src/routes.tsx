@@ -1,6 +1,6 @@
 
 import React, { Suspense } from "react";
-import { BrowserRouter, Routes as RouterRoutes, Route } from "react-router-dom";
+import { Routes as RouterRoutes, Route } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 
 // Lazy-loaded pages
@@ -22,46 +22,44 @@ const PageLoader = () => (
 // Export the Routes component for use in AppContent
 export const Routes = () => {
   return (
-    <BrowserRouter>
-      <RouterRoutes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={
-            <Suspense fallback={<PageLoader />}>
-              <Index />
-            </Suspense>
-          } />
-          <Route path="home" element={
-            <Suspense fallback={<PageLoader />}>
-              <Home />
-            </Suspense>
-          } />
-          <Route path="auth" element={
-            <Suspense fallback={<PageLoader />}>
-              <Auth />
-            </Suspense>
-          } />
-          <Route path="bot-control" element={
-            <Suspense fallback={<PageLoader />}>
-              <BotControl />
-            </Suspense>
-          } />
-          <Route path="security" element={
-            <Suspense fallback={<PageLoader />}>
-              <Security />
-            </Suspense>
-          } />
-          <Route path="settings" element={
-            <Suspense fallback={<PageLoader />}>
-              <Settings />
-            </Suspense>
-          } />
-          <Route path="*" element={
-            <Suspense fallback={<PageLoader />}>
-              <NotFound />
-            </Suspense>
-          } />
-        </Route>
-      </RouterRoutes>
-    </BrowserRouter>
+    <RouterRoutes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={
+          <Suspense fallback={<PageLoader />}>
+            <Index />
+          </Suspense>
+        } />
+        <Route path="home" element={
+          <Suspense fallback={<PageLoader />}>
+            <Home />
+          </Suspense>
+        } />
+        <Route path="auth" element={
+          <Suspense fallback={<PageLoader />}>
+            <Auth />
+          </Suspense>
+        } />
+        <Route path="bot-control" element={
+          <Suspense fallback={<PageLoader />}>
+            <BotControl />
+          </Suspense>
+        } />
+        <Route path="security" element={
+          <Suspense fallback={<PageLoader />}>
+            <Security />
+          </Suspense>
+        } />
+        <Route path="settings" element={
+          <Suspense fallback={<PageLoader />}>
+            <Settings />
+          </Suspense>
+        } />
+        <Route path="*" element={
+          <Suspense fallback={<PageLoader />}>
+            <NotFound />
+          </Suspense>
+        } />
+      </Route>
+    </RouterRoutes>
   );
 };

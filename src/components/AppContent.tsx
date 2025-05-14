@@ -11,6 +11,7 @@ import { ConsoleMonitor } from "@/components/debug/ConsoleMonitor";
 import { DOMErrorHandler } from "@/components/errors/DOMErrorHandler";
 import { displayError } from "@/utils/errorUtils";
 import { setupGlobalErrorHandling } from "@/utils/error-handling/setupGlobalErrorHandling";
+import { BrowserRouter } from "react-router-dom";
 
 // Loader component για το Suspense
 const AppLoader = () => (
@@ -37,23 +38,25 @@ export function AppContent() {
   }, []);
   
   return (
-    <Suspense fallback={<AppLoader />}>
-      <DOMErrorHandler />
-      <MonitoringSystem />
-      <ConsoleMonitor />
-      
-      <WalletProviderWrapper>
-        <ErrorBoundary 
-          FallbackComponent={WalletErrorFallback}
-          onError={logWalletError}
-          onReset={() => window.location.href = "/"}
-        >
-          <SolanaWalletProvider>
-            <Routes />
-            <Toaster />
-          </SolanaWalletProvider>
-        </ErrorBoundary>
-      </WalletProviderWrapper>
-    </Suspense>
+    <BrowserRouter>
+      <Suspense fallback={<AppLoader />}>
+        <DOMErrorHandler />
+        <MonitoringSystem />
+        <ConsoleMonitor />
+        
+        <WalletProviderWrapper>
+          <ErrorBoundary 
+            FallbackComponent={WalletErrorFallback}
+            onError={logWalletError}
+            onReset={() => window.location.href = "/"}
+          >
+            <SolanaWalletProvider>
+              <Routes />
+              <Toaster />
+            </SolanaWalletProvider>
+          </ErrorBoundary>
+        </WalletProviderWrapper>
+      </Suspense>
+    </BrowserRouter>
   );
 }

@@ -7,7 +7,6 @@ import { SolanaWalletProvider } from '@/providers/SolanaWalletProvider';
 import { WalletErrorFallback } from '@/components/wallet/WalletErrorFallback';
 import { ErrorBoundary } from 'react-error-boundary';
 import { LanguageProvider } from '@/providers/LanguageProvider';
-import { BrowserRouter } from 'react-router-dom';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -25,26 +24,24 @@ interface AppProvidersProps {
 
 export function AppProviders({ children }: AppProvidersProps) {
   return (
-    <BrowserRouter>
-      <ThemeProvider defaultTheme="system" attribute="class">
-        <LanguageProvider>
-          <QueryClientProvider client={queryClient}>
-            <SupabaseAuthProvider>
-              <ErrorBoundary 
-                FallbackComponent={WalletErrorFallback}
-                onError={(error, info) => {
-                  console.error("Error in Solana Provider:", error);
-                  console.error("Component Stack:", info.componentStack);
-                }}
-              >
-                <SolanaWalletProvider>
-                  {children}
-                </SolanaWalletProvider>
-              </ErrorBoundary>
-            </SupabaseAuthProvider>
-          </QueryClientProvider>
-        </LanguageProvider>
-      </ThemeProvider>
-    </BrowserRouter>
+    <ThemeProvider defaultTheme="system" attribute="class">
+      <LanguageProvider>
+        <QueryClientProvider client={queryClient}>
+          <SupabaseAuthProvider>
+            <ErrorBoundary 
+              FallbackComponent={WalletErrorFallback}
+              onError={(error, info) => {
+                console.error("Error in Solana Provider:", error);
+                console.error("Component Stack:", info.componentStack);
+              }}
+            >
+              <SolanaWalletProvider>
+                {children}
+              </SolanaWalletProvider>
+            </ErrorBoundary>
+          </SupabaseAuthProvider>
+        </QueryClientProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }

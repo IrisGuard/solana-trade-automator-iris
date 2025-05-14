@@ -1,27 +1,21 @@
 
 /**
- * Επιλογές για την εμφάνιση και καταγραφή σφαλμάτων
+ * Επιλογές για το χειρισμό σφαλμάτων
  */
 export interface ErrorOptions {
-  // Επιλογές εμφάνισης
+  title?: string;
   showToast?: boolean;
+  toastType?: 'error' | 'warning' | 'info';
   logToConsole?: boolean;
   sendToChat?: boolean;
   useCollector?: boolean;
-  
-  // Μεταδεδομένα σφάλματος
-  title?: string;
-  component?: string;
-  details?: any;
-  source?: string;
-  
-  // Στοιχεία περιβάλλοντος
-  url?: string;
-  browserInfo?: any;
+  rethrow?: boolean;
+  silent?: boolean;
 }
 
 /**
- * Επιλογές για την εμφάνιση σφαλμάτων (συντομογραφία)
+ * Συντομογραφία για το ErrorOptions
+ * για συμβατότητα με παλαιότερα σημεία χρήσης
  */
 export type ErrorDisplayOptions = ErrorOptions;
 
@@ -29,5 +23,5 @@ export type ErrorDisplayOptions = ErrorOptions;
  * Επιλογές για τον έλεγχο σφαλμάτων στα τεστ
  */
 export type TestErrorOptions = ErrorOptions & {
-  errorType?: string;
+  errorType?: "type" | "promise" | "async" | "reference" | "syntax" | "timeout" | "render" | "prop" | "state" | "network";
 };

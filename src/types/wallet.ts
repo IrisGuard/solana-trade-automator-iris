@@ -1,12 +1,12 @@
 
 /**
- * Αντιπροσωπεύει ένα token στο πορτοφόλι του χρήστη
+ * Αντιπροσωπεύει ένα token 
  */
 export interface Token {
   address: string;
-  name: string;
   symbol: string;
-  amount: number;
+  name: string;
+  amount: number; 
   decimals: number;
   logo?: string;
   price?: number;
@@ -18,7 +18,7 @@ export interface Token {
 /**
  * Αντιπροσωπεύει μια συναλλαγή
  */
-export interface Transaction {
+export interface WalletTransaction {
   // Basic transaction properties
   signature: string;
   blockTime: number;
@@ -45,4 +45,4 @@ export interface Transaction {
 }
 
 // Re-export the Transaction type from transaction.ts for backward compatibility
-export { Transaction as Transaction } from '@/types/transaction';
+export type { Transaction } from '@/types/transaction';
