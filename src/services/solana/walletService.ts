@@ -29,7 +29,7 @@ export const fetchSOLBalance = async (address: string): Promise<number> => {
     // Προσθήκη στον collector σφαλμάτων για περαιτέρω ανάλυση
     errorCollector.addError({
       message: 'Failed to get SOL balance',
-      source: 'walletService.fetchSOLBalance',
+      source: 'client',
       stack: errorStr,
       details: { address }
     });

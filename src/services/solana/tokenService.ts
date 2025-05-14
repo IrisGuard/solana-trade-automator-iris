@@ -1,4 +1,3 @@
-
 import { PublicKey } from '@solana/web3.js';
 import { toast } from 'sonner';
 import { Token } from '@/types/wallet';
@@ -85,7 +84,7 @@ export const fetchAllTokenBalances = async (address: string): Promise<Token[]> =
     // Προσθήκη στον collector σφαλμάτων
     errorCollector.addError({
       message: 'Failed to load tokens',
-      source: 'tokenService.fetchAllTokenBalances',
+      source: 'client',
       stack: errorStr,
       details: { address }
     });
