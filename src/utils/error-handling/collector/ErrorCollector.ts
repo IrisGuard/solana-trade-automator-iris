@@ -1,23 +1,17 @@
+
 import { toast } from 'sonner';
+import { ErrorOptions } from '../types';
 
 export interface ErrorData {
+  id?: string;
   message: string;
   stack?: string;
-  timestamp: Date;
+  timestamp: Date | string | number;
   component?: string;
   code?: string;
   context?: Record<string, any>;
   handled: boolean;
-}
-
-export interface ErrorOptions {
-  component?: string;
-  code?: string;
-  context?: Record<string, any>;
-  silent?: boolean;
-  showToast?: boolean;
-  reportToServer?: boolean;
-  severity?: 'low' | 'medium' | 'high' | 'critical';
+  source?: string;
 }
 
 class ErrorCollector {
@@ -32,15 +26,19 @@ class ErrorCollector {
   captureError(error: Error | string, options: ErrorOptions = {}): string {
     const errorMessage = typeof error === 'string' ? error : error.message;
     const errorStack = typeof error === 'string' ? undefined : error.stack;
+    const timestamp = new Date();
+    const id = `error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
     const errorData: ErrorData = {
+      id,
       message: errorMessage,
       stack: errorStack,
-      timestamp: new Date(),
+      timestamp,
       component: options.component,
       code: options.code,
       context: options.context,
-      handled: true
+      handled: true,
+      source: options.component || 'unknown'
     };
 
     // Add error to the collection
@@ -52,15 +50,17 @@ class ErrorCollector {
     }
 
     // Log the error to console
-    console.error('Error captured:', errorData);
+    if (!options.silent) {
+      console.error('Error captured:', errorData);
+    }
 
     // Show toast notification if needed
     if (options.showToast !== false) {
-      toast.error(errorMessage);
+      toast.error(options.title || errorMessage);
     }
 
-    // Return a unique identifier for this error (timestamp for now)
-    return errorData.timestamp.toISOString();
+    // Return the unique identifier for this error
+    return id;
   }
 
   getAllErrors(): ErrorData[] {
@@ -75,8 +75,8 @@ class ErrorCollector {
     this.errors = [];
   }
 
-  clearError(timestamp: string): void {
-    this.errors = this.errors.filter(error => error.timestamp.toISOString() !== timestamp);
+  clearError(id: string): void {
+    this.errors = this.errors.filter(error => error.id !== id);
   }
 }
 

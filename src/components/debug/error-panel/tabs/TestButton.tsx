@@ -6,13 +6,16 @@ import { ErrorOptions } from '@/utils/error-handling/types';
 
 interface TestButtonProps {
   errorOptions?: ErrorOptions;
+  options?: any; // For backward compatibility
   label: string;
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
 }
 
-export function TestButton({ errorOptions, label, variant = 'outline' }: TestButtonProps) {
+export function TestButton({ errorOptions, options, label, variant = 'outline' }: TestButtonProps) {
   const handleClick = () => {
-    triggerTestError(errorOptions);
+    // Use either errorOptions or options, with errorOptions taking precedence
+    const testOptions = errorOptions || options || {};
+    triggerTestError(testOptions);
   };
 
   return (

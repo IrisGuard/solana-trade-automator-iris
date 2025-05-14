@@ -3,34 +3,15 @@ export interface ErrorData {
   id?: string;
   message: string;
   stack?: string;
+  timestamp: Date | string | number;
   component?: string;
-  details?: string | Record<string, any>;
+  code?: string;
+  context?: Record<string, any>;
+  handled: boolean;
   source?: string;
-  url?: string;
-  browserInfo?: Record<string, any>;
-  timestamp: string | number;
 }
 
-// Import the ErrorOptions from the central types file
-export type { ErrorOptions } from '../types';
-
-export type ErrorDisplayOptions = {
-  toastDuration?: number;
-  component?: string;
-  details?: Record<string, any>;
-  source?: string;
-  showToast?: boolean;
-  logToConsole?: boolean;
-  sendToChat?: boolean;
-  useCollector?: boolean;
-  title?: string;
+export interface ErrorCollectorOptions {
+  maxErrors?: number;
   reportToServer?: boolean;
-};
-
-export interface ErrorReportOptions {
-  component?: string;
-  details?: any;
-  source?: string;
-  stack?: string;
-  url?: string;
 }

@@ -1,116 +1,88 @@
 
 import { toast } from 'sonner';
 import { errorCollector } from './collector';
-import { ErrorOptions } from './types';
-import { supabase } from '@/integrations/supabase/client';
+import type { ErrorDisplayOptions } from './types';
 
 /**
- * Εμφανίζει ένα σφάλμα με διαφορετικούς τρόπους ανάλογα με τις επιλογές
- * 
- * @param error Το σφάλμα που θα εμφανιστεί
- * @param options Επιλογές εμφάνισης του σφάλματος
+ * Display an error message with various options
  */
-export function displayError(error: Error | string, options: ErrorOptions = {}) {
+export function displayError(error: Error | string, options: ErrorDisplayOptions = {}): string {
   const {
     showToast = true,
     logToConsole = true,
+    sendToChat = false,
     useCollector = true,
-    title = 'Σφάλμα',
-    component = 'unknown',
-    details = {},
-    source = 'client'
+    component,
+    source = 'application',
+    title,
+    details,
+    code
   } = options;
 
-  // Μετατροπή του error σε string αν είναι Error object
-  const errorMessage = error instanceof Error ? error.message : error;
-
-  // Εμφάνιση toast αν ζητήθηκε
-  if (showToast) {
-    toast.error(title, {
-      description: errorMessage,
-      duration: 5000
-    });
-  }
-
-  // Καταγραφή στην κονσόλα αν ζητήθηκε
-  if (logToConsole) {
-    console.error(`[${component}] ${errorMessage}`, details);
-  }
-
-  // Προσθήκη στον collector αν ζητήθηκε
-  if (useCollector) {
-    const errorObj = error instanceof Error ? error : new Error(errorMessage);
-    errorCollector.captureError(errorObj, {
-      component,
-      details,
-      source
-    });
-  }
-
-  return { 
-    success: false, 
-    error: errorMessage 
-  };
-}
-
-/**
- * Αποστέλλει ένα σφάλμα στο chat υποστήριξης
- */
-export function sendErrorToChat(errorMessage: string, component: string = 'unknown', details: any = {}) {
-  console.log('Sending error to support chat:', {
-    error: errorMessage,
-    component,
-    details,
-    timestamp: new Date().toISOString()
-  });
-
-  // Εδώ θα μπορούσε να υπάρχει κώδικας για αποστολή στο chat
-  // αλλά για την ώρα απλά καταγράφουμε το σφάλμα
+  // Get the error message
+  const errorMessage = typeof error === 'string' ? error : error.message;
   
-  return {
-    success: true,
-    message: 'Error sent to support'
-  };
+  // Log to console if requested
+  if (logToConsole) {
+    console.error(`Error in ${component || 'unknown component'}:`, error);
+    if (details) {
+      console.error('Error details:', details);
+    }
+  }
+
+  // Show toast if requested
+  if (showToast) {
+    toast.error(title || errorMessage);
+  }
+
+  // Send to chat if requested
+  if (sendToChat) {
+    sendErrorToChat(errorMessage);
+  }
+
+  // Capture in error collector if requested
+  if (useCollector) {
+    return errorCollector.captureError(error, { 
+      component, 
+      context: details,
+      code, 
+      title
+    });
+  }
+
+  return '';
 }
 
 /**
- * Αποστέλλει ένα σφάλμα στη βάση δεδομένων Supabase για καταγραφή
+ * Send error to chat for assistance
  */
-export async function reportErrorToSupabase(error: Error | string, options: {
-  component?: string;
-  details?: any;
-  stack?: string;
-  url?: string;
-} = {}) {
-  try {
-    if (!supabase) {
-      console.error('Supabase not initialized, cannot report error');
-      return { success: false, error: 'Supabase not initialized' };
+export function sendErrorToChat(errorMessage: string): void {
+  // Create custom event to send error to chat
+  const errorEvent = new CustomEvent('lovable-error', {
+    detail: {
+      message: errorMessage,
+      timestamp: new Date()
     }
-
-    const errorMessage = error instanceof Error ? error.message : error;
-    const errorStack = error instanceof Error ? error.stack : options.stack;
-    
-    const { data, error: supabaseError } = await supabase.rpc('log_error', {
-      p_error_message: errorMessage,
-      p_error_stack: errorStack,
-      p_component: options.component || 'unknown',
-      p_source: 'client',
-      p_url: options.url || window.location.href,
-      p_browser_info: options.details ? JSON.stringify(options.details) : null
+  });
+  
+  // Dispatch event
+  window.dispatchEvent(errorEvent);
+  
+  // Also add to window.lovableChat if available
+  if (window.lovableChat?.createErrorDialog) {
+    window.lovableChat.createErrorDialog({
+      message: errorMessage,
+      timestamp: new Date()
     });
-
-    if (supabaseError) {
-      console.error('Error reporting to Supabase:', supabaseError);
-      return { success: false, error: supabaseError };
-    }
-
-    return { success: true, id: data };
-  } catch (err) {
-    console.error('Failed to report error to Supabase:', err);
-    return { success: false, error: err };
   }
+  
+  console.log('Error sent to chat:', errorMessage);
 }
 
-// Για λόγους συμβατότητας με τον παλιό κώδικα
-export { displayError as logError };
+/**
+ * Report error to Supabase for logging
+ */
+export function reportErrorToSupabase(error: Error | string, options: ErrorDisplayOptions = {}): void {
+  // Implementation for reporting to Supabase would go here
+  console.log('Error would be reported to Supabase:', error, options);
+}

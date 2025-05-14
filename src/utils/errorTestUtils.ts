@@ -10,6 +10,8 @@ interface TestErrorOptions extends ErrorOptions {
   isAsync?: boolean;
   severity?: 'low' | 'medium' | 'high' | 'critical';
   code?: string;
+  details?: Record<string, any>;
+  title?: string;
 }
 
 /**
@@ -24,7 +26,8 @@ export function triggerTestError(options: TestErrorOptions = {}) {
     isAsync = false,
     code = 'ERR_TEST',
     severity = 'low',
-    context = {}
+    context = {},
+    title
   } = options;
 
   // Create the error with the provided message
@@ -39,7 +42,8 @@ export function triggerTestError(options: TestErrorOptions = {}) {
         component, 
         code, 
         context,
-        severity
+        severity,
+        title
       });
     }, 100);
     return;
@@ -48,21 +52,28 @@ export function triggerTestError(options: TestErrorOptions = {}) {
   // Trigger different error types
   switch (errorType) {
     case 'runtime':
-      errorCollector.captureError(error, { component, code, context, severity });
+      errorCollector.captureError(error, { component, code, context, severity, title });
       break;
     case 'syntax':
-      errorCollector.captureError(new SyntaxError(message), { component, code, context, severity });
+      errorCollector.captureError(new SyntaxError(message), { component, code, context, severity, title });
       break;
     case 'api':
-      errorCollector.captureError(message, { component: 'APIService', code: 'API_ERROR', context, severity });
+      errorCollector.captureError(message, { component: 'APIService', code: 'API_ERROR', context, severity, title });
       break;
     case 'network':
-      errorCollector.captureError(message, { component: 'NetworkService', code: 'NETWORK_ERROR', context, severity });
+      errorCollector.captureError(message, { component: 'NetworkService', code: 'NETWORK_ERROR', context, severity, title });
       break;
     case 'authentication':
-      errorCollector.captureError(message, { component: 'AuthService', code: 'AUTH_ERROR', context, severity });
+      errorCollector.captureError(message, { component: 'AuthService', code: 'AUTH_ERROR', context, severity, title });
       break;
     default:
-      errorCollector.captureError(error, { component, code, context, severity });
+      errorCollector.captureError(error, { component, code, context, severity, title });
   }
+}
+
+/**
+ * Clear all errors from the error collector
+ */
+export function clearAllErrors() {
+  errorCollector.clearAllErrors();
 }

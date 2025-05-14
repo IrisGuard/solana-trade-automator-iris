@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Toast, ToastAction } from '@/components/ui/toast';
 import { errorCollector } from '@/utils/error-handling/collector';
-import { ErrorData } from '@/utils/error-handling/collector/types';
+import { ErrorData } from '@/utils/error-handling/collector/ErrorCollector';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, X } from 'lucide-react';
 import { displayError } from '@/utils/errorUtils';
@@ -14,22 +14,22 @@ export function GlobalErrorHandler() {
   const [lastError, setLastError] = useState<ErrorData | null>(null);
   const { reportError } = useErrorReporting();
   
-  // Λήψη των σφαλμάτων από τον collector
+  // Get errors from the collector
   useEffect(() => {
     const checkForErrors = () => {
       const allErrors = errorCollector.getAllErrors();
-      setErrors(allErrors);
+      setErrors([...allErrors]); // Create a new array to avoid type issues
       
-      // Εάν υπάρχει νέο σφάλμα, το αποθηκεύουμε ως το τελευταίο
+      // If there's a new error, save it as the last one
       if (allErrors.length > 0 && (!lastError || allErrors[0].id !== lastError.id)) {
-        setLastError(allErrors[0]);
+        setLastError(allErrors[0] as ErrorData);
       }
     };
     
-    // Αρχική λήψη σφαλμάτων
+    // Initial error retrieval
     checkForErrors();
     
-    // Περιοδικός έλεγχος για νέα σφάλματα
+    // Periodic check for new errors
     const intervalId = setInterval(checkForErrors, 3000);
     
     return () => {
@@ -37,7 +37,7 @@ export function GlobalErrorHandler() {
     };
   }, [lastError]);
   
-  // Διαχείριση αποστολής σφάλματος σε υποστήριξη
+  // Handle sending error to support
   const handleSendToSupport = (error: ErrorData) => {
     try {
       const supportMessage = `
@@ -48,19 +48,19 @@ export function GlobalErrorHandler() {
         - Timestamp: ${error.timestamp}
       `;
       
-      // Αποστολή του σφάλματος (για την προσομοίωση)
+      // Send the error (for simulation)
       console.log("Sending error to support:", supportMessage);
-      // Καλούμε τη συνάρτηση για αποστολή στο chat
+      // Call the function to send to chat
       sendErrorToChat(error.message);
       
-      // Ενημέρωση του χρήστη
-      displayError("Το σφάλμα στάλθηκε στην υποστήριξη", { 
+      // Update the user
+      displayError("Error sent to support", { 
         showToast: true
       });
       
     } catch (e) {
-      console.error("Σφάλμα κατά την αποστολή του σφάλματος:", e);
-      reportError("Αποτυχία αποστολής σφάλματος στην υποστήριξη");
+      console.error("Error while sending error:", e);
+      reportError("Failed to send error to support");
     }
   };
 
@@ -71,14 +71,14 @@ export function GlobalErrorHandler() {
       <div className="flex items-start gap-2">
         <AlertCircle className="h-5 w-5 mt-0.5" />
         <div className="flex-1">
-          <div className="font-semibold">Σφάλμα Εφαρμογής</div>
+          <div className="font-semibold">Application Error</div>
           <div className="text-sm opacity-90">{lastError.message}</div>
           <div className="text-xs opacity-75 mt-1">
-            Στο: {lastError.component} | {new Date(lastError.timestamp).toLocaleTimeString()}
+            In: {lastError.component} | {new Date(lastError.timestamp).toLocaleTimeString()}
           </div>
         </div>
       </div>
-      <ToastAction className="flex gap-2" asChild altText="Αποστολή στην υποστήριξη">
+      <ToastAction className="flex gap-2" asChild altText="Send to support">
         <div>
           <Button 
             variant="outline" 
@@ -86,7 +86,7 @@ export function GlobalErrorHandler() {
             className="bg-transparent hover:bg-white/10 text-white border-white/20"
             onClick={() => handleSendToSupport(lastError)}
           >
-            Αναφορά
+            Report
           </Button>
           <Button 
             variant="outline" 
