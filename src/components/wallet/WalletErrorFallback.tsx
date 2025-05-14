@@ -4,6 +4,9 @@ import { FallbackProps } from 'react-error-boundary';
 import { Button } from '@/components/ui/button';
 
 export function WalletErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
+  // Έλεγχος για το συγκεκριμένο σφάλμα substring
+  const isSubstringError = error.message.includes('substring is not a function');
+  
   return (
     <div className="flex items-center justify-center min-h-screen p-6 bg-background">
       <div className="w-full max-w-md p-6 space-y-6 border rounded-lg shadow-lg">
@@ -15,7 +18,13 @@ export function WalletErrorFallback({ error, resetErrorBoundary }: FallbackProps
         </div>
         
         <div className="p-4 border border-red-200 bg-red-50 dark:bg-red-900/20 rounded-md text-sm">
-          <p className="font-medium text-red-800 dark:text-red-300">Σφάλμα: {error.message}</p>
+          <p className="font-medium text-red-800 dark:text-red-300">
+            Σφάλμα: {
+              isSubstringError 
+                ? 'Προέκυψε πρόβλημα με την επεξεργασία της διεύθυνσης του πορτοφολιού'
+                : error.message
+            }
+          </p>
         </div>
         
         <div className="space-y-4">

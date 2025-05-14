@@ -26,7 +26,8 @@ export default function Home() {
   
   console.log("WalletConnection hook loaded, connection status:", isConnected);
   
-  const displayAddress = walletAddress ? 
+  // Διασφαλίζουμε ότι το walletAddress είναι string πριν χρησιμοποιήσουμε substring
+  const displayAddress = typeof walletAddress === 'string' && walletAddress ? 
     `${walletAddress.substring(0, 4)}...${walletAddress.substring(walletAddress.length - 4)}` : 
     "Δεν έχει συνδεθεί πορτοφόλι";
   

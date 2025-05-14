@@ -1,109 +1,114 @@
 
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ApiEndpoint } from "@/types/api";
-import { toast } from "sonner";
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogTitle, DialogHeader, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { ApiEndpoint, NewEndpointDialogProps } from '../apiVault/types';
+import { v4 as uuidv4 } from 'uuid';
 
-interface NewEndpointDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSave: (endpoint: ApiEndpoint) => void;
-  initialEndpoint?: ApiEndpoint;
-}
+export function NewEndpointDialog({ onAddEndpoint, onCancel }: NewEndpointDialogProps) {
+  const [open, setOpen] = useState(true);
+  const [name, setName] = useState('');
+  const [url, setUrl] = useState('');
+  const [method, setMethod] = useState<'GET' | 'POST' | 'PUT' | 'DELETE'>('GET');
+  const [requiresAuth, setRequiresAuth] = useState(false);
+  const [category, setCategory] = useState('general');
 
-export const NewEndpointDialog: React.FC<NewEndpointDialogProps> = ({
-  open,
-  onOpenChange,
-  onSave,
-  initialEndpoint
-}) => {
-  const [name, setName] = useState(initialEndpoint?.name || "");
-  const [url, setUrl] = useState(initialEndpoint?.url || "");
-  const [category, setCategory] = useState(initialEndpoint?.category || "");
-  
-  const handleSave = () => {
-    if (!name.trim()) {
-      toast.error("Παρακαλώ εισάγετε όνομα για το endpoint");
-      return;
-    }
-    
-    if (!url.trim()) {
-      toast.error("Παρακαλώ εισάγετε URL για το endpoint");
-      return;
-    }
-    
-    if (!category.trim()) {
-      toast.error("Παρακαλώ εισάγετε κατηγορία για το endpoint");
-      return;
-    }
-    
-    const endpoint: ApiEndpoint = {
-      id: initialEndpoint?.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      name: name.trim(),
-      url: url.trim(),
-      category: category.trim(),
-      is_active: initialEndpoint?.is_active !== undefined ? initialEndpoint.is_active : true,
-      is_public: initialEndpoint?.is_public !== undefined ? initialEndpoint.is_public : false,
-      created_at: initialEndpoint?.created_at || new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
-    onSave(endpoint);
-    onOpenChange(false);
-    
-    // Reset form
-    setName("");
-    setUrl("");
-    setCategory("");
+  const handleClose = () => {
+    setOpen(false);
+    onCancel();
   };
-  
+
+  const handleSubmit = () => {
+    if (!name || !url) return;
+
+    const newEndpoint: ApiEndpoint = {
+      id: uuidv4(),
+      name,
+      url,
+      method,
+      category: category,
+      requiresAuth
+    };
+
+    onAddEndpoint(newEndpoint);
+    setOpen(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{initialEndpoint ? "Επεξεργασία Endpoint" : "Νέο Endpoint"}</DialogTitle>
+          <DialogTitle>Νέο Endpoint API</DialogTitle>
         </DialogHeader>
-        
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="endpoint-name">Όνομα Endpoint</Label>
-            <Input 
-              id="endpoint-name"
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="name">Όνομα</Label>
+            <Input
+              id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="π.χ. Solana RPC Mainnet"
+              placeholder="Εισάγετε όνομα για το endpoint"
             />
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="endpoint-url">URL</Label>
-            <Input 
-              id="endpoint-url"
+          <div className="grid gap-2">
+            <Label htmlFor="url">URL</Label>
+            <Input
+              id="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://api.mainnet-beta.solana.com"
+              placeholder="https://api.example.com/v1/data"
             />
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="endpoint-category">Κατηγορία</Label>
-            <Input 
-              id="endpoint-category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              placeholder="rpc, api, websocket, etc."
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="method">Μέθοδος</Label>
+              <Select value={method} onValueChange={(value) => setMethod(value as any)}>
+                <SelectTrigger id="method">
+                  <SelectValue placeholder="Επιλέξτε μέθοδο" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="GET">GET</SelectItem>
+                  <SelectItem value="POST">POST</SelectItem>
+                  <SelectItem value="PUT">PUT</SelectItem>
+                  <SelectItem value="DELETE">DELETE</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="category">Κατηγορία</Label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger id="category">
+                  <SelectValue placeholder="Επιλέξτε κατηγορία" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="general">Γενικά</SelectItem>
+                  <SelectItem value="trading">Trading</SelectItem>
+                  <SelectItem value="wallet">Wallet</SelectItem>
+                  <SelectItem value="analytics">Analytics</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="requires-auth"
+              checked={requiresAuth}
+              onCheckedChange={setRequiresAuth}
             />
+            <Label htmlFor="requires-auth">Απαιτεί Αυθεντικοποίηση</Label>
           </div>
         </div>
-        
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Ακύρωση</Button>
-          <Button onClick={handleSave}>{initialEndpoint ? "Αποθήκευση" : "Προσθήκη"}</Button>
+          <Button variant="outline" onClick={handleClose}>
+            Ακύρωση
+          </Button>
+          <Button onClick={handleSubmit}>Προσθήκη</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-};
+}
