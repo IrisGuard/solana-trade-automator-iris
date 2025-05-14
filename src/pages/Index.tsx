@@ -10,9 +10,11 @@ import { Link } from "react-router-dom";
 import { useLanguage } from "@/hooks/use-language";
 import { BookOpenText, Coins, LightbulbIcon, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { usePhantomConnection } from "@/hooks/usePhantomConnection";
 
 export default function Index() {
   const { t } = useLanguage();
+  const { isConnected } = usePhantomConnection();
   
   return (
     <div className="flex flex-col min-h-screen">
@@ -67,7 +69,7 @@ export default function Index() {
             </div>
             <div className="mt-12 text-center">
               <Button asChild size="lg" className="px-8">
-                <Link to="/home">Ξεκινήστε Τώρα</Link>
+                <Link to={isConnected ? "/home" : "/wallet"}>Ξεκινήστε Τώρα</Link>
               </Button>
             </div>
           </div>

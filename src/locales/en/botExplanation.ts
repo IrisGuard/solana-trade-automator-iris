@@ -7,20 +7,20 @@ export const botExplanation = {
     security: "Security"
   },
   overview: {
-    title: "Introduction to Solana Trading Bot",
-    subtitle: "Automated trading on the Solana blockchain",
-    p1: "The Solana Trading Bot is a powerful tool designed to simplify transactions on the Solana blockchain, allowing you to execute automated trading strategies based on predetermined parameters.",
-    p2: "Unlike traditional exchanges that close, the Solana blockchain operates 24/7, allowing the bot to capitalize on trading opportunities at any time of the day.",
-    p3: "By integrating advanced algorithms and access to real-time data, the bot continuously monitors the market and executes transactions based on the criteria you've set."
+    title: "Automated Trading on Solana",
+    subtitle: "Simple 3-step process",
+    p1: "The Trading Bot allows users to perform automated trades on the Solana blockchain without the need to constantly monitor the market. Simply connect your wallet, set your parameters, and activate the bot.",
+    p2: "The system operates 24/7, executing trades based on your defined strategies and real-time market data from the Solana network, ensuring you never miss an opportunity.",
+    p3: "All transactions are logged in detail and you can monitor your bot's performance through the dashboard, with complete transparency and control over the automated actions."
   },
   features: {
     title: "Key Features",
     subtitle: "What makes the Solana Trading Bot special",
-    feature1: "Comprehensive price monitoring with real-time data",
+    feature1: "Real-time price monitoring with data from multiple sources",
     feature2: "Customizable trading strategies with multiple parameters",
-    feature3: "Simulation function for testing strategies without risk",
-    feature4: "Integration with Phantom Wallet for secure transactions",
-    feature5: "Detailed historical data and performance reports",
-    feature6: "Secure API key management through the API Vault"
+    feature3: "Simulation function for testing strategies without financial risk",
+    feature4: "Secure integration with Phantom Wallet for immediate transaction execution",
+    feature5: "Detailed performance reports and activity history",
+    feature6: "API key management through the secure API Vault"
   }
 };
