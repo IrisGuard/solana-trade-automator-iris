@@ -8,6 +8,7 @@ import { AlertCircle, Wallet } from "lucide-react";
 import { usePhantomConnection } from "@/hooks/usePhantomConnection";
 import { TokenBot } from "@/components/wallet/TokenBot";
 import { useLanguage } from "@/hooks/use-language";
+import { TokenPrice, TokenPrices } from "@/services/solana/price/types";
 
 export default function Home() {
   const { 
@@ -35,11 +36,12 @@ export default function Home() {
     "Δεν έχει συνδεθεί πορτοφόλι";
   
   // Convert complex token prices to simple format for compatibility
-  const tokenPrices: Record<string, { price: number, priceChange24h: number }> = {};
+  const tokenPrices: TokenPrices = {};
   tokens.forEach(token => {
     tokenPrices[token.address] = {
       price: Math.random() * 10,  // Mock prices for demo
-      priceChange24h: (Math.random() * 2) - 1  // Between -1 and 1
+      priceChange24h: (Math.random() * 2) - 1,  // Between -1 and 1
+      lastUpdated: new Date()
     };
   });
   
