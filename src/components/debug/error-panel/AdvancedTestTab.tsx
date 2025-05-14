@@ -1,10 +1,9 @@
-
 import { Button } from '@/components/ui/button';
 import { useErrorOptions } from './ErrorOptionsContext';
 import { displayError } from '@/utils/error-handling/displayError';
 import { createEnhancedError } from '@/types/errorTypes';
 import { generateVariousErrors, clearAllErrors } from '@/utils/errorTestUtils';
-import { Globe, Lock, File, FileX, FileMinus } from 'lucide-react';
+import { Globe, Lock, File, FileX } from 'lucide-react';
 
 export function AdvancedTestTab() {
   const { showToast, logToConsole, sendToChat, useCollector } = useErrorOptions();
