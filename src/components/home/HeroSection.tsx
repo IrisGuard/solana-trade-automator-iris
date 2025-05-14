@@ -6,14 +6,12 @@ import { Lock, Wallet, Zap } from "lucide-react";
 import { WalletConnectButtonSafe } from "@/components/wallet/WalletConnectButtonSafe";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/use-language";
+import { usePhantomConnection } from "@/hooks/usePhantomConnection";
 
 export function HeroSection() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  
-  // Αφαιρούμε εντελώς το useWalletStatus και χρησιμοποιούμε την ασφαλή έκδοση του κουμπιού
-  // Ορίζουμε false by default για την αρχική σελίδα
-  const isConnected = false; 
+  const { isConnected } = usePhantomConnection();
   
   const handleNavigateWithToast = (path: string, message: string) => {
     toast.success(message);
