@@ -10,6 +10,7 @@ const Auth = React.lazy(() => import("@/pages/Auth"));
 const BotControl = React.lazy(() => import("@/pages/BotControl"));
 const Security = React.lazy(() => import("@/pages/Security"));
 const Settings = React.lazy(() => import("@/pages/Settings"));
+const Help = React.lazy(() => import("@/pages/Help"));
 const NotFound = React.lazy(() => import("@/pages/NotFound"));
 
 // Loading component for Suspense
@@ -52,6 +53,11 @@ export const Routes = () => {
         <Route path="settings" element={
           <Suspense fallback={<PageLoader />}>
             <Settings />
+          </Suspense>
+        } />
+        <Route path="help" element={
+          <Suspense fallback={<PageLoader />}>
+            <Help />
           </Suspense>
         } />
         <Route path="*" element={
