@@ -4,9 +4,9 @@ import { Token } from '@/types/wallet';
 
 // Τυχαία tokens (για δοκιμαστικούς σκοπούς)
 const DEMO_TOKENS: Token[] = [
-  { address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', symbol: 'USDC', name: 'USD Coin', decimals: 6, balance: 2500, uiBalance: 2.5, amount: 2500 },
-  { address: 'So11111111111111111111111111111111111111112', mint: 'So11111111111111111111111111111111111111112', symbol: 'SOL', name: 'Solana', decimals: 9, balance: 5000000000, uiBalance: 5, amount: 5000000000 },
-  { address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', mint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', symbol: 'USDT', name: 'Tether USD', decimals: 6, balance: 1000, uiBalance: 1, amount: 1000 },
+  { address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', symbol: 'USDC', name: 'USD Coin', decimals: 6, balance: 2500, uiBalance: 2.5, amount: 2500, mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' },
+  { address: 'So11111111111111111111111111111111111111112', symbol: 'SOL', name: 'Solana', decimals: 9, balance: 5000000000, uiBalance: 5, amount: 5000000000, mint: 'So11111111111111111111111111111111111111112' },
+  { address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', symbol: 'USDT', name: 'Tether USD', decimals: 6, balance: 1000, uiBalance: 1, amount: 1000, mint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB' },
 ];
 
 /**

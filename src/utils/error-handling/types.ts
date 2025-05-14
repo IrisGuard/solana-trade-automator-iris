@@ -24,3 +24,10 @@ export interface ErrorOptions {
  * Επιλογές για την εμφάνιση σφαλμάτων (συντομογραφία)
  */
 export type ErrorDisplayOptions = ErrorOptions;
+
+/**
+ * Επιλογές για τον έλεγχο σφαλμάτων στα τεστ
+ */
+export type TestErrorOptions = ErrorOptions & {
+  errorType?: string;
+};

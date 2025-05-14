@@ -1,5 +1,5 @@
 
-import { Transaction } from '@/types/wallet';
+import { Transaction } from '@/types/transaction';
 import { supabase } from '@/integrations/supabase/client';
 
 /**

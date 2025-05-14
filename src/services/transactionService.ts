@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Transaction } from '@/types/wallet';
+import { Transaction } from '@/types/transaction';
 import { toast } from 'sonner';
 import { transactionsService } from './transactionsService';
 

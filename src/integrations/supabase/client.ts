@@ -8,6 +8,9 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIU
 // Δημιουργία του Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Alias for backward compatibility
+export const dbClient = supabase;
+
 // Τύποι για τους πίνακες της βάσης δεδομένων
 export type Tables = {
   profiles: {
@@ -29,6 +32,40 @@ export type Tables = {
     url?: string | null;
     browser_info?: any;
     created_at?: string;
+  };
+  tokens: {
+    id: string;
+    user_id: string;
+    token_address: string;
+    name: string;
+    symbol: string;
+    amount: number;
+    logo?: string | null;
+    created_at?: string;
+    updated_at?: string;
+  };
+  transactions: {
+    id: string;
+    user_id: string;
+    wallet_address: string;
+    signature: string;
+    type: string;
+    status: string;
+    amount: string;
+    source?: string | null;
+    destination?: string | null;
+    block_time?: string | null;
+    created_at?: string;
+  };
+  wallets: {
+    id: string;
+    user_id: string;
+    address: string;
+    blockchain: string;
+    is_primary: boolean;
+    last_connected?: string;
+    created_at?: string;
+    updated_at?: string;
   };
 };
 
