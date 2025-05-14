@@ -2,13 +2,22 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { errorCollector } from '@/utils/error-handling/collector';
-import { RPC_ENDPOINT } from '../config';
+import { connection } from '../config';
 import { Token } from '@/types/wallet';
 
 // Cache token accounts to avoid repeated RPC calls
 const tokenAccountsCache = new Map<string, Token[]>();
 const cacheTTL = 10 * 60 * 1000; // 10 minutes in milliseconds
 const cacheTimestamps = new Map<string, number>();
+
+// Known token metadata to enrich token data
+const knownTokens: Record<string, { name: string, symbol: string, logo?: string }> = {
+  'So11111111111111111111111111111111111111112': {
+    name: 'Solana',
+    symbol: 'SOL',
+    logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png'
+  }
+};
 
 /**
  * Get all token accounts for the specified wallet
@@ -26,11 +35,8 @@ export async function getTokenAccounts(walletAddress: string): Promise<Token[]> 
             return cachedData;
         }
         
-        // Create connection
-        const connection = new Connection(RPC_ENDPOINT);
-        const pubkey = new PublicKey(walletAddress);
-        
         // Get all token accounts owned by the wallet
+        const pubkey = new PublicKey(walletAddress);
         const tokenResp = await connection.getParsedTokenAccountsByOwner(
             pubkey,
             { programId: TOKEN_PROGRAM_ID },
@@ -51,12 +57,21 @@ export async function getTokenAccounts(walletAddress: string): Promise<Token[]> 
                 const decimals = accountData.tokenAmount.decimals;
                 const uiAmount = amount / Math.pow(10, decimals);
                 
+                // Get token metadata if known, or create placeholder
+                const tokenInfo = knownTokens[mintAddress] || {
+                    name: `Token ${mintAddress.slice(0, 4)}...${mintAddress.slice(-4)}`,
+                    symbol: 'UNKNOWN',
+                };
+                
                 return {
                     mint: mintAddress,
                     address: item.pubkey.toString(),
                     amount: uiAmount,
                     decimals: decimals,
-                    uiAmount: uiAmount.toString()
+                    uiAmount: uiAmount.toString(),
+                    name: tokenInfo.name,
+                    symbol: tokenInfo.symbol,
+                    logo: tokenInfo.logo
                 };
             });
         

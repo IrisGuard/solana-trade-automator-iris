@@ -39,7 +39,31 @@ class ErrorCollector {
       console.error('Error captured:', errorData);
     }
 
+    // Return error message as identifier
     return errorData.message;
+  }
+  
+  // Alias for captureError to maintain backward compatibility
+  public addError(errorData: Partial<ErrorData>): string {
+    const fullErrorData: ErrorData = {
+      message: errorData.message || 'Unknown error',
+      timestamp: Date.now(),
+      ...errorData
+    };
+    
+    return this.captureError(fullErrorData.message, fullErrorData);
+  }
+  
+  // Enhanced method to log and notify about errors
+  public logErrorAndNotify(error: Error | string, context?: Partial<ErrorData>): string {
+    // First, capture the error
+    const errorId = this.captureError(error, context);
+    
+    // Log to console
+    console.error("Error logged:", typeof error === 'string' ? error : error.message);
+    
+    // Return error ID for reference
+    return errorId;
   }
 
   public getErrors(): ErrorData[] {
@@ -52,6 +76,22 @@ class ErrorCollector {
 
   public getLatestError(): ErrorData | null {
     return this.errors.length > 0 ? this.errors[this.errors.length - 1] : null;
+  }
+  
+  // Report all collected errors to the backend
+  public async reportErrors(): Promise<void> {
+    const errors = this.getErrors();
+    if (errors.length === 0) {
+      console.log('No errors to report');
+      return;
+    }
+    
+    console.log(`Reporting ${errors.length} errors to backend`);
+    
+    // Report logic here - placeholder for now
+    // In a real implementation, this would send errors to a backend service
+    
+    console.log('Errors reported successfully');
   }
 }
 

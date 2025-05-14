@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { useErrorOptions } from './ErrorOptionsContext';
 import { displayError } from '@/utils/error-handling/displayError';

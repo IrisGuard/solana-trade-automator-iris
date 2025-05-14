@@ -101,10 +101,10 @@ export const fetchAllTokenBalances = async (address: string): Promise<Token[]> =
     }
     
     // Add to error collector
-    errorCollector.addError({
-      message: 'Failed to load tokens',
+    errorCollector.captureError(new Error('Failed to load tokens'), {
       source: 'client',
-      stack: String(error),
+      component: 'tokenService',
+      method: 'fetchAllTokenBalances',
       details: { address }
     });
     

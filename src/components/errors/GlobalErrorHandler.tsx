@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
+import { sendErrorToChat } from '@/utils/error-handling/displayError';
 
 interface ErrorFallbackProps {
   error: Error;
@@ -58,11 +59,9 @@ export const GlobalErrorHandler: React.FC<GlobalErrorHandlerProps> = ({ children
   // Χειριστής σφαλμάτων που καταγράφει τα σφάλματα
   const logError = (error: Error, info: { componentStack: string }) => {
     // Αποστολή στο σύστημα αναφοράς
-    reportError(error, {
-      showToast: true,
-      logToConsole: true,
-      saveToDatabase: true,
-      sendToChatInterface: true
+    reportError(error, 'GlobalErrorHandler', {
+      componentStack: info.componentStack,
+      logToConsole: true
     });
     
     // Εμφάνιση toast με επιλογή αποστολής στο chat

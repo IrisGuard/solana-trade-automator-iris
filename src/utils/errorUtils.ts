@@ -2,6 +2,7 @@
 import { toast } from "sonner";
 import { errorCollector, type ErrorData } from "./error-handling/collector";
 import { setupGlobalErrorHandling } from "./error-handling/setupGlobalErrorHandling";
+import { displayError as showError } from "./error-handling/displayError";
 
 interface ErrorDisplayOptions {
   title?: string;
@@ -51,7 +52,10 @@ export function displayError(error: Error, options?: ErrorDisplayOptions): strin
   
   let errorCode = '';
   if (opts.useCollector) {
-    errorCode = errorCollector.addError(errorData);
+    errorCode = errorCollector.captureError(error, {
+      component: opts.component,
+      details: errorData.details
+    });
   }
   
   // Εμφάνιση toast

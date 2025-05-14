@@ -1,5 +1,5 @@
 
-import { getParsedTokenAccounts } from './tokenAccounts';
+import { getTokenAccounts } from './tokenAccounts';
 import { fetchTokenPrice } from '../price';
 import { Token } from '@/types/wallet';
 import { isRateLimitError } from '@/utils/error-handling/rateLimitHandler';
@@ -29,7 +29,7 @@ export async function fetchAllTokenBalances(walletAddress: string): Promise<Toke
   try {
     // Fetch fresh data
     console.log("Fetching token accounts for", walletAddress);
-    const tokens = await getParsedTokenAccounts(walletAddress);
+    const tokens = await getTokenAccounts(walletAddress);
     
     // Update cache
     tokenCache.set(walletAddress, {

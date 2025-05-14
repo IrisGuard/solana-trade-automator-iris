@@ -3,7 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { errorCollector } from "@/utils/error-handling/collector";
-import { displayError } from "@/utils/errorUtils";
+import { displayError } from "@/utils/error-handling/displayError";
 
 const testErrorTypes = [
   {

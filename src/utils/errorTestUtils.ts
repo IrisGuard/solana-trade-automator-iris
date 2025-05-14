@@ -50,6 +50,56 @@ export function generateTestErrorData(
   return errorData;
 }
 
+// Generate test error with specified options
+export function generateTestError(message: string, options = {
+  showToast: true,
+  logToConsole: true,
+  useCollector: true,
+  sendToChat: false
+}): void {
+  const error = new Error(message);
+  
+  // Add to collector if needed
+  if (options.useCollector) {
+    errorCollector.captureError(error, {
+      source: 'test',
+      component: 'TestComponent',
+      details: { testType: 'basic' }
+    });
+  }
+  
+  // Log to console if needed
+  if (options.logToConsole) {
+    console.error('Test error generated:', message, error.stack);
+  }
+  
+  // Toast is handled in the component
+}
+
+// Generate various types of errors for testing
+export function generateVariousErrors(): void {
+  // Generate a few different types of errors
+  errorCollector.captureError(new Error('API Rate Limit Exceeded'), {
+    source: 'api',
+    component: 'FetchClient',
+    details: { endpoint: '/users', status: 429 }
+  });
+  
+  errorCollector.captureError(new Error('Database connection failed'), {
+    source: 'database',
+    component: 'QueryExecutor',
+    details: { query: 'SELECT * FROM users' }
+  });
+  
+  errorCollector.captureError(new Error('User validation failed'), {
+    source: 'validation',
+    component: 'UserForm',
+    details: { fields: ['email', 'password'] }
+  });
+  
+  console.log('Generated various test errors in collector');
+}
+
 // Simulate different types of errors
 export function simulateError(errorType: keyof typeof TEST_ERRORS): void {
   const errorMessage = TEST_ERRORS[errorType];
@@ -70,6 +120,12 @@ export function simulateError(errorType: keyof typeof TEST_ERRORS): void {
 export function clearTestErrors(): void {
   errorCollector.clearErrors();
   console.log('All test errors cleared');
+}
+
+// General function to clear all errors - used by multiple components
+export function clearAllErrors(): void {
+  errorCollector.clearErrors();
+  console.log('All errors cleared');
 }
 
 // Throw error for testing error boundaries

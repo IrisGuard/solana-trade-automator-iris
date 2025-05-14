@@ -17,7 +17,7 @@ export function WalletErrorFallback({ error }: { error?: Error }) {
   useEffect(() => {
     // Αναφορά του σφάλματος όταν εμφανίζεται το fallback
     if (error) {
-      reportError(error, {
+      reportError(error, 'WalletErrorFallback', {
         showToast: true,
         logToConsole: true,
         sendToChatInterface: true

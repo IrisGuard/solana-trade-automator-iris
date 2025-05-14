@@ -16,9 +16,8 @@ export function BasicTestTab() {
       useCollector 
     };
     
-    // Pass only one argument - the error message
-    // The generateTestError function will need to be updated to use options internally
-    generateTestError(errorMessage);
+    // Generate test error with the specified options
+    generateTestError(errorMessage, options);
   };
 
   return (

@@ -5,15 +5,18 @@
  */
 
 import { errorCollector } from "./collector";
+import { displayError } from "./displayError";
 
 // Setup error handling for the application
 export const setupGlobalErrorHandling = () => {
   // Handle window errors
   window.onerror = (message, source, lineno, colno, error) => {
     const errorObj = error || new Error(String(message));
-    errorCollector.logErrorAndNotify(errorObj, {
+    displayError(errorObj, {
+      title: 'Uncaught Error',
       source: 'window.onerror',
-      location: { source, lineno, colno }
+      details: { source, lineno, colno },
+      sendToChat: false
     });
     return false; // Let the default handler run too
   };
@@ -21,8 +24,10 @@ export const setupGlobalErrorHandling = () => {
   // Handle unhandled promise rejections
   window.addEventListener('unhandledrejection', (event) => {
     const errorObj = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
-    errorCollector.logErrorAndNotify(errorObj, { 
-      source: 'unhandledrejection' 
+    displayError(errorObj, { 
+      title: 'Unhandled Promise Rejection',
+      source: 'unhandledrejection',
+      sendToChat: false
     });
   });
 
@@ -39,11 +44,13 @@ export const setupGlobalErrorHandling = () => {
       errorMessage.includes('react-dom') ||
       errorMessage.includes('Uncaught')
     ) {
-      errorCollector.logErrorAndNotify(
+      displayError(
         new Error(errorMessage),
         { 
+          title: 'React Error',
           source: 'console.error', 
-          isReactError: true 
+          details: { isReactError: true },
+          sendToChat: false
         }
       );
     }

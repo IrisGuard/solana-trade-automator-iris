@@ -1,4 +1,3 @@
-
 import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { toast } from 'sonner';
 import { connection } from './config';
@@ -81,11 +80,10 @@ export const fetchSOLBalance = async (address: string): Promise<number> => {
       });
       
       // Add to error collector
-      errorCollector.addError({
-        message: 'Failed to get SOL balance',
+      errorCollector.captureError(new Error('Failed to get SOL balance'), {
         source: 'client',
-        stack: String(error),
-        details: { address }
+        component: 'walletService',
+        details: { address, error: String(error) }
       });
     }
     
