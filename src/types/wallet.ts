@@ -10,3 +10,16 @@ export interface Token {
   uiBalance?: number;
   mint?: string;
 }
+
+export interface TokenBalance {
+  mint: string;
+  owner: string;
+  amount: string;
+  decimals: number;
+}
+
+export interface TokenDetails extends Token {
+  price?: number;
+  value?: number;
+  change24h?: number;
+}

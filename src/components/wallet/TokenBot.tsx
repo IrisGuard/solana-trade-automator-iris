@@ -1,11 +1,10 @@
 
-import React, { useState } from 'react';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Token } from '@/types/wallet';
-import { formatAmount } from '@/utils/tokenUtils';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Token } from "@/types/wallet";
+import { ConnectPrompt } from "./maker-bot/ConnectPrompt";
+import { formatTokenAmount } from "@/utils/tokenUtils";
 
 interface TokenBotProps {
   tokens: Token[];
@@ -13,101 +12,67 @@ interface TokenBotProps {
   onConnectWallet: () => Promise<void>;
 }
 
-export function TokenBot({ tokens, isConnected, onConnectWallet }: TokenBotProps) {
-  const [selectedToken, setSelectedToken] = useState<string>('');
-  const [amount, setAmount] = useState<string>('');
-  const [strategy, setStrategy] = useState<string>('grid');
+export function TokenBot({ tokens = [], isConnected, onConnectWallet }: TokenBotProps) {
+  const [activeTab, setActiveTab] = useState("overview");
   
-  const handleTokenChange = (value: string) => {
-    setSelectedToken(value);
-  };
-  
-  const handleStartBot = () => {
-    if (!selectedToken || !amount) {
-      return;
+  // Function to ensure we can actually access the token properties
+  const getFirstTokenAmount = (): string => {
+    if (tokens.length > 0 && tokens[0]) {
+      return formatTokenAmount(tokens[0]);
     }
-    
-    console.log('Starting bot with:', {
-      token: selectedToken,
-      amount,
-      strategy
-    });
+    return "0";
   };
   
   return (
     <Card>
       <CardHeader>
         <CardTitle>Trading Bot</CardTitle>
-        <CardDescription>Ρυθμίστε το αυτόματο bot συναλλαγών</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {isConnected ? (
-          <>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Επιλογή Token</label>
-              <Select value={selectedToken} onValueChange={handleTokenChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Επιλέξτε token" />
-                </SelectTrigger>
-                <SelectContent>
-                  {tokens.map((token) => (
-                    <SelectItem key={token.address} value={token.address}>
-                      {token.symbol} - {token.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Ποσό Συναλλαγών</label>
-              <Input 
-                type="number" 
-                placeholder="Εισάγετε ποσό"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)} 
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Στρατηγική</label>
-              <Select value={strategy} onValueChange={(value) => setStrategy(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="grid">Grid Trading</SelectItem>
-                  <SelectItem value="dca">DCA (Dollar Cost Average)</SelectItem>
-                  <SelectItem value="market-making">Market Making</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {selectedToken && (
-              <div className="rounded-md bg-muted p-3 text-sm">
-                <p>
-                  <strong>Διαθέσιμο Υπόλοιπο:</strong>{' '}
-                  {tokens.find(token => token.address === selectedToken)?.amount
-                    ? formatAmount(tokens.find(token => token.address === selectedToken)?.amount || 0)
-                    : '0'}{' '}
-                  {tokens.find(token => token.address === selectedToken)?.symbol}
-                </p>
-              </div>
-            )}
-            
-            <Button 
-              className="w-full" 
-              onClick={handleStartBot}
-              disabled={!selectedToken || !amount}
-            >
-              Εκκίνηση Bot
-            </Button>
-          </>
+      <CardContent>
+        {!isConnected ? (
+          <ConnectPrompt handleConnectWallet={onConnectWallet} />
         ) : (
-          <div className="text-center py-6">
-            <p className="text-muted-foreground mb-4">Συνδεθείτε με το wallet σας για να χρησιμοποιήσετε το trading bot</p>
-            <Button onClick={onConnectWallet}>Σύνδεση Wallet</Button>
-          </div>
+          <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="settings">Settings</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+            </TabsList>
+            <TabsContent value="overview" className="space-y-4 mt-4">
+              <div className="grid gap-4">
+                <div className="p-4 border rounded-md">
+                  <h3 className="mb-2 font-medium">Bot Status</h3>
+                  <div className="flex items-center space-x-2">
+                    <div className="h-3 w-3 rounded-full bg-red-500"></div>
+                    <span className="text-sm">Inactive</span>
+                  </div>
+                </div>
+                
+                <div className="p-4 border rounded-md">
+                  <h3 className="mb-2 font-medium">Available Tokens</h3>
+                  <p className="text-sm">{tokens.length > 0 ? `${tokens.length} tokens available` : 'No tokens found'}</p>
+                  {tokens.length > 0 && (
+                    <div className="mt-2">
+                      <span className="text-sm text-muted-foreground">First token amount: </span>
+                      <span className="font-mono">{getFirstTokenAmount()}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="settings" className="space-y-4 mt-4">
+              <div className="p-4 border rounded-md">
+                <h3 className="mb-2 font-medium">Bot Settings</h3>
+                <p className="text-sm text-muted-foreground">Bot settings will be available soon.</p>
+              </div>
+            </TabsContent>
+            <TabsContent value="history" className="space-y-4 mt-4">
+              <div className="p-4 border rounded-md">
+                <h3 className="mb-2 font-medium">Trading History</h3>
+                <p className="text-sm text-muted-foreground">No trading history available.</p>
+              </div>
+            </TabsContent>
+          </Tabs>
         )}
       </CardContent>
     </Card>

@@ -1,64 +1,62 @@
 
-import { Token } from "@/types/wallet";
+import { Token } from '@/types/wallet';
 
 /**
- * Format token amounts with proper decimals for display
+ * Formats a token amount with the correct decimals and symbol
+ * @param token The token object containing amount, decimals, and symbol
+ * @returns Formatted token amount as string
  */
-export function formatTokenAmount(token: Token, decimals: number = 4): string {
-  if (!token || token.amount === undefined) {
-    return "0.0000"; // Default value when token or amount is undefined
-  }
-
-  // First convert to number if it's a string
-  const amountNumber = typeof token.amount === 'string' ? parseFloat(token.amount) : token.amount;
+export const formatTokenAmount = (token: Token): string => {
+  if (!token) return '0';
   
-  // Handle NaN or undefined cases
-  if (isNaN(amountNumber) || amountNumber === undefined) {
-    return "0.0000";
-  }
-
-  try {
-    return amountNumber.toFixed(decimals);
-  } catch (error) {
-    console.error("Error formatting token amount:", error);
-    return "0.0000";
-  }
-}
-
-/**
- * Format a number for display, useful for token balances
- */
-export function formatAmount(amount: number, decimals: number = 4): string {
-  if (amount === undefined || isNaN(amount)) {
-    return "0.0000";
-  }
-
-  try {
-    return amount.toFixed(decimals);
-  } catch (error) {
-    console.error("Error formatting amount:", error);
-    return "0.0000";
-  }
-}
-
-/**
- * Format price change with + or - sign
- */
-export function formatPriceChange(change: number): string {
-  if (!change) return "0.00%";
+  const amount = token.amount || 0;
+  const decimals = token.decimals || 0;
+  const formattedAmount = (amount / Math.pow(10, decimals)).toFixed(decimals > 4 ? 4 : decimals);
   
-  const sign = change >= 0 ? "+" : "";
+  return `${formattedAmount} ${token.symbol}`;
+};
+
+/**
+ * Format just an amount based on decimals
+ * @param amount The numerical amount
+ * @param decimals The number of decimal places
+ * @returns Formatted amount as string
+ */
+export const formatAmount = (amount: number, decimals: number): string => {
+  if (typeof amount !== 'number' || typeof decimals !== 'number') {
+    return '0';
+  }
+  
+  const formattedAmount = (amount / Math.pow(10, decimals)).toFixed(decimals > 4 ? 4 : decimals);
+  return formattedAmount;
+};
+
+/**
+ * Format price change with '+' or '-' sign and '%'
+ * @param change The price change percentage
+ * @returns Formatted price change as string with sign
+ */
+export const formatPriceChange = (change?: number): string => {
+  if (!change && change !== 0) return '0%';
+  
+  const sign = change >= 0 ? '+' : '';
   return `${sign}${change.toFixed(2)}%`;
-}
+};
 
 /**
- * Calculate token value in USD based on price
+ * Calculate token value in USD
+ * @param amount The token amount
+ * @param price The token price in USD
+ * @param decimals The number of decimal places
+ * @returns Calculated value in USD
  */
-export function calculateTokenValue(token: Token, price?: number): number {
-  if (!token?.amount || price === undefined || isNaN(price)) {
-    return 0;
-  }
+export const calculateTokenValue = (
+  amount: number, 
+  price?: number, 
+  decimals?: number
+): number => {
+  if (!amount || !price) return 0;
   
-  const amount = typeof token.amount === 'string' ? parseFloat(token.amount) : token.amount;
-  return amount * price;
-}
+  const actualAmount = decimals ? amount / Math.pow(10, decimals) : amount;
+  return actualAmount * price;
+};

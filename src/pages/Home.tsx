@@ -40,7 +40,6 @@ export default function Home() {
   // Wrapper for connectWallet to match expected return type
   const handleConnectWallet = async () => {
     await connectWallet();
-    return; // explicitly return void
   };
   
   useEffect(() => {

@@ -1,20 +1,26 @@
 
 import React from "react";
 import { TabsContent } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 
 export function SimulationTab() {
   return (
-    <TabsContent value="simulation" className="space-y-4">
+    <TabsContent value="simulation">
       <Card>
         <CardHeader>
           <CardTitle>Προσομοίωση</CardTitle>
           <CardDescription>
-            Δοκιμάστε στρατηγικές σε ιστορικά δεδομένα
+            Δοκιμάστε τις στρατηγικές σας σε ιστορικά δεδομένα πριν το live trading
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p>Η λειτουργία προσομοίωσης είναι υπό κατασκευή.</p>
+          <div className="p-6 border-2 border-dashed rounded-md text-center">
+            <h3 className="text-lg font-medium mb-2">Προσομοίωση Trading - Coming Soon</h3>
+            <p className="text-sm text-muted-foreground">
+              Δοκιμάστε τις στρατηγικές σας με ιστορικά δεδομένα για να αξιολογήσετε την απόδοσή τους.
+              Αυτή η λειτουργία θα είναι διαθέσιμη στην επόμενη αναβάθμιση.
+            </p>
+          </div>
         </CardContent>
       </Card>
     </TabsContent>

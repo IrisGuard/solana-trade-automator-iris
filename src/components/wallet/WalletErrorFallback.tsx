@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 export function WalletErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
   // Έλεγχος για το συγκεκριμένο σφάλμα substring
   const isSubstringError = error.message.includes('substring is not a function');
+  const isPublicKeyError = error.message.includes('Objects are not valid as a React child') && 
+                          error.message.includes('PublicKey');
   
   return (
     <div className="flex items-center justify-center min-h-screen p-6 bg-background">
@@ -22,6 +24,8 @@ export function WalletErrorFallback({ error, resetErrorBoundary }: FallbackProps
             Σφάλμα: {
               isSubstringError 
                 ? 'Προέκυψε πρόβλημα με την επεξεργασία της διεύθυνσης του πορτοφολιού'
+                : isPublicKeyError
+                ? 'Προέκυψε πρόβλημα με την επεξεργασία του αντικειμένου PublicKey'
                 : error.message
             }
           </p>

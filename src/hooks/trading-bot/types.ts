@@ -1,7 +1,16 @@
 
-import { Token } from '@/types/wallet';
+import { Token } from "@/types/wallet";
 
-export type BotStatus = 'idle' | 'running' | 'paused';
+export type BotStatus = 'idle' | 'running' | 'paused' | 'error';
+
+export type StrategyType = 'simple' | 'dca' | 'grid' | 'momentum';
+
+export interface BotMetrics {
+  profit: number;
+  profitPercent: number;
+  trades: number;
+  successRate: number;
+}
 
 export interface TradingBotConfig {
   selectedToken: string | null;
@@ -11,7 +20,7 @@ export interface TradingBotConfig {
   takeProfit: number;
   tradeAmount: number;
   maxBudget: number;
-  strategy: 'simple' | 'advanced' | 'custom';
+  strategy: StrategyType;
   autoRebalance: boolean;
   trailingStop: boolean;
   enabledStrategies: {
@@ -23,51 +32,22 @@ export interface TradingBotConfig {
 
 export interface TradingOrder {
   id: string;
-  type: 'buy' | 'sell' | 'stop-loss' | 'take-profit' | 'limit-buy' | 'limit-sell';
+  type: 'buy' | 'sell' | 'stop-loss' | 'take-profit';
   price: number;
   amount: number;
   tokenAddress: string;
-  token: string; // Added for compatibility with ActiveOrder
+  token: string;  // This is the token address or symbol
   status: 'pending' | 'executed' | 'cancelled';
-  createdAt: Date | string;
-  executedAt?: Date;
+  createdAt: Date;
 }
 
-export interface TokenPriceInfo {
-  currentPrice: number;
-  priceChange24h: number;
-  highPrice24h: number;
-  lowPrice24h: number;
-  volume24h: number;
-  marketCap: number;
-  lastUpdated: Date;
-}
-
-export interface Bot {
-  id: string;
-  name: string;
-  status: BotStatus;
-  token: string;
-  strategy: string;
-  profitLoss: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ActiveOrder {
-  id: string;
-  type: string;
-  token: string;
-  amount: number;
-  price: number;
-  status: string;
-  createdAt: string;
-}
+// For backward compatibility with ActiveOrder
+export type ActiveOrder = TradingOrder;
 
 export interface TradingBotHook {
   config: TradingBotConfig;
   updateConfig: (config: Partial<TradingBotConfig>) => void;
-  selectToken: (token: string | null) => Promise<void>;
+  selectToken: (tokenAddress: string | null) => Promise<void>;
   startBot: () => void;
   stopBot: () => void;
   isLoading: boolean;
