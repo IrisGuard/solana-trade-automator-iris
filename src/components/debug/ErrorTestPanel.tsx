@@ -1,3 +1,3 @@
 
-// Re-export the refactored ErrorTestPanel component from the new module
+// Re-export the ErrorTestPanel component from the correct location
 export { ErrorTestPanel } from './error-panel/ErrorTestPanel';
