@@ -4,4 +4,4 @@
  */
 
 // Re-export από τη νέα δομή αρχείων
-export { errorCollector, ErrorCollector } from './error-handling/collector';
+export { errorCollector, type ErrorData } from './error-handling/collector';

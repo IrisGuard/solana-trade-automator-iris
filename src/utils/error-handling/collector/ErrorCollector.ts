@@ -1,161 +1,143 @@
+import { v4 as uuidv4 } from 'uuid';
 
-/**
- * ErrorCollector - A utility class for collecting and managing errors
- * in a centralized location.
- */
-
-// Interface for error data
 export interface ErrorData {
   message: string;
   stack?: string;
+  timestamp?: number;
+  details?: any;
   source?: string;
   component?: string;
-  details?: any;
-  timestamp?: number;
-  url?: string;
-  error?: Error;
-  handled?: boolean;
-  reported?: boolean;
-  [key: string]: any; // Allow additional custom properties
 }
 
-/**
- * ErrorCollector class that provides methods to collect and manage errors
- */
-class ErrorCollector {
+export class ErrorCollector {
   private errors: Map<string, ErrorData> = new Map();
-  private static instance: ErrorCollector;
   private maxErrors: number = 100;
-  
-  // Private constructor for singleton pattern
-  private constructor() {}
-  
-  // Get the singleton instance
-  public static getInstance(): ErrorCollector {
-    if (!ErrorCollector.instance) {
-      ErrorCollector.instance = new ErrorCollector();
+
+  constructor(maxErrors?: number) {
+    if (maxErrors) {
+      this.maxErrors = maxErrors;
     }
-    return ErrorCollector.instance;
   }
-  
+
   /**
-   * Add an error to the collection
-   * @param data Error data to add
-   * @returns String ID of the added error
+   * Add an error to the collector
+   * @param error The error data to add
+   * @returns The error ID
    */
-  public addError(data: ErrorData): string {
-    // Generate a unique ID for the error
-    const id = `error-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    
-    // Add timestamp if not provided
-    if (!data.timestamp) {
-      data.timestamp = Date.now();
-    }
-    
-    // Store error in the map
-    this.errors.set(id, data);
-    
-    // Prune old errors if we've exceeded the max
-    this.pruneErrors();
-    
-    // Log the error to console
-    console.error(`Error collected [${id}]:`, data.message);
-    
-    return id;
-  }
-  
-  /**
-   * Collect an error object directly
-   * @param error Error object to collect
-   * @returns String ID of the added error
-   */
-  public collect(error: Error | string, context: any = {}): string {
-    const errorObj = typeof error === 'string' ? new Error(error) : error;
-    
-    const errorData: ErrorData = {
-      message: errorObj.message,
-      stack: errorObj.stack,
-      ...context,
-      timestamp: Date.now()
+  addError(error: ErrorData): string {
+    const errorId = uuidv4().substring(0, 8);
+    const errorWithTimestamp = {
+      ...error,
+      timestamp: error.timestamp || Date.now()
     };
-    
-    return this.addError(errorData);
+
+    this.errors.set(errorId, errorWithTimestamp);
+
+    // Keep error count within limits
+    if (this.errors.size > this.maxErrors) {
+      const oldestKey = this.getOldestErrorKey();
+      if (oldestKey) {
+        this.errors.delete(oldestKey);
+      }
+    }
+
+    return errorId;
   }
-  
+
   /**
-   * Get an error by ID
-   * @param id ID of the error to retrieve
-   * @returns ErrorData or undefined if not found
+   * Log error and notify systems
+   * @param error The error object
+   * @param component Optional component name
    */
-  public getError(id: string): ErrorData | undefined {
-    return this.errors.get(id);
+  logErrorAndNotify(error: Error, component?: string): string {
+    return this.addError({
+      message: error.message,
+      stack: error.stack,
+      source: 'client',
+      component,
+      details: {
+        browserInfo: {
+          userAgent: navigator.userAgent,
+          language: navigator.language
+        },
+        url: window.location.href
+      }
+    });
   }
-  
+
   /**
-   * Get all collected errors
-   * @returns Array of all error data
+   * Get an error by its ID
+   * @param errorId The error ID
    */
-  public getAllErrors(): ErrorData[] {
+  getError(errorId: string): ErrorData | undefined {
+    return this.errors.get(errorId);
+  }
+
+  /**
+   * Get all errors
+   */
+  getAllErrors(): ErrorData[] {
     return Array.from(this.errors.values());
   }
-  
+
   /**
-   * Clear all collected errors
+   * Get the number of stored errors
    */
-  public clearErrors(): void {
+  getErrorCount(): number {
+    return this.errors.size;
+  }
+
+  /**
+   * Clear all errors
+   */
+  clearErrors(): void {
     this.errors.clear();
   }
-  
+
   /**
-   * Remove old errors if over max limit
+   * Get all errors as a map
    */
-  private pruneErrors(): void {
-    if (this.errors.size > this.maxErrors) {
-      // Get oldest errors first
-      const sortedIds = Array.from(this.errors.entries())
-        .sort((a, b) => (a[1].timestamp || 0) - (b[1].timestamp || 0))
-        .map(entry => entry[0]);
-      
-      // Remove oldest errors
-      const toRemove = sortedIds.slice(0, this.errors.size - this.maxErrors);
-      toRemove.forEach(id => this.errors.delete(id));
-    }
+  getErrorMap(): Map<string, ErrorData> {
+    return new Map(this.errors);
   }
-  
+
   /**
-   * Log error and notify relevant systems
-   * @param error Error object or message
-   * @param context Additional context information
-   * @returns String ID of the reported error
+   * Get all error IDs
    */
-  public logErrorAndNotify(error: Error | string, context: any = {}): string {
-    const errorObj = typeof error === 'string' ? new Error(error) : error;
-    
-    const errorData: ErrorData = {
-      message: errorObj.message,
-      stack: errorObj.stack,
-      ...context,
-      timestamp: Date.now()
-    };
-    
-    return this.addError(errorData);
+  getErrorIds(): string[] {
+    return Array.from(this.errors.keys());
   }
-  
+
   /**
-   * Report errors to monitoring system
+   * Get most recent errors
+   * @param count Number of errors to return
    */
-  public reportErrors(): Promise<void> {
-    // Implementation would send errors to monitoring system
-    console.log(`Reporting ${this.errors.size} errors to monitoring system`);
-    
-    // Mark errors as reported
-    this.errors.forEach(error => {
-      error.reported = true;
+  getRecentErrors(count: number = 10): ErrorData[] {
+    return Array.from(this.errors.values())
+      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+      .slice(0, count);
+  }
+
+  /**
+   * Get the oldest error key
+   */
+  private getOldestErrorKey(): string | null {
+    if (this.errors.size === 0) return null;
+
+    let oldestTimestamp = Infinity;
+    let oldestKey: string | null = null;
+
+    this.errors.forEach((error, key) => {
+      const timestamp = error.timestamp || 0;
+      if (timestamp < oldestTimestamp) {
+        oldestTimestamp = timestamp;
+        oldestKey = key;
+      }
     });
-    
-    return Promise.resolve();
+
+    return oldestKey;
   }
 }
 
-// Create singleton instance
-export const errorCollector = ErrorCollector.getInstance();
+// Create and export a singleton instance
+export const errorCollector = new ErrorCollector();

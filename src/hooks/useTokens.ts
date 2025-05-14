@@ -61,7 +61,7 @@ export function useTokens() {
       if (priceData) {
         Object.entries(priceData).forEach(([address, data]) => {
           if (data && typeof data === 'object' && 'price' in data) {
-            simplePrices[address] = Number(data.price) || 0;
+            simplePrices[address] = Number(data.price || 0);
           }
         });
       }

@@ -17,6 +17,20 @@ export function generateSampleError(message = 'Sample Error'): Error {
   return error;
 }
 
+// Create test errors for basic testing functionality
+export function generateTestError(message = 'Test Error'): Error {
+  return generateSampleError(message);
+}
+
+// Create various types of errors for advanced testing
+export function generateVariousErrors(): Error[] {
+  return [
+    generateSampleError('API Error'),
+    generateSampleError('Network Error'),
+    generateSampleError('Validation Error')
+  ];
+}
+
 // Clear all errors from the error collector
 export function clearAllErrors(): void {
   errorCollector.clearErrors();
@@ -83,7 +97,6 @@ export function simulateRuntimeError(): void {
       errorCollector.addError({
         message: error.message,
         stack: error.stack,
-        source: 'test',
         details: { test: true }
       });
       toast.error('Runtime error simulated');
@@ -101,7 +114,6 @@ export function generateDOMError(): void {
       errorCollector.addError({
         message: error.message,
         stack: error.stack,
-        source: 'dom',
         details: { location: window.location.href }
       });
       toast.error('DOM error simulated');
