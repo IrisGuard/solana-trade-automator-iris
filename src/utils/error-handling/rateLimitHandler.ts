@@ -9,14 +9,14 @@ interface RetryConfig {
 }
 
 const DEFAULT_RETRY_CONFIG: RetryConfig = {
-  maxRetries: 3,
-  initialDelay: 1000,
-  maxDelay: 10000,
+  maxRetries: 5,         // Increased from 3 to 5
+  initialDelay: 1500,    // Increased from 1000 to 1500ms
+  maxDelay: 15000,       // Increased from 10000 to 15000ms
   backoffFactor: 2
 };
 
 /**
- * Συνάρτηση που εκτελεί μια εργασία με αυτόματες επαναπροσπάθειες για σφάλματα Rate Limit
+ * Function that executes a task with automatic retries for Rate Limit errors
  */
 export async function withRateLimitRetry<T>(
   fn: () => Promise<T>, 
@@ -25,6 +25,7 @@ export async function withRateLimitRetry<T>(
   const config = { ...DEFAULT_RETRY_CONFIG, ...options };
   let delay = config.initialDelay;
   let attempt = 0;
+  let lastError: Error | null = null;
   
   while (true) {
     try {
@@ -32,35 +33,68 @@ export async function withRateLimitRetry<T>(
     } catch (error) {
       attempt++;
       const errorStr = String(error);
-      const isRateLimitError = errorStr.includes('rate limit') || errorStr.includes('429');
+      const isRateLimitError = isRateLimitError(error);
       
-      // Αν δεν είναι σφάλμα rate limit ή έχουμε ξεπεράσει τις προσπάθειες, προωθούμε το σφάλμα
+      // If it's not a rate limit error or we've exceeded retry attempts, forward the error
       if (!isRateLimitError || attempt >= config.maxRetries) {
+        if (isRateLimitError) {
+          console.warn(`Rate limit persists after ${attempt} attempts. Giving up.`);
+          toast.error('Solana API rate limit exceeded. Please try again later.', {
+            description: 'The application will use cached data if available.'
+          });
+        }
         throw error;
       }
       
+      lastError = error instanceof Error ? error : new Error(errorStr);
       console.log(`Rate limit hit. Retrying in ${delay}ms (attempt ${attempt}/${config.maxRetries})`);
       
-      // Ενημέρωση χρήστη μόνο στην πρώτη προσπάθεια
+      // Notify user only on first and last retry attempt
       if (attempt === 1) {
-        toast.info('API rate limit exceeded. Retrying automatically...');
+        toast.info('API rate limit exceeded. Retrying automatically...', {
+          id: 'rate-limit-retry',
+          duration: delay * 1.2
+        });
+      } else if (attempt === config.maxRetries - 1) {
+        toast.loading('Final retry attempt...', {
+          id: 'rate-limit-retry',
+          duration: delay * 1.2
+        });
       }
       
-      // Αναμονή πριν την επόμενη προσπάθεια
+      // Wait before next attempt
       await new Promise(resolve => setTimeout(resolve, delay));
       
-      // Αύξηση του delay για την επόμενη προσπάθεια (exponential backoff)
+      // Increase delay for next attempt (exponential backoff)
       delay = Math.min(delay * config.backoffFactor, config.maxDelay);
     }
   }
 }
 
 /**
- * Έλεγχος αν ένα σφάλμα οφείλεται σε περιορισμό ρυθμού (rate limiting)
+ * Check if an error is due to rate limiting
  */
 export function isRateLimitError(error: unknown): boolean {
   const errorStr = String(error);
   return errorStr.includes('rate limit') || 
          errorStr.includes('429') || 
-         errorStr.includes('-32429');
+         errorStr.includes('-32429') ||
+         errorStr.includes('Too many requests') ||
+         errorStr.includes('exceeded') && errorStr.includes('limit');
+}
+
+/**
+ * Handle rate limit errors with friendly user interface
+ */
+export function handleRateLimitError(error: unknown, fallbackValue: any = null): any {
+  if (isRateLimitError(error)) {
+    console.warn('Rate limit error handled:', error);
+    toast.error('Solana API rate limit exceeded', {
+      description: 'Please try again in a moment.',
+      position: 'top-center',
+      duration: 5000
+    });
+    return fallbackValue;
+  }
+  throw error;
 }
