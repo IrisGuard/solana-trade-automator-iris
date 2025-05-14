@@ -8,6 +8,7 @@ import { SolanaWalletProvider } from "@/providers/SolanaWalletProvider";
 import { WalletErrorFallback } from "@/components/wallet/WalletErrorFallback";
 import { MonitoringSystem } from "@/components/monitoring/MonitoringComponents";
 import { ConsoleMonitor } from "@/components/debug/ConsoleMonitor";
+import { DOMErrorHandler } from "@/components/errors/DOMErrorHandler";
 import { displayError } from "@/utils/errorUtils";
 import { setupGlobalErrorHandling } from "@/utils/error-handling/setupGlobalErrorHandling";
 import { useNavigate, useLocation } from "@/lib/router-exports";
@@ -56,6 +57,7 @@ export function AppContent() {
 
   return (
     <Suspense fallback={<AppLoader />}>
+      <DOMErrorHandler />
       <MonitoringSystem />
       <ConsoleMonitor />
       
