@@ -1,13 +1,13 @@
 
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ApiEndpoint } from "@/types/api"; // Use consistent import
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { ApiEndpoint } from "@/types/api";
 
-export interface NewEndpointDialogProps {
+interface NewEndpointDialogProps {
   category: string;
   onAddEndpoint: (endpoint: ApiEndpoint) => void;
   onCancel: () => void;
@@ -16,81 +16,72 @@ export interface NewEndpointDialogProps {
 export function NewEndpointDialog({ category, onAddEndpoint, onCancel }: NewEndpointDialogProps) {
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
-  const [isActive, setIsActive] = useState(true);
-  const [isPublic, setIsPublic] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!name || !url) return;
-
+  const [isPublic, setIsPublic] = useState(true);
+  
+  const handleSubmit = () => {
+    if (!name || !url) {
+      return;
+    }
+    
     const newEndpoint: ApiEndpoint = {
-      id: `endpoint-${Date.now()}`,
+      id: crypto.randomUUID(),
       name,
       url,
+      category, // Use the category prop
+      is_active: true,
+      is_public: isPublic,
       method: "GET", // Default method
-      category,
-      is_active: isActive,
-      is_public: isPublic
     };
-
+    
     onAddEndpoint(newEndpoint);
-    onCancel();
   };
-
+  
   return (
     <Dialog open={true} onOpenChange={onCancel}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add API Endpoint</DialogTitle>
+          <DialogTitle>Add New Endpoint</DialogTitle>
         </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid gap-2">
+        
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
-            <Input
+            <Input 
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter endpoint name"
             />
           </div>
-
-          <div className="grid gap-2">
+          
+          <div className="space-y-2">
             <Label htmlFor="url">URL</Label>
-            <Input
+            <Input 
               id="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://api.example.com"
             />
           </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="is-active"
-              checked={isActive}
-              onCheckedChange={setIsActive}
-            />
-            <Label htmlFor="is-active">Active</Label>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
+          
+          <div className="flex items-center justify-between">
+            <Label htmlFor="is-public">Public Endpoint</Label>
+            <Switch 
               id="is-public"
               checked={isPublic}
               onCheckedChange={setIsPublic}
             />
-            <Label htmlFor="is-public">Public</Label>
           </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onCancel}>
-              Cancel
-            </Button>
-            <Button type="submit">Add Endpoint</Button>
-          </DialogFooter>
-        </form>
+        </div>
+        
+        <div className="flex justify-end space-x-2">
+          <Button variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} disabled={!name || !url}>
+            Add Endpoint
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
