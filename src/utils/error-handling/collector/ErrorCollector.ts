@@ -115,23 +115,21 @@ export class ErrorCollector {
         return false;
       }
       
-      // Μετατροπή σε μορφή κατάλληλη για μαζικές εισαγωγές
-      const errorsToSubmit = this.errors.map(err => ({
-        error_message: err.message,
-        error_stack: err.stack || null,
-        component: err.component || null,
-        source: err.source || 'client',
-        url: err.url || null,
-        browser_info: err.browserInfo || null
-      }));
-      
-      // Υποβολή με μαζική εισαγωγή
-      const { error } = await supabase
-        .rpc('log_error', errorsToSubmit);
-      
-      if (error) {
-        console.error('Σφάλμα κατά την υποβολή σφαλμάτων στο Supabase:', error);
-        return false;
+      // Υποβάλλουμε ένα-ένα τα σφάλματα καθώς η συνάρτηση log_error δέχεται μόνο ένα σφάλμα κάθε φορά
+      for (const err of this.errors) {
+        const { error } = await supabase.rpc('log_error', {
+          p_error_message: err.message,
+          p_error_stack: err.stack || null,
+          p_component: err.component || null,
+          p_source: err.source || 'client',
+          p_url: err.url || null,
+          p_browser_info: err.browserInfo || null
+        });
+        
+        if (error) {
+          console.error('Σφάλμα κατά την υποβολή σφάλματος στο Supabase:', error);
+          return false;
+        }
       }
       
       // Καθαρισμός μετά την επιτυχή υποβολή

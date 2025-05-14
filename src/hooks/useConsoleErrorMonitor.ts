@@ -1,6 +1,6 @@
 
 import { useEffect } from 'react';
-import { setupGlobalErrorHandling } from '@/utils/errorUtils';
+import { setupGlobalErrorHandling } from '@/utils/error-handling/setupGlobalErrorHandling';
 
 export function useConsoleErrorMonitor() {
   useEffect(() => {

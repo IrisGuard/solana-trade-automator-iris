@@ -1,6 +1,7 @@
 
 import { toast } from "sonner";
 import { errorCollector } from "./error-handling/collector";
+import { setupGlobalErrorHandling } from "./error-handling/setupGlobalErrorHandling";
 
 interface ErrorDisplayOptions {
   title?: string;
@@ -82,3 +83,6 @@ export function formatErrorMessage(error: unknown): string {
   
   return 'Άγνωστο σφάλμα';
 }
+
+// Export the setupGlobalErrorHandling function
+export { setupGlobalErrorHandling };

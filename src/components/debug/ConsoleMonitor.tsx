@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useErrorReporting } from "@/hooks/useErrorReporting";
 import { clearAllErrors } from "@/utils/errorTestUtils";
-import { displayError, sendErrorToChat } from "@/utils/errorUtils";
+import { displayError } from "@/utils/errorUtils";
 
 interface LogRecord {
   type: 'error' | 'warn' | 'info';
@@ -34,7 +34,7 @@ export function ConsoleMonitor() {
             
             // Αν είναι σφάλμα Supabase, το εμφανίζουμε
             if (url.includes('supabase') || url.includes('lvkbyfocssuzcdphpmfu')) {
-              displayError(errorMessage, {
+              displayError(new Error(errorMessage), {
                 title: 'Σφάλμα Supabase',
                 showToast: true,
                 logToConsole: true,
@@ -42,7 +42,7 @@ export function ConsoleMonitor() {
               });
             } else if (response.status >= 500) {
               // Σοβαρό σφάλμα σε API
-              displayError(errorMessage, {
+              displayError(new Error(errorMessage), {
                 title: 'Σοβαρό σφάλμα API',
                 showToast: true,
                 logToConsole: true,
