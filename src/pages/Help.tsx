@@ -1,11 +1,10 @@
-
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, MessageSquareHelp, Wallet, Bot, FileText, Book, Video, HeartHandshake } from "lucide-react";
+import { Search, MessageSquare, Wallet, Bot, FileText, Book, Video, HeartHandshake } from "lucide-react";
 
 export default function HelpPage() {
   return (
@@ -37,7 +36,7 @@ export default function HelpPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <MessageSquareHelp className="h-5 w-5 text-primary" />
+                <MessageSquare className="h-5 w-5 text-primary" />
                 Συχνές Ερωτήσεις
               </CardTitle>
               <CardDescription>
