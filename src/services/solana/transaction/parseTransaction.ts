@@ -20,7 +20,8 @@ export function parseTransaction(
       amount: 0,
       sender: '',
       recipient: '',
-      token: 'SOL'
+      token: 'SOL',
+      blockTime: timestamp // Add blockTime as a number
     };
 
     // Προς το παρόν επιστρέφουμε τις βασικές πληροφορίες
@@ -39,7 +40,8 @@ export function parseTransaction(
       amount: 0,
       sender: '',
       recipient: '',
-      token: ''
+      token: '',
+      blockTime: timestamp // Add blockTime as a number
     };
   }
 }

@@ -1,4 +1,3 @@
-
 import { PublicKey } from '@solana/web3.js';
 import { toast } from 'sonner';
 import { Token } from '@/types/wallet';
@@ -17,7 +16,7 @@ export const fetchTokenBalance = async (tokenAddress: string, walletAddress: str
       // Implementation for getting balance of a specific token
       // This is a placeholder, actual implementation would depend on specific requirements
       return 0;
-    }, { maxRetries: 3 });
+    }, { endpoint: 'main', maxRetries: 3 });
   } catch (error) {
     console.error('Error fetching token balance:', error);
     return 0;
@@ -81,7 +80,7 @@ export const fetchAllTokenBalances = async (address: string): Promise<Token[]> =
       tokenBalanceCache[address] = [...tokens];
       
       return tokens;
-    }, { maxRetries: 3 });
+    }, { endpoint: 'main', maxRetries: 3 });
   } catch (error) {
     // Check for rate limit errors
     if (isRateLimitError(error)) {

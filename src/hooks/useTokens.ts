@@ -2,12 +2,12 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Token } from '@/types/wallet';
-import { solanaService } from '@/services/solanaService';
+import { solanaService } from '@/services/solana';
 
 export function useTokens() {
   const [tokens, setTokens] = useState<Token[]>([]);
   const [selectedToken, setSelectedToken] = useState<Token | null>(null);
-  const [tokenPrices, setTokenPrices] = useState<Record<string, number>>({});
+  const [tokenPrices, setTokenPrices] = useState<Record<string, { price: number, priceChange24h: number }>>({}); 
   const [isLoadingTokens, setIsLoadingTokens] = useState<boolean>(false);
 
   // Load tokens from the Phantom wallet
@@ -51,22 +51,17 @@ export function useTokens() {
       if (tokens.length === 0) return {};
       
       // Fix: Convert array of addresses to a comma-separated string or handle individually
-      const priceData = await Promise.all(
-        tokens.map(token => solanaService.fetchTokenPrices(token.address))
-      );
+      const pricesData: Record<string, { price: number, priceChange24h: number }> = {};
       
-      // Convert the array of results to a record object
-      const simplePrices: Record<string, number> = {};
-      
-      tokens.forEach((token, index) => {
-        const data = priceData[index];
-        if (data && typeof data === 'object' && 'price' in data) {
-          simplePrices[token.address] = Number(data.price || 0);
+      for (const token of tokens) {
+        const priceData = await solanaService.fetchTokenPrices(token.address);
+        if (priceData) {
+          pricesData[token.address] = priceData;
         }
-      });
+      }
       
-      setTokenPrices(simplePrices);
-      return simplePrices;
+      setTokenPrices(pricesData);
+      return pricesData;
     } catch (error) {
       console.error("Error fetching token prices:", error);
       return {};

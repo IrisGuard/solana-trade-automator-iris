@@ -2,7 +2,7 @@
 import React from 'react';
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { SupabaseProvider } from '@/providers/SupabaseAuthProvider';
+import { SupabaseAuthProvider } from '@/providers/SupabaseAuthProvider';
 import { SolanaWalletProvider } from '@/providers/SolanaWalletProvider';
 import { WalletErrorFallback } from '@/components/wallet/WalletErrorFallback';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -23,11 +23,11 @@ interface AppProvidersProps {
 
 export function AppProviders({ children }: AppProvidersProps) {
   return (
-    <ThemeProvider>
+    <ThemeProvider defaultTheme="system" attribute="class">
       <QueryClientProvider client={queryClient}>
-        <SupabaseProvider>
+        <SupabaseAuthProvider>
           <ErrorBoundary 
-            FallbackComponent={({ error }) => <WalletErrorFallback error={error} />}
+            FallbackComponent={WalletErrorFallback}
             onError={(error, info) => {
               console.error("Error in Solana Provider:", error);
               console.error("Component Stack:", info.componentStack);
@@ -37,7 +37,7 @@ export function AppProviders({ children }: AppProvidersProps) {
               {children}
             </SolanaWalletProvider>
           </ErrorBoundary>
-        </SupabaseProvider>
+        </SupabaseAuthProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );

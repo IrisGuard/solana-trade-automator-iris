@@ -3,14 +3,15 @@ import { toast } from "sonner";
 import { errorCollector, type ErrorData } from "./error-handling/collector";
 import { setupGlobalErrorHandling } from "./error-handling/setupGlobalErrorHandling";
 
-interface ErrorDisplayOptions {
+// Export the ErrorDisplayOptions type
+export interface ErrorDisplayOptions {
   title?: string;
   showToast?: boolean;
   logToConsole?: boolean;
   useCollector?: boolean;
   sendToChat?: boolean;
   component?: string;
-  method?: string; // Added method property
+  method?: string;
   source?: string;
   details?: any;
 }
@@ -62,9 +63,8 @@ export function displayError(error: Error | string, options?: ErrorDisplayOption
       component: opts.component,
       source: opts.source,
       details: errorData.details,
-      method: opts.method
     }).then(data => {
-      errorId = data.id;
+      errorId = data.id || '';
     }).catch(err => {
       console.error('Error capturing error:', err);
     });
@@ -83,7 +83,7 @@ export function displayError(error: Error | string, options?: ErrorDisplayOption
     console.log("Αποστολή σφάλματος στο chat support");
   }
   
-  return errorId || '';
+  return errorId;
 }
 
 export function formatErrorMessage(error: unknown): string {

@@ -82,15 +82,16 @@ export function useSolanaWallet() {
   };
   
   // Μέθοδος για σύνδεση πορτοφολιού με συγκεκριμένο provider
-  const connectWallet = (provider: string) => {
+  const connectWallet = (providerName: string) => {
     try {
-      // Μετατροπή του string σε WalletName τύπο
-      select(provider as WalletName);
+      // Instead of casting, we use the WalletName for typesafety
+      // This assumes providerName is one of the valid wallet names
+      select(providerName as unknown as WalletName);
     } catch (error) {
       console.error('Error connecting wallet:', error);
       reportError(error as Error, {
         component: 'SolanaWallet',
-        details: { action: 'connectWallet', provider },
+        details: { action: 'connectWallet', provider: providerName },
         source: 'client'
       });
       toast.error('Failed to connect wallet');

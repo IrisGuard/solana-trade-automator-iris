@@ -1,7 +1,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
-import { fetchSOLBalance } from '@/services/solana/wallet';
+import { getSolBalance } from '@/services/solana/wallet';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 
 /**
@@ -41,7 +41,7 @@ export function useWalletBalance() {
     setIsLoading(true);
     
     try {
-      const balance = await fetchSOLBalance(address);
+      const balance = await getSolBalance(address);
       setSolBalance(balance);
       console.log("SOL balance loaded:", balance);
       return balance;
@@ -69,4 +69,3 @@ export function useWalletBalance() {
     loadSolBalance
   };
 }
-

@@ -17,7 +17,7 @@ export default function Home() {
     solBalance, 
     tokens, 
     isConnecting, 
-    tokenPrices, 
+    tokenPrices: fullTokenPrices, 
     isLoadingTokens, 
     error: connectionError,
     isPhantomInstalled,
@@ -25,6 +25,18 @@ export default function Home() {
   } = useWalletConnection();
   
   const { t } = useLanguage();
+  
+  // Convert complex token prices to simple format for compatibility
+  const tokenPrices = React.useMemo(() => {
+    if (!fullTokenPrices) return {};
+    
+    const simplePrices: Record<string, number> = {};
+    Object.entries(fullTokenPrices).forEach(([address, data]) => {
+      simplePrices[address] = data.price;
+    });
+    
+    return simplePrices;
+  }, [fullTokenPrices]);
   
   console.log("WalletConnection hook loaded, connection status:", isConnected);
   

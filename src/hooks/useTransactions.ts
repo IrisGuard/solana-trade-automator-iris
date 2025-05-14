@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { solanaService } from '@/services/solanaService';
+import { solanaService } from '@/services/solana';
 import { Transaction } from '@/types/transaction'; // Χρησιμοποιούμε τον ενιαίο τύπο
 import { useErrorReporting } from './useErrorReporting';
 

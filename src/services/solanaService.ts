@@ -1,7 +1,7 @@
 
-import { fetchSOLBalance } from './solana/walletService';
+import { fetchSOLBalance } from './solana/wallet/balance';
 import { fetchAllTokenBalances } from './solana/token';
-import { tokenServiceObj as tokenService } from './solana/token/index';
+import { tokenService } from './solana/token';
 import { errorCollector } from '@/utils/error-handling/collector';
 
 // Εκτέλεση πολλαπλών λειτουργιών σχετικών με το wallet
