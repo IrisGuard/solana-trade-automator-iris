@@ -1,4 +1,8 @@
 
+import { Token } from '@/types/wallet';
+
+export type BotStatus = 'idle' | 'running' | 'paused';
+
 export interface TradingBotConfig {
   selectedToken: string | null;
   buyThreshold: number;
@@ -6,33 +10,22 @@ export interface TradingBotConfig {
   stopLoss: number;
   takeProfit: number;
   maxBudget: number;
-  tradeAmount: number;
-  strategy?: 'simple' | 'advanced' | 'custom';
   enabledStrategies: {
     dca: boolean;
     grid: boolean;
     momentum: boolean;
   };
-  trailingStop?: boolean;
-  autoRebalance?: boolean;
-}
-
-export interface ActiveOrder {
-  id: string;
-  type: 'buy' | 'sell' | 'stop-loss' | 'take-profit' | 'limit-buy' | 'limit-sell';
-  token: string;
-  price: number;
-  amount: number;
-  status: 'pending' | 'executed' | 'canceled';
-  createdAt: string | Date;
-  timestamp?: string | Date; // For backward compatibility
 }
 
 export interface TradingOrder {
   id: string;
-  type: string;
+  type: 'buy' | 'sell' | 'stop-loss' | 'take-profit' | 'limit-buy' | 'limit-sell';
   price: number;
   amount: number;
+  tokenAddress: string;
+  status: 'pending' | 'executed' | 'cancelled';
+  createdAt: Date;
+  executedAt?: Date;
 }
 
 export interface TradingBotHook {
@@ -41,31 +34,10 @@ export interface TradingBotHook {
   selectToken: (token: string | null) => Promise<void>;
   startBot: () => void;
   stopBot: () => void;
-  botStatus: 'idle' | 'running' | 'paused';
   isLoading: boolean;
-  tokens: any[];
-  selectedTokenPrice: any;
-  selectedTokenDetails?: any;
-  activeOrders: ActiveOrder[];
+  botStatus: BotStatus;
+  activeOrders: TradingOrder[];
+  selectedTokenPrice: { price: number; priceChange24h: number } | null;
+  selectedTokenDetails: Token | undefined;
+  tokens: Token[];
 }
-
-// Utils 
-export type ErrorOptions = {
-  showToast?: boolean;
-  logToConsole?: boolean;
-  useCollector?: boolean;
-  title?: string;
-  component?: string;
-  details?: any;
-  source?: string;
-  sendToChat?: boolean;
-};
-
-export type TestErrorOptions = {
-  component?: string;
-  message?: string;
-  useToast?: boolean;
-  isAsync?: boolean;
-  severity?: 'error' | 'warning' | 'info';
-  code?: string;
-};

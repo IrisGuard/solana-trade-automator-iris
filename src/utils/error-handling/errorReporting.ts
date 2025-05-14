@@ -1,62 +1,23 @@
 
-import { errorCollector } from './collector';
-import { toast } from 'sonner';
-import { ErrorOptions } from './types';
+/**
+ * Utility for error reporting and monitoring
+ */
 
 /**
- * Capture an exception for monitoring
+ * Captures an exception and sends it to an error monitoring service
+ * @param error The error to capture
  */
-export function captureException(error: Error, options: ErrorOptions = {}): void {
-  const { component = 'unknown', details = {}, source = 'client', showToast = false } = options;
-  
-  // Log to console
-  console.error(`[${component}] Error:`, error, details);
-  
-  // Add to error collector
-  errorCollector.captureError(error, { component, details, source });
-  
-  // Show toast if requested
-  if (showToast) {
-    toast.error(error.message, {
-      description: component !== 'unknown' ? `Error in ${component}` : undefined
-    });
-  }
+export function captureException(error: Error): void {
+  // In production, this would send the error to a service like Sentry
+  console.error('Captured exception:', error);
 }
 
 /**
- * Capture a message for monitoring
+ * Captures a message and sends it to an error monitoring service
+ * @param message The message to capture
+ * @param level The level of the message (error, warning, info)
  */
-export function captureMessage(message: string, level: 'error' | 'warning' | 'info' = 'info', options: ErrorOptions = {}): void {
-  const { component = 'unknown', details = {}, showToast = false } = options;
-  
-  // Create error object for consistent handling
-  const error = new Error(message);
-  
-  // Log to console
-  console[level](`[${component}] ${level.charAt(0).toUpperCase() + level.slice(1)}:`, message, details);
-  
-  // Add to error collector
-  errorCollector.captureError(error, { 
-    component, 
-    details: { ...details, level },
-    source: 'message'
-  });
-  
-  // Show toast if requested
-  if (showToast) {
-    if (level === 'error') {
-      toast.error(message);
-    } else if (level === 'warning') {
-      toast.warning(message);
-    } else {
-      toast.info(message);
-    }
-  }
-}
-
-/**
- * Clear all errors from the collector
- */
-export function clearAllErrors(): void {
-  errorCollector.clearAll();
+export function captureMessage(message: string, level: 'error' | 'warning' | 'info' = 'info'): void {
+  // In production, this would send the message to a service like Sentry
+  console.log(`Captured ${level} message:`, message);
 }

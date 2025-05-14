@@ -1,49 +1,30 @@
 
+// Εξάγουμε όλη τη λειτουργικότητα διαχείρισης σφαλμάτων από το εξειδικευμένο module
+import { displayError, sendErrorToChat, reportErrorToSupabase } from './error-handling/displayError';
 import { errorCollector } from './error-handling/collector';
-import { toast } from 'sonner';
-import { ErrorOptions } from './error-handling/types';
+import type { ErrorDisplayOptions } from './error-handling/types';
 
 /**
- * Display an error with consistent formatting
+ * Legacy function to maintain compatibility with existing code
+ * This is a wrapper around displayError for services that expect logError
  */
-export function displayError(error: Error | string, options: ErrorOptions = {}) {
-  const {
-    showToast = true,
-    logToConsole = true,
-    useCollector = true,
-    title = 'Error',
-    component = 'unknown',
-    details = {},
-    source = 'client'
-  } = options;
-
-  // Convert string to Error if needed
-  const errorObj = error instanceof Error ? error : new Error(error);
-
-  // Log to console if requested
-  if (logToConsole) {
-    console.error(`[${component}] ${errorObj.message}`, details);
-  }
-
-  // Show toast if requested
-  if (showToast) {
-    toast.error(title, {
-      description: errorObj.message,
-      duration: 5000
-    });
-  }
-
-  // Add to error collector if requested
-  if (useCollector) {
-    errorCollector.captureError(errorObj, {
-      component,
-      details,
-      source
-    });
-  }
-
-  return errorObj;
+export function logError(error: Error | string, component?: string, details?: any) {
+  const options = {
+    component,
+    details,
+    logToConsole: true,
+    showToast: true,
+    source: 'service'
+  };
+  
+  return displayError(error, options);
 }
 
-// For backward compatibility
-export { displayError as logError };
+// Re-export all the functions and types
+export {
+  displayError,
+  sendErrorToChat,
+  reportErrorToSupabase,
+  errorCollector,
+  type ErrorDisplayOptions
+};

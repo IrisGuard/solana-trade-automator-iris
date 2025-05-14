@@ -1,73 +1,81 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { useErrorReporting } from '../useErrorReporting';
+import { useState, useCallback, useEffect } from 'react';
+import { Token } from '@/types/wallet';
 import { TokenPriceInfo } from './types';
 
-export function usePriceSubscription(tokenAddress: string | null) {
-  const [priceData, setPriceData] = useState<TokenPriceInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const { reportError } = useErrorReporting();
-  
-  // Fetch initial price data
-  const fetchPriceData = useCallback(async () => {
-    if (!tokenAddress) {
-      setPriceData(null);
-      return;
-    }
-    
+/**
+ * Hook για να διαχειριστεί τις συνδρομές τιμών για tokens
+ */
+export function usePriceSubscription() {
+  const [price, setPrice] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [selectedTokenPrice, setSelectedTokenPrice] = useState<TokenPriceInfo | null>(null);
+  const [selectedTokenDetails, setSelectedTokenDetails] = useState<Token | undefined>(undefined);
+  const [subscriptionActive, setSubscriptionActive] = useState<boolean>(false);
+
+  // Function to setup price subscription for a token
+  const setupPriceSubscription = useCallback(async (tokenAddress: string) => {
     try {
       setIsLoading(true);
-      setError(null);
+      console.log(`Setting up price subscription for token: ${tokenAddress}`);
       
-      // Simulate API call with random data for demo purposes
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      const mockPriceData: TokenPriceInfo = {
-        price: Math.random() * 100,
-        priceChange24h: (Math.random() * 20) - 10,
+      // Create mock price data for the token
+      const mockPrice = Math.random() * 1000;
+      setPrice(mockPrice);
+      
+      // Set the selected token price info
+      setSelectedTokenPrice({
+        currentPrice: mockPrice,
+        priceChange24h: (Math.random() * 10) - 5, // -5% to +5%
+        highPrice24h: mockPrice * (1 + Math.random() * 0.1),
+        lowPrice24h: mockPrice * (1 - Math.random() * 0.1),
         volume24h: Math.random() * 1000000,
+        marketCap: Math.random() * 10000000000,
         lastUpdated: new Date()
-      };
-      
-      setPriceData(mockPriceData);
-    } catch (error) {
-      setError(error as Error);
-      reportError(error as Error, {
-        component: 'PriceSubscription',
-        source: 'api',
-        details: { tokenAddress }
       });
+      
+      setSubscriptionActive(true);
+      
+      // Setup interval to update price periodically
+      const interval = setInterval(() => {
+        const newPrice = price * (1 + (Math.random() * 0.02) - 0.01); // -1% to +1%
+        setPrice(newPrice);
+        setSelectedTokenPrice(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            currentPrice: newPrice,
+            lastUpdated: new Date()
+          };
+        });
+      }, 5000);
+      
+      // Cleanup interval on component unmount
+      return () => clearInterval(interval);
+    } catch (error) {
+      console.error("Error setting up price subscription:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [tokenAddress, reportError]);
-  
-  // Set up price subscription
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout | null = null;
-    
-    if (tokenAddress) {
-      // Initial fetch
-      fetchPriceData();
-      
-      // Set up polling interval (in a real app, this would be a websocket)
-      intervalId = setInterval(fetchPriceData, 60000); // Update every minute
-    } else {
-      setPriceData(null);
-    }
-    
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [tokenAddress, fetchPriceData]);
-  
+  }, [price]);
+
+  // Cleanup subscription when component unmounts
+  const cleanupSubscription = useCallback(() => {
+    console.log("Cleaning up price subscription");
+    setSubscriptionActive(false);
+    setSelectedTokenPrice(null);
+  }, []);
+
+  // Return values and functions
   return {
-    priceData,
+    price,
     isLoading,
-    error,
-    refreshPrice: fetchPriceData
+    selectedTokenPrice,
+    selectedTokenDetails,
+    setupPriceSubscription,
+    cleanupSubscription
   };
 }
