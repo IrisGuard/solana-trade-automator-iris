@@ -1,157 +1,80 @@
+// Simple utility functions for testing error handling system
 
-import { errorCollector, type ErrorData } from '@/utils/error-handling/collector';
+import { errorCollector, type ErrorData } from "@/utils/error-handling/collector";
 
-// Test errors with different levels of severity
-export const TEST_ERRORS = {
-  SIMPLE: 'This is a simple test error',
-  DETAILED: 'This is a detailed test error with stack trace',
-  COMPLEX: 'This is a complex error with component and method information',
-  NETWORK: 'Network request failed',
-  DATABASE: 'Database operation failed',
-  VALIDATION: 'Validation error: Invalid input'
-};
-
-// Generate a basic stack trace for test purposes
-export function generateTestStack(depth: number = 5): string {
-  let stack = 'Error: Test Error\n';
-  
-  for (let i = 0; i < depth; i++) {
-    stack += `    at TestFunction${i} (TestFile${i}.js:${i * 10 + 1}:${i * 5 + 2})\n`;
-  }
-  
-  return stack;
-}
-
-// Generate test error data
-export function generateTestErrorData(
-  message: string, 
-  includeStack: boolean = true,
-  includeComponent: boolean = false,
-  includeMethod: boolean = false
-): ErrorData {
-  const errorData: ErrorData = {
-    message,
-    timestamp: Date.now(),
-    source: 'test'
-  };
-  
-  if (includeStack) {
-    errorData.stack = generateTestStack();
-  }
-  
-  if (includeComponent) {
-    errorData.component = 'TestComponent';
-  }
-  
-  if (includeMethod) {
-    errorData.method = 'testMethod';
-  }
-  
-  return errorData;
-}
-
-// Generate test error with specified options
-export function generateTestError(message: string, options = {
-  showToast: true,
-  logToConsole: true,
-  useCollector: true,
-  sendToChat: false
-}): void {
+/**
+ * Generates a test error with specified details
+ */
+export function generateTestError(message: string = "This is a test error", options?: {
+  component?: string;
+  details?: any;
+  source?: string;
+}) {
   const error = new Error(message);
-  
-  // Add to collector if needed
-  if (options.useCollector) {
-    errorCollector.captureError(error, {
-      source: 'test',
-      component: 'TestComponent',
-      details: { testType: 'basic' }
-    });
-  }
-  
-  // Log to console if needed
-  if (options.logToConsole) {
-    console.error('Test error generated:', message, error.stack);
-  }
-  
-  // Toast is handled in the component
-}
-
-// Generate various types of errors for testing
-export function generateVariousErrors(): void {
-  // Generate a few different types of errors
-  errorCollector.captureError(new Error('API Rate Limit Exceeded'), {
-    source: 'api',
-    component: 'FetchClient',
-    details: { endpoint: '/users', status: 429 }
-  });
-  
-  errorCollector.captureError(new Error('Database connection failed'), {
-    source: 'database',
-    component: 'QueryExecutor',
-    details: { query: 'SELECT * FROM users' }
-  });
-  
-  errorCollector.captureError(new Error('User validation failed'), {
-    source: 'validation',
-    component: 'UserForm',
-    details: { fields: ['email', 'password'] }
-  });
-  
-  console.log('Generated various test errors in collector');
-}
-
-// Simulate different types of errors
-export function simulateError(errorType: keyof typeof TEST_ERRORS): void {
-  const errorMessage = TEST_ERRORS[errorType];
-  const testIndex = Object.keys(TEST_ERRORS).indexOf(errorType);
-  
-  // Add the error to the collector
-  errorCollector.captureError(new Error(errorMessage), {
-    source: 'test',
-    component: `TestComponent${testIndex}`,
-    method: `testMethod${testIndex}`,
-    details: { testIndex }
-  });
-  
-  console.error(`Simulated error (${errorType}):`, errorMessage);
-}
-
-// Clear all test errors
-export function clearTestErrors(): void {
-  errorCollector.clearErrors();
-  console.log('All test errors cleared');
-}
-
-// General function to clear all errors - used by multiple components
-export function clearAllErrors(): void {
-  errorCollector.clearErrors();
-  console.log('All errors cleared');
-}
-
-// Throw error for testing error boundaries
-export function throwTestError(errorType: keyof typeof TEST_ERRORS): never {
-  const error = new Error(TEST_ERRORS[errorType]);
-  
-  // Add to collector before throwing
   errorCollector.captureError(error, {
-    source: 'test',
-    details: { test: true }
+    component: options?.component || "TestComponent",
+    details: options?.details || { testMode: true },
+    source: options?.source || "client",
   });
-  
-  throw error;
+  return error;
 }
 
-// Throw async error for testing async error handling
-export async function throwAsyncTestError(errorType: keyof typeof TEST_ERRORS): Promise<never> {
-  return new Promise((_, reject) => {
-    const error = new Error(TEST_ERRORS[errorType]);
-    
-    // Add to collector before throwing
-    errorCollector.captureError(error, {
-      source: 'test',
-      details: { location: 'async' }
-    });
-    
-    reject(error);
+/**
+ * Generates test error data for display without throwing an error
+ */
+export function generateTestErrorData(message: string = "This is a test error"): ErrorData {
+  return {
+    id: `test-${Date.now()}`,
+    timestamp: new Date().toISOString(),
+    message: message,
+    stack: "Test stack trace\n  at TestFunction (test.js:1:1)\n  at AnotherFunction (test.js:2:1)",
+    component: "TestComponent",
+    details: { testMode: true },
+    source: "client",
+    resolved: false
+  };
+}
+
+/**
+ * Generates various errors for testing the error handling system
+ */
+export function generateVariousErrors() {
+  // Simple error
+  generateTestError("Simple test error");
+  
+  // Error with component
+  generateTestError("Component error", { component: "ButtonComponent" });
+  
+  // Error with details
+  generateTestError("Error with details", { 
+    details: { 
+      userId: "123", 
+      action: "checkout",
+      code: "PAYMENT_FAILED"
+    }
   });
+  
+  // Server error
+  generateTestError("Server error", { source: "server" });
+  
+  // API error
+  generateTestError("API error", { 
+    component: "ApiClient", 
+    details: { 
+      endpoint: "/api/users", 
+      statusCode: 404,
+      response: { error: "Not found" }
+    },
+    source: "client"
+  });
+}
+
+/**
+ * Clears all errors in the collector
+ */
+export function clearAllErrors() {
+  // This is a placeholder - actual implementation will depend on the error collector's API
+  console.log("Clearing all errors");
+  // In a real implementation, you would call something like:
+  // errorCollector.clearErrors();
 }

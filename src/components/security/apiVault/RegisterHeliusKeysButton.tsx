@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Loader2, Database, Check } from "lucide-react";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { toast } from "sonner";
 import { registerHeliusApiKeys, registerHeliusEndpoints } from "@/utils/addHeliusApiKeys";
 import { heliusKeyManager } from "@/services/solana/HeliusKeyManager";
+import { importHeliusKeysFromSqlSchema } from "@/utils/importHeliusKeys";
 
 export function RegisterHeliusKeysButton() {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -32,10 +33,13 @@ export function RegisterHeliusKeysButton() {
 
     setIsRegistering(true);
     try {
-      // Register the endpoints first
+      // First try to import keys using the SQL schema format
+      await importHeliusKeysFromSqlSchema(user.id);
+      
+      // Register the endpoints
       await registerHeliusEndpoints();
       
-      // Register the API keys
+      // Register the API keys (this is a backup method)
       await registerHeliusApiKeys(user.id);
       
       // Refresh the key manager and update count
