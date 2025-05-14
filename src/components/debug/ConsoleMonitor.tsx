@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import { useErrorReporting } from "@/hooks/useErrorReporting";
-import { displayError } from "@/utils/errorUtils";
+import { displayError } from "@/utils/error-handling/displayError";
 
 interface LogRecord {
   type: 'error' | 'warn' | 'info';

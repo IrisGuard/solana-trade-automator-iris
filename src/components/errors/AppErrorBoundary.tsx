@@ -2,7 +2,7 @@
 import React from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { toast } from "sonner";
-import { displayError } from "@/utils/errorUtils";
+import { displayError } from "@/utils/error-handling/displayError";
 
 interface AppErrorBoundaryProps {
   children: React.ReactNode;

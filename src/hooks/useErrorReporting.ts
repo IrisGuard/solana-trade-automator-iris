@@ -1,7 +1,8 @@
 
 import { useCallback } from "react";
-import { displayError, type ErrorDisplayOptions } from "@/utils/errorUtils";
+import { displayError } from "@/utils/error-handling/displayError";
 import { errorCollector } from "@/utils/error-handling/collector";
+import { ErrorDisplayOptions } from "@/utils/error-handling/types";
 
 export function useErrorReporting() {
   // Συνάρτηση για αναφορά σφάλματος

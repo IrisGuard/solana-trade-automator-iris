@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { useErrorOptions } from './ErrorOptionsContext';
 import { ErrorOptions } from './ErrorOptions';
-import { displayError } from '@/utils/errorUtils';
+import { displayError } from '@/utils/error-handling/displayError';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 
 export function BasicTestTab() {

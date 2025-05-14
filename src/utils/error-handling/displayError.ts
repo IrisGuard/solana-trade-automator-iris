@@ -1,17 +1,7 @@
 
 import { toast } from "sonner";
-import { errorCollector, type ErrorData } from './collector';
-
-export type ErrorDisplayOptions = {
-  component?: string;
-  showToast?: boolean;
-  details?: any;
-  title?: string;
-  logToConsole?: boolean;
-  sendToChat?: boolean;
-  useCollector?: boolean;
-  toastDuration?: number;
-};
+import { errorCollector } from './collector';
+import { ErrorDisplayOptions } from "./types";
 
 /**
  * Εμφανίζει ένα σφάλμα στη διασύνδεση χρήστη και το καταγράφει
@@ -41,7 +31,7 @@ export function displayError(error: Error | string, options: ErrorDisplayOptions
     errorCollector.captureError(error instanceof Error ? error : new Error(message), {
       component,
       details: JSON.stringify(details),
-      source: 'client'
+      source: options.source || 'client'
     });
   }
   
@@ -78,7 +68,7 @@ export function sendErrorToChat(message: string, component?: string, details?: a
  * Αναφέρει ένα σφάλμα στο Supabase για καταγραφή
  */
 export async function reportErrorToSupabase(error: Error | string, options: ErrorDisplayOptions = {}): Promise<void> {
-  const { component, details } = options;
+  const { component, details, source } = options;
   const message = error instanceof Error ? error.message : error;
   const stack = error instanceof Error ? error.stack : undefined;
   
@@ -87,7 +77,7 @@ export async function reportErrorToSupabase(error: Error | string, options: Erro
     errorCollector.captureError(error instanceof Error ? error : new Error(message), {
       component,
       details: JSON.stringify(details),
-      source: 'client'
+      source: source || 'client'
     });
     
     // Εδώ θα μπορούσαμε να καλέσουμε μια λειτουργία του Supabase για καταγραφή σφαλμάτων
