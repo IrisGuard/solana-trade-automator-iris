@@ -1,14 +1,22 @@
 
-import { API_ENDPOINTS, API_KEYS } from './config';
+import { API_ENDPOINTS } from './config';
 import { API_HEADERS, API_TIMEOUT } from './apiConfig';
+import { heliusKeyManager } from './HeliusKeyManager';
+import { withRateLimitRetry, isRateLimitError } from '@/utils/error-handling/rateLimitHandler';
+import { toast } from 'sonner';
 
 export class HeliusService {
+  // Initialize the key manager when the service is first used
+  static async initialize(): Promise<void> {
+    await heliusKeyManager.initialize();
+  }
+
   static getBaseUrl(): string {
     return API_ENDPOINTS.HELIUS_API;
   }
 
   static getApiKey(): string {
-    return API_KEYS.HELIUS;
+    return heliusKeyManager.getCurrentKey();
   }
 
   static getEndpoint(path: string): string {
@@ -37,21 +45,52 @@ export class HeliusService {
     getTransactionsBySignatures: () => this.getEndpoint('/transactions/')
   };
 
-  // Βοηθητική μέθοδος για κλήσεις Fetch
+  // Βοηθητική μέθοδος για κλήσεις Fetch με αυτόματη εναλλαγή κλειδιών σε περίπτωση rate limit
   static async fetchFromHelius(endpoint: string, options = {}): Promise<any> {
     try {
-      const response = await fetch(endpoint, {
-        headers: API_HEADERS,
-        ...options,
-        signal: AbortSignal.timeout(API_TIMEOUT)
-      });
+      // Try with current key using rate limit retry mechanism
+      return await withRateLimitRetry(async () => {
+        const response = await fetch(endpoint, {
+          headers: API_HEADERS,
+          ...options,
+          signal: AbortSignal.timeout(API_TIMEOUT)
+        });
 
-      if (!response.ok) {
-        throw new Error(`Helius API error: ${response.status} ${response.statusText}`);
-      }
+        if (!response.ok) {
+          throw new Error(`Helius API error: ${response.status} ${response.statusText}`);
+        }
 
-      return await response.json();
+        return await response.json();
+      }, { endpoint: `helius-${endpoint.substring(0, 30)}` });
     } catch (error) {
+      // If rate limit error, try rotating the key and try again
+      if (isRateLimitError(error)) {
+        // Rotate to next key
+        const newKey = heliusKeyManager.rotateKey();
+        
+        // Replace the API key in the endpoint
+        const updatedEndpoint = endpoint.replace(/api-key=[^&]+/, `api-key=${newKey}`);
+        
+        try {
+          // Retry with new key
+          console.log("Retrying with different Helius API key");
+          return await fetch(updatedEndpoint, {
+            headers: API_HEADERS,
+            ...options,
+            signal: AbortSignal.timeout(API_TIMEOUT)
+          }).then(res => {
+            if (!res.ok) {
+              throw new Error(`Helius API error after key rotation: ${res.status} ${res.statusText}`);
+            }
+            return res.json();
+          });
+        } catch (retryError) {
+          console.error('Error after key rotation:', retryError);
+          throw retryError;
+        }
+      }
+      
+      // For non-rate limit errors, just throw the error
       console.error('Error fetching from Helius:', error);
       throw error;
     }
@@ -69,3 +108,8 @@ export class HeliusService {
     return this.fetchFromHelius(endpoint);
   }
 }
+
+// Initialize the key manager when the service is imported
+HeliusService.initialize().catch(err => {
+  console.error("Failed to initialize HeliusService:", err);
+});

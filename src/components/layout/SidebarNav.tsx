@@ -10,6 +10,7 @@ import {
   Wallet,
   Shield,
   HelpCircle,
+  Key
 } from "lucide-react";
 
 interface NavItemProps {
@@ -26,6 +27,7 @@ const navItems = [
   { to: "/wallet", icon: Wallet, label: "Πορτοφόλι" },
   { to: "/transactions", icon: FileText, label: "Συναλλαγές" },
   { to: "/security", icon: Shield, label: "Ασφάλεια" },
+  { to: "/api-vault", icon: Key, label: "API Κλειδιά" },
   { to: "/settings", icon: Settings, label: "Ρυθμίσεις" },
   { to: "/help", icon: HelpCircle, label: "Βοήθεια" }
 ];

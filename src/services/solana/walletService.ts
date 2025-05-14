@@ -5,48 +5,91 @@ import { connection } from './config';
 import { errorCollector } from '@/utils/error-handling/collector';
 import { withRateLimitRetry, isRateLimitError } from '@/utils/error-handling/rateLimitHandler';
 
-// Cache for SOL balances to use as fallback when API is rate limited
-const solBalanceCache: Record<string, number> = {};
+// Enhanced cache for SOL balances with longer validity period
+const solBalanceCache = new Map<string, {
+  balance: number;
+  timestamp: number;
+}>();
 
-// Export named function for individual import
+// 5-minute cache validity period (increased from previous implementation)
+const CACHE_VALIDITY_PERIOD = 5 * 60 * 1000;
+
+// Fallback mock data in case of persistent rate limits
+const mockBalances: Record<string, number> = {};
+
+// Check if cache is still valid
+const isCacheValid = (address: string): boolean => {
+  const cache = solBalanceCache.get(address);
+  if (!cache) return false;
+  
+  return (Date.now() - cache.timestamp) < CACHE_VALIDITY_PERIOD;
+};
+
+// Updated balance fetching with improved caching and fallbacks
 export const fetchSOLBalance = async (address: string): Promise<number> => {
+  // Return from cache if valid (quick response path)
+  if (isCacheValid(address)) {
+    console.log('Using cached SOL balance for', address);
+    return solBalanceCache.get(address)!.balance;
+  }
+  
   try {
+    // Try to get fresh balance with retry logic
     return await withRateLimitRetry(async () => {
       const publicKey = new PublicKey(address);
       const balance = await connection.getBalance(publicKey);
       const solBalance = balance / LAMPORTS_PER_SOL;
       
-      // Cache the result
-      solBalanceCache[address] = solBalance;
+      // Update cache with fresh data and timestamp
+      solBalanceCache.set(address, {
+        balance: solBalance,
+        timestamp: Date.now()
+      });
+      
+      // Also update mock fallback data
+      mockBalances[address] = solBalance;
       
       return solBalance;
+    }, { 
+      endpoint: `sol-balance-${address.substring(0, 8)}`,
+      maxRetries: 2 // Reduced retries to fail faster in case of rate limits
     });
   } catch (error) {
-    // Check for rate limit errors
-    if (isRateLimitError(error)) {
-      console.warn('Rate limit encountered when fetching SOL balance, using cached data if available');
-      
-      // Use cached balance if available
-      if (address in solBalanceCache) {
-        toast.info('Using cached SOL balance due to API rate limits');
-        return solBalanceCache[address];
-      }
-      
-      toast.error('Solana API rate limit exceeded. Please try again in a moment.');
-    } else {
-      // General error for other cases
-      console.error('Error getting SOL balance:', error);
-      toast.error('Failed to get SOL balance');
+    console.warn('Error getting SOL balance:', error);
+    
+    // First fallback: use cached data even if expired
+    const cachedData = solBalanceCache.get(address);
+    if (cachedData) {
+      console.log('Using expired cached SOL balance due to error');
+      return cachedData.balance;
     }
     
-    // Add to error collector for further analysis
-    errorCollector.addError({
-      message: 'Failed to get SOL balance',
-      source: 'client',
-      stack: String(error),
-      details: { address }
-    });
+    // Second fallback: use mock data if we have it
+    if (address in mockBalances) {
+      console.log('Using mock SOL balance data');
+      return mockBalances[address];
+    }
     
+    // Last fallback: return default value and collect error
+    if (isRateLimitError(error)) {
+      // Don't show toast for rate limits, they're handled elsewhere
+      console.log('Rate limit hit for SOL balance, using default value');
+    } else {
+      // Only show error toast for non-rate-limit errors
+      toast.error('Failed to get SOL balance', {
+        id: 'sol-balance-error'
+      });
+      
+      // Add to error collector
+      errorCollector.addError({
+        message: 'Failed to get SOL balance',
+        source: 'client',
+        stack: String(error),
+        details: { address }
+      });
+    }
+    
+    // Return default if all fallbacks fail
     return 0;
   }
 };
@@ -59,7 +102,7 @@ export const walletService = {
   // Get SOL balance for a given address
   getSolBalance: fetchSOLBalance,
   
-  // Send token functionality (to be implemented)
+  // Send token functionality (placeholder)
   sendToken: async () => {
     // To be implemented in the future
     toast.error('Token sending functionality has not been implemented yet');
