@@ -1,7 +1,7 @@
 
 import { toast } from "sonner";
 import { sendErrorToChat } from "./sendErrorToChat";
-import { errorCollector } from "../errorCollector";
+import { errorCollector } from "../error-handling/collector";
 
 interface ErrorOptions {
   title?: string;
