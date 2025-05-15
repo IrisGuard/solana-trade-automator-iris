@@ -2,13 +2,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { User, Session } from '@supabase/supabase-js';
-import type { Tables } from '@/lib/supabase';
+import type { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 
 interface AuthState {
   user: User | null;
   session: Session | null;
-  profile: Tables['profiles'] | null;
+  profile: Tables['profiles']['Row'] | null;
   isLoading: boolean;
   error: Error | null;
 }
