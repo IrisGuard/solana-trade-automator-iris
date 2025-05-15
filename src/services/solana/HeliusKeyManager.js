@@ -1,37 +1,19 @@
-
-import { errorCollector } from '@/utils/error-handling/collector';
-import { supabase } from '@/integrations/supabase/client';
-
-// API key categories matching your recommendation
-type KeyEnvironment = 'production' | 'development' | 'backup';
-type KeyScope = 'general' | 'transactions' | 'nft' | 'assets' | 'websocket';
-
-interface HeliusApiKey {
-  id: string;
-  value: string;
-  environment: KeyEnvironment;
-  scope: KeyScope;
-  isActive: boolean;
-  usageCount: number;
-  lastUsed?: Date;
-}
+// Basic implementation without TypeScript for backwards compatibility
+const { errorCollector } = require('../../utils/error-handling/collector');
+const { supabase } = require('../../integrations/supabase/client');
 
 class HeliusKeyManager {
-  private keys: Map<string, HeliusApiKey> = new Map();
-  private initialized: boolean = false;
+  constructor() {
+    this.keys = new Map();
+    this.initialized = false;
+    this.mainKeys = [];
+    this.devKeys = [];
+    this.backupKeys = [];
+    this.defaultKey = 'ddb32813-1f4b-459d-8964-310b1b73a053'; // Demo key
+  }
   
-  // Main key groups as recommended
-  private mainKeys: HeliusApiKey[] = [];
-  private devKeys: HeliusApiKey[] = [];
-  private backupKeys: HeliusApiKey[] = [];
-  
-  // Default key for fallback
-  private defaultKey: string = 'ddb32813-1f4b-459d-8964-310b1b73a053'; // Demo key
-  
-  /**
-   * Initialize the key manager by loading keys from Supabase
-   */
-  async initialize(): Promise<boolean> {
+  // Initialize method is the same as in the TypeScript version
+  async initialize() {
     try {
       // First try to load from Supabase
       const { data: apiKeys, error } = await supabase
@@ -54,12 +36,12 @@ class HeliusKeyManager {
       if (apiKeys && apiKeys.length > 0) {
         apiKeys.forEach(key => {
           // Extract environment from name or description
-          const env: KeyEnvironment = this.determineEnvironment(key.name, key.description);
+          const env = this.determineEnvironment(key.name, key.description);
           
           // Extract scope from name or description
-          const scope: KeyScope = this.determineScope(key.name, key.description);
+          const scope = this.determineScope(key.name, key.description);
           
-          const heliusKey: HeliusApiKey = {
+          const heliusKey = {
             id: key.id,
             value: key.key_value,
             environment: env,
@@ -100,17 +82,14 @@ class HeliusKeyManager {
     }
   }
   
-  /**
-   * Get a key for a specific purpose
-   */
-  getKey(options?: { scope?: KeyScope, environment?: KeyEnvironment }): string {
+  getKey(options = {}) {
     if (!this.initialized) {
       return this.defaultKey;
     }
     
     try {
-      const env = options?.environment || 'production';
-      const scope = options?.scope || 'general';
+      const env = options.environment || 'production';
+      const scope = options.scope || 'general';
       
       // Select key collection based on environment
       let keyCollection = this.mainKeys;
@@ -168,10 +147,7 @@ class HeliusKeyManager {
     }
   }
   
-  /**
-   * Determine the environment from key metadata
-   */
-  private determineEnvironment(name: string, description?: string | null): KeyEnvironment {
+  determineEnvironment(name, description) {
     const text = `${name} ${description || ''}`.toLowerCase();
     
     if (text.includes('backup') || text.includes('emergency')) {
@@ -183,10 +159,7 @@ class HeliusKeyManager {
     }
   }
   
-  /**
-   * Determine the scope from key metadata
-   */
-  private determineScope(name: string, description?: string | null): KeyScope {
+  determineScope(name, description) {
     const text = `${name} ${description || ''}`.toLowerCase();
     
     if (text.includes('transaction')) {
@@ -202,10 +175,7 @@ class HeliusKeyManager {
     }
   }
   
-  /**
-   * Get the least used key from a collection
-   */
-  private getLeastUsedKey(keys: HeliusApiKey[]): HeliusApiKey {
+  getLeastUsedKey(keys) {
     if (keys.length === 0) {
       throw new Error('No keys available');
     }
@@ -215,18 +185,12 @@ class HeliusKeyManager {
     );
   }
   
-  /**
-   * Track key usage
-   */
-  private trackKeyUsage(key: HeliusApiKey): void {
+  trackKeyUsage(key) {
     key.usageCount++;
     key.lastUsed = new Date();
   }
   
-  /**
-   * Mark a key as inactive (e.g., when it's rate limited)
-   */
-  markKeyAsInactive(keyValue: string): void {
+  markKeyAsInactive(keyValue) {
     for (const [id, key] of this.keys.entries()) {
       if (key.value === keyValue) {
         key.isActive = false;
@@ -250,10 +214,7 @@ class HeliusKeyManager {
     }
   }
   
-  /**
-   * Get number of active keys
-   */
-  get activeKeyCount(): number {
+  get activeKeyCount() {
     let count = 0;
     for (const key of this.keys.values()) {
       if (key.isActive) count++;
@@ -263,4 +224,5 @@ class HeliusKeyManager {
 }
 
 // Export a singleton instance
-export const heliusKeyManager = new HeliusKeyManager();
+const heliusKeyManager = new HeliusKeyManager();
+module.exports = { heliusKeyManager };

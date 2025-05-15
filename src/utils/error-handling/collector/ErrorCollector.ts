@@ -1,68 +1,48 @@
 
 import { ErrorData, ErrorOptions, ErrorCollector } from './types';
 
-// Implement the ErrorCollector interface
-export class ErrorCollectorImpl implements ErrorCollector {
-  private errors: ErrorData[] = [];
-  private errorCallback: ((error: ErrorData) => void) | null = null;
-  private readonly maxErrors: number = 100;
-
-  captureError(error: Error | string, options?: ErrorOptions): void {
+class ErrorCollectorImplementation implements ErrorCollector {
+  captureError(error: Error, options?: ErrorOptions): void {
+    // Extract error details
     const errorData: ErrorData = {
-      id: this.generateErrorId(),
-      timestamp: new Date(),
-      error: typeof error === 'string' ? new Error(error) : error,
-      message: typeof error === 'string' ? error : error.message,
-      stack: typeof error === 'string' ? new Error(error).stack : error.stack,
-      ...options
+      message: error.message,
+      stack: error.stack,
+      component: options?.component || 'unknown',
+      source: options?.source || 'client',
+      details: options?.details,
+      severity: options?.severity || 'medium'
     };
-
-    this.errors.push(errorData);
-    this.trimErrors();
     
-    if (this.errorCallback) {
-      this.errorCallback(errorData);
-    }
-  }
-
-  getErrors(type?: string): ErrorData[] {
-    if (type) {
-      return this.errors.filter(error => error.type === type);
-    }
-    return [...this.errors];
-  }
-
-  // Alias for getErrors to maintain compatibility
-  getAllErrors(type?: string): ErrorData[] {
-    return this.getErrors(type);
-  }
-
-  clearErrors(type?: string): void {
-    if (type) {
-      this.errors = this.errors.filter(error => error.type !== type);
-    } else {
-      this.errors = [];
-    }
-  }
-
-  // Alias for clearErrors to maintain compatibility
-  clearAllErrors(type?: string): void {
-    this.clearErrors(type);
-  }
-
-  setErrorCallback(callback: (error: ErrorData) => void): void {
-    this.errorCallback = callback;
-  }
-
-  private generateErrorId(): string {
-    return `error-${new Date().getTime()}-${Math.floor(Math.random() * 10000)}`;
-  }
-
-  private trimErrors(): void {
-    if (this.errors.length > this.maxErrors) {
-      this.errors = this.errors.slice(-this.maxErrors);
+    // Log to console for development
+    console.error('[ErrorCollector]', errorData);
+    
+    // In production, we would send this to a logging service
+    // or to a Supabase table via an API endpoint
+    try {
+      // Here we could send to Supabase or other error tracking service
+      // This is intentionally commented out as implementation depends on
+      // project setup - we don't want to cause more errors
+      /*
+      supabase.rpc('log_error', {
+        p_error_message: errorData.message,
+        p_error_stack: errorData.stack,
+        p_component: errorData.component,
+        p_source: errorData.source,
+        p_url: window.location.href,
+        p_browser_info: {
+          userAgent: navigator.userAgent,
+          language: navigator.language,
+          details: errorData.details
+        }
+      }).then(({ error }) => {
+        if (error) console.error('Failed to log error to Supabase:', error);
+      });
+      */
+    } catch (loggingError) {
+      console.error('Error while logging error:', loggingError);
     }
   }
 }
 
-export const errorCollector = new ErrorCollectorImpl();
+// Singleton instance
+export const errorCollector: ErrorCollector = new ErrorCollectorImplementation();

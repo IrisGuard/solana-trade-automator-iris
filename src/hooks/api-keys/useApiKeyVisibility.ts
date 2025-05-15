@@ -1,56 +1,38 @@
-
 import { useState, useCallback } from 'react';
-import { ApiKeyWithState } from '@/services/api-keys/types';
 
-export function useApiKeyVisibility(
-  initialKeys: ApiKeyWithState[] = [], 
-  onKeysChange?: (keys: ApiKeyWithState[]) => void
-) {
+export function useApiKeyVisibility() {
+  // Keep track of which key IDs should be visible
   const [visibleKeyIds, setVisibleKeyIds] = useState<Record<string, boolean>>({});
-
-  // Toggle visibility for a specific key
+  
+  // Toggle visibility for a key
   const toggleKeyVisibility = useCallback((keyId: string) => {
-    setVisibleKeyIds(prev => {
-      const updated = { ...prev, [keyId]: !prev[keyId] };
-      return updated;
-    });
-  }, []);
-
-  // Hide all keys
-  const hideAllKeys = useCallback(() => {
-    setVisibleKeyIds({});
-  }, []);
-
-  // Update the keys array with visibility information
-  const getKeysWithVisibility = useCallback((keys: ApiKeyWithState[]) => {
-    const updatedKeys = keys.map(key => ({
-      ...key,
-      isVisible: !!visibleKeyIds[key.id]
+    setVisibleKeyIds(prev => ({
+      ...prev,
+      [keyId]: !prev[keyId]
     }));
-    
-    if (onKeysChange) {
-      onKeysChange(updatedKeys);
-    }
-    
-    return updatedKeys;
-  }, [visibleKeyIds, onKeysChange]);
-
-  // Format key for display based on visibility
-  const formatKeyDisplay = useCallback((keyValue: string, isVisible: boolean) => {
-    if (!keyValue) return '';
-    if (isVisible) return keyValue;
-    
-    const start = keyValue.substring(0, 4);
-    const end = keyValue.substring(keyValue.length - 4);
-    return `${start}...${end}`;
   }, []);
-
+  
+  // Check if a key is currently visible
+  const isKeyVisible = useCallback((keyId: string) => {
+    return !!visibleKeyIds[keyId];
+  }, [visibleKeyIds]);
+  
+  // Format key display based on visibility
+  const formatKeyDisplay = useCallback((key: string, isVisible: boolean) => {
+    if (!key) return '';
+    
+    if (isVisible) {
+      return key;
+    } else {
+      // Show first 4 and last 4 characters, hide the rest
+      return `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
+    }
+  }, []);
+  
   return {
     visibleKeyIds,
     toggleKeyVisibility,
-    hideAllKeys,
-    getKeysWithVisibility,
     formatKeyDisplay,
-    isKeyVisible: (keyId: string) => !!visibleKeyIds[keyId]
+    isKeyVisible
   };
 }
