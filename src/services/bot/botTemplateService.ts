@@ -1,3 +1,4 @@
+
 import { supabase } from "@/lib/supabase";
 import { botCoreService } from './botCoreService';
 
@@ -71,7 +72,7 @@ export const botTemplateService = {
   },
 
   // Create a bot from a template
-  createBotFromTemplate: async (userId: string, templateId: string, customName?: string): Promise<any[]> => {
+  createBotFromTemplate: async (userId: string, templateId: string): Promise<any[]> => {
     try {
       // Get the template
       const template = await botTemplateService.getTemplateById(templateId);
@@ -81,11 +82,12 @@ export const botTemplateService = {
       }
       
       // Create the bot with template defaults
-      const botName = customName || `${template.name} Bot`;
+      const botName = `${template.name} Bot`;
       
-      const result = await botCoreService.createBot(userId, {
+      const result = await botCoreService.createBot({
         name: botName,
         strategy: template.strategy,
+        user_id: userId,
         active: false,
         config: template.default_config
       });

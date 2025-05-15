@@ -21,6 +21,7 @@ export class ErrorCollector {
     
     const errorData: ErrorData = {
       id: errorId,
+      error: typeof error === 'string' ? new Error(error) : error,
       message: errorMessage,
       stack: errorStack,
       timestamp: new Date().toISOString(),
@@ -36,6 +37,7 @@ export class ErrorCollector {
       errorType: options.errorType,
       details: options.details,
       severity: options.severity,
+      options: options
     };
 
     this.addError(errorData);

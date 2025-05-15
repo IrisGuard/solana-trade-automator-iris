@@ -41,10 +41,10 @@ export function GlobalErrorHandler() {
     try {
       const supportMessage = `
         Error Report:
-        - Message: ${error.message}
-        - Component: ${error.component}
-        - Source: ${error.source}
-        - Timestamp: ${new Date(error.timestamp).toISOString()}
+        - Message: ${error.message || 'No message provided'}
+        - Component: ${error.component || 'Unknown'}
+        - Source: ${error.source || 'Unknown'}
+        - Timestamp: ${error.timestamp}
       `;
       
       // Αποστολή του σφάλματος (για την προσομοίωση)
@@ -69,9 +69,9 @@ export function GlobalErrorHandler() {
         <AlertCircle className="h-5 w-5 mt-0.5" />
         <div className="flex-1">
           <div className="font-semibold">Σφάλμα Εφαρμογής</div>
-          <div className="text-sm opacity-90">{lastError.message}</div>
+          <div className="text-sm opacity-90">{lastError.message || 'Unknown error'}</div>
           <div className="text-xs opacity-75 mt-1">
-            Στο: {lastError.component} | {new Date(lastError.timestamp).toLocaleTimeString()}
+            Στο: {lastError.component || 'Unknown'} | {new Date(lastError.timestamp).toLocaleTimeString()}
           </div>
         </div>
       </div>

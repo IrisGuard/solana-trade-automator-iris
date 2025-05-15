@@ -99,9 +99,10 @@ export function CreateBotForm({ onCancel }: CreateBotFormProps) {
       };
 
       // Create bot in Supabase
-      await botsService.createBot(user.id, {
+      await botsService.createBot({
         name: botName,
         strategy,
+        user_id: user.id,
         active: false,
         config: botConfig
       });

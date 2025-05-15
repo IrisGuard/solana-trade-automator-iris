@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
-import type { AuthContextType } from '@/types/auth';
+import type { AuthContextType, Profile } from '@/types/auth';
 import { authService } from '@/services/authService';
 
 // Δημιουργούμε το context
@@ -20,6 +20,9 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     } : null,
     session: supabaseAuth.session,
     loading: supabaseAuth.loading,
+    error: supabaseAuth.error,
+    initialized: !supabaseAuth.loading,
+    
     signIn: async (email, password) => {
       try {
         const result = await authService.signInWithPassword(email, password);
@@ -28,19 +31,44 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         return { error: error as Error };
       }
     },
+    
     signUp: async (email, password) => {
       try {
         const result = await authService.signUp(email, password);
-        return { error: result.error || null, data: result.data };
+        return { error: result.error || null, data: result.user || null };
       } catch (error) {
         return { error: error as Error, data: null };
       }
     },
+    
     signOut: async () => {
       try {
         await supabaseAuth.signOut();
       } catch (error) {
         console.error('Error signing out:', error);
+      }
+    },
+    
+    resetPassword: async (email) => {
+      try {
+        // Implementation would depend on your authService
+        // This is a placeholder implementation
+        await authService.resetPassword(email);
+        return { error: null };
+      } catch (error) {
+        return { error: error as Error };
+      }
+    },
+    
+    updateProfile: async (profile: Partial<Profile>) => {
+      try {
+        // Implementation would depend on your authService
+        // This is a placeholder implementation
+        // await authService.updateProfile(profile);
+        console.log("Updating profile:", profile);
+        return { error: null };
+      } catch (error) {
+        return { error: error as Error };
       }
     }
   };

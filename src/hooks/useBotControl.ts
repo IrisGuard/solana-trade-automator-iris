@@ -1,256 +1,159 @@
 
-import { useState, useEffect, useCallback } from "react";
-import { toast } from "sonner";
-import { useAuth } from "@/providers/SupabaseAuthProvider";
-import { botsService } from "@/services/botsService";
-
-export interface Bot {
-  botName: string;
-  isActive: boolean;
-  tokens: string[];
-  profit: string;
-  timeRunning: string;
-  id?: string;
-}
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from './useAuth';
+import { BotRow } from '@/services/bot/types'; 
+import { errorCollector } from '@/utils/error-handling/collector';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export function useBotControl() {
   const { user } = useAuth();
-  const [bots, setBots] = useState<Bot[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("active");
-  const [botTemplates, setBotTemplates] = useState<any[]>([]);
+  const [bots, setBots] = useState<BotRow[]>([]);
+  const [selectedBot, setSelectedBot] = useState<BotRow | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const templates = [
-    {
-      title: "DCA Momentum Bot",
-      description: "Dollar-cost averaging with momentum indicators",
-      features: [
-        "Auto-adjusting position sizes",
-        "Momentum indicators",
-        "Dollar-cost averaging"
-      ]
-    },
-    {
-      title: "Arbitrage Bot",
-      description: "Profit from price differences across exchanges",
-      features: [
-        "Multi-exchange support",
-        "Real-time price comparison",
-        "Auto-execution"
-      ]
-    },
-    {
-      title: "Grid Trading Bot",
-      description: "Place buy/sell orders at regular price intervals",
-      features: [
-        "Customizable price grid",
-        "Profit from price volatility",
-        "Auto grid rebalancing"
-      ]
+  // Fetch all bots for the current user
+  const fetchBots = useCallback(async () => {
+    if (!user) {
+      setBots([]);
+      setLoading(false);
+      return;
     }
-  ];
 
-  // Load bots and templates from Supabase
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { data, error } = await supabase
+        .from('bots')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setBots(data as BotRow[] || []);
+    } catch (err) {
+      const capturedError = err instanceof Error ? err : new Error('Failed to fetch bots');
+      setError(capturedError);
+      errorCollector.captureError(capturedError, {
+        component: 'useBotControl',
+        source: 'fetchBots'
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  // Load bots on component mount or when user changes
   useEffect(() => {
-    const loadData = async () => {
-      if (!user) return;
-      
-      try {
-        setIsLoading(true);
-        
-        // Load user bots
-        const userBots = await botsService.getBotsByUser(user.id);
-        
-        // Transform bots to match our UI format
-        const transformedBots = userBots.map(bot => {
-          const config = bot.config as Record<string, any> || {};
-          return {
-            botName: bot.name,
-            isActive: bot.active || false,
-            tokens: config.selectedToken ? [config.selectedToken, config.quoteToken || "USDC"] : ["SOL", "USDC"],
-            profit: config.profit || "+0.0%",
-            timeRunning: config.timeRunning || "0h 0m",
-            id: bot.id
-          };
-        });
-        
-        setBots(transformedBots);
-        
-        // Load bot templates
-        const templates = await botsService.getBotTemplates();
-        setBotTemplates(templates);
-      } catch (error) {
-        console.error("Error loading data:", error);
-        toast.error("Αποτυχία φόρτωσης bots");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadData();
-  }, [user]);
+    fetchBots();
+  }, [fetchBots]);
 
-  const startAllBots = async () => {
-    if (!user) {
-      toast.error("Συνδεθείτε πρώτα για να ξεκινήσετε τα bots");
-      return;
-    }
-    
+  // Toggle bot active status
+  const toggleBotStatus = async (botId: string, active: boolean) => {
+    if (!user) return;
+
     try {
-      setIsLoading(true);
-      const updatedBots = [...bots];
-      
-      for (const bot of updatedBots) {
-        if (bot.id) {
-          await botsService.updateBot(bot.id, { active: true });
-          bot.isActive = true;
-        }
-      }
-      
-      setBots(updatedBots);
-      toast.success("Όλα τα bots ξεκίνησαν");
-    } catch (error) {
-      console.error("Error starting bots:", error);
-      toast.error("Αποτυχία εκκίνησης bots");
-    } finally {
-      setIsLoading(false);
+      const { error } = await supabase
+        .from('bots')
+        .update({ active })
+        .eq('id', botId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Update local state
+      setBots(prevBots => 
+        prevBots.map(bot => 
+          bot.id === botId ? { ...bot, active } : bot
+        )
+      );
+
+      toast.success(`Bot ${active ? 'activated' : 'deactivated'} successfully`);
+    } catch (err) {
+      const capturedError = err instanceof Error ? err : new Error('Failed to update bot status');
+      errorCollector.captureError(capturedError, {
+        component: 'useBotControl',
+        source: 'toggleBotStatus'
+      });
+      toast.error(`Failed to ${active ? 'activate' : 'deactivate'} bot`);
     }
   };
 
-  const stopAllBots = async () => {
-    if (!user) {
-      toast.error("Συνδεθείτε πρώτα για να σταματήσετε τα bots");
-      return;
-    }
-    
+  // Create a new bot
+  const createBot = async (botData: Partial<BotRow>) => {
+    if (!user) return null;
+
     try {
-      setIsLoading(true);
-      const updatedBots = [...bots];
-      
-      for (const bot of updatedBots) {
-        if (bot.id) {
-          await botsService.updateBot(bot.id, { active: false });
-          bot.isActive = false;
-        }
-      }
-      
-      setBots(updatedBots);
-      toast.success("Όλα τα bots σταμάτησαν");
-    } catch (error) {
-      console.error("Error stopping bots:", error);
-      toast.error("Αποτυχία διακοπής bots");
-    } finally {
-      setIsLoading(false);
+      const fullBotData = {
+        ...botData,
+        user_id: user.id,
+        active: false,
+      };
+
+      const { data, error } = await supabase
+        .from('bots')
+        .insert([fullBotData])
+        .select();
+
+      if (error) throw error;
+
+      // Refresh the bots list
+      await fetchBots();
+
+      toast.success('Bot created successfully');
+      return data && data.length > 0 ? data[0] : null;
+    } catch (err) {
+      const capturedError = err instanceof Error ? err : new Error('Failed to create bot');
+      errorCollector.captureError(capturedError, {
+        component: 'useBotControl',
+        source: 'createBot'
+      });
+      toast.error('Failed to create bot');
+      return null;
     }
   };
 
-  const toggleBotStatus = async (index: number) => {
-    if (!user) {
-      toast.error("Συνδεθείτε πρώτα για να διαχειριστείτε τα bots");
-      return;
-    }
-    
-    try {
-      setIsLoading(true);
-      const updatedBots = [...bots];
-      const bot = updatedBots[index];
-      
-      if (bot.id) {
-        await botsService.updateBot(bot.id, { active: !bot.isActive });
-        bot.isActive = !bot.isActive;
-        
-        // Record performance for this bot
-        await botsService.updateBotPerformance(bot.id, {
-          profit_percentage: 0,
-          profit_amount: 0,
-          total_trades: 0,
-          successful_trades: 0
-        });
-        
-        setBots(updatedBots);
-        
-        toast.success(bot.isActive 
-          ? `Το bot ${bot.botName} ξεκίνησε` 
-          : `Το bot ${bot.botName} σταμάτησε`);
-      }
-    } catch (error) {
-      console.error("Error toggling bot status:", error);
-      toast.error("Αποτυχία αλλαγής κατάστασης bot");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Delete a bot
+  const deleteBot = async (botId: string) => {
+    if (!user) return false;
 
-  const createBotFromTemplate = useCallback(async (templateId: string, customName?: string) => {
-    if (!user) {
-      toast.error("Συνδεθείτε πρώτα για να δημιουργήσετε bot");
-      return null;
-    }
-    
     try {
-      setIsLoading(true);
-      const result = await botsService.createBotFromTemplate(user.id, templateId, customName);
-      
-      if (result && result.length > 0) {
-        const newBot = result[0];
-        const config = newBot.config as Record<string, any> || {};
-        
-        const botForUI = {
-          botName: newBot.name,
-          isActive: newBot.active || false,
-          tokens: config.selectedToken ? [config.selectedToken, config.quoteToken || "USDC"] : ["SOL", "USDC"],
-          profit: "+0.0%",
-          timeRunning: "0h 0m",
-          id: newBot.id
-        };
-        
-        setBots(prev => [botForUI, ...prev]);
-        toast.success(`Το bot ${newBot.name} δημιουργήθηκε επιτυχώς`);
-        return botForUI;
-      }
-      return null;
-    } catch (error) {
-      console.error("Error creating bot from template:", error);
-      toast.error("Αποτυχία δημιουργίας bot από πρότυπο");
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user]);
+      const { error } = await supabase
+        .from('bots')
+        .delete()
+        .eq('id', botId)
+        .eq('user_id', user.id);
 
-  const deleteBot = useCallback(async (botId: string) => {
-    if (!user) {
-      toast.error("Συνδεθείτε πρώτα για να διαγράψετε το bot");
-      return false;
-    }
-    
-    try {
-      setIsLoading(true);
-      await botsService.deleteBot(botId);
-      
-      setBots(prev => prev.filter(bot => bot.id !== botId));
-      toast.success("Το bot διαγράφηκε επιτυχώς");
+      if (error) throw error;
+
+      // Update local state
+      setBots(prevBots => prevBots.filter(bot => bot.id !== botId));
+
+      toast.success('Bot deleted successfully');
       return true;
-    } catch (error) {
-      console.error("Error deleting bot:", error);
-      toast.error("Αποτυχία διαγραφής bot");
+    } catch (err) {
+      const capturedError = err instanceof Error ? err : new Error('Failed to delete bot');
+      errorCollector.captureError(capturedError, {
+        component: 'useBotControl',
+        source: 'deleteBot'
+      });
+      toast.error('Failed to delete bot');
       return false;
-    } finally {
-      setIsLoading(false);
     }
-  }, [user]);
+  };
 
   return {
     bots,
-    isLoading,
-    activeTab,
-    setActiveTab,
-    templates,
-    botTemplates,
-    startAllBots,
-    stopAllBots,
+    selectedBot,
+    setSelectedBot,
+    loading,
+    error,
+    fetchBots,
     toggleBotStatus,
-    createBotFromTemplate,
+    createBot,
     deleteBot
   };
 }

@@ -21,6 +21,9 @@ export interface PendingChange {
 }
 
 export interface ChangeSubmitData {
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
+  table_name?: string;
+  record_id?: string;
+  changes_json?: Record<string, any>;
 }

@@ -7,7 +7,7 @@ import { RejectDialog } from '@/components/change-approval/RejectDialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus } from 'lucide-react';
-import { ChangeSubmitData } from '@/types/changeApproval';
+import { ChangeSubmitData, PendingChange } from '@/types/changeApproval';
 
 export default function ChangeApproval() {
   const { 
@@ -26,7 +26,7 @@ export default function ChangeApproval() {
   const [selectedChangeId, setSelectedChangeId] = useState<string | null>(null);
   // Add isAdmin state for permission handling
   const [isAdmin, setIsAdmin] = useState(true); // For simplicity, default to true
-  const [userChanges, setUserChanges] = useState<any[]>([]);
+  const [userChanges, setUserChanges] = useState<PendingChange[]>([]);
 
   useEffect(() => {
     fetchPendingChanges();
@@ -52,12 +52,20 @@ export default function ChangeApproval() {
   };
 
   const handleSubmitChange = async (data: ChangeSubmitData): Promise<boolean> => {
-    const result = await submitChange(data.title, data.description);
-    return result.error === null;
+    try {
+      const result = await submitChange(
+        data.title || 'Untitled Change',
+        data.description || JSON.stringify(data.changes_json)
+      );
+      return result.error === null;
+    } catch (error) {
+      console.error("Error submitting change:", error);
+      return false;
+    }
   };
 
   // Create mapped changes for compatibility with ChangeItem component
-  const mapChangesToCompatible = (changes: any[]) => {
+  const mapChangesToCompatible = (changes: PendingChange[]) => {
     return changes.map(change => ({
       id: change.id,
       title: change.title || `Change ${change.id.substring(0, 8)}`,
@@ -67,7 +75,13 @@ export default function ChangeApproval() {
       requested_by: change.submitter_id || change.requested_by,
       approval_date: change.reviewed_at || change.approval_date,
       approved_by: change.reviewer_id || change.approved_by,
-      rejected_reason: change.comments || change.rejected_reason
+      rejected_reason: change.comments || change.rejected_reason,
+      // Add required fields from PendingChange
+      submitter_id: change.submitter_id,
+      table_name: change.table_name,
+      record_id: change.record_id,
+      changes_json: change.changes_json,
+      submitted_at: change.submitted_at
     }));
   };
 
