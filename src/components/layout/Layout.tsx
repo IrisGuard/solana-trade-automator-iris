@@ -3,6 +3,7 @@ import React, { ReactNode } from "react";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { AppErrorBoundary } from "../errors/AppErrorBoundary";
+import { AppFallbackComponent } from "../errors/AppFallbackComponent";
 
 interface LayoutProps {
   children: ReactNode;
@@ -10,7 +11,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   return (
-    <AppErrorBoundary>
+    <AppErrorBoundary fallbackComponent={AppFallbackComponent}>
       <div className="min-h-screen flex flex-col">
         <Header />
         <div className="flex flex-1 overflow-hidden">

@@ -40,8 +40,8 @@ export const TestButton: React.FC<TestButtonProps> = ({
           component: options.component || 'TestButton',
           source: 'ErrorTestPanel',
           details: options.details,
-          message: options.message || `Error triggered by test button: ${label}`,
-          errorType: options.errorType
+          errorType: options.errorType,
+          message: options.message || `Error triggered by test button: ${label}`
         });
 
         // For test purposes, throw the error
@@ -51,8 +51,8 @@ export const TestButton: React.FC<TestButtonProps> = ({
       errorCollector.captureError(error as Error, {
         component: options.component || 'TestButton',
         source: 'ErrorTestPanel',
-        message: `Error triggered by test button: ${label}`,
-        errorType: options.errorType
+        errorType: options.errorType,
+        message: `Error triggered by test button: ${label}`
       });
     }
   };

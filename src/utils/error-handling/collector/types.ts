@@ -22,6 +22,7 @@ export interface ErrorOptions {
   status?: number;
   errorType?: string;
   simulateDelay?: number;
+  message?: string; // Added the missing message property
 }
 
 export interface ErrorCollector {
