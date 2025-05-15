@@ -58,17 +58,20 @@ function patchJSXRuntime() {
     if (window.React && !window.__PATCHED_JSX_RUNTIME) {
       window.__PATCHED_JSX_RUNTIME = true;
       
-      // Ensure jsx and jsxs functions are available
-      if (!window.React.jsx) {
-        window.React.jsx = window.React.createElement;
+      // Ensure createElement is available
+      const ReactModule = window.React;
+      
+      // Ensure jsx and jsxs functions are available by using createElement as fallback
+      if (!ReactModule.jsx) {
+        ReactModule.jsx = ReactModule.createElement;
       }
       
-      if (!window.React.jsxs) {
-        window.React.jsxs = window.React.createElement;
+      if (!ReactModule.jsxs) {
+        ReactModule.jsxs = ReactModule.createElement;
       }
       
       // Expose React to global scope for debugging
-      window.__REACT = window.React;
+      window.__REACT = ReactModule;
     }
   }
 }
@@ -77,7 +80,7 @@ function patchJSXRuntime() {
 declare global {
   interface Window {
     __PATCHED_JSX_RUNTIME?: boolean;
-    __REACT?: typeof React;
+    __REACT?: any;
     React: any;
   }
 }
