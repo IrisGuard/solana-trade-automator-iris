@@ -19,14 +19,14 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       react({
         // Use options that are actually supported by the SWC React plugin
         tsDecorators: true,
-        jsxRuntime: 'automatic'
+        // Removed jsxRuntime as it's not a valid option in this version
       }),
       mode === 'development' && componentTagger(),
     ].filter(Boolean) as PluginOption[],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
-        // Fix JSX runtime issue
+        // Fix JSX runtime issue with correct paths
         'react/jsx-runtime': 'react/jsx-runtime',
         'react/jsx-dev-runtime': 'react/jsx-dev-runtime',
         // Fix polyfill path issues - explicitly map each required polyfill
