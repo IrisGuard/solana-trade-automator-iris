@@ -1,4 +1,3 @@
-
 import { defineConfig, type ConfigEnv, type PluginOption } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -19,7 +18,6 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       react({
         // Use options that are actually supported by the SWC React plugin
         tsDecorators: true,
-        jsxRuntime: 'classic', // Προσθήκη για καλύτερη συμβατότητα
       }),
       mode === 'development' && componentTagger(),
     ].filter(Boolean) as PluginOption[],
@@ -94,7 +92,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
           rollupNodePolyFill() as any,
         ],
         // External to prevent Rollup from trying to bundle process
-        external: ['process/browser', 'react'], // Προσθήκη του 'react' στα externals
+        external: ['process/browser', 'react'], 
         onwarn(warning, warn) {
           if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
             return;
