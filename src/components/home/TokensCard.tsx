@@ -24,12 +24,17 @@ export function TokensCard({
   isLoading = false,
   onSelectToken
 }: TokensCardProps) {
-  // Μετατρέπουμε το TokenPrices (Record<string, TokenPrice>) σε Record<string, number>
+  // Convert TokenPrices (Record<string, TokenPrice>) to Record<string, number>
   const tokenPricesAsNumbers: Record<string, number> = Object.fromEntries(
     Object.entries(tokenPrices).map(([k, v]) => [k, v.price])
   );
   
-  // Αν δεν υπάρχει διεύθυνση πορτοφολιού, εμφανίζουμε το placeholder
+  // Add state for selected token and filtered tokens
+  const [selectedToken, setSelectedToken] = useState<string | null>(null);
+  // Set filtered tokens to all tokens initially
+  const filteredTokens = tokens;
+  
+  // If wallet address doesn't exist, show placeholder
   if (!walletAddress) {
     return (
       <Card>
@@ -72,7 +77,12 @@ export function TokensCard({
             <TokensList 
               tokens={tokens.slice(0, 5)} 
               tokenPrices={tokenPricesAsNumbers}
-              onSelectToken={onSelectToken}
+              filteredTokens={filteredTokens.slice(0, 5)}
+              selectedToken={selectedToken}
+              onSelectToken={(tokenAddress) => {
+                setSelectedToken(tokenAddress);
+                onSelectToken?.(tokenAddress);
+              }}
             />
             
             <div className="mt-4 text-right">
