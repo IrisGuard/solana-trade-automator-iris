@@ -27,4 +27,7 @@ export const security = {
   understand: "Κατανοώ",
   saveSettings: "Αποθήκευση Ρυθμίσεων",
   disclaimer: "Κατανοώ ότι η απενεργοποίηση των λειτουργιών ασφαλείας μπορεί να αυξήσει το ρίσκο",
+  
+  // Missing translation
+  title: "Ασφάλεια"
 };

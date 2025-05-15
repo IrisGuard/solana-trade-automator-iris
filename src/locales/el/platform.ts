@@ -20,5 +20,12 @@ export const platform = {
   featuresTitle: "Χαρακτηριστικά Πλατφόρμας",
   howItWorksTitle: "Πώς Λειτουργεί",
   sampleTokens: "Διαθέσιμα Tokens",
-  sampleBots: "Διαθέσιμα Bots"
+  sampleBots: "Διαθέσιμα Bots",
+  
+  // Missing translations
+  description: "Η αυτοματοποιημένη πλατφόρμα για συναλλαγές στο Solana blockchain",
+  tradingModes: "Λειτουργίες Συναλλαγών",
+  avgReturns: "Μέσες Αποδόσεις",
+  lowFees: "Χαμηλές Προμήθειες",
+  controlFunds: "Έλεγχος Κεφαλαίων"
 };

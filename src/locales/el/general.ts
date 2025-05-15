@@ -44,5 +44,14 @@ export const general = {
   tradingModes: "Λειτουργία Trading",
   avgReturns: "Μέση Απόδοση",
   lowFees: "Χαμηλά Τέλη",
-  controlFunds: "Έλεγχος Κεφαλαίων"
+  controlFunds: "Έλεγχος Κεφαλαίων",
+  
+  // Missing translations:
+  home: "Αρχική",
+  navigation: "Πλοήγηση",
+  support: "Υποστήριξη",
+  allRightsReserved: "Όλα τα δικαιώματα διατηρούνται",
+  terms: "Όροι Χρήσης",
+  privacy: "Ιδιωτικότητα",
+  learnMore: "Μάθετε Περισσότερα"
 };

@@ -21,5 +21,9 @@ export const makerBot = {
   delete: "Διαγραφή",
   clone: "Αντιγραφή",
   export: "Εξαγωγή",
-  import: "Εισαγωγή"
+  import: "Εισαγωγή",
+  
+  // Missing translations
+  title: "Ρυθμίσεις Market Maker Bot",
+  configureDesc: "Διαμόρφωση παραμέτρων συναλλαγών"
 };
