@@ -1,28 +1,48 @@
 
-import { toast } from "sonner";
-import { errorCollector } from "./collector";
-import { ErrorOptions } from "./collector/types";
+import { toast } from 'sonner';
+import { errorCollector } from './collector';
 
-interface DisplayErrorOptions extends ErrorOptions {
+export interface DisplayErrorOptions {
+  component?: string;
+  source?: string;
+  details?: any;
+  showToast?: boolean;
   toastTitle?: string;
   toastDescription?: string;
+  logToConsole?: boolean;
+  sendToChat?: boolean;
+  useCollector?: boolean;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+  title?: string; // Added title property
 }
 
-export function displayError(error: Error, options: DisplayErrorOptions = {}): string {
-  // First, capture the error with the collector
-  const errorId = errorCollector.captureError(error, options);
+export function displayError(error: Error, options: DisplayErrorOptions = {}) {
+  // Log to console if requested
+  if (options.logToConsole !== false) {
+    console.error('[Error]', error);
+    if (options.details) {
+      console.error('[Error Details]', options.details);
+    }
+  }
   
-  // Determine if we should show a toast notification
-  if (options.showToast) {
-    const title = options.toastTitle || 'Error';
-    const description = options.toastDescription || error.message;
-    
-    // Show toast with severity-based variant
-    toast.error(title, {
-      description,
-      id: errorId
+  // Use error collector if requested
+  if (options.useCollector !== false) {
+    errorCollector.captureError(error, {
+      component: options.component,
+      source: options.source,
+      details: options.details,
+      severity: options.severity,
+      message: options.toastDescription || error.message
     });
   }
   
-  return errorId;
+  // Show toast if requested
+  if (options.showToast) {
+    toast.error(options.toastTitle || options.title || 'Error', {
+      description: options.toastDescription || error.message,
+      duration: 5000
+    });
+  }
+  
+  return error;
 }

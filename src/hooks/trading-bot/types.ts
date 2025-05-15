@@ -3,7 +3,7 @@ import { Token } from "@/types/wallet";
 
 export type BotStatus = 'idle' | 'running' | 'paused' | 'error';
 
-export type OrderType = 'buy' | 'sell' | 'stop-loss' | 'take-profit';
+export type OrderType = 'buy' | 'sell' | 'stop-loss' | 'take-profit' | 'limit-buy' | 'limit-sell';
 
 export type OrderStatus = 'pending' | 'executed' | 'canceled' | 'failed';
 
@@ -26,7 +26,7 @@ export interface TradingBotConfig {
   takeProfit: number;
   tradeAmount: number;
   maxBudget: number;
-  strategy: 'simple' | 'dca' | 'grid' | 'momentum';
+  strategy: 'simple' | 'advanced' | 'custom' | 'dca' | 'grid' | 'momentum';
   autoRebalance: boolean;
   trailingStop: boolean;
   enabledStrategies: {
@@ -49,4 +49,33 @@ export interface TradingBotHook {
   selectedTokenDetails: Token | undefined;
   tokens: Token[];
   connected: boolean;
+}
+
+// Additional exports for useBotActions.ts
+export interface Bot {
+  id: string;
+  name: string;
+  status: string;
+  token: string;
+  strategy: string;
+  profitLoss: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ActiveOrder {
+  id: string;
+  type: string;
+  token: string;
+  amount: number;
+  price: number;
+  status: string;
+  createdAt: string;
+}
+
+export interface TokenPriceInfo {
+  currentPrice: number;
+  priceChange24h: number;
+  high24h?: number;
+  low24h?: number;
 }

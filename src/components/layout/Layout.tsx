@@ -1,40 +1,18 @@
 
-import React from "react";
-import { Outlet, useLocation } from "@/lib/router-exports";
-import { Sidebar } from "./Sidebar";
-import { Header } from "./Header";
-import { cn } from "@/lib/utils";
-import { HelpButton } from "@/components/help/HelpButton";
-import { useLanguage } from "@/hooks/use-language";
+import React from 'react';
 
-export function Layout() {
-  const location = useLocation();
-  const { t } = useLanguage();
-  
-  const pageTitles: Record<string, string> = {
-    "/": t("general.home"),
-    "/home": t("general.home"),
-    "/dashboard": t("general.dashboard"),
-    "/wallet": t("general.wallet"),
-    "/transactions": t("general.transactions"),
-    "/security": t("general.security"),
-    "/settings": t("general.settings"),
-    "/help": t("general.help"),
-  };
+interface LayoutProps {
+  children: React.ReactNode;
+}
 
-  const title = pageTitles[location.pathname] || "Solana Trade";
-
+export const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar />
-      <div className="flex flex-1 flex-col pl-16 sm:pl-64">
-        <Header title={title} />
-        <main className={cn("flex-1 overflow-auto p-6")}>
-          <Outlet />
-        </main>
+    <div className="min-h-screen bg-background">
+      <div className="flex min-h-screen flex-col">
+        <div className="flex-1">
+          {children}
+        </div>
       </div>
-      
-      <HelpButton />
     </div>
   );
-}
+};

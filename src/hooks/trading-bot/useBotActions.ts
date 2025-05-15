@@ -1,8 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
-import { Bot, ActiveOrder, TradingBotConfig } from './types';
-import { TokenPriceInfo } from './types';
+import { Bot, ActiveOrder, TradingBotConfig, TokenPriceInfo } from './types';
 
 /**
  * Hook για τη διαχείριση των ενεργειών του trading bot

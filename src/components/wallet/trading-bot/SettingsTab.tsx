@@ -112,7 +112,7 @@ export function SettingsTab({
             <Label htmlFor="strategy">Στρατηγική</Label>
             <Select 
               value={config.strategy} 
-              onValueChange={(value) => updateConfig({ strategy: value as any })}>
+              onValueChange={(value) => updateConfig({ strategy: value as 'simple' | 'advanced' | 'custom' | 'dca' | 'grid' | 'momentum' })}>
               <SelectTrigger id="strategy">
                 <SelectValue placeholder="Επιλέξτε στρατηγική" />
               </SelectTrigger>
@@ -120,12 +120,18 @@ export function SettingsTab({
                 <SelectItem value="simple">Απλή (Buy Low / Sell High)</SelectItem>
                 <SelectItem value="advanced">Προχωρημένη (Με δείκτες)</SelectItem>
                 <SelectItem value="custom">Προσαρμοσμένη</SelectItem>
+                <SelectItem value="dca">DCA (Dollar Cost Averaging)</SelectItem>
+                <SelectItem value="grid">Grid Trading</SelectItem>
+                <SelectItem value="momentum">Momentum</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground mt-1">
               {config.strategy === 'simple' && "Βασική στρατηγική αγοράς σε χαμηλές τιμές και πώλησης σε υψηλότερες."}
               {config.strategy === 'advanced' && "Χρήση προχωρημένων τεχνικών δεικτών για εντοπισμό τάσεων."}
               {config.strategy === 'custom' && "Ρυθμίστε όλες τις παραμέτρους χειροκίνητα για προσαρμοσμένη στρατηγική."}
+              {config.strategy === 'dca' && "Στρατηγική μέσης τιμής με περιοδικές αγορές."}
+              {config.strategy === 'grid' && "Στρατηγική πλέγματος με εντολές σε διάφορα επίπεδα τιμών."}
+              {config.strategy === 'momentum' && "Στρατηγική που βασίζεται στην ορμή της τιμής."}
             </p>
           </div>
         </div>

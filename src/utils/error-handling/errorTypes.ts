@@ -1,44 +1,36 @@
 
-export class BotError extends Error {
-  isBotError: boolean = true;
-  
-  constructor(message: string) {
-    super(message);
-    this.name = "BotError";
-  }
+// Define common error types to be used throughout the application
+
+export interface BotError extends Error {
+  code?: string;
+  status?: number;
+  source?: string;
+  component?: string;
+  metadata?: {
+    rpcEndpoint?: string;
+    timestamp?: number;
+    tokenAddress?: string;
+    walletAddress?: string;
+    [key: string]: any;
+  };
 }
 
-export class NetworkError extends BotError {
-  constructor(message: string) {
-    super(message);
-    this.name = "NetworkError";
-  }
+export enum ErrorSource {
+  CLIENT = 'client',
+  SERVER = 'server',
+  BLOCKCHAIN = 'blockchain',
+  API = 'api'
 }
 
-export class AuthenticationError extends BotError {
-  constructor(message: string) {
-    super(message);
-    this.name = "AuthenticationError";
-  }
+export enum ErrorSeverity {
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  CRITICAL = 'critical'
 }
 
-export class ValidationError extends BotError {
-  constructor(message: string) {
-    super(message);
-    this.name = "ValidationError";
-  }
-}
-
-export class TokenError extends BotError {
-  constructor(message: string) {
-    super(message);
-    this.name = "TokenError";
-  }
-}
-
-export class TransactionError extends BotError {
-  constructor(message: string) {
-    super(message);
-    this.name = "TransactionError";
-  }
-}
+export const RPC_ENDPOINTS = {
+  PRIMARY: 'https://rpc.ankr.com/solana',
+  BACKUP: 'https://api.mainnet-beta.solana.com',
+  FALLBACK: 'https://solana-api.projectserum.com'
+};

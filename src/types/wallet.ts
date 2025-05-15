@@ -6,19 +6,5 @@ export interface Token {
   amount: number;
   decimals: number;
   logo?: string;
-}
-
-export interface WalletInfo {
-  address: string;
-  balance: number;
-  tokens: Token[];
-  isConnected: boolean;
-}
-
-export interface TokenPrices {
-  [tokenAddress: string]: {
-    price: number;
-    priceChange24h: number;
-    lastUpdated: Date;
-  };
+  mint?: string; // Adding mint property for consistency
 }

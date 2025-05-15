@@ -5,29 +5,33 @@ import { LanguageProvider } from "@/providers/LanguageProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SupabaseAuthProvider } from "@/providers/SupabaseAuthProvider";
 import { Toaster } from "sonner";
-import { ConsoleMonitor } from "@/components/debug/ConsoleMonitor";
 
+// Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
       refetchOnWindowFocus: false,
-    },
-  },
+      retry: 1,
+      staleTime: 60000 // 1 minute
+    }
+  }
 });
 
-export function AppProviders({ children }: { children: React.ReactNode }) {
+interface AppProvidersProps {
+  children: React.ReactNode;
+}
+
+export function AppProviders({ children }: AppProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <SupabaseAuthProvider>
-        <ThemeProvider>
-          <LanguageProvider>
+      <ThemeProvider>
+        <LanguageProvider>
+          <SupabaseAuthProvider>
             {children}
-            <Toaster position="top-right" />
-            <ConsoleMonitor />
-          </LanguageProvider>
-        </ThemeProvider>
-      </SupabaseAuthProvider>
+            <Toaster position="top-right" richColors />
+          </SupabaseAuthProvider>
+        </LanguageProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
