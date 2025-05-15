@@ -5,6 +5,7 @@ import { Loader2, Wallet } from "lucide-react";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
 import { toast } from "sonner";
 import { isPhantomInstalled } from "@/utils/phantomWallet";
+import { useLanguage } from "@/hooks/use-language";
 
 // Αυτό είναι μια ασφαλής έκδοση του WalletConnectButton που χειρίζεται καλύτερα σφάλματα
 export function WalletConnectButtonSafe({
@@ -14,6 +15,7 @@ export function WalletConnectButtonSafe({
   className = "",
   ...props
 }: ButtonProps) {
+  const { t } = useLanguage();
   const [isAttemptingConnect, setIsAttemptingConnect] = useState(false);
   const { 
     isConnected, 
@@ -47,8 +49,10 @@ export function WalletConnectButtonSafe({
       
       if (isConnected) {
         await disconnectWallet();
+        toast.success("Το wallet αποσυνδέθηκε");
       } else {
         await connectWallet();
+        toast.success("Το wallet συνδέθηκε επιτυχώς");
       }
     } catch (error) {
       console.error("Σφάλμα στο WalletConnectButtonSafe:", error);

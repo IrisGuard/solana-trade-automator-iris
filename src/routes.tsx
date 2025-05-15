@@ -4,6 +4,7 @@ import { Routes as RouterRoutes, Route } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 
 // Pages
+import Index from "@/pages/Index";
 import Home from "@/pages/Home";
 import Wallet from "@/pages/Wallet";
 import Dashboard from "@/pages/Dashboard";
@@ -16,7 +17,6 @@ import Settings from "@/pages/Settings";
 import Security from "@/pages/Security";
 import Help from "@/pages/Help";
 import NotFound from "@/pages/NotFound";
-import Index from "@/pages/Index";
 import Bots from "@/pages/Bots";
 import ChangeApproval from "@/pages/ChangeApproval";
 import Portfolio from "@/pages/Portfolio";
@@ -25,7 +25,10 @@ import Notifications from "@/pages/Notifications";
 export function Routes() {
   return (
     <RouterRoutes>
-      <Route path="/" element={<Layout><Index /></Layout>} />
+      {/* Η Index σελίδα δεν χρησιμοποιεί το κανονικό Layout */}
+      <Route path="/" element={<Index />} />
+      
+      {/* Οι υπόλοιπες σελίδες χρησιμοποιούν το κανονικό Layout */}
       <Route path="/home" element={<Layout><Home /></Layout>} />
       <Route path="/wallet" element={<Layout><Wallet /></Layout>} />
       <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />

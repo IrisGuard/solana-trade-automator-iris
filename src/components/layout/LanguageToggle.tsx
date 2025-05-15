@@ -16,16 +16,16 @@ export function LanguageToggle() {
           <span className="sr-only">Αλλαγή γλώσσας</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="bg-gray-900 border border-gray-800">
         <DropdownMenuItem 
           onClick={() => setLanguage("en")}
-          className={language === "en" ? "bg-muted" : ""}
+          className={`${language === "en" ? "bg-gray-800" : "hover:bg-gray-800"} text-gray-200`}
         >
           English
         </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => setLanguage("el")}
-          className={language === "el" ? "bg-muted" : ""}
+          className={`${language === "el" ? "bg-gray-800" : "hover:bg-gray-800"} text-gray-200`}
         >
           Ελληνικά
         </DropdownMenuItem>

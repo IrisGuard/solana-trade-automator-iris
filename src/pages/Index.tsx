@@ -34,7 +34,7 @@ export default function Index() {
   
   return (
     <div className="flex flex-col min-h-screen bg-gray-950 text-white">
-      {/* Header navigation */}
+      {/* Header navigation - με βελτιωμένη ευθυγράμμιση για τα Ελληνικά */}
       <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-gray-900/80 border-b border-gray-800">
         <div className="container mx-auto flex justify-between items-center p-4">
           <Link to="/" className="flex items-center gap-2">
@@ -46,25 +46,25 @@ export default function Index() {
             </h1>
           </Link>
           
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-3 lg:gap-6">
+          {/* Desktop Navigation - προσαρμοσμένο για ελληνικά */}
+          <div className="hidden md:flex items-center gap-2 lg:gap-4">
             {navigation.map((item, index) => (
               <Link 
                 key={index}
                 to={item.href} 
-                className="text-sm lg:text-base text-gray-300 hover:text-white transition-colors whitespace-nowrap"
+                className="text-sm lg:text-base text-gray-300 hover:text-white transition-colors whitespace-nowrap px-2 py-1"
               >
                 {item.title}
               </Link>
             ))}
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ml-2">
               <LanguageToggle />
               <ThemeToggle />
               <WalletConnectButtonSafe 
                 variant="default" 
                 size="sm"
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md shadow-blue-900/20"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md shadow-blue-900/20 whitespace-nowrap"
               />
             </div>
           </div>
@@ -76,13 +76,14 @@ export default function Index() {
             <button 
               onClick={toggleMobileMenu}
               className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-800"
+              aria-label={mobileMenuOpen ? "Κλείσιμο μενού" : "Άνοιγμα μενού"}
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
         
-        {/* Mobile menu */}
+        {/* Mobile menu - βελτιωμένο για ελληνικά */}
         {mobileMenuOpen && (
           <div className="md:hidden bg-gray-900 border-b border-gray-800">
             <div className="container mx-auto py-3 px-4">

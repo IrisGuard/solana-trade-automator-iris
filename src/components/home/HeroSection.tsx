@@ -27,7 +27,7 @@ export function HeroSection() {
   };
   
   return (
-    <div className="relative py-16 md:py-28 px-4 bg-gradient-to-b from-gray-900 via-gray-950 to-black overflow-hidden">
+    <div className="relative py-16 md:py-24 px-4 bg-gradient-to-b from-gray-900 via-gray-950 to-black overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute top-1/4 -left-24 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
       <div className="absolute bottom-1/3 -right-32 w-80 h-80 bg-purple-700/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
@@ -39,29 +39,29 @@ export function HeroSection() {
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">
             Solana Trade Automator
           </h1>
-          <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-8 leading-relaxed px-2">
+          <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-8 leading-relaxed px-4">
             {t("hero.tagline")}
           </p>
           
-          {/* Main buttons */}
+          {/* Main buttons - βελτιωμένη προσαρμογή για τα Ελληνικά */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Button
               size="lg"
               onClick={handleGetStarted}
-              className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white shadow-lg shadow-blue-700/30 hover:shadow-blue-800/40 transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 text-sm sm:text-base py-5 sm:py-6"
+              className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white shadow-lg shadow-blue-700/30 hover:shadow-blue-800/40 transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 text-sm sm:text-base py-5 sm:py-6 px-4 sm:px-6"
             >
-              <Zap className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              <Zap className="h-4 w-4 sm:h-5 sm:w-5 mr-2 flex-shrink-0" />
               <span className="whitespace-nowrap">{t("hero.getStartedButton")}</span>
-              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 ml-2" />
+              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 ml-2 flex-shrink-0" />
             </Button>
             
             {!isConnected && (
               <WalletConnectButtonSafe
                 variant="outline"
                 size="lg"
-                className="bg-gradient-to-r from-purple-600/10 to-indigo-600/10 backdrop-blur-md border border-purple-400/20 text-white hover:bg-purple-500/20 hover:border-purple-400/40 shadow-lg shadow-purple-900/20 transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 text-sm sm:text-base py-5 sm:py-6"
+                className="bg-gradient-to-r from-purple-600/10 to-indigo-600/10 backdrop-blur-md border border-purple-400/20 text-white hover:bg-purple-500/20 hover:border-purple-400/40 shadow-lg shadow-purple-900/20 transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 text-sm sm:text-base py-5 sm:py-6 px-4 sm:px-6"
               >
-                <Wallet className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                <Wallet className="h-4 w-4 sm:h-5 sm:w-5 mr-2 flex-shrink-0" />
                 <span className="whitespace-nowrap">{t("wallet.connectWallet")}</span>
               </WalletConnectButtonSafe>
             )}
@@ -70,49 +70,49 @@ export function HeroSection() {
               variant="outline"
               size="lg"
               onClick={() => handleNavigateWithToast('/bot-control', t("hero.botControlToast"))}
-              className="bg-gradient-to-r from-emerald-600/10 to-cyan-600/10 backdrop-blur-md border border-emerald-400/20 text-white hover:bg-emerald-500/20 hover:border-emerald-400/40 shadow-lg shadow-emerald-900/20 transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 text-sm sm:text-base py-5 sm:py-6"
+              className="bg-gradient-to-r from-emerald-600/10 to-cyan-600/10 backdrop-blur-md border border-emerald-400/20 text-white hover:bg-emerald-500/20 hover:border-emerald-400/40 shadow-lg shadow-emerald-900/20 transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 text-sm sm:text-base py-5 sm:py-6 px-4 sm:px-6"
             >
-              <Bot className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              <Bot className="h-4 w-4 sm:h-5 sm:w-5 mr-2 flex-shrink-0" />
               <span className="whitespace-nowrap">{t("makerBot.botSettings")}</span>
             </Button>
           </div>
           
-          {/* Feature buttons - improved grid layout */}
+          {/* Feature buttons - βελτιωμένο grid layout */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-10">
             <FeatureButton 
-              icon={<Wallet className="h-6 w-6 sm:h-8 sm:w-8" />}
+              icon={<Wallet className="h-6 w-6" />}
               title={t("platform.step1Title", "Σύνδεση Πορτοφολιού")} 
-              description={t("platform.step1Desc", "Συνδέστε το πορτοφόλι Solana σας για να ξεκινήσετε τις συναλλαγές")}
+              description={t("platform.step1Desc", "Συνδέστε το πορτοφόλι Solana σας για να ξεκινήσετε")}
               onClick={() => navigate('/wallet')}
               gradient="from-blue-600 to-cyan-500"
             />
             
             <FeatureButton 
-              icon={<Bot className="h-6 w-6 sm:h-8 sm:w-8" />}
+              icon={<Bot className="h-6 w-6" />}
               title={t("platform.step2Title", "Επιλογή Bot")} 
-              description={t("platform.step2Desc", "Επιλέξτε ανάμεσα σε Trading Bot και Market Maker Bot")}
+              description={t("platform.step2Desc", "Επιλέξτε ανάμεσα σε διαφορετικά trading bots")}
               onClick={() => navigate('/bot-control')}
               gradient="from-purple-600 to-pink-500"
             />
             
             <FeatureButton 
-              icon={<BarChart3 className="h-6 w-6 sm:h-8 sm:w-8" />}
+              icon={<BarChart3 className="h-6 w-6" />}
               title={t("platform.step3Title", "Ρύθμιση Παραμέτρων")} 
-              description={t("platform.step3Desc", "Προσαρμόστε τις παραμέτρους για τις ανάγκες σας")}
+              description={t("platform.step3Desc", "Προσαρμόστε τις παραμέτρους λειτουργίας")}
               onClick={() => navigate('/dashboard')}
               gradient="from-amber-500 to-orange-600"
             />
             
             <FeatureButton 
-              icon={<Zap className="h-6 w-6 sm:h-8 sm:w-8" />}
+              icon={<Zap className="h-6 w-6" />}
               title={t("platform.step4Title", "Παρακολούθηση")} 
-              description={t("platform.step4Desc", "Παρακολουθήστε την απόδοση των bots σας")}
+              description={t("platform.step4Desc", "Παρακολουθήστε την απόδοση των bots")}
               onClick={() => navigate('/portfolio')}
               gradient="from-emerald-500 to-teal-600"
             />
           </div>
           
-          {/* Stats Section - improved for small screens */}
+          {/* Stats Section - βελτιωμένο για μικρές οθόνες */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mt-16 sm:mt-20">
             <StatCard value="24/7" label={t("platform.tradingModes", "Αυτόματες Συναλλαγές")} color="blue" />
             <StatCard value="+25%" label={t("platform.avgReturns", "Μέση Απόδοση")} color="purple" />
@@ -125,7 +125,7 @@ export function HeroSection() {
   );
 }
 
-// Feature Button Component - improved for better text display
+// Feature Button Component - βελτιώσεις για καλύτερη εμφάνιση κειμένου
 interface FeatureButtonProps {
   title: string;
   description: string;
@@ -151,7 +151,7 @@ function FeatureButton({ title, description, icon, onClick, gradient }: FeatureB
   );
 }
 
-// Stat Card Component - improved sizing for small screens
+// Stat Card Component - βελτιωμένο μέγεθος για μικρές οθόνες
 interface StatCardProps {
   value: string;
   label: string;

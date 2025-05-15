@@ -12,6 +12,10 @@ import { captureException } from "@/utils/error-handling/errorReporting";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { LanguageProvider } from "@/providers/LanguageProvider";
+import { ensureRouterCompatibility } from "@/utils/routerPatches";
+
+// Εφαρμογή διορθώσεων συμβατότητας του React Router
+ensureRouterCompatibility();
 
 // Create a client
 const queryClient = new QueryClient({
@@ -24,14 +28,14 @@ const queryClient = new QueryClient({
   }
 });
 
-function logWalletError(error: Error, info: React.ErrorInfo) {
+function logError(error: Error, info: React.ErrorInfo) {
   console.error("[AppContent error]", error, info);
   
   errorCollector.captureError(error, {
     component: "AppContent",
     source: "app",
     details: { 
-      componentStack: info.componentStack // Convert React.ErrorInfo to a structure compatible with Record<string, unknown>
+      componentStack: info.componentStack
     },
     severity: 'high'
   });
@@ -43,26 +47,35 @@ export function AppContent() {
   return (
     <ErrorBoundary
       FallbackComponent={({ error }) => (
-        <div className="text-center p-4">
-          <h2 className="text-xl font-bold text-red-500">Κάτι πήγε λάθος!</h2>
-          <pre className="mt-2 text-sm">{error.message}</pre>
+        <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white p-4">
+          <div className="max-w-md w-full p-6 border border-gray-800 rounded-lg bg-gray-950 shadow-lg">
+            <h2 className="text-xl font-bold text-red-400 mb-2">Σφάλμα εφαρμογής</h2>
+            <p className="text-gray-300 mb-4">Παρουσιάστηκε ένα σφάλμα κατά τη φόρτωση της εφαρμογής.</p>
+            <pre className="mt-2 text-sm bg-gray-800 p-3 rounded overflow-auto max-h-48">{error.message}</pre>
+            <button 
+              onClick={() => window.location.reload()}
+              className="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+            >
+              Επαναφόρτωση Σελίδας
+            </button>
+          </div>
         </div>
       )}
-      onError={logWalletError}
+      onError={logError}
     >
       <BrowserRouter>
         <ThemeProvider>
-          <LanguageProvider>
-            <SolanaWalletProvider>
-              <WalletProviderWrapper>
-                <QueryClientProvider client={queryClient}>
-                  <TooltipProvider>
+          <LanguageProvider defaultLanguage="el">
+            <QueryClientProvider client={queryClient}>
+              <TooltipProvider>
+                <SolanaWalletProvider>
+                  <WalletProviderWrapper>
                     <Routes />
                     <Toaster position="top-right" richColors />
-                  </TooltipProvider>
-                </QueryClientProvider>
-              </WalletProviderWrapper>
-            </SolanaWalletProvider>
+                  </WalletProviderWrapper>
+                </SolanaWalletProvider>
+              </TooltipProvider>
+            </QueryClientProvider>
           </LanguageProvider>
         </ThemeProvider>
       </BrowserRouter>

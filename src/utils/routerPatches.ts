@@ -14,7 +14,7 @@ export function ensureRouterCompatibility(): void {
   if (typeof window !== 'undefined') {
     try {
       // Βεβαιώνουμε ότι έχουμε πλήρες React object
-      window.React = window.React || { ...React };
+      window.React = window.React || React;
       
       // Σημειώνουμε ότι έχουμε εφαρμόσει το router patch
       window.patchedReactRouter = true;
