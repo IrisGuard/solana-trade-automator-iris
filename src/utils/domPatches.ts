@@ -1,3 +1,4 @@
+
 /**
  * DOM Patches and Polyfills
  *
@@ -12,8 +13,8 @@
  * @see https://developer.mozilla.org/en-US/docs/Web/API/ChildNode/remove
  */
 export function applyElementRemovePolyfill() {
-  if (!('remove' in Element.prototype)) {
-    Element.prototype.remove = function() {
+  if (typeof Element !== 'undefined' && !('remove' in Element.prototype)) {
+    (Element.prototype as any).remove = function() {
       if (this.parentNode) {
         this.parentNode.removeChild(this);
       }
@@ -140,11 +141,11 @@ export function applyObjectAssignPolyfill() {
  * @see https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
  */
 export function applyCustomEventPolyfill() {
-  if (typeof window.CustomEvent !== "function") {
-    function CustomEvent ( event: any, params: any ) {
+  if (typeof window !== 'undefined' && typeof window.CustomEvent !== "function") {
+    function CustomEvent(event: string, params: any) {
       params = params || { bubbles: false, cancelable: false, detail: undefined };
-      var evt = document.createEvent( 'CustomEvent' );
-      evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
       return evt;
     }
 
@@ -174,8 +175,9 @@ export function applyReactJsxPatches() {
     // Check if window.React exists
     if (typeof window !== 'undefined' && window.React) {
       // Safely attach JSX functions if they don't exist
-      if (!window.React.jsx) {
-        const reactModule = window.React;
+      const reactModule = window.React;
+      
+      if (!(reactModule as any).jsx) {
         Object.defineProperty(reactModule, 'jsx', {
           value: reactModule.createElement,
           writable: false,
@@ -183,8 +185,7 @@ export function applyReactJsxPatches() {
         });
       }
       
-      if (!window.React.jsxs) {
-        const reactModule = window.React;
+      if (!(reactModule as any).jsxs) {
         Object.defineProperty(reactModule, 'jsxs', {
           value: reactModule.createElement,
           writable: false,
@@ -199,7 +200,9 @@ export function applyReactJsxPatches() {
   }
 }
 
-// Apply all DOM patches in one call
+/**
+ * Apply all DOM patches in one call
+ */
 export function applyAllDOMPatches() {
   try {
     // Apply individual patches here
