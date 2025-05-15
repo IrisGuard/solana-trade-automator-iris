@@ -1,68 +1,71 @@
 
-import { ErrorData, ErrorCollector, ErrorOptions } from './types';
+import { supabase } from '@/integrations/supabase/client';
+import type { ErrorData, ErrorOptions } from './types';
+import { v4 as uuidv4 } from 'uuid';
 
-export class ErrorCollectorImpl implements ErrorCollector {
-  private errors = new Map<string, ErrorData>();
-  private listeners: ((error: ErrorData) => void)[] = [];
-
-  captureError(error: Error, options: ErrorOptions = {}): string {
-    // Generate a new ID for the error
-    const errorId = crypto.randomUUID();
+class ErrorCollector {
+  private static instance: ErrorCollector;
+  private isEnabled: boolean = true;
+  
+  private constructor() {
+    // Singleton pattern
+  }
+  
+  public static getInstance(): ErrorCollector {
+    if (!ErrorCollector.instance) {
+      ErrorCollector.instance = new ErrorCollector();
+    }
+    return ErrorCollector.instance;
+  }
+  
+  public enable(): void {
+    this.isEnabled = true;
+  }
+  
+  public disable(): void {
+    this.isEnabled = false;
+  }
+  
+  public async collectError(errorData: ErrorData, options: ErrorOptions = {}): Promise<string | null> {
+    if (!this.isEnabled) {
+      console.log('Error collection disabled:', errorData.message);
+      return null;
+    }
     
-    const errorData: ErrorData = {
-      id: errorId,
-      message: error.message,
-      stack: error.stack,
-      component: options.component || 'unknown',
-      source: options.source || 'client',
-      details: options.details,
-      timestamp: Date.now(),
-      severity: options.severity || 'medium',
-      status: options.status,
-      errorType: options.errorType,
-      handled: false,
-      autoFixed: false
-    };
-    
-    this.errors.set(errorId, errorData);
-    
-    // Notify listeners
-    this.listeners.forEach(listener => listener(errorData));
-    
-    return errorId;
-  }
-  
-  getErrors(): ErrorData[] {
-    return Array.from(this.errors.values());
-  }
-  
-  clearErrors(): void {
-    this.errors.clear();
-  }
-  
-  getError(id: string): ErrorData | undefined {
-    return this.errors.get(id);
-  }
-  
-  removeError(id: string): void {
-    this.errors.delete(id);
-  }
-  
-  updateError(id: string, updates: Partial<ErrorData>): void {
-    const error = this.errors.get(id);
-    if (error) {
-      this.errors.set(id, { ...error, ...updates });
+    try {
+      const errorId = options.errorId || uuidv4();
+      
+      // Use Supabase function to log error
+      const { data, error } = await supabase.rpc('log_error', {
+        p_error_message: errorData.message,
+        p_error_stack: errorData.stack || null,
+        p_component: errorData.component || null,
+        p_source: errorData.source || 'client',
+        p_url: errorData.url || window.location.href,
+        p_browser_info: errorData.browserInfo || this.getBrowserInfo()
+      });
+      
+      if (error) {
+        console.error('Failed to log error to Supabase:', error);
+        return null;
+      }
+      
+      return data as string;
+    } catch (e) {
+      console.error('Error in error collection process:', e);
+      return null;
     }
   }
   
-  onErrorCaptured(callback: (error: ErrorData) => void): () => void {
-    this.listeners.push(callback);
-    
-    // Return function to unsubscribe
-    return () => {
-      this.listeners = this.listeners.filter(listener => listener !== callback);
+  private getBrowserInfo() {
+    return {
+      userAgent: navigator.userAgent,
+      language: navigator.language,
+      platform: navigator.platform,
+      screenSize: `${window.screen.width}x${window.screen.height}`,
+      timestamp: new Date().toISOString()
     };
   }
 }
 
-export const errorCollector: ErrorCollector = new ErrorCollectorImpl();
+export const errorCollector = ErrorCollector.getInstance();

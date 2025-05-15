@@ -4,11 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { profileService } from '@/services/profileService';
 import { toast } from 'sonner';
-import type { Tables } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+
+// Define ProfileData type using the database types
+type ProfileData = Database['public']['Tables']['profiles']['Row'] | null;
 
 export interface AuthContextType {
   user: User | null;
-  profile: Tables['profiles'] | null;
+  profile: ProfileData;
   session: Session | null;
   isLoading: boolean;
   error: Error | null;
@@ -19,7 +22,7 @@ export interface AuthContextType {
 export function useSupabaseAuth(): AuthContextType {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Tables['profiles'] | null>(null);
+  const [profile, setProfile] = useState<ProfileData>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -67,44 +70,34 @@ export function useSupabaseAuth(): AuthContextType {
     // Αρχική φόρτωση του session
     fetchInitialSession();
 
-    // Handle the auth state change with our mock implementation
-    try {
-      // Use the mock onAuthStateChange function
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        async (event, newSession) => {
-          console.log('Auth state changed:', event, newSession);
-          if (mounted) {
-            setSession(newSession);
-            setUser(newSession?.user || null);
-            
-            // Ανανέωση προφίλ κατά τη σύνδεση ή αλλαγή χρήστη
-            if (newSession?.user) {
-              try {
-                const userProfile = await profileService.getProfile(newSession.user.id);
-                setProfile(userProfile);
-              } catch (profileError) {
-                console.error('Error fetching profile:', profileError);
-              }
-            } else {
-              setProfile(null);
+    // Set up real auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, newSession) => {
+        console.log('Auth state changed:', event, newSession);
+        if (mounted) {
+          setSession(newSession);
+          setUser(newSession?.user || null);
+          
+          // Ανανέωση προφίλ κατά τη σύνδεση ή αλλαγή χρήστη
+          if (newSession?.user) {
+            try {
+              const userProfile = await profileService.getProfile(newSession.user.id);
+              setProfile(userProfile);
+            } catch (profileError) {
+              console.error('Error fetching profile:', profileError);
             }
+          } else {
+            setProfile(null);
           }
         }
-      );
+      }
+    );
 
-      // Cleanup function
-      return () => {
-        mounted = false;
-        if (subscription?.unsubscribe) {
-          subscription.unsubscribe();
-        }
-      };
-    } catch (error) {
-      console.error('Error setting up auth state change listener:', error);
-      return () => {
-        mounted = false;
-      };
-    }
+    // Cleanup function
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {

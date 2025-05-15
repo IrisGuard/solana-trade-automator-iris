@@ -95,7 +95,6 @@
             useContext: function() { return {}; },
             useRef: function() { return { current: null }; },
             createContext: function() { return { Provider: function() {}, Consumer: function() {} }; },
-            createElement: function() { return {}; },
             Children: { map: function() {}, forEach: function() {}, count: function() {}, only: function() {} },
             createElement: function() { return {}; },
             Fragment: Symbol('Fragment'),
@@ -111,7 +110,7 @@
   </head>
   <body>
     <div id="root"></div>
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <!-- Production build - removed GPT Engineer script -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

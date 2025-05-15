@@ -1,19 +1,30 @@
 
-import type { Tables } from '@/integrations/supabase/client';
-import type { Session } from '@supabase/supabase-js';
+import type { Session, User } from '@supabase/supabase-js';
+import type { Database } from '@/integrations/supabase/types';
 
-export type UserType = {
+// Type for profile data from the database
+export type ProfileData = Database['public']['Tables']['profiles']['Row'] | null;
+
+// Extended User type with profile data
+export interface ExtendedUser {
   id: string;
-  email?: string;
-  created_at?: string;
-  profile?: Partial<Tables['profiles']>;
-};
+  email: string | null;
+  created_at: string;
+  profile: ProfileData;
+}
 
+// Authentication context type
 export interface AuthContextType {
-  user: UserType | null;
+  user: ExtendedUser | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error?: any; success?: boolean }>;
-  signUp: (email: string, password: string) => Promise<{ error?: any; success?: boolean }>;
-  signOut: () => Promise<{ error?: any; success?: boolean }>;
+  signIn: (email: string, password: string) => Promise<{ user?: User; error?: any }>;
+  signUp: (email: string, password: string) => Promise<{ user?: User; error?: any }>;
+  signOut: () => Promise<{ success?: boolean; error?: any }>;
+}
+
+// Response from sign-in/sign-up operations
+export interface AuthResponse {
+  user?: User;
+  error?: any;
 }
