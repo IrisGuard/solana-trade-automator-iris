@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye, EyeOff, Check, Copy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { API_ENDPOINTS, API_KEYS, RPC_ENDPOINTS } from "@/services/solana/config";
+import { RPC_ENDPOINTS, API_ENDPOINTS } from "@/services/solana/config";
 import { toast } from "sonner";
 
 export const ApiEndpointsCard = () => {

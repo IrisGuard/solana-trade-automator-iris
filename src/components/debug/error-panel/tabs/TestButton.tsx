@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { errorCollector } from '@/utils/error-handling/collector';
+import type { ErrorOptions } from '@/utils/error-handling/collector/types';
 
 interface TestButtonProps {
   label: string;
@@ -36,12 +37,11 @@ export const TestButton: React.FC<TestButtonProps> = ({
         // Generate error based on options
         const error = new Error(options.message || `Test error: ${label}`);
         errorCollector.captureError(error, {
-          type,
-          errorType: options.errorType,
-          source: 'ErrorTestPanel',
           component: options.component || 'TestButton',
+          source: 'ErrorTestPanel',
           details: options.details,
-          message: options.message || `Error triggered by test button: ${label}`
+          message: options.message || `Error triggered by test button: ${label}`,
+          errorType: options.errorType
         });
 
         // For test purposes, throw the error
@@ -49,11 +49,10 @@ export const TestButton: React.FC<TestButtonProps> = ({
       }
     } catch (error) {
       errorCollector.captureError(error as Error, {
-        type,
-        errorType: options.errorType,
-        source: 'ErrorTestPanel',
         component: options.component || 'TestButton',
-        message: `Error triggered by test button: ${label}`
+        source: 'ErrorTestPanel',
+        message: `Error triggered by test button: ${label}`,
+        errorType: options.errorType
       });
     }
   };

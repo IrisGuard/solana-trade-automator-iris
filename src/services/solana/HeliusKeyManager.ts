@@ -1,4 +1,3 @@
-
 import { errorCollector } from '@/utils/error-handling/collector';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -98,6 +97,13 @@ class HeliusKeyManager {
       this.initialized = false;
       return false;
     }
+  }
+  
+  /**
+   * Force reload keys from the database
+   */
+  async forceReload(): Promise<boolean> {
+    return this.initialize();
   }
   
   /**

@@ -16,7 +16,7 @@ export function GlobalErrorHandler() {
   // Λήψη των σφαλμάτων από τον collector
   useEffect(() => {
     const checkForErrors = () => {
-      const allErrors = errorCollector.getErrors(); // Changed from getAllErrors to getErrors
+      const allErrors = errorCollector.getErrors();
       setErrors(allErrors);
       
       // Εάν υπάρχει νέο σφάλμα, το αποθηκεύουμε ως το τελευταίο
@@ -44,7 +44,7 @@ export function GlobalErrorHandler() {
         - Message: ${error.message}
         - Component: ${error.component}
         - Source: ${error.source}
-        - Timestamp: ${error.timestamp}
+        - Timestamp: ${new Date(error.timestamp).toISOString()}
       `;
       
       // Αποστολή του σφάλματος (για την προσομοίωση)

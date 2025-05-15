@@ -102,9 +102,9 @@ export function SupabaseApiKeysList({ userId }: SupabaseApiKeysListProps) {
               onCopy={handleCopy}
               onDelete={handleDeleteKey}
               onTest={handleTestKey}
-              isKeyVisible={isKeyVisible}
-              isCopied={isCopied}
-              isKeyTesting={isKeyTesting}
+              isKeyVisible={id => isKeyVisible(id)}
+              isCopied={id => isCopied(id)}
+              isKeyTesting={id => isKeyTesting(id)}
               formatDate={formatDate}
               formatKeyDisplay={formatKeyDisplay}
             />
@@ -117,9 +117,9 @@ export function SupabaseApiKeysList({ userId }: SupabaseApiKeysListProps) {
               onCopy={handleCopy}
               onDelete={handleDeleteKey}
               onTest={handleTestKey}
-              isKeyVisible={isKeyVisible}
-              isCopied={isCopied}
-              isKeyTesting={isKeyTesting}
+              isKeyVisible={id => isKeyVisible(id)}
+              isCopied={id => isCopied(id)}
+              isKeyTesting={id => isKeyTesting(id)}
               formatDate={formatDate}
               formatKeyDisplay={formatKeyDisplay}
             />

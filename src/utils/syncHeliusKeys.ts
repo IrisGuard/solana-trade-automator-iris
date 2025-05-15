@@ -19,9 +19,16 @@ export async function syncAllHeliusData(userId: string): Promise<boolean> {
     // Συγχρονισμός των endpoints
     const endpointResult = await addHeliusEndpoints();
     
-    // Ανανέωση των διαχειριστών
-    await heliusKeyManager.forceReload();
-    await heliusEndpointMonitor.forceReload();
+    // Ανανέωση των διαχειριστών - make sure they have forceReload method
+    if (typeof heliusKeyManager.forceReload === 'function') {
+      await heliusKeyManager.forceReload();
+    } else {
+      await heliusKeyManager.initialize();
+    }
+    
+    if (heliusEndpointMonitor && typeof heliusEndpointMonitor.forceReload === 'function') {
+      await heliusEndpointMonitor.forceReload();
+    }
     
     if (keyResult && endpointResult) {
       toast.success('Τα δεδομένα Helius συγχρονίστηκαν επιτυχώς');
