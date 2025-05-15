@@ -1,92 +1,38 @@
 
-import { useState, useCallback, useEffect } from 'react';
-import { isPhantomInstalled } from '@/utils/phantomWallet';
-import { useWalletAddress } from './wallet/useWalletAddress';
-import { useWalletData } from './wallet/useWalletData';
-import { useWalletEvents } from './wallet/useWalletEvents';
-import { useWalletInit } from './wallet/useWalletInit';
-import { useDataRefresh } from './wallet/useDataRefresh';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
+import { Wallet } from '@/types/wallet';
 
-/**
- * Main wallet connection hook that combines all wallet functionality
- */
-export function useWalletConnection() {
-  // Get wallet address and connection status
-  const {
-    isConnected,
-    walletAddress,
-    isConnecting,
-    error,
-    connectWallet,
-    disconnectWallet,
-    setWalletAddress,
-    setIsConnected,
-  } = useWalletAddress();
+export const useWalletConnection = () => {
+  const [wallet, setWallet] = useState<Wallet | null>(null);
 
-  // Get wallet data (balance and tokens)
-  const {
-    solBalance,
-    tokens,
-    tokenPrices,
-    isLoadingTokens,
-    loadWalletData,
-    refreshWalletData,
-    selectTokenForTrading
-  } = useWalletData();
-
-  // Handle wallet connection events
-  useWalletEvents(
-    // On connected handler
-    (publicKey) => {
-      setWalletAddress(publicKey);
-      setIsConnected(true);
-      loadWalletData(publicKey);
-    },
-    // On disconnected handler - modified to return a Promise
-    async () => {
-      setWalletAddress('');
-      setIsConnected(false);
+  const handleDisconnect = useCallback(async (): Promise<void> => {
+    try {
+      setWallet(null);
+      localStorage.removeItem('wallet');
+      
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
       return Promise.resolve();
+    } catch (error) {
+      console.error('Disconnect error:', error);
+      return Promise.reject(error);
     }
-  );
+  }, []);
 
-  // Initialize wallet on component mount - make sure the callback is async and returns a Promise
-  useWalletInit(
-    setWalletAddress,
-    setIsConnected,
-    async (address) => {
-      await loadWalletData(address);
-      return Promise.resolve();
-    }
-  );
-
-  // Setup periodic data refresh
-  useDataRefresh(
-    isConnected,
-    walletAddress,
-    refreshWalletData
-  );
+  useEffect(() => {
+    const initWallet = async () => {
+      const storedWallet = localStorage.getItem('wallet');
+      if (storedWallet) {
+        setWallet(JSON.parse(storedWallet));
+      }
+    };
+    initWallet();
+  }, []);
 
   return {
-    // Wallet state
-    isConnected,
-    walletAddress,
-    isConnecting,
-    error,
-    
-    // Wallet data
-    solBalance,
-    tokens,
-    tokenPrices,
-    isLoadingTokens,
-    
-    // Actions
-    connectWallet,
-    disconnectWallet,
-    refreshWalletData,
-    selectTokenForTrading,
-    
-    // Utility properties
-    isPhantomInstalled: isPhantomInstalled(),
+    wallet,
+    handleDisconnect
   };
-}
+};
