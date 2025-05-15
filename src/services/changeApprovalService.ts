@@ -1,119 +1,133 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { PendingChange, ChangeSubmitData } from '@/types/changeApproval';
-import { toast } from 'sonner';
+import { errorCollector } from '@/utils/error-handling/collector';
 
-export const changeApprovalService = {
-  // Get all pending changes (for admins only)
-  async getPendingChanges(): Promise<PendingChange[]> {
-    try {
-      const { data, error } = await supabase.rpc('get_pending_changes');
-      
-      if (error) throw error;
-      return data || [];
-    } catch (error) {
-      console.error('Error fetching pending changes:', error);
-      toast.error('Failed to fetch pending changes');
-      return [];
-    }
-  },
-  
-  // Get changes submitted by the current user
-  async getUserChanges(): Promise<PendingChange[]> {
-    try {
+// Define the interface for pending changes
+export interface PendingChange {
+  id: string;
+  change_type: string;
+  entity_type: string;
+  entity_id: string;
+  data: any;
+  created_at: string;
+  user_id: string;
+  status: 'pending' | 'approved' | 'rejected';
+}
+
+// Get pending changes using a custom function
+export async function getPendingChanges(): Promise<PendingChange[]> {
+  try {
+    // Check if the table exists first
+    const { data: tableExists } = await supabase
+      .from('pending_changes')
+      .select('id')
+      .limit(1);
+    
+    // If the table exists, query it directly
+    if (tableExists) {
       const { data, error } = await supabase
         .from('pending_changes')
         .select('*')
-        .order('submitted_at', { ascending: false });
+        .eq('status', 'pending');
+        
+      if (error) {
+        throw error;
+      }
       
-      if (error) throw error;
-      return data || [];
-    } catch (error) {
-      console.error('Error fetching user changes:', error);
-      toast.error('Failed to fetch your change requests');
+      return data as PendingChange[] || [];
+    } else {
+      // Return empty array if table doesn't exist
       return [];
     }
-  },
-  
-  // Submit a new change
-  async submitChange(changeData: ChangeSubmitData): Promise<string | null> {
-    try {
-      const { data, error } = await supabase.rpc(
-        'submit_change', 
-        { 
-          p_table_name: changeData.table_name,
-          p_record_id: changeData.record_id,
-          p_changes_json: changeData.changes_json
-        }
-      );
-      
-      if (error) throw error;
-      toast.success('Change request submitted successfully');
-      return data;
-    } catch (error) {
-      console.error('Error submitting change:', error);
-      toast.error('Failed to submit change request');
-      return null;
-    }
-  },
-  
-  // Approve a change (admin only)
-  async approveChange(changeId: string): Promise<boolean> {
-    try {
-      const { data, error } = await supabase.rpc(
-        'approve_change',
-        { p_change_id: changeId }
-      );
-      
-      if (error) throw error;
-      toast.success('Change approved successfully');
-      return true;
-    } catch (error) {
-      console.error('Error approving change:', error);
-      toast.error('Failed to approve change');
-      return false;
-    }
-  },
-  
-  // Reject a change (admin only)
-  async rejectChange(changeId: string, comments?: string): Promise<boolean> {
-    try {
-      const { data, error } = await supabase.rpc(
-        'reject_change',
-        { 
-          p_change_id: changeId,
-          p_comments: comments || null
-        }
-      );
-      
-      if (error) throw error;
-      toast.success('Change rejected');
-      return true;
-    } catch (error) {
-      console.error('Error rejecting change:', error);
-      toast.error('Failed to reject change');
-      return false;
-    }
-  },
-  
-  // Check if current user is admin
-  async isUserAdmin(): Promise<boolean> {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
-      
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
-      
-      if (error) throw error;
-      return !!data;
-    } catch (error) {
-      console.error('Error checking admin status:', error);
-      return false;
-    }
+  } catch (error) {
+    errorCollector.captureError(error instanceof Error ? error : new Error(String(error)), {
+      component: 'changeApprovalService',
+      source: 'getPendingChanges'
+    });
+    return [];
   }
-};
+}
+
+// Approve a pending change
+export async function approveChange(changeId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('pending_changes')
+      .update({ status: 'approved' })
+      .eq('id', changeId);
+      
+    if (error) {
+      throw error;
+    }
+    
+    return true;
+  } catch (error) {
+    errorCollector.captureError(error instanceof Error ? error : new Error(String(error)), {
+      component: 'changeApprovalService',
+      source: 'approveChange',
+      details: { changeId }
+    });
+    return false;
+  }
+}
+
+// Reject a pending change
+export async function rejectChange(changeId: string, reason?: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('pending_changes')
+      .update({ 
+        status: 'rejected',
+        rejection_reason: reason
+      })
+      .eq('id', changeId);
+      
+    if (error) {
+      throw error;
+    }
+    
+    return true;
+  } catch (error) {
+    errorCollector.captureError(error instanceof Error ? error : new Error(String(error)), {
+      component: 'changeApprovalService',
+      source: 'rejectChange',
+      details: { changeId, reason }
+    });
+    return false;
+  }
+}
+
+// Submit a change for approval
+export async function submitChange(
+  entityType: string,
+  changeType: 'create' | 'update' | 'delete',
+  entityId: string,
+  data: any
+): Promise<string | null> {
+  try {
+    const { data: result, error } = await supabase
+      .from('pending_changes')
+      .insert({
+        entity_type: entityType,
+        change_type: changeType,
+        entity_id: entityId,
+        data,
+        status: 'pending'
+      })
+      .select()
+      .single();
+      
+    if (error) {
+      throw error;
+    }
+    
+    return result.id;
+  } catch (error) {
+    errorCollector.captureError(error instanceof Error ? error : new Error(String(error)), {
+      component: 'changeApprovalService',
+      source: 'submitChange',
+      details: { entityType, changeType, entityId }
+    });
+    return null;
+  }
+}

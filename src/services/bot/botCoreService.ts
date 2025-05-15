@@ -1,7 +1,101 @@
+import { supabase } from '@/integrations/supabase/client';
+import { errorCollector } from '@/utils/error-handling/collector';
+import { BotConfig } from './types';
 
-import { dbClient } from '@/integrations/supabase/client';
-import type { BotRow, BotConfig } from '@/types/supabase-extensions';
-import { toast } from 'sonner';
+export async function createBot(
+  userId: string, 
+  name: string, 
+  strategy: string,
+  config?: BotConfig
+) {
+  try {
+    const newBot = {
+      name,
+      strategy,
+      user_id: userId,
+      active: false,
+      config: config as unknown as Json,
+      created_at: new Date().toISOString()
+    };
+
+    const { data, error } = await supabase
+      .from('bots')
+      .insert(newBot)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    errorCollector.captureError(error instanceof Error ? error : new Error(String(error)), {
+      component: 'botCoreService',
+      source: 'createBot',
+      details: { userId, name, strategy }
+    });
+    throw error;
+  }
+}
+
+export async function getBotById(botId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('bots')
+      .select('*')
+      .eq('id', botId)
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    errorCollector.captureError(error instanceof Error ? error : new Error(String(error)), {
+      component: 'botCoreService',
+      source: 'getBotById',
+      details: { botId }
+    });
+    return null;
+  }
+}
+
+export async function updateBot(botId: string, updates: {
+  name?: string;
+  strategy?: string;
+  active?: boolean;
+  config?: BotConfig;
+}) {
+  try {
+    const botUpdates = {
+      ...updates,
+      config: updates.config as unknown as Json,
+      updated_at: new Date().toISOString()
+    };
+
+    const { data, error } = await supabase
+      .from('bots')
+      .update(botUpdates)
+      .eq('id', botId)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    errorCollector.captureError(error instanceof Error ? error : new Error(String(error)), {
+      component: 'botCoreService',
+      source: 'updateBot',
+      details: { botId, updates }
+    });
+    throw error;
+  }
+}
 
 export const botCoreService = {
   async createBot(userId: string, botData: {

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConnectWalletCard } from "@/components/home/ConnectWalletCard";
@@ -23,6 +24,11 @@ const chartData = [
   { name: 'Ιουλ', value: 2800, month: 'Ιούλιος' },
 ];
 
+// Define Bot types to resolve infinite instantiation
+interface BotStatus {
+  active: boolean;
+}
+
 export default function Dashboard() {
   const {
     isConnected,
@@ -45,13 +51,13 @@ export default function Dashboard() {
   // Fetch bot status on component mount
   useEffect(() => {
     const fetchBotStatus = async () => {
-      if (!isConnected || !walletAddress) return;
+      if (!isConnected || !walletAddress || !user?.id) return;
       
       try {
         const { data, error } = await supabase
           .from('bots')
           .select('active')
-          .eq('user_id', user?.id)
+          .eq('user_id', user.id)
           .eq('is_primary', true)
           .maybeSingle();
         

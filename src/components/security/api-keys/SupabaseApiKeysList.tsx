@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, RefreshCw, Search } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Loader2, Copy, RefreshCw, Eye, EyeOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/providers/SupabaseAuthProvider";
 
+// Define the SupabaseApiKey interface
 interface SupabaseApiKey {
   id: string;
   name: string;
@@ -16,214 +17,268 @@ interface SupabaseApiKey {
   created_at: string;
 }
 
-interface SupabaseApiKeysListProps {
-  userId: string; // Add userId to props interface
-}
-
-export const SupabaseApiKeysList = ({ userId }: SupabaseApiKeysListProps) => {
-  const [apiKeys, setApiKeys] = useState<SupabaseApiKey[]>([]);
+export function SupabaseApiKeysList() {
+  const [keys, setKeys] = useState<SupabaseApiKey[]>([]);
+  const [endpoints, setEndpoints] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
   const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>({});
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const { user } = useAuth();
 
-  const fetchApiKeys = async () => {
+  useEffect(() => {
+    fetchData();
+  }, [user]);
+
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("api_keys_storage")
-        .select("*")
-        .eq("user_id", userId);
-
-      if (error) {
-        throw error;
+      // Always show demo key if not logged in
+      const demoKey: SupabaseApiKey = {
+        id: 'demo',
+        name: 'Helius API Demo Key',
+        service: 'helius',
+        key: 'ddb32813-1f4b-459d-8964-310b1b73a053',
+        created_at: new Date().toISOString()
+      };
+      
+      if (user) {
+        // Fetch all API keys if user is logged in
+        const { data: keysData, error: keysError } = await supabase
+          .from('api_keys_storage')
+          .select('*');
+          
+        if (keysError) throw keysError;
+        
+        // If no keys found and user is logged in, show demo key
+        if (!keysData || keysData.length === 0) {
+          setKeys([demoKey]);
+        } else {
+          // Map the data to match SupabaseApiKey interface
+          const formattedKeys: SupabaseApiKey[] = keysData.map(item => ({
+            id: item.id,
+            name: item.name,
+            key: item.key_value,
+            service: item.service,
+            created_at: item.created_at
+          }));
+          setKeys(formattedKeys);
+        }
+      } else {
+        // Not logged in - show demo key
+        setKeys([demoKey]);
       }
-
-      setApiKeys(data || []);
+      
+      // Fetch all endpoints
+      const { data: endpointsData, error: endpointsError } = await supabase
+        .from('api_endpoints')
+        .select('*');
+        
+      if (endpointsError) throw endpointsError;
+      setEndpoints(endpointsData || []);
     } catch (error) {
-      console.error("Error fetching API keys:", error);
-      toast.error("Failed to load API keys");
+      console.error('Error fetching data:', error);
+      toast.error('Σφάλμα κατά τη φόρτωση των δεδομένων');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (userId) {
-      fetchApiKeys();
-    }
-  }, [userId]);
-
   const toggleKeyVisibility = (id: string) => {
-    setVisibleKeys((prev) => ({
+    setVisibleKeys(prev => ({
       ...prev,
-      [id]: !prev[id],
+      [id]: !prev[id]
     }));
   };
 
-  const deleteApiKey = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from("api_keys_storage")
-        .delete()
-        .eq("id", id);
-
-      if (error) {
-        throw error;
-      }
-
-      setApiKeys((prev) => prev.filter((key) => key.id !== id));
-      toast.success("API key deleted successfully");
-    } catch (error) {
-      console.error("Error deleting API key:", error);
-      toast.error("Failed to delete API key");
-    }
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(text);
+    toast.success('Αντιγράφηκε στο πρόχειρο!');
+    
+    setTimeout(() => {
+      setCopiedKey(null);
+    }, 2000);
   };
 
-  const filteredKeys = apiKeys.filter((key) => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      key.name.toLowerCase().includes(searchLower) ||
-      key.service.toLowerCase().includes(searchLower)
-    );
-  });
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-      .then(() => {
-        toast.success("API key copied to clipboard");
-      })
-      .catch(() => {
-        toast.error("Failed to copy API key");
-      });
+  const formatKeyDisplay = (key: string, isVisible: boolean) => {
+    if (isVisible) {
+      return key;
+    }
+    return key ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}` : '';
   };
 
   if (loading) {
     return (
-      <Card>
+      <Card className="w-full">
         <CardHeader>
-          <CardTitle>Supabase API Keys</CardTitle>
+          <CardTitle>Κλειδιά API & Endpoints στο Supabase</CardTitle>
           <CardDescription>
-            Manage your Supabase API keys securely
+            Φόρτωση δεδομένων...
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="space-y-2">
-                <Skeleton className="h-5 w-1/4" />
-                <Skeleton className="h-10 w-full" />
-              </div>
-            ))}
-          </div>
+        <CardContent className="flex justify-center py-10">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>Supabase API Keys</CardTitle>
+          <CardTitle>Κλειδιά API στο Supabase</CardTitle>
           <CardDescription>
-            Manage your Supabase API keys securely
+            Προβολή των αποθηκευμένων κλειδιών API και endpoints
           </CardDescription>
         </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" size="icon" onClick={fetchApiKeys}>
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-          <Button>
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Add New Key
-          </Button>
-        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={fetchData}
+          className="gap-2"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Ανανέωση
+        </Button>
       </CardHeader>
       <CardContent>
-        {apiKeys.length === 0 ? (
-          <div className="text-center p-8">
-            <p className="text-muted-foreground mb-4">No API keys found</p>
-            <Button>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Add Your First API Key
-            </Button>
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg font-medium mb-2">API Κλειδιά</h3>
+            {keys.length > 0 ? (
+              <div className="border rounded-md overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Όνομα</TableHead>
+                      <TableHead>Υπηρεσία</TableHead>
+                      <TableHead>Κλειδί</TableHead>
+                      <TableHead>Κατάσταση</TableHead>
+                      <TableHead className="text-right">Ενέργειες</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {keys.map((key) => (
+                      <TableRow key={key.id}>
+                        <TableCell className="font-medium">{key.name}</TableCell>
+                        <TableCell className="capitalize">{key.service}</TableCell>
+                        <TableCell className="font-mono text-xs">
+                          {formatKeyDisplay(key.key, visibleKeys[key.id])}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="default">
+                            active
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => toggleKeyVisibility(key.id)}
+                              title={visibleKeys[key.id] ? 'Απόκρυψη κλειδιού' : 'Εμφάνιση κλειδιού'}
+                            >
+                              {visibleKeys[key.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleCopy(key.key)}
+                              title="Αντιγραφή"
+                              disabled={!key.key}
+                            >
+                              {copiedKey === key.key ? 
+                                <RefreshCw className="h-4 w-4 text-green-500" /> : 
+                                <Copy className="h-4 w-4" />
+                              }
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="text-center py-8 border rounded-md">
+                <p className="mt-2 text-muted-foreground">Δεν υπάρχουν αποθηκευμένα κλειδιά API</p>
+              </div>
+            )}
           </div>
-        ) : (
-          <>
-            <div className="relative mb-4">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search keys..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="space-y-4">
-              {filteredKeys.map((key) => (
-                <div
-                  key={key.id}
-                  className="border rounded-md p-4 space-y-2"
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-medium">{key.name}</h3>
-                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                        <span>{key.service}</span>
-                        <span>•</span>
-                        <span>
-                          {new Date(key.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                    <Badge>Active</Badge>
-                  </div>
-                  <div className="relative bg-muted p-2 rounded font-mono text-sm flex items-center">
-                    <code className="flex-1 overflow-x-auto">
-                      {!!visibleKeys[key.id]
-                        ? key.key
-                        : "•".repeat(20)}
-                    </code>
-                    <div className="flex space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => toggleKeyVisibility(key.id)}
-                      >
-                        {visibleKeys[key.id] ? (
-                          <span className="sr-only">Hide</span>
-                        ) : (
-                          <span className="sr-only">Show</span>
-                        )}
-                        👁️
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => copyToClipboard(key.key)}
-                      >
-                        <span className="sr-only">Copy</span>
-                        📋
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="flex justify-end">
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => deleteApiKey(key.id)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
+
+          <div>
+            <h3 className="text-lg font-medium mb-2">Endpoints</h3>
+            {endpoints.length > 0 ? (
+              <div className="border rounded-md overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Όνομα</TableHead>
+                      <TableHead>URL</TableHead>
+                      <TableHead>Κατηγορία</TableHead>
+                      <TableHead className="text-right">Ενέργειες</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {endpoints.map((endpoint) => (
+                      <TableRow key={endpoint.id}>
+                        <TableCell className="font-medium">{endpoint.name}</TableCell>
+                        <TableCell className="font-mono text-xs truncate max-w-[200px]">
+                          {endpoint.url}
+                        </TableCell>
+                        <TableCell className="capitalize">{endpoint.category}</TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleCopy(endpoint.url)}
+                            title="Αντιγραφή URL"
+                          >
+                            {copiedKey === endpoint.url ? 
+                              <RefreshCw className="h-4 w-4 text-green-500" /> : 
+                              <Copy className="h-4 w-4" />
+                            }
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="text-center py-8 border rounded-md">
+                <p className="mt-2 text-muted-foreground">Δεν υπάρχουν αποθηκευμένα endpoints</p>
+              </div>
+            )}
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
-};
+  
+  // Helper functions
+  function toggleKeyVisibility(id: string) {
+    setVisibleKeys(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  }
+
+  function handleCopy(text: string) {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(text);
+    toast.success('Αντιγράφηκε στο πρόχειρο!');
+    
+    setTimeout(() => {
+      setCopiedKey(null);
+    }, 2000);
+  }
+
+  function formatKeyDisplay(key: string, isVisible: boolean) {
+    if (isVisible) {
+      return key;
+    }
+    return key ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}` : '';
+  }
+}

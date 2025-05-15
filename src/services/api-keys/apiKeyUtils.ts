@@ -1,117 +1,134 @@
 
-import { ApiKeyEntry } from './types';
-import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
+import { ApiKeyEntry, ApiService } from './types';
 import { errorCollector } from '@/utils/error-handling/collector';
 
-/**
- * Function to test if a Helius API key is valid
- */
-export async function testHeliusApiKey(keyValue: string): Promise<boolean> {
+// API key validation functions
+export function isValidApiKey(key: string, service?: string): boolean {
+  if (!key || key.length < 10) {
+    return false;
+  }
+  
+  // Service-specific validation
+  if (service) {
+    switch (service.toLowerCase()) {
+      case 'helius':
+        // UUID format validation for Helius keys
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key);
+      case 'openai':
+        // OpenAI API key format
+        return /^sk-[A-Za-z0-9]{32,}$/.test(key);
+      case 'solana':
+        // Solana wallet addresses or keys
+        return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(key);
+      default:
+        // Default validation - at least 16 chars, no spaces
+        return key.length >= 16 && !/\s/.test(key);
+    }
+  }
+  
+  // Generic validation for unknown service types
+  return key.length >= 16 && !/\s/.test(key);
+}
+
+export function detectServiceFromKey(key: string): string | null {
   try {
-    // Test endpoint for Helius API
-    const url = `https://api.helius.xyz/v0/transactions?api-key=${keyValue}`;
+    if (!key) return null;
     
-    // Simple test transaction to check
-    const testPayload = {
-      transactions: ["5werj5j6wtP8y6DmbMeE5Xqfg89Q93o579n3Yj4tX6G9w75jC9ac2vTvqYFGJvBsjEqeTGhho8jNeJ9zafaVeqS"]
+    // Service-specific patterns
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key)) {
+      return 'helius';
+    }
+    
+    if (/^sk-[A-Za-z0-9]{32,}$/.test(key)) {
+      return 'openai';
+    }
+    
+    if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(key) && !key.includes('-')) {
+      return 'solana';
+    }
+    
+    if (/^ghp_[A-Za-z0-9]{36}$/.test(key)) {
+      return 'github';
+    }
+    
+    // For unknown patterns
+    return null;
+  } catch (error) {
+    errorCollector.captureError(error instanceof Error ? error : new Error('Failed to detect service from key'), {
+      component: 'apiKeyUtils',
+      source: 'detectServiceFromKey'
+    });
+    return null;
+  }
+}
+
+export function generateApiKeyEntry(
+  name: string,
+  service: string,
+  keyValue: string,
+  options: {
+    userId?: string;
+    description?: string;
+    isEncrypted?: boolean;
+  } = {}
+): ApiKeyEntry {
+  try {
+    return {
+      id: uuidv4(),
+      user_id: options.userId || 'anonymous',
+      name,
+      service,
+      key_value: keyValue,
+      status: 'active',
+      created_at: new Date().toISOString(),
+      description: options.description,
+      is_encrypted: options.isEncrypted
     };
-    
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(testPayload)
-    });
-    
-    if (!response.ok) {
-      return false;
-    }
-    
-    const data = await response.json();
-    return Array.isArray(data) && data.length > 0;
   } catch (error) {
-    console.error('Error testing Helius API key:', error);
-    errorCollector.captureError(error instanceof Error ? error : new Error(String(error)), {
+    errorCollector.captureError(error instanceof Error ? error : new Error('Failed to generate API key entry'), {
       component: 'apiKeyUtils',
-      source: 'testHeliusApiKey',
-      severity: 'medium'
+      source: 'generateApiKeyEntry'
     });
-    return false;
+    throw error;
   }
 }
 
-/**
- * Function to test any API key based on service type
- */
-export async function testApiKey(service: string, keyValue: string): Promise<boolean> {
-  try {
-    // Normalize service name
-    const normalizedService = service.toLowerCase().trim();
-    
-    // Use specific test functions based on service
-    if (normalizedService.includes('helius')) {
-      return await testHeliusApiKey(keyValue);
-    }
-    
-    // Add other service testers here
-    
-    // Default simple validation for unknown services
-    return keyValue.length >= 16;
-  } catch (error) {
-    console.error('Error testing API key:', error);
-    errorCollector.captureError(error instanceof Error ? error : new Error(String(error)), {
-      component: 'apiKeyUtils',
-      source: 'testApiKey',
-      severity: 'medium'
-    });
-    return false;
+// List of common API services
+export const API_SERVICES: ApiService[] = [
+  {
+    id: 'helius',
+    name: 'Helius',
+    description: 'Solana blockchain data API',
+    documentationUrl: 'https://docs.helius.xyz/',
+    apiKeyUrl: 'https://dev.helius.xyz/dashboard/app'
+  },
+  {
+    id: 'solana',
+    name: 'Solana',
+    description: 'Solana blockchain wallet keys and RPC',
+    documentationUrl: 'https://docs.solana.com/',
+    apiKeyUrl: 'https://solana.com/'
+  },
+  {
+    id: 'openai',
+    name: 'OpenAI',
+    description: 'AI models and GPT API',
+    documentationUrl: 'https://platform.openai.com/docs/',
+    apiKeyUrl: 'https://platform.openai.com/account/api-keys'
+  },
+  {
+    id: 'github',
+    name: 'GitHub',
+    description: 'GitHub API access',
+    documentationUrl: 'https://docs.github.com/en/rest',
+    apiKeyUrl: 'https://github.com/settings/tokens'
+  },
+  {
+    id: 'other',
+    name: 'Other',
+    description: 'Custom or other API service',
+    documentationUrl: '',
+    apiKeyUrl: ''
   }
-}
-
-/**
- * Hash an API key for secure storage
- * Note: In a real implementation, this would use a server-side HMAC
- */
-export function hashApiKey(key: string): string {
-  // This is a simple hash for demo purposes
-  // In production, use a proper HMAC on the server side
-  let hash = 0;
-  for (let i = 0; i < key.length; i++) {
-    const char = key.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  return hash.toString(36);
-}
-
-/**
- * Categorize an API key based on metadata
- */
-export function categorizeApiKey(key: ApiKeyEntry): {
-  environment: 'production' | 'development' | 'backup',
-  purpose: string
-} {
-  const name = (key.name || '').toLowerCase();
-  const description = (key.description || '').toLowerCase();
-  
-  // Determine environment
-  let environment: 'production' | 'development' | 'backup' = 'production';
-  if (name.includes('dev') || name.includes('test') || description.includes('dev') || description.includes('test')) {
-    environment = 'development';
-  } else if (name.includes('backup') || description.includes('backup') || description.includes('emergency')) {
-    environment = 'backup';
-  }
-  
-  // Determine purpose
-  let purpose = 'general';
-  if (name.includes('transaction') || description.includes('transaction')) {
-    purpose = 'transactions';
-  } else if (name.includes('nft') || description.includes('nft')) {
-    purpose = 'nft';
-  } else if (name.includes('asset') || description.includes('asset')) {
-    purpose = 'asset';
-  }
-  
-  return { environment, purpose };
-}
+];
