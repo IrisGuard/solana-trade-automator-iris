@@ -61,5 +61,24 @@ export const authService = {
       toast.error('Απρόσμενο σφάλμα κατά την αποσύνδεση');
       return { error };
     }
+  },
+  
+  async resetPassword(email: string) {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) {
+        toast.error(`Σφάλμα επαναφοράς κωδικού: ${error.message}`);
+        return { error };
+      }
+      
+      toast.success('Οδηγίες επαναφοράς κωδικού έχουν σταλεί στο email σας.');
+      return { success: true };
+    } catch (error) {
+      toast.error('Απρόσμενο σφάλμα κατά την επαναφορά του κωδικού');
+      return { error };
+    }
   }
 };

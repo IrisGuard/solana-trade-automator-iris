@@ -31,10 +31,13 @@ export default function ChangeApproval() {
   useEffect(() => {
     fetchPendingChanges();
     // Filter user changes from pending changes
-    const filteredChanges = pendingChanges.filter(change => 
-      change.status === 'pending' || change.status === 'rejected'
-    );
-    setUserChanges(filteredChanges);
+    if (pendingChanges && pendingChanges.length > 0) {
+      const filteredChanges = pendingChanges
+        .filter(change => change.status === 'pending' || change.status === 'rejected')
+        .map(change => mapChangeToCompatible(change));
+      
+      setUserChanges(filteredChanges);
+    }
   }, [fetchPendingChanges, pendingChanges]); 
 
   const handleApprove = async (id: string) => {
@@ -66,11 +69,11 @@ export default function ChangeApproval() {
   };
 
   // Create compatible change items for the ChangeItem component
-  const mapChangeToCompatible = (change: PendingChange) => {
+  const mapChangeToCompatible = (change: any): PendingChange => {
     return {
       id: change.id,
       title: change.title || `Change ${change.id.substring(0, 8)}`,
-      description: change.description || JSON.stringify(change.changes_json),
+      description: change.description || JSON.stringify(change.changes_json || {}),
       status: change.status,
       created_at: change.submitted_at || change.created_at || "",
       requested_by: change.submitter_id || change.requested_by || "",
@@ -82,7 +85,7 @@ export default function ChangeApproval() {
       table_name: change.table_name || "",
       record_id: change.record_id || "",
       changes_json: change.changes_json || {},
-      submitted_at: change.submitted_at || ""
+      submitted_at: change.submitted_at || change.created_at || ""
     };
   };
 
@@ -112,7 +115,7 @@ export default function ChangeApproval() {
               {userChanges.map(change => (
                 <ChangeItem 
                   key={change.id} 
-                  change={mapChangeToCompatible(change)}
+                  change={change}
                   isAdmin={isAdmin}
                   onApprove={handleApprove}
                   onReject={handleOpenRejectDialog}
