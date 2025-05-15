@@ -3,28 +3,30 @@ import { useEffect } from 'react';
 import { registerPhantomEvents } from '@/utils/phantomWallet';
 
 /**
- * Hook για τη διαχείριση των γεγονότων του wallet
+ * Hook to handle wallet connection events
+ * @param onConnected Called when wallet is connected
+ * @param onDisconnected Called when wallet is disconnected
  */
 export function useWalletEvents(
-  onConnected?: (publicKey: string) => void,
-  onDisconnected?: () => void
+  onConnected: (publicKey: string) => void,
+  onDisconnected: () => Promise<void>
 ) {
   useEffect(() => {
-    // Εγγραφή στα γεγονότα του Phantom Wallet
+    // Register wallet connection events
     const cleanup = registerPhantomEvents(
-      // Όταν συνδεθεί το πορτοφόλι
+      // Connected handler
       (publicKey) => {
-        console.log("Wallet connected event received:", publicKey);
-        if (onConnected) onConnected(publicKey);
+        console.log("Wallet connected event:", publicKey);
+        onConnected(publicKey);
       },
-      // Όταν αποσυνδεθεί το πορτοφόλι
+      // Disconnected handler
       () => {
-        console.log("Wallet disconnected event received");
-        if (onDisconnected) onDisconnected();
+        console.log("Wallet disconnected event");
+        onDisconnected();
       }
     );
     
-    // Cleanup function για την αποεγγραφή από τα events
+    // Return cleanup function
     return cleanup;
   }, [onConnected, onDisconnected]);
 
