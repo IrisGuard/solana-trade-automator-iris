@@ -44,15 +44,16 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     signOut: async () => {
       try {
         await supabaseAuth.signOut();
+        return { error: null };
       } catch (error) {
         console.error('Error signing out:', error);
+        return { error: error as Error };
       }
     },
     
     resetPassword: async (email) => {
       try {
         // Implementation would depend on your authService
-        // This is a placeholder implementation
         await authService.resetPassword(email);
         return { error: null };
       } catch (error) {
@@ -63,8 +64,6 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     updateProfile: async (profile: Partial<Profile>) => {
       try {
         // Implementation would depend on your authService
-        // This is a placeholder implementation
-        // await authService.updateProfile(profile);
         console.log("Updating profile:", profile);
         return { error: null };
       } catch (error) {

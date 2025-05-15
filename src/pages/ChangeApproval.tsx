@@ -31,9 +31,10 @@ export default function ChangeApproval() {
   useEffect(() => {
     fetchPendingChanges();
     // Filter user changes from pending changes
-    setUserChanges(pendingChanges.filter(change => 
+    const filteredChanges = pendingChanges.filter(change => 
       change.status === 'pending' || change.status === 'rejected'
-    ));
+    );
+    setUserChanges(filteredChanges);
   }, [fetchPendingChanges, pendingChanges]); 
 
   const handleApprove = async (id: string) => {
@@ -55,7 +56,7 @@ export default function ChangeApproval() {
     try {
       const result = await submitChange(
         data.title || 'Untitled Change',
-        data.description || JSON.stringify(data.changes_json)
+        data.description || JSON.stringify(data.changes_json || {})
       );
       return result.error === null;
     } catch (error) {
@@ -64,25 +65,25 @@ export default function ChangeApproval() {
     }
   };
 
-  // Create mapped changes for compatibility with ChangeItem component
-  const mapChangesToCompatible = (changes: PendingChange[]) => {
-    return changes.map(change => ({
+  // Create compatible change items for the ChangeItem component
+  const mapChangeToCompatible = (change: PendingChange) => {
+    return {
       id: change.id,
       title: change.title || `Change ${change.id.substring(0, 8)}`,
       description: change.description || JSON.stringify(change.changes_json),
       status: change.status,
-      created_at: change.submitted_at || change.created_at,
-      requested_by: change.submitter_id || change.requested_by,
+      created_at: change.submitted_at || change.created_at || "",
+      requested_by: change.submitter_id || change.requested_by || "",
       approval_date: change.reviewed_at || change.approval_date,
       approved_by: change.reviewer_id || change.approved_by,
       rejected_reason: change.comments || change.rejected_reason,
-      // Add required fields from PendingChange
-      submitter_id: change.submitter_id,
-      table_name: change.table_name,
-      record_id: change.record_id,
-      changes_json: change.changes_json,
-      submitted_at: change.submitted_at
-    }));
+      // Required fields from PendingChange
+      submitter_id: change.submitter_id || "",
+      table_name: change.table_name || "",
+      record_id: change.record_id || "",
+      changes_json: change.changes_json || {},
+      submitted_at: change.submitted_at || ""
+    };
   };
 
   return (
@@ -108,10 +109,10 @@ export default function ChangeApproval() {
             <div className="text-center py-10">Φόρτωση...</div>
           ) : userChanges.length > 0 ? (
             <div className="space-y-4">
-              {mapChangesToCompatible(userChanges).map(change => (
+              {userChanges.map(change => (
                 <ChangeItem 
                   key={change.id} 
-                  change={change}
+                  change={mapChangeToCompatible(change)}
                   isAdmin={isAdmin}
                   onApprove={handleApprove}
                   onReject={handleOpenRejectDialog}
@@ -131,10 +132,10 @@ export default function ChangeApproval() {
               <div className="text-center py-10">Φόρτωση...</div>
             ) : pendingChanges.length > 0 ? (
               <div className="space-y-4">
-                {mapChangesToCompatible(pendingChanges).map(change => (
+                {pendingChanges.map(change => (
                   <ChangeItem 
                     key={change.id} 
-                    change={change}
+                    change={mapChangeToCompatible(change)}
                     isAdmin={isAdmin}
                     onApprove={handleApprove}
                     onReject={handleOpenRejectDialog}

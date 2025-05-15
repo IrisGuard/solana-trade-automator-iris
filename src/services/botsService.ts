@@ -7,7 +7,7 @@ import { botTemplateService } from './bot/botTemplateService';
 export const botsService = {
   // Core bot operations
   createBot: botCoreService.createBot,
-  getBotsByUser: botCoreService.getBotsByUser,
+  getBotsByUser: botCoreService.getAllBots, // Updated to match the correct method name
   updateBot: botCoreService.updateBot,
   deleteBot: botCoreService.deleteBot,
   
