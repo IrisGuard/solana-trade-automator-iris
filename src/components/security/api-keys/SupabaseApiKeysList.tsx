@@ -1,130 +1,243 @@
 
-import React from "react";
+import React, { useState, useEffect } from 'react';
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RefreshCw, Plus, AlertCircle } from "lucide-react";
-import { ApiKeysList } from "./ApiKeysList";
-import { ApiKeysByService } from "./ApiKeysByService";
-import { useApiKeyManager } from "@/hooks/api-keys/useApiKeyManager";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
+import { Loader2, Copy, RefreshCw, Eye, EyeOff } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/providers/SupabaseAuthProvider";
 
-interface SupabaseApiKeysListProps {
-  userId: string;
-}
+export function SupabaseApiKeysList() {
+  const [keys, setKeys] = useState<any[]>([]);
+  const [endpoints, setEndpoints] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>({});
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const { user } = useAuth();
 
-export function SupabaseApiKeysList({ userId }: SupabaseApiKeysListProps) {
-  const [activeTab, setActiveTab] = React.useState("all");
-  
-  const {
-    apiKeys,
-    loading,
-    error,
-    refreshApiKeys,
-    handleCopy,
-    handleDeleteKey,
-    handleTestKey,
-    toggleKeyVisibility,
-    isCopied,
-    isKeyVisible,
-    isKeyTesting,
-    formatDate,
-    formatKeyDisplay,
-    getKeysByService
-  } = useApiKeyManager();
+  useEffect(() => {
+    fetchData();
+  }, [user]);
 
-  // Handler for adding a new API key
-  const handleAddKey = () => {
-    // This would open a dialog to add a new key
-    console.log("Add key for user:", userId);
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // Always show demo key if not logged in
+      const demoKey = {
+        id: 'demo',
+        name: 'Helius API Demo Key',
+        service: 'helius',
+        key_value: 'ddb32813-1f4b-459d-8964-310b1b73a053',
+        status: 'active'
+      };
+      
+      if (user) {
+        // Fetch all API keys if user is logged in
+        const { data: keysData, error: keysError } = await supabase
+          .from('api_keys_storage')
+          .select('*');
+          
+        if (keysError) throw keysError;
+        
+        // If no keys found and user is logged in, show demo key
+        if (!keysData || keysData.length === 0) {
+          setKeys([demoKey]);
+        } else {
+          setKeys(keysData);
+        }
+      } else {
+        // Not logged in - show demo key
+        setKeys([demoKey]);
+      }
+      
+      // Fetch all endpoints
+      const { data: endpointsData, error: endpointsError } = await supabase
+        .from('api_endpoints')
+        .select('*');
+        
+      if (endpointsError) throw endpointsError;
+      setEndpoints(endpointsData || []);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      toast.error('Σφάλμα κατά τη φόρτωση των δεδομένων');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleKeyVisibility = (id: string) => {
+    setVisibleKeys(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(text);
+    toast.success('Αντιγράφηκε στο πρόχειρο!');
+    
+    setTimeout(() => {
+      setCopiedKey(null);
+    }, 2000);
+  };
+
+  // Fixed: Changed to return a boolean directly instead of calling Boolean
+  const formatKeyDisplay = (key: string, isVisible: boolean) => {
+    if (isVisible) {
+      return key;
+    }
+    return key ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}` : '';
   };
 
   if (loading) {
     return (
-      <Card>
+      <Card className="w-full">
         <CardHeader>
-          <CardTitle>API Keys</CardTitle>
-          <CardDescription>Loading your API keys...</CardDescription>
+          <CardTitle>Κλειδιά API & Endpoints στο Supabase</CardTitle>
+          <CardDescription>
+            Φόρτωση δεδομένων...
+          </CardDescription>
         </CardHeader>
-        <CardContent className="flex justify-center py-8">
-          <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+        <CardContent className="flex justify-center py-10">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+    <Card className="w-full">
+      <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>API Keys</CardTitle>
-          <CardDescription>Manage your stored API keys</CardDescription>
+          <CardTitle>Κλειδιά API στο Supabase</CardTitle>
+          <CardDescription>
+            Προβολή των αποθηκευμένων κλειδιών API και endpoints
+          </CardDescription>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={refreshApiKeys}
-            className="gap-1"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
-          <Button 
-            size="sm" 
-            onClick={handleAddKey}
-            className="gap-1"
-          >
-            <Plus className="h-4 w-4" />
-            Add Key
-          </Button>
-        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={fetchData}
+          className="gap-2"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Ανανέωση
+        </Button>
       </CardHeader>
-      
       <CardContent>
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="all">All Keys</TabsTrigger>
-            <TabsTrigger value="byService">By Service</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="all" className="mt-4">
-            <ApiKeysList
-              apiKeys={apiKeys}
-              toggleKeyVisibility={toggleKeyVisibility}
-              onCopy={handleCopy}
-              onDelete={handleDeleteKey}
-              onTest={handleTestKey}
-              isKeyVisible={(id: string) => isKeyVisible(id)}
-              isCopied={(id: string) => isCopied(id)}
-              isKeyTesting={(id: string) => isKeyTesting(id)}
-              formatDate={formatDate}
-              formatKeyDisplay={formatKeyDisplay}
-            />
-          </TabsContent>
-          
-          <TabsContent value="byService" className="mt-4">
-            <ApiKeysByService
-              keysByService={getKeysByService()}
-              toggleKeyVisibility={toggleKeyVisibility}
-              onCopy={handleCopy}
-              onDelete={handleDeleteKey}
-              onTest={handleTestKey}
-              isKeyVisible={(id: string) => isKeyVisible(id)}
-              isCopied={(id: string) => isCopied(id)}
-              isKeyTesting={(id: string) => isKeyTesting(id)}
-              formatDate={formatDate}
-              formatKeyDisplay={formatKeyDisplay}
-            />
-          </TabsContent>
-        </Tabs>
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg font-medium mb-2">API Κλειδιά</h3>
+            {keys.length > 0 ? (
+              <div className="border rounded-md overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Όνομα</TableHead>
+                      <TableHead>Υπηρεσία</TableHead>
+                      <TableHead>Κλειδί</TableHead>
+                      <TableHead>Κατάσταση</TableHead>
+                      <TableHead className="text-right">Ενέργειες</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {keys.map((key) => (
+                      <TableRow key={key.id}>
+                        <TableCell className="font-medium">{key.name}</TableCell>
+                        <TableCell className="capitalize">{key.service}</TableCell>
+                        <TableCell className="font-mono text-xs">
+                          {formatKeyDisplay(key.key_value, visibleKeys[key.id])}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={key.status === 'active' ? 'default' : 'secondary'}>
+                            {key.status || 'active'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => toggleKeyVisibility(key.id)}
+                              title={visibleKeys[key.id] ? 'Απόκρυψη κλειδιού' : 'Εμφάνιση κλειδιού'}
+                            >
+                              {visibleKeys[key.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleCopy(key.key_value)}
+                              title="Αντιγραφή"
+                              disabled={!key.key_value}
+                            >
+                              {copiedKey === key.key_value ? 
+                                <RefreshCw className="h-4 w-4 text-green-500" /> : 
+                                <Copy className="h-4 w-4" />
+                              }
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="text-center py-8 border rounded-md">
+                <p className="mt-2 text-muted-foreground">Δεν υπάρχουν αποθηκευμένα κλειδιά API</p>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <h3 className="text-lg font-medium mb-2">Endpoints</h3>
+            {endpoints.length > 0 ? (
+              <div className="border rounded-md overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Όνομα</TableHead>
+                      <TableHead>URL</TableHead>
+                      <TableHead>Κατηγορία</TableHead>
+                      <TableHead className="text-right">Ενέργειες</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {endpoints.map((endpoint) => (
+                      <TableRow key={endpoint.id}>
+                        <TableCell className="font-medium">{endpoint.name}</TableCell>
+                        <TableCell className="font-mono text-xs truncate max-w-[200px]">
+                          {endpoint.url}
+                        </TableCell>
+                        <TableCell className="capitalize">{endpoint.category}</TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleCopy(endpoint.url)}
+                            title="Αντιγραφή URL"
+                          >
+                            {copiedKey === endpoint.url ? 
+                              <RefreshCw className="h-4 w-4 text-green-500" /> : 
+                              <Copy className="h-4 w-4" />
+                            }
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="text-center py-8 border rounded-md">
+                <p className="mt-2 text-muted-foreground">Δεν υπάρχουν αποθηκευμένα endpoints</p>
+              </div>
+            )}
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

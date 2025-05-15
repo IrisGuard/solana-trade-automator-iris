@@ -1,5 +1,5 @@
 
-import { clusterApiUrl } from "@solana/web3.js";
+import { clusterApiUrl, Connection, ConnectionConfig } from "@solana/web3.js";
 
 export const CLUSTER = "mainnet-beta";
 export const SOLANA_CLUSTER = CLUSTER;
@@ -40,3 +40,10 @@ export const API_KEYS = {
   // Demo public key - limited usage
   HELIUS_DEMO: "ddb32813-1f4b-459d-8964-310b1b73a053"
 };
+
+// Create and export a connection instance
+export const connection = new Connection(
+  RPC_ENDPOINTS.MAINNET,
+  CONNECTION_CONFIG
+);
+

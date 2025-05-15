@@ -36,6 +36,13 @@ export class HeliusKeyManager {
       });
     }
   }
+  
+  // Added initialize method that was missing
+  public async initialize(): Promise<void> {
+    await this.forceReload();
+    this.isInitialized = true;
+    console.log("HeliusKeyManager initialized explicitly");
+  }
 
   public async forceReload(): Promise<void> {
     await this.loadKeysFromStorage();
