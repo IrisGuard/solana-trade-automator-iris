@@ -49,7 +49,7 @@ export function useWalletConnection() {
     }
   );
 
-  // Initialize wallet on component mount - here's the fix: make the callback async to return a Promise
+  // Initialize wallet on component mount - make sure the callback is async and returns a Promise
   useWalletInit(
     setWalletAddress,
     setIsConnected,
