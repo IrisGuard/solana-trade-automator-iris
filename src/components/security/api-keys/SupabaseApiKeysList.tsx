@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +8,7 @@ import { toast } from "sonner";
 import { Loader2, Copy, RefreshCw, Eye, EyeOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { useApiKeyVisibility } from "@/hooks/api-keys/useApiKeyVisibility";
 
 // Define the SupabaseApiKey interface
 interface SupabaseApiKey {
@@ -21,9 +23,9 @@ export function SupabaseApiKeysList() {
   const [keys, setKeys] = useState<SupabaseApiKey[]>([]);
   const [endpoints, setEndpoints] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>({});
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const { user } = useAuth();
+  const { visibleKeyIds, toggleKeyVisibility, formatKeyDisplay } = useApiKeyVisibility();
 
   useEffect(() => {
     fetchData();
@@ -83,13 +85,6 @@ export function SupabaseApiKeysList() {
     }
   };
 
-  const toggleKeyVisibility = (id: string) => {
-    setVisibleKeys(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
-  };
-
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedKey(text);
@@ -98,13 +93,6 @@ export function SupabaseApiKeysList() {
     setTimeout(() => {
       setCopiedKey(null);
     }, 2000);
-  };
-
-  const formatKeyDisplay = (key: string, isVisible: boolean) => {
-    if (isVisible) {
-      return key;
-    }
-    return key ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}` : '';
   };
 
   if (loading) {
@@ -164,7 +152,7 @@ export function SupabaseApiKeysList() {
                         <TableCell className="font-medium">{key.name}</TableCell>
                         <TableCell className="capitalize">{key.service}</TableCell>
                         <TableCell className="font-mono text-xs">
-                          {formatKeyDisplay(key.key, visibleKeys[key.id])}
+                          {formatKeyDisplay(key.key, visibleKeyIds[key.id])}
                         </TableCell>
                         <TableCell>
                           <Badge variant="default">
@@ -177,9 +165,9 @@ export function SupabaseApiKeysList() {
                               variant="ghost"
                               size="icon"
                               onClick={() => toggleKeyVisibility(key.id)}
-                              title={visibleKeys[key.id] ? 'Απόκρυψη κλειδιού' : 'Εμφάνιση κλειδιού'}
+                              title={visibleKeyIds[key.id] ? 'Απόκρυψη κλειδιού' : 'Εμφάνιση κλειδιού'}
                             >
-                              {visibleKeys[key.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              {visibleKeyIds[key.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </Button>
                             <Button
                               variant="ghost"
@@ -256,29 +244,4 @@ export function SupabaseApiKeysList() {
       </CardContent>
     </Card>
   );
-  
-  // Helper functions
-  function toggleKeyVisibility(id: string) {
-    setVisibleKeys(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
-  }
-
-  function handleCopy(text: string) {
-    navigator.clipboard.writeText(text);
-    setCopiedKey(text);
-    toast.success('Αντιγράφηκε στο πρόχειρο!');
-    
-    setTimeout(() => {
-      setCopiedKey(null);
-    }, 2000);
-  }
-
-  function formatKeyDisplay(key: string, isVisible: boolean) {
-    if (isVisible) {
-      return key;
-    }
-    return key ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}` : '';
-  }
 }

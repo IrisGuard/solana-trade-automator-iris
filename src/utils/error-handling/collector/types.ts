@@ -1,48 +1,43 @@
 
+/**
+ * Interface for standard error data
+ */
 export interface ErrorData {
-  id?: string;
-  name?: string;
-  message?: string;
-  stack?: string;
-  cause?: unknown;
-  code?: string | number;
-  fileName?: string;
-  lineNumber?: number;
-  columnNumber?: number;
-  component?: string;
-  source?: string;
-  details?: Record<string, unknown>;
-  severity?: 'low' | 'medium' | 'high' | 'critical';
-  status?: number;
-  errorType?: string;
-  timestamp?: number;
-  browser?: {
-    name?: string;
-    version?: string;
-    os?: string;
-  };
-  handled?: boolean;
-  autoFixed?: boolean;
+  id: string;
+  message: string;
+  stack: string | null;
+  timestamp: string;
+  component: string | null;
+  source: string;
+  url: string;
+  browserInfo: any;
+  errorCode: string | null;
+  context: any | null;
+  metadata: any | null;
+  status: number | null;
+  errorId?: string | null;
 }
 
+/**
+ * Options for capturing errors
+ */
 export interface ErrorOptions {
   component?: string;
   source?: string;
-  details?: Record<string, unknown>;
-  severity?: 'low' | 'medium' | 'high' | 'critical';
+  onError?: (errorData: ErrorData) => void;
+  errorCode?: string;
+  context?: any;
+  metadata?: any;
   status?: number;
-  errorType?: string;
-  simulateDelay?: number;
-  message?: string;
-  toastDescription?: string;
+  errorId?: string;
 }
 
+/**
+ * Interface for ErrorCollector class
+ */
 export interface ErrorCollector {
-  captureError(error: Error, options?: ErrorOptions): string;
+  captureError(error: Error | string, options?: ErrorOptions): ErrorData;
   getErrors(): ErrorData[];
   clearErrors(): void;
-  getError(id: string): ErrorData | undefined;
-  removeError(id: string): void;
-  updateError(id: string, updates: Partial<ErrorData>): void;
-  onErrorCaptured(callback: (error: ErrorData) => void): () => void;
+  getErrorCount(): number;
 }

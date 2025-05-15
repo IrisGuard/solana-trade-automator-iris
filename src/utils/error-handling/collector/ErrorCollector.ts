@@ -1,142 +1,91 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import type { ErrorData, ErrorOptions } from './types';
-import { v4 as uuidv4 } from 'uuid';
+import { ErrorData, ErrorOptions } from './types';
 
-class ErrorCollector {
-  private static instance: ErrorCollector;
-  private isEnabled: boolean = true;
+/**
+ * ErrorCollector Class
+ * Responsible for collecting, storing, and retrieving errors that occur in the application.
+ */
+export class ErrorCollector {
   private errors: ErrorData[] = [];
-  private errorCallbacks: ((error: ErrorData) => void)[] = [];
-  
-  private constructor() {
-    // Singleton pattern
-  }
-  
-  public static getInstance(): ErrorCollector {
-    if (!ErrorCollector.instance) {
-      ErrorCollector.instance = new ErrorCollector();
-    }
-    return ErrorCollector.instance;
-  }
-  
-  public enable(): void {
-    this.isEnabled = true;
-  }
-  
-  public disable(): void {
-    this.isEnabled = false;
-  }
-  
-  public captureError(error: Error, options: ErrorOptions = {}): string {
-    if (!this.isEnabled) {
-      console.log('Error collection disabled:', error.message);
-      return '';
-    }
-    
-    const errorId = options.errorType ? `${options.errorType}-${uuidv4()}` : uuidv4();
+  private maxErrors: number = 100;
+  private errorCount: number = 0;
+
+  /**
+   * Capture an error with additional context
+   */
+  public captureError(error: Error | string, options: ErrorOptions = {}): ErrorData {
+    const errorMessage = typeof error === 'string' ? error : error.message;
+    const errorStack = typeof error === 'string' ? null : error.stack;
     
     const errorData: ErrorData = {
-      id: errorId,
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-      component: options.component || 'unknown',
+      id: this.generateErrorId(),
+      message: errorMessage,
+      stack: errorStack || null,
+      timestamp: new Date().toISOString(),
+      component: options.component || null,
       source: options.source || 'client',
-      details: options.details || {},
-      severity: options.severity || 'medium',
-      timestamp: Date.now(),
-      browser: this.getBrowserInfo()
+      url: window.location.href,
+      browserInfo: this.getBrowserInfo(),
+      errorCode: options.errorCode || null,
+      context: options.context || null,
+      metadata: options.metadata || null,
+      status: options.status || null,
+      errorId: options.errorId || null,
     };
+
+    this.addError(errorData);
+    this.errorCount++;
     
-    // Store locally
+    // Log to console in development
+    if (process.env.NODE_ENV !== 'production') {
+      console.error(`[ErrorCollector] ${errorData.message}`, errorData);
+    }
+
+    // Call the onError callback if provided
+    if (options.onError) {
+      try {
+        options.onError(errorData);
+      } catch (callbackError) {
+        console.error('[ErrorCollector] Error in onError callback:', callbackError);
+      }
+    }
+
+    return errorData;
+  }
+
+  /**
+   * Add an error to the collection
+   */
+  private addError(errorData: ErrorData): void {
+    // Add to beginning of array for chronological ordering
     this.errors.unshift(errorData);
     
-    // Trim the errors array if it's too large
-    if (this.errors.length > 100) {
-      this.errors = this.errors.slice(0, 100);
+    // Limit the number of stored errors
+    if (this.errors.length > this.maxErrors) {
+      this.errors.pop();
     }
-    
-    // Notify callbacks
-    this.errorCallbacks.forEach(callback => {
-      try {
-        callback(errorData);
-      } catch (e) {
-        console.error('Error in error callback:', e);
-      }
-    });
-    
-    // Try to send to Supabase
-    this.collectError(errorData, options).catch(e => {
-      console.error('Failed to send error to Supabase:', e);
-    });
-    
-    return errorId;
+
+    // Report to monitoring system if configured
+    this.reportError(errorData);
   }
-  
+
+  /**
+   * Get all captured errors
+   */
   public getErrors(): ErrorData[] {
-    return [...this.errors];
+    return this.errors;
   }
-  
+
+  /**
+   * Clear all errors
+   */
   public clearErrors(): void {
     this.errors = [];
   }
-  
-  public getError(id: string): ErrorData | undefined {
-    return this.errors.find(e => e.id === id);
-  }
-  
-  public removeError(id: string): void {
-    this.errors = this.errors.filter(e => e.id !== id);
-  }
-  
-  public updateError(id: string, updates: Partial<ErrorData>): void {
-    const index = this.errors.findIndex(e => e.id === id);
-    if (index >= 0) {
-      this.errors[index] = { ...this.errors[index], ...updates };
-    }
-  }
-  
-  public onErrorCaptured(callback: (error: ErrorData) => void): () => void {
-    this.errorCallbacks.push(callback);
-    
-    // Return function to remove the callback
-    return () => {
-      this.errorCallbacks = this.errorCallbacks.filter(cb => cb !== callback);
-    };
-  }
-  
-  public async collectError(errorData: ErrorData, options: ErrorOptions = {}): Promise<string | null> {
-    if (!this.isEnabled) {
-      console.log('Error collection disabled:', errorData.message);
-      return null;
-    }
-    
-    try {
-      const errorId = errorData.id || options.errorId || uuidv4();
-      
-      // Use Supabase function to log error
-      const { data, error } = await supabase.rpc('log_error', {
-        p_error_message: errorData.message,
-        p_error_stack: errorData.stack || null,
-        p_component: errorData.component || null,
-        p_source: errorData.source || 'client',
-        p_url: errorData.url || window.location.href,
-        p_browser_info: errorData.browser || this.getBrowserInfo()
-      });
-      
-      if (error) {
-        console.error('Failed to log error to Supabase:', error);
-        return null;
-      }
-      
-      return data as string;
-    } catch (e) {
-      console.error('Error in error collection process:', e);
-      return null;
-    }
-  }
-  
+
+  /**
+   * Get browser and system information
+   */
   private getBrowserInfo() {
     return {
       userAgent: navigator.userAgent,
@@ -146,6 +95,46 @@ class ErrorCollector {
       timestamp: new Date().toISOString()
     };
   }
+
+  /**
+   * Generate a unique error ID
+   */
+  private generateErrorId(): string {
+    return `error_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  }
+
+  /**
+   * Report error to remote services if configured
+   */
+  private reportError(errorData: ErrorData): void {
+    // Example: Send to backend logging service
+    if (errorData.source === 'client') {
+      // Use supabase or another service to log the error
+      try {
+        // Asynchonously send error to the server
+        fetch('/api/log-error', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(errorData),
+          // Don't wait for response
+          keepalive: true
+        }).catch((err) => {
+          // Suppress any errors from logging the error
+          console.debug('[ErrorCollector] Failed to report error:', err);
+        });
+      } catch (e) {
+        // Silence any errors that come from reporting errors
+      }
+    }
+  }
+
+  /**
+   * Returns the total number of errors captured
+   */
+  public getErrorCount(): number {
+    return this.errorCount;
+  }
 }
 
-export const errorCollector = ErrorCollector.getInstance();
+// Export a singleton instance for global use
+export const errorCollector = new ErrorCollector();

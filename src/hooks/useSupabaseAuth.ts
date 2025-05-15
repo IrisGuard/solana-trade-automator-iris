@@ -1,126 +1,167 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { User, Session } from '@supabase/supabase-js';
-import { profileService } from '@/services/profileService';
-import { toast } from 'sonner';
-import type { Database } from '@/integrations/supabase/types';
+import type { Session, User } from '@supabase/supabase-js';
+import { errorCollector } from '@/utils/error-handling/collector';
 
-// Define ProfileData type using the database types
-type ProfileData = Database['public']['Tables']['profiles']['Row'] | null;
-
-export interface AuthContextType {
-  user: User | null;
-  profile: ProfileData;
-  session: Session | null;
-  isLoading: boolean;
-  error: Error | null;
-  isAuthenticated: boolean;
-  signOut: () => Promise<void>;
-}
-
-export function useSupabaseAuth(): AuthContextType {
+export function useSupabaseAuth() {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<ProfileData>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    let mounted = true;
+  // Function to get the current session and user
+  const refreshSession = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      // Get current session
+      const { data: { session: currentSession }, error: sessionError } = 
+        await supabase.auth.getSession();
 
-    const fetchInitialSession = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Ανάκτηση του session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          throw sessionError;
-        }
-        
-        if (mounted) {
-          setSession(session);
-          setUser(session?.user || null);
-          
-          // Αν υπάρχει χρήστης, φέρε το προφίλ του
-          if (session?.user) {
-            try {
-              const userProfile = await profileService.getProfile(session.user.id);
-              setProfile(userProfile);
-            } catch (profileError) {
-              console.error('Error fetching profile:', profileError);
-              // Δεν ορίζουμε error state για σφάλματα προφίλ, καθώς ο χρήστης εξακολουθεί να έχει συνδεθεί
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error getting session:', error);
-        if (mounted) {
-          setError(error as Error);
-        }
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
+      if (sessionError) {
+        throw sessionError;
       }
-    };
 
-    // Αρχική φόρτωση του session
-    fetchInitialSession();
+      setSession(currentSession);
 
-    // Set up real auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
-        console.log('Auth state changed:', event, newSession);
-        if (mounted) {
-          setSession(newSession);
-          setUser(newSession?.user || null);
-          
-          // Ανανέωση προφίλ κατά τη σύνδεση ή αλλαγή χρήστη
-          if (newSession?.user) {
-            try {
-              const userProfile = await profileService.getProfile(newSession.user.id);
-              setProfile(userProfile);
-            } catch (profileError) {
-              console.error('Error fetching profile:', profileError);
-            }
-          } else {
-            setProfile(null);
-          }
+      if (currentSession) {
+        const { data: { user: currentUser }, error: userError } = 
+          await supabase.auth.getUser();
+
+        if (userError) {
+          throw userError;
         }
+
+        setUser(currentUser);
+      } else {
+        setUser(null);
+      }
+
+      setError(null);
+    } catch (err) {
+      errorCollector.captureError(err as Error, {
+        component: 'useSupabaseAuth',
+        source: 'refreshSession'
+      });
+      
+      setError(err as Error);
+      setUser(null);
+      setSession(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Initialize and set up auth state listener
+  useEffect(() => {
+    refreshSession();
+
+    // Subscribe to auth changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, currentSession) => {
+        console.log('Auth state changed:', event);
+        setSession(currentSession);
+        
+        if (currentSession) {
+          const { data: { user: currentUser } } = await supabase.auth.getUser();
+          setUser(currentUser);
+        } else {
+          setUser(null);
+        }
+        
+        setLoading(false);
       }
     );
 
-    // Cleanup function
     return () => {
-      mounted = false;
-      subscription.unsubscribe();
+      authListener?.subscription.unsubscribe();
     };
-  }, []);
+  }, [refreshSession]);
 
+  // Sign in with email and password
+  const signIn = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      return { data, error: null };
+    } catch (err) {
+      errorCollector.captureError(err as Error, {
+        component: 'useSupabaseAuth',
+        source: 'signIn'
+      });
+      
+      return { data: null, error: err as Error };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Sign up with email and password
+  const signUp = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      return { data, error: null };
+    } catch (err) {
+      errorCollector.captureError(err as Error, {
+        component: 'useSupabaseAuth',
+        source: 'signUp'
+      });
+      
+      return { data: null, error: err as Error };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Sign out
   const signOut = async () => {
     try {
-      setIsLoading(true);
-      await supabase.auth.signOut();
-      toast.success('Έχετε αποσυνδεθεί επιτυχώς');
-    } catch (error) {
-      console.error('Error signing out:', error);
-      toast.error('Σφάλμα κατά την αποσύνδεση');
-      setError(error as Error);
+      setLoading(true);
+      
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) throw error;
+      
+      setUser(null);
+      setSession(null);
+      
+      return { error: null };
+    } catch (err) {
+      errorCollector.captureError(err as Error, {
+        component: 'useSupabaseAuth',
+        source: 'signOut'
+      });
+      
+      return { error: err as Error };
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return {
-    user,
-    profile,
     session,
-    isLoading,
+    user,
+    loading,
     error,
-    isAuthenticated: !!user,
+    signIn,
+    signUp,
     signOut,
+    refreshSession,
   };
 }

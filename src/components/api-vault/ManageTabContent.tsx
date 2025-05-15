@@ -55,7 +55,8 @@ export function ManageTabContent({ userId }: ManageTabContentProps) {
         </CardContent>
       </Card>
 
-      {userId && <SupabaseApiKeysList userId={userId} />}
+      {/* Remove the userId prop since it isn't required by SupabaseApiKeysList */}
+      {userId && <SupabaseApiKeysList />}
     </div>
   );
 }
