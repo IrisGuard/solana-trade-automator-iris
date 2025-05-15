@@ -25,6 +25,8 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
+        // Fix JSX runtime issue
+        'react/jsx-runtime': 'react/jsx-runtime.js',
         // Fix polyfill path issues - explicitly map each required polyfill
         buffer: 'buffer/',
         // Fix the process polyfill path - important change
