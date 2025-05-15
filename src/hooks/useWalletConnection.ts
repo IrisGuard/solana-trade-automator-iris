@@ -42,7 +42,7 @@ export function useWalletConnection() {
       setIsConnected(true);
       loadWalletData(publicKey);
     },
-    // On disconnected handler - fixed to return a Promise
+    // On disconnected handler - modified to return a Promise
     async () => {
       setWalletAddress('');
       setIsConnected(false);
