@@ -181,7 +181,7 @@ export const SupabaseApiKeysList = ({ userId }: SupabaseApiKeysListProps) => {
                   </div>
                   <div className="relative bg-muted p-2 rounded font-mono text-sm flex items-center">
                     <code className="flex-1 overflow-x-auto">
-                      {visibleKeys[key.id]
+                      {!!visibleKeys[key.id]
                         ? key.key
                         : "•".repeat(20)}
                     </code>
@@ -228,3 +228,4 @@ export const SupabaseApiKeysList = ({ userId }: SupabaseApiKeysListProps) => {
     </Card>
   );
 };
+

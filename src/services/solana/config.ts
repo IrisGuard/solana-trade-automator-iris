@@ -46,4 +46,3 @@ export const connection = new Connection(
   RPC_ENDPOINTS.MAINNET,
   CONNECTION_CONFIG
 );
-

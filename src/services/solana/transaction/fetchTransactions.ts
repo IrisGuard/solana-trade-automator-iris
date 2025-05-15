@@ -10,7 +10,7 @@ export async function fetchTransactionsByAddress(
   limit: number = 10
 ): Promise<ParsedTransaction[]> {
   try {
-    // Fixed: Changed RPC_ENDPOINTS.PRIMARY to RPC_ENDPOINTS.MAINNET
+    // Use MAINNET instead of PRIMARY which doesn't exist
     const connection = new Connection(RPC_ENDPOINTS.MAINNET);
     const publicKey = new PublicKey(address);
     
