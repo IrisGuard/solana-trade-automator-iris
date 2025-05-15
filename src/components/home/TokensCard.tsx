@@ -24,7 +24,12 @@ export function TokensCard({
   isLoading = false,
   onSelectToken
 }: TokensCardProps) {
-  // If there's no wallet address, show placeholder
+  // Μετατρέπουμε το TokenPrices (Record<string, TokenPrice>) σε Record<string, number>
+  const tokenPricesAsNumbers: Record<string, number> = Object.fromEntries(
+    Object.entries(tokenPrices).map(([k, v]) => [k, v.price])
+  );
+  
+  // Αν δεν υπάρχει διεύθυνση πορτοφολιού, εμφανίζουμε το placeholder
   if (!walletAddress) {
     return (
       <Card>
