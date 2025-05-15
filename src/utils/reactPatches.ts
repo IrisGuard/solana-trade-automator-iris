@@ -15,7 +15,7 @@ export function ensureReactCompatibility(): void {
   if (typeof window !== 'undefined') {
     try {
       // Δημιουργία πλήρους αντιγράφου του React στο window
-      window.React = window.React || { ...React };
+      window.React = { ...React };
       
       // Καταγραφή επιτυχίας
       console.log('React patches applied successfully');
@@ -24,6 +24,9 @@ export function ensureReactCompatibility(): void {
     }
   }
 }
+
+// Βεβαιώνουμε ότι το patch εφαρμόζεται αυτόματα κατά την εισαγωγή του module
+ensureReactCompatibility();
 
 // Για συμβατότητα με παλαιότερες εκδόσεις κώδικα
 export default ensureReactCompatibility;

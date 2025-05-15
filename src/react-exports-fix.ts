@@ -3,7 +3,7 @@
 import * as React from 'react';
 
 // Use named imports instead of namespace access
-import {
+export const {
   useState,
   useEffect,
   useContext,
@@ -16,7 +16,7 @@ import {
   useReducer,
   useLayoutEffect,
   Fragment
-} from 'react';
+} = React;
 
 // Export with named exports
 export {

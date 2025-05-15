@@ -18,8 +18,8 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     plugins: [
       react({
         // Use options that are actually supported by the SWC React plugin
-        // Remove reference to the non-existent @swc/plugin-transform-react
         tsDecorators: true,
+        jsxRuntime: 'classic', // Προσθήκη για καλύτερη συμβατότητα
       }),
       mode === 'development' && componentTagger(),
     ].filter(Boolean) as PluginOption[],
@@ -94,7 +94,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
           rollupNodePolyFill() as any,
         ],
         // External to prevent Rollup from trying to bundle process
-        external: ['process/browser'],
+        external: ['process/browser', 'react'], // Προσθήκη του 'react' στα externals
         onwarn(warning, warn) {
           if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
             return;
