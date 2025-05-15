@@ -1,272 +1,220 @@
-import { errorCollector } from '@/utils/error-handling/collector';
-import { supabase } from '@/integrations/supabase/client';
 
-// API key categories matching your recommendation
-type KeyEnvironment = 'production' | 'development' | 'backup';
-type KeyScope = 'general' | 'transactions' | 'nft' | 'assets' | 'websocket';
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { errorCollector } from "@/utils/error-handling/collector";
 
-interface HeliusApiKey {
-  id: string;
-  value: string;
-  environment: KeyEnvironment;
-  scope: KeyScope;
-  isActive: boolean;
-  usageCount: number;
-  lastUsed?: Date;
-}
+export class HeliusKeyManager {
+  private apiKeys: string[] = [];
+  private currentKeyIndex: number = 0;
+  private isInitialized: boolean = false;
+  private lastRotation: number = 0;
+  private static instance: HeliusKeyManager;
+  private apiKeyTestResults: Record<string, boolean> = {};
 
-class HeliusKeyManager {
-  private keys: Map<string, HeliusApiKey> = new Map();
-  private initialized: boolean = false;
-  
-  // Main key groups as recommended
-  private mainKeys: HeliusApiKey[] = [];
-  private devKeys: HeliusApiKey[] = [];
-  private backupKeys: HeliusApiKey[] = [];
-  
-  // Default key for fallback
-  private defaultKey: string = 'ddb32813-1f4b-459d-8964-310b1b73a053'; // Demo key
-  
-  /**
-   * Initialize the key manager by loading keys from Supabase
-   */
-  async initialize(): Promise<boolean> {
+  constructor() {
+    this.init();
+  }
+
+  public static getInstance(): HeliusKeyManager {
+    if (!HeliusKeyManager.instance) {
+      HeliusKeyManager.instance = new HeliusKeyManager();
+    }
+    return HeliusKeyManager.instance;
+  }
+
+  private async init() {
     try {
-      // First try to load from Supabase
-      const { data: apiKeys, error } = await supabase
-        .from('api_keys_storage')
-        .select('*')
-        .eq('service', 'helius')
-        .eq('status', 'active');
-        
-      if (error) {
-        throw error;
-      }
-      
-      // Clear existing keys
-      this.keys.clear();
-      this.mainKeys = [];
-      this.devKeys = [];
-      this.backupKeys = [];
-      
-      // Process each key
-      if (apiKeys && apiKeys.length > 0) {
-        apiKeys.forEach(key => {
-          // Extract environment from name or description
-          const env: KeyEnvironment = this.determineEnvironment(key.name, key.description);
-          
-          // Extract scope from name or description
-          const scope: KeyScope = this.determineScope(key.name, key.description);
-          
-          const heliusKey: HeliusApiKey = {
-            id: key.id,
-            value: key.key_value,
-            environment: env,
-            scope: scope,
-            isActive: key.status === 'active',
-            usageCount: 0
-          };
-          
-          // Add to appropriate collection
-          this.keys.set(key.id, heliusKey);
-          
-          if (env === 'production') {
-            this.mainKeys.push(heliusKey);
-          } else if (env === 'development') {
-            this.devKeys.push(heliusKey);
-          } else if (env === 'backup') {
-            this.backupKeys.push(heliusKey);
-          }
-        });
-        
-        this.initialized = true;
-        console.log(`HeliusKeyManager initialized with ${this.keys.size} keys`);
-        return true;
-      } else {
-        console.warn('No Helius API keys found in database');
-        this.initialized = false;
-        return false;
-      }
+      await this.loadKeysFromStorage();
+      this.isInitialized = true;
+      this.lastRotation = Date.now();
+      console.log("HeliusKeyManager initialized");
     } catch (error) {
-      errorCollector.captureError(error instanceof Error ? error : new Error(String(error)), {
-        component: 'HeliusKeyManager',
-        source: 'initialize',
-        severity: 'high'
+      console.error("Error initializing HeliusKeyManager:", error);
+      errorCollector.captureError(error instanceof Error ? error : new Error("Failed to initialize HeliusKeyManager"), {
+        component: "HeliusKeyManager",
+        source: "client"
       });
+    }
+  }
+
+  public async forceReload(): Promise<void> {
+    await this.loadKeysFromStorage();
+    this.lastRotation = Date.now();
+  }
+
+  public getKey(): string {
+    if (!this.isInitialized || this.apiKeys.length === 0) {
+      return this.getFallbackKey();
+    }
+
+    // Rotate key if it's been more than 1 hour
+    if (Date.now() - this.lastRotation > 3600000) {
+      this.rotateKey();
+    }
+
+    return this.apiKeys[this.currentKeyIndex];
+  }
+
+  public getAllKeys(): string[] {
+    return [...this.apiKeys];
+  }
+
+  private rotateKey() {
+    if (this.apiKeys.length <= 1) return;
+    
+    this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeys.length;
+    this.lastRotation = Date.now();
+    
+    console.log(`Rotated to Helius API key #${this.currentKeyIndex + 1}/${this.apiKeys.length}`);
+  }
+
+  private getFallbackKey(): string {
+    // This is a public demo key with limited usage
+    return 'ddb32813-1f4b-459d-8964-310b1b73a053';
+  }
+
+  public async testKey(key: string): Promise<boolean> {
+    try {
+      // Cache results to avoid repeated tests
+      if (this.apiKeyTestResults[key] !== undefined) {
+        return this.apiKeyTestResults[key];
+      }
       
-      this.initialized = false;
+      const url = `https://api.helius.xyz/v0/addresses/8szGkuLTAux9XMgZ2vtY39jVSowEcpBfFfD8hZ6AbM9J/balances?api-key=${key}`;
+      
+      const response = await fetch(url);
+      const isValid = response.status === 200;
+      
+      // Cache the result
+      this.apiKeyTestResults[key] = isValid;
+      
+      return isValid;
+    } catch (error) {
+      console.error("Error testing Helius key:", error);
+      this.apiKeyTestResults[key] = false;
       return false;
     }
   }
-  
-  /**
-   * Force reload keys from the database
-   */
-  async forceReload(): Promise<boolean> {
-    return this.initialize();
-  }
-  
-  /**
-   * Get a key for a specific purpose
-   */
-  getKey(options?: { scope?: KeyScope, environment?: KeyEnvironment }): string {
-    if (!this.initialized) {
-      return this.defaultKey;
+
+  public async testAllKeys(): Promise<Record<string, boolean>> {
+    const results: Record<string, boolean> = {};
+    
+    for (const key of this.apiKeys) {
+      results[key] = await this.testKey(key);
     }
     
+    return results;
+  }
+
+  // Method to register a new key
+  public async registerKey(key: string, name: string = "Helius API Key"): Promise<boolean> {
     try {
-      const env = options?.environment || 'production';
-      const scope = options?.scope || 'general';
+      // Check if the key is valid first
+      const isValid = await this.testKey(key);
       
-      // Select key collection based on environment
-      let keyCollection = this.mainKeys;
-      if (env === 'development') {
-        keyCollection = this.devKeys;
-      } else if (env === 'backup') {
-        keyCollection = this.backupKeys;
+      if (!isValid) {
+        toast.error("Invalid Helius API key");
+        return false;
       }
       
-      // First try to find a key matching the requested scope
-      const scopedKeys = keyCollection.filter(key => key.scope === scope && key.isActive);
-      
-      if (scopedKeys.length > 0) {
-        // Get the least used key
-        const selectedKey = this.getLeastUsedKey(scopedKeys);
-        this.trackKeyUsage(selectedKey);
-        return selectedKey.value;
+      // Check if key already exists
+      if (this.apiKeys.includes(key)) {
+        toast.info("This Helius API key is already registered");
+        return false;
       }
       
-      // If no matching scope, use any active key from the collection
-      const activeKeys = keyCollection.filter(key => key.isActive);
-      if (activeKeys.length > 0) {
-        const selectedKey = this.getLeastUsedKey(activeKeys);
-        this.trackKeyUsage(selectedKey);
-        return selectedKey.value;
-      }
-      
-      // If no keys in requested environment, try using a production key as fallback
-      if (env !== 'production' && this.mainKeys.length > 0) {
-        const fallbackKey = this.getLeastUsedKey(this.mainKeys.filter(key => key.isActive));
-        console.warn(`Using production key as fallback for ${env}/${scope}`);
-        this.trackKeyUsage(fallbackKey);
-        return fallbackKey.value;
-      }
-      
-      // Last resort - use backup keys if available
-      if (this.backupKeys.length > 0 && env !== 'backup') {
-        const backupKey = this.getLeastUsedKey(this.backupKeys.filter(key => key.isActive));
-        console.warn(`Using backup key as last resort for ${env}/${scope}`);
-        this.trackKeyUsage(backupKey);
-        return backupKey.value;
-      }
-      
-      // If all else fails, return default key
-      console.warn('No suitable Helius API key found, using default key');
-      return this.defaultKey;
-    } catch (error) {
-      errorCollector.captureError(error instanceof Error ? error : new Error(String(error)), {
-        component: 'HeliusKeyManager',
-        source: 'getKey',
-        severity: 'medium'
-      });
-      
-      return this.defaultKey;
-    }
-  }
-  
-  /**
-   * Determine the environment from key metadata
-   */
-  private determineEnvironment(name: string, description?: string | null): KeyEnvironment {
-    const text = `${name} ${description || ''}`.toLowerCase();
-    
-    if (text.includes('backup') || text.includes('emergency')) {
-      return 'backup';
-    } else if (text.includes('dev') || text.includes('test') || text.includes('staging')) {
-      return 'development';
-    } else {
-      return 'production';
-    }
-  }
-  
-  /**
-   * Determine the scope from key metadata
-   */
-  private determineScope(name: string, description?: string | null): KeyScope {
-    const text = `${name} ${description || ''}`.toLowerCase();
-    
-    if (text.includes('transaction')) {
-      return 'transactions';
-    } else if (text.includes('nft')) {
-      return 'nft';
-    } else if (text.includes('asset')) {
-      return 'assets';
-    } else if (text.includes('websocket') || text.includes('socket') || text.includes('ws')) {
-      return 'websocket';
-    } else {
-      return 'general';
-    }
-  }
-  
-  /**
-   * Get the least used key from a collection
-   */
-  private getLeastUsedKey(keys: HeliusApiKey[]): HeliusApiKey {
-    if (keys.length === 0) {
-      throw new Error('No keys available');
-    }
-    
-    return keys.reduce((prev, current) => 
-      (prev.usageCount < current.usageCount) ? prev : current
-    );
-  }
-  
-  /**
-   * Track key usage
-   */
-  private trackKeyUsage(key: HeliusApiKey): void {
-    key.usageCount++;
-    key.lastUsed = new Date();
-  }
-  
-  /**
-   * Mark a key as inactive (e.g., when it's rate limited)
-   */
-  markKeyAsInactive(keyValue: string): void {
-    for (const [id, key] of this.keys.entries()) {
-      if (key.value === keyValue) {
-        key.isActive = false;
-        
-        // Update key status in database
-        supabase
+      // Save to Supabase if possible
+      if (supabase) {
+        const response = await supabase
           .from('api_keys_storage')
-          .update({
-            status: 'failing',
-            status_message: 'Automatically disabled due to API errors'
-          })
-          .eq('id', id)
-          .then(({ error }) => {
-            if (error) {
-              console.error('Failed to update key status:', error);
-            }
+          .insert({
+            name,
+            service: 'helius',
+            key_value: key,
+            status: 'active'
           });
-        
-        break;
+          
+        if (response.error) {
+          console.error("Error saving key to Supabase:", response.error);
+          throw new Error(response.error.message);
+        }
       }
+      
+      // Add to local cache
+      this.apiKeys.push(key);
+      toast.success("Helius API key registered successfully");
+      
+      return true;
+    } catch (error) {
+      console.error("Error registering Helius key:", error);
+      errorCollector.captureError(error instanceof Error ? error : new Error("Failed to register Helius key"), {
+        component: "HeliusKeyManager",
+        source: "client"
+      });
+      return false;
+    }
+  }
+
+  private async loadKeysFromStorage(): Promise<void> {
+    try {
+      // Try to load from Supabase first
+      if (supabase) {
+        const response = await supabase
+          .from('api_keys_storage')
+          .select()
+          .eq('service', 'helius')
+          .eq('status', 'active');
+          
+        if (response.error) {
+          throw response.error;
+        }
+        
+        if (response.data && response.data.length > 0) {
+          // Extract API keys
+          const keys = response.data.map(item => item.key_value);
+          this.apiKeys = keys.filter(Boolean);
+          console.log(`Loaded ${this.apiKeys.length} Helius API keys from Supabase`);
+          return;
+        }
+      }
+      
+      // If no keys in Supabase or loading failed, look in localStorage
+      const storedKeys = localStorage.getItem('helius_api_keys');
+      if (storedKeys) {
+        try {
+          const parsedKeys = JSON.parse(storedKeys);
+          if (Array.isArray(parsedKeys) && parsedKeys.length > 0) {
+            this.apiKeys = parsedKeys.filter(Boolean);
+            console.log(`Loaded ${this.apiKeys.length} Helius API keys from localStorage`);
+            return;
+          }
+        } catch (e) {
+          console.error("Error parsing stored Helius keys:", e);
+        }
+      }
+      
+      // If no keys found anywhere, use the fallback
+      if (this.apiKeys.length === 0) {
+        this.apiKeys = [this.getFallbackKey()];
+        console.log("Using fallback Helius API key");
+      }
+      
+    } catch (error) {
+      console.error("Error loading Helius API keys:", error);
+      // Fallback to demo key in case of errors
+      this.apiKeys = [this.getFallbackKey()];
     }
   }
   
-  /**
-   * Get number of active keys
-   */
-  get activeKeyCount(): number {
-    let count = 0;
-    for (const key of this.keys.values()) {
-      if (key.isActive) count++;
+  // Save keys to localStorage
+  private saveKeysToStorage(): void {
+    try {
+      localStorage.setItem('helius_api_keys', JSON.stringify(this.apiKeys));
+    } catch (error) {
+      console.error("Error saving Helius API keys to storage:", error);
     }
-    return count;
   }
 }
 
 // Export a singleton instance
-export const heliusKeyManager = new HeliusKeyManager();
+export const heliusKeyManager = HeliusKeyManager.getInstance();
