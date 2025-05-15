@@ -9,7 +9,7 @@ export type LanguageType = 'en' | 'el';
 interface LanguageContextType {
   language: LanguageType;
   setLanguage: (lang: LanguageType) => void;
-  t: (key: string, params?: Record<string, string>) => string;
+  t: (key: string, defaultValue?: string) => string;
 }
 
 export const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -28,7 +28,7 @@ const translations = {
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children, defaultLanguage = 'en' }) => {
   const [language, setLanguage] = useState<LanguageType>(defaultLanguage);
   
-  const t = (key: string, params?: Record<string, string>): string => {
+  const t = (key: string, defaultValue?: string): string => {
     // Διαχωρισμός του κλειδιού με τελείες για πλοήγηση σε nested objects
     const keys = key.split('.');
     
@@ -45,23 +45,16 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children, de
         }, translations['en']);
       }
       
-      // Αν ακόμα δεν βρεθεί, επιστρέφουμε το κλειδί
+      // Αν ακόμα δεν βρεθεί, επιστρέφουμε το defaultValue αν υπάρχει, αλλιώς το κλειδί
       if (text === undefined) {
         console.warn(`Δεν βρέθηκε μετάφραση για το κλειδί: ${key}`);
-        return key;
-      }
-      
-      // Αντικατάσταση παραμέτρων αν παρέχονται
-      if (params && text) {
-        Object.entries(params).forEach(([paramKey, paramValue]) => {
-          text = text.replace(`{{${paramKey}}}`, paramValue);
-        });
+        return defaultValue || key;
       }
       
       return text;
     } catch (e) {
       console.warn(`Σφάλμα κατά την αναζήτηση μετάφρασης για το κλειδί: ${key}`, e);
-      return key;
+      return defaultValue || key;
     }
   };
   
