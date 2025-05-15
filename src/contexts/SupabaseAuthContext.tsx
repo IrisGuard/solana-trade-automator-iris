@@ -1,6 +1,7 @@
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { AuthContextType, AuthState } from '@/types/auth';
+import type { AuthContextType, AuthState, User, Session } from '@/types/auth';
 import { errorCollector } from '@/utils/error-handling/collector';
 
 // Create auth context
@@ -20,19 +21,19 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
     const initializeAuth = async () => {
       try {
         // Get current session 
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data, error } = await supabase.auth.getSession();
 
         if (error) {
           throw error;
         }
 
-        if (session) {
+        if (data.session) {
           // Get user data
-          const { data: { user } } = await supabase.auth.getUser();
+          const { data: userData } = await supabase.auth.getUser();
           
           setAuthState({
-            user,
-            session,
+            user: userData?.user as User || null,
+            session: data.session as Session,
             loading: false, 
             error: null,
             initialized: true,
@@ -70,11 +71,11 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
         console.log('Auth state changed:', event);
         
         if (event === 'SIGNED_IN') {
-          const { data: { user } } = await supabase.auth.getUser();
+          const { data } = await supabase.auth.getUser();
           
           setAuthState({
-            user,
-            session,
+            user: data?.user as User || null,
+            session: session as Session,
             loading: false,
             error: null,
             initialized: true,
@@ -105,14 +106,14 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
       
       if (error) throw error;
       
-      return { data, error: null };
+      return { error: null };
     } catch (error) {
       errorCollector.captureError(error as Error, { 
         component: 'AuthProvider',
         source: 'signIn'
       });
       
-      return { data: null, error: error as Error };
+      return { error: error as Error };
     }
   };
 
@@ -136,20 +137,17 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
     }
   };
 
-  const signOut = async () => {
+  const signOut = async (): Promise<void> => {
     try {
       const { error } = await supabase.auth.signOut();
       
       if (error) throw error;
-      
-      return { error: null };
     } catch (error) {
       errorCollector.captureError(error as Error, { 
         component: 'AuthProvider',
         source: 'signOut'
       });
-      
-      return { error: error as Error };
+      console.error('Sign out error:', error);
     }
   };
 
@@ -197,8 +195,8 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
         signIn,
         signUp,
         signOut,
-        resetPassword: async (email) => ({ error: null }),
-        updateProfile: async (data) => ({ error: null }),
+        resetPassword,
+        updateProfile,
       }}
     >
       {children}

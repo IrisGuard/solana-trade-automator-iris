@@ -1,183 +1,158 @@
-import { supabase } from '@/integrations/supabase/client';
+
+import { supabase, dbClient } from '@/integrations/supabase/client';
 import { errorCollector } from '@/utils/error-handling/collector';
-import { BotConfig } from './types';
-
-export async function createBot(
-  userId: string, 
-  name: string, 
-  strategy: string,
-  config?: BotConfig
-) {
-  try {
-    const newBot = {
-      name,
-      strategy,
-      user_id: userId,
-      active: false,
-      config: config as unknown as Json,
-      created_at: new Date().toISOString()
-    };
-
-    const { data, error } = await supabase
-      .from('bots')
-      .insert(newBot)
-      .select()
-      .single();
-
-    if (error) {
-      throw error;
-    }
-
-    return data;
-  } catch (error) {
-    errorCollector.captureError(error instanceof Error ? error : new Error(String(error)), {
-      component: 'botCoreService',
-      source: 'createBot',
-      details: { userId, name, strategy }
-    });
-    throw error;
-  }
-}
-
-export async function getBotById(botId: string) {
-  try {
-    const { data, error } = await supabase
-      .from('bots')
-      .select('*')
-      .eq('id', botId)
-      .single();
-
-    if (error) {
-      throw error;
-    }
-
-    return data;
-  } catch (error) {
-    errorCollector.captureError(error instanceof Error ? error : new Error(String(error)), {
-      component: 'botCoreService',
-      source: 'getBotById',
-      details: { botId }
-    });
-    return null;
-  }
-}
-
-export async function updateBot(botId: string, updates: {
-  name?: string;
-  strategy?: string;
-  active?: boolean;
-  config?: BotConfig;
-}) {
-  try {
-    const botUpdates = {
-      ...updates,
-      config: updates.config as unknown as Json,
-      updated_at: new Date().toISOString()
-    };
-
-    const { data, error } = await supabase
-      .from('bots')
-      .update(botUpdates)
-      .eq('id', botId)
-      .select()
-      .single();
-
-    if (error) {
-      throw error;
-    }
-
-    return data;
-  } catch (error) {
-    errorCollector.captureError(error instanceof Error ? error : new Error(String(error)), {
-      component: 'botCoreService',
-      source: 'updateBot',
-      details: { botId, updates }
-    });
-    throw error;
-  }
-}
+import { BotConfig, BotRow } from './types';
+import { toast } from 'sonner';
 
 export const botCoreService = {
-  async createBot(userId: string, botData: {
+  async createBot(botData: {
     name: string;
     strategy: string;
     active?: boolean;
     config?: BotConfig;
-  }) {
+    user_id: string;
+  }): Promise<{ bot?: BotRow; error?: Error }> {
     try {
-      const { data, error } = await dbClient
+      const newBotData = {
+        name: botData.name,
+        strategy: botData.strategy,
+        active: botData.active || false,
+        config: botData.config || {},
+        user_id: botData.user_id,
+        created_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
         .from('bots')
-        .insert({
-          user_id: userId,
-          ...botData,
-          created_at: new Date().toISOString()
-        })
-        .select();
-      
-      if (error) throw error;
-      return data;
+        .insert(newBotData)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      toast?.success('Bot created successfully');
+      return { bot: data as BotRow };
     } catch (error) {
-      console.error('Error creating bot:', error);
-      toast.error('Αποτυχία δημιουργίας του bot');
-      throw error;
+      errorCollector.captureError(error as Error, {
+        component: 'botCoreService',
+        source: 'createBot',
+        details: { botData }
+      });
+      
+      toast?.error('Failed to create bot');
+      return { error: error as Error };
     }
   },
-  
-  async getBotsByUser(userId: string) {
+
+  async updateBot(
+    botId: string,
+    updateData: {
+      name?: string;
+      strategy?: string;
+      active?: boolean;
+      config?: BotConfig;
+    }
+  ): Promise<{ success?: boolean; error?: Error }> {
+    try {
+      const updatedBotData = {
+        ...updateData,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('bots')
+        .update(updatedBotData)
+        .eq('id', botId);
+
+      if (error) {
+        throw error;
+      }
+
+      toast?.success('Bot updated successfully');
+      return { success: true };
+    } catch (error) {
+      errorCollector.captureError(error as Error, {
+        component: 'botCoreService',
+        source: 'updateBot',
+        details: { botId, updateData }
+      });
+      
+      toast?.error('Failed to update bot');
+      return { error: error as Error };
+    }
+  },
+
+  async getBotsByUser(userId: string): Promise<{ bots?: BotRow[]; error?: Error }> {
     try {
       const { data, error } = await dbClient
         .from('bots')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as BotRow[];
+
+      if (error) {
+        throw error;
+      }
+
+      return { bots: data as BotRow[] };
     } catch (error) {
-      console.error('Error fetching bots:', error);
-      toast.error('Αποτυχία φόρτωσης των bots');
-      return [];
+      errorCollector.captureError(error as Error, {
+        component: 'botCoreService',
+        source: 'getBotsByUser'
+      });
+      
+      toast?.error('Failed to fetch bots');
+      return { error: error as Error };
     }
   },
-  
-  async updateBot(botId: string, updates: {
-    name?: string;
-    strategy?: string;
-    active?: boolean;
-    config?: BotConfig;
-  }) {
+
+  async getBotById(botId: string): Promise<{ bot?: BotRow; error?: Error }> {
     try {
       const { data, error } = await dbClient
         .from('bots')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
+        .select('*')
         .eq('id', botId)
-        .select();
-      
-      if (error) throw error;
-      return data;
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return { bot: data as BotRow };
     } catch (error) {
-      console.error('Error updating bot:', error);
-      toast.error('Αποτυχία ενημέρωσης του bot');
-      throw error;
+      errorCollector.captureError(error as Error, {
+        component: 'botCoreService',
+        source: 'getBotById'
+      });
+      
+      toast?.error('Failed to fetch bot details');
+      return { error: error as Error };
     }
   },
-  
-  async deleteBot(botId: string) {
+
+  async deleteBot(botId: string): Promise<{ success?: boolean; error?: Error }> {
     try {
       const { error } = await dbClient
         .from('bots')
         .delete()
         .eq('id', botId);
-      
-      if (error) throw error;
+
+      if (error) {
+        throw error;
+      }
+
+      toast?.success('Bot deleted successfully');
       return { success: true };
     } catch (error) {
-      console.error('Error deleting bot:', error);
-      toast.error('Αποτυχία διαγραφής του bot');
-      throw error;
+      errorCollector.captureError(error as Error, {
+        component: 'botCoreService',
+        source: 'deleteBot'
+      });
+      
+      toast?.error('Failed to delete bot');
+      return { error: error as Error };
     }
   }
 };

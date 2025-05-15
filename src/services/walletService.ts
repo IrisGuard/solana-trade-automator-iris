@@ -1,9 +1,20 @@
 
 import { dbClient } from '@/integrations/supabase/client';
-import type { Tables } from '@/integrations/supabase/client';
 import { Token } from '@/types/wallet';
 import { tokensService } from './tokensService';
 import { toast } from 'sonner';
+
+// Define a type for database wallets
+interface DBWallet {
+  id: string;
+  user_id: string;
+  address: string;
+  blockchain: string;
+  is_primary: boolean;
+  last_connected?: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
 export const walletService = {
   async saveWalletAddress(userId: string, address: string) {
@@ -29,7 +40,7 @@ export const walletService = {
       .order('is_primary', { ascending: false });
     
     if (error) throw error;
-    return data as Tables['wallets'][];
+    return data as DBWallet[];
   },
 
   async getPrimaryWallet(userId: string) {
@@ -45,7 +56,7 @@ export const walletService = {
       throw error;
     }
     
-    return data as Tables['wallets'] | null;
+    return data as DBWallet | null;
   },
 
   saveWalletToDatabase: async (userId: string | undefined, address: string, tokens: Token[]): Promise<boolean> => {

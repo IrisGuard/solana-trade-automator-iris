@@ -1,7 +1,19 @@
 
 import { dbClient } from '@/integrations/supabase/client';
-import type { Tables } from '@/integrations/supabase/client';
-import { Token } from '@/types/wallet';
+import type { Token } from '@/types/wallet';
+
+// Define a type for database tokens
+interface DBToken {
+  user_id: string;
+  token_address: string;
+  name: string;
+  symbol: string;
+  amount: number;
+  logo?: string;
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
 export const tokensService = {
   async saveTokens(userId: string, tokens: Token[]) {
@@ -36,6 +48,6 @@ export const tokensService = {
       .eq('user_id', userId);
     
     if (error) throw error;
-    return data as Tables['tokens'][];
+    return data as DBToken[];
   }
 };

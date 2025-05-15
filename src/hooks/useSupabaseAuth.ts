@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { errorCollector } from '@/utils/error-handling/collector';
+import { User, Session } from '@/types/auth';
 
 export function useSupabaseAuth() {
-  const [session, setSession] = useState<any | null>(null);
-  const [user, setUser] = useState<any | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [profile, setProfile] = useState<any | null>(null);
@@ -22,7 +23,7 @@ export function useSupabaseAuth() {
         throw sessionError;
       }
 
-      setSession(currentSession);
+      setSession(currentSession as Session | null);
 
       if (currentSession) {
         const { data: { user: currentUser }, error: userError } = 
@@ -32,7 +33,7 @@ export function useSupabaseAuth() {
           throw userError;
         }
 
-        setUser(currentUser);
+        setUser(currentUser as User | null);
       } else {
         setUser(null);
       }
@@ -60,11 +61,11 @@ export function useSupabaseAuth() {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         console.log('Auth state changed:', event);
-        setSession(currentSession);
+        setSession(currentSession as Session | null);
         
         if (currentSession) {
           const { data: { user: currentUser } } = await supabase.auth.getUser();
-          setUser(currentUser);
+          setUser(currentUser as User | null);
         } else {
           setUser(null);
         }

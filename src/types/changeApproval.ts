@@ -10,17 +10,17 @@ export interface PendingChange {
   reviewed_at?: string;
   reviewer_id?: string;
   comments?: string;
+  // Additional fields for backward compatibility
+  title?: string;
+  description?: string;
+  requested_by?: string;
+  approval_date?: string;
+  approved_by?: string;
+  rejected_reason?: string;
+  created_at?: string;
 }
 
 export interface ChangeSubmitData {
-  table_name: string;
-  record_id: string;
-  changes_json: Record<string, any>;
-}
-
-export interface UserRole {
-  id: string;
-  user_id: string;
-  role: 'admin' | 'user';
-  created_at: string;
+  title: string;
+  description: string;
 }

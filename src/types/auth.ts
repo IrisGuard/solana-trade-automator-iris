@@ -1,5 +1,18 @@
 
-import type { Session, User } from '@supabase/supabase-js';
+// Define our own types instead of importing from Supabase
+export interface User {
+  id: string;
+  email?: string;
+  created_at?: string;
+  [key: string]: any;
+}
+
+export interface Session {
+  access_token: string;
+  refresh_token?: string;
+  user: User;
+  [key: string]: any;
+}
 
 export interface AuthState {
   user: User | null;

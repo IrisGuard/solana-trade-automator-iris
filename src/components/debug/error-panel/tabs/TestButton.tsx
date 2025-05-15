@@ -36,24 +36,31 @@ export const TestButton: React.FC<TestButtonProps> = ({
       } else {
         // Generate error based on options
         const error = new Error(options.message || `Test error: ${label}`);
-        errorCollector.captureError(error, {
+        
+        // Create error options object that matches the type
+        const errorOptions: ErrorOptions = {
           component: options.component || 'TestButton',
           source: 'ErrorTestPanel',
           details: options.details,
-          errorType: options.errorType,
-          message: options.message || `Error triggered by test button: ${label}`
-        });
+          errorType: options.errorType
+        };
+        
+        // Add message to the error itself, not to the options
+        error.message = options.message || `Error triggered by test button: ${label}`;
+        
+        errorCollector.captureError(error, errorOptions);
 
         // For test purposes, throw the error
         throw error;
       }
     } catch (error) {
-      errorCollector.captureError(error as Error, {
+      const errorOptions: ErrorOptions = {
         component: options.component || 'TestButton',
         source: 'ErrorTestPanel',
-        errorType: options.errorType,
-        message: `Error triggered by test button: ${label}`
-      });
+        errorType: options.errorType
+      };
+      
+      errorCollector.captureError(error as Error, errorOptions);
     }
   };
 

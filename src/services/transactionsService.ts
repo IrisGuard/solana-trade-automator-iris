@@ -1,6 +1,20 @@
 
 import { dbClient } from '@/integrations/supabase/client';
-import type { Tables } from '@/integrations/supabase/client';
+
+// Define a type for database transactions
+interface DBTransaction {
+  id: string;
+  user_id: string;
+  wallet_address: string;
+  signature: string;
+  type: string;
+  status: string;
+  amount: string;
+  source?: string;
+  destination?: string;
+  block_time?: string;
+  created_at?: string;
+}
 
 export const transactionsService = {
   async saveTransaction(transaction: any) {
@@ -20,7 +34,7 @@ export const transactionsService = {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data as Tables['transactions'][];
+    return data as DBTransaction[];
   },
 
   async getTransactionsByWallet(address: string) {
@@ -31,6 +45,6 @@ export const transactionsService = {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data as Tables['transactions'][];
+    return data as DBTransaction[];
   }
 };
