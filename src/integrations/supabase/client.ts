@@ -1,6 +1,7 @@
 
 // Import with renamed import to avoid naming conflicts
 import { supabaseConfig } from '@/utils/supabaseConfig';
+// Fix the import statement to use default import syntax for createClient
 import { createClient } from '@supabase/supabase-js';
 
 // Create a single supabase client for interacting with your database
