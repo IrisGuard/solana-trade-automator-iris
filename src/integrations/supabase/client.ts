@@ -1,9 +1,8 @@
 
 // Import with renamed import to avoid naming conflicts
 import { supabaseConfig } from '@/utils/supabaseConfig';
-// Fix the import statement to use the correct import syntax for createClient
-import { createClientConstructor } from '@supabase/supabase-js';
-const createClient = createClientConstructor;
+// Import createClient directly from @supabase/supabase-js
+import { createClient } from '@supabase/supabase-js';
 
 // Create a single supabase client for interacting with your database
 export const dbClient = createClient(
