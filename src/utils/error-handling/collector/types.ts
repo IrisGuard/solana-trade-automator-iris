@@ -1,36 +1,42 @@
 
 export interface ErrorData {
-  id: string;
-  message: string;
+  id?: string;
+  name?: string;
+  message?: string;
+  stack?: string;
+  cause?: unknown;
+  code?: string | number;
+  fileName?: string;
+  lineNumber?: number;
+  columnNumber?: number;
   component?: string;
   source?: string;
-  details?: any;
-  timestamp: number;
-  stack?: string;
-  status?: number;
+  details?: Record<string, unknown>;
   severity?: 'low' | 'medium' | 'high' | 'critical';
+  status?: number;
   errorType?: string;
-  handled?: boolean;
-  autoFixed?: boolean;
+  timestamp?: number;
+  browser?: {
+    name?: string;
+    version?: string;
+    os?: string;
+  };
 }
 
 export interface ErrorOptions {
   component?: string;
   source?: string;
-  details?: any;
+  details?: Record<string, unknown>;
   severity?: 'low' | 'medium' | 'high' | 'critical';
   status?: number;
   errorType?: string;
   simulateDelay?: number;
   message?: string; // Added the missing message property
+  toastDescription?: string; // Added for toast displays
 }
 
 export interface ErrorCollector {
-  captureError: (error: Error, options?: ErrorOptions) => string;
-  getErrors: () => ErrorData[];
-  getError: (id: string) => ErrorData | undefined;
-  clearErrors: () => void;
-  removeError: (id: string) => void;
-  updateError: (id: string, updates: Partial<ErrorData>) => void;
-  onErrorCaptured: (callback: (error: ErrorData) => void) => () => void;
+  captureError(error: Error, options?: ErrorOptions): void;
+  getErrors(): ErrorData[];
+  clearErrors(): void;
 }

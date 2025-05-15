@@ -1,141 +1,156 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useLanguage } from "@/hooks/use-language";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { usePhantomConnection } from "@/hooks/usePhantomConnection";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { usePhantomConnection } from "@/hooks/usePhantomConnection";
-import { Wallet } from "lucide-react";
-import { supabase } from "@/lib/supabase";
-import { Token } from "@/types/wallet";
-import { toast } from "sonner";
+import { Wallet, ArrowRight, BarChart3, Coins, RefreshCw } from "lucide-react";
 
 export function UserTokensSection() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { isConnected, walletAddress } = usePhantomConnection();
-  const [tokens, setTokens] = useState<Token[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { isConnected, tokens, isLoadingTokens } = usePhantomConnection();
   
-  // Sample tokens for when user is not connected
-  const sampleTokens: Token[] = [
-    { address: 'sol1', symbol: 'SOL', name: 'Solana', amount: 2.5, decimals: 9 },
-    { address: 'ray1', symbol: 'RAY', name: 'Raydium', amount: 25.74, decimals: 6 },
-    { address: 'usdc1', symbol: 'USDC', name: 'USD Coin', amount: 150.50, decimals: 6 },
+  const sampleTokens = [
+    { symbol: 'SOL', name: 'Solana', amount: 12.85, value: 1545.23, change: 3.2 },
+    { symbol: 'USDC', name: 'USD Coin', amount: 580.50, value: 580.50, change: 0.01 },
+    { symbol: 'RAY', name: 'Raydium', amount: 250, value: 175.25, change: -2.5 },
+    { symbol: 'BONK', name: 'Bonk', amount: 15000000, value: 95.45, change: 12.7 },
   ];
   
-  useEffect(() => {
-    const fetchTokens = async () => {
-      if (!isConnected || !walletAddress) return;
-      
-      setIsLoading(true);
-      try {
-        // Fetch tokens data from Supabase
-        const { data, error } = await supabase
-          .from('tokens')
-          .select('*')
-          .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
-        
-        if (error) throw error;
-        
-        // If no tokens in Supabase yet, use the wallet data
-        if (data && data.length > 0) {
-          const formattedTokens: Token[] = data.map(token => ({
-            address: token.token_address,
-            symbol: token.symbol,
-            name: token.name,
-            amount: token.amount || 0,
-            decimals: 9
-          }));
-          setTokens(formattedTokens);
-        } else {
-          // Fallback to sample tokens if no data in Supabase
-          setTokens(sampleTokens);
-        }
-      } catch (error) {
-        console.error("Error fetching tokens:", error);
-        toast.error("Σφάλμα κατά τη φόρτωση των tokens");
-        // Fallback to sample tokens on error
-        setTokens(sampleTokens);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchTokens();
-  }, [isConnected, walletAddress]);
-  
-  const displayedTokens = isConnected ? tokens : sampleTokens;
+  const tokensToShow = isConnected ? (tokens.length > 0 ? tokens : sampleTokens) : sampleTokens;
   
   return (
-    <section className="py-12 bg-gray-900/70">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold">
-            {isConnected ? t("wallet.yourTokens") : t("platform.sampleTokens", "Διαθέσιμα Tokens")}
-          </h2>
-          
-          <Button 
-            variant="outline" 
-            onClick={() => navigate('/tokens')}
-            className="border-blue-500 text-blue-400 hover:bg-blue-500/10"
-          >
-            {t("general.viewAll")}
-          </Button>
-        </div>
-        
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[1, 2, 3].map(i => (
-              <Card key={i} className="bg-gray-800/50 border-gray-700">
-                <CardContent className="p-6">
-                  <div className="h-16 bg-gray-700/50 animate-pulse rounded-md"></div>
-                </CardContent>
-              </Card>
-            ))}
+    <section className="py-24 relative overflow-hidden">
+      {/* Background with gradient overlay */}
+      <div className="absolute inset-0 bg-gray-950 z-0"></div>
+      <div className="absolute inset-y-0 left-0 w-1/4 bg-blue-900/5 blur-3xl z-0"></div>
+      <div className="absolute inset-y-0 right-0 w-1/4 bg-purple-900/5 blur-3xl z-0"></div>
+      
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              {t("platform.sampleTokens", "Διαθέσιμα Tokens")}
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              {isConnected 
+                ? t("wallet.tokensBalance", "Λίστα tokens") 
+                : t("hero.connectWalletToViewTokens", "Συνδέστε το Πορτοφόλι σας για να Δείτε τα Tokens")}
+            </p>
           </div>
-        ) : (
-          <>
-            {displayedTokens.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {displayedTokens.map((token, index) => (
-                  <Card key={index} className="bg-gray-800/50 border-gray-700">
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mr-4">
-                            <span className="font-bold">{token.symbol.substring(0, 2)}</span>
-                          </div>
-                          <div>
-                            <h3 className="font-medium">{token.name}</h3>
-                            <p className="text-sm text-gray-400">{token.symbol}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold">{token.amount.toFixed(4)}</p>
-                          <p className="text-sm text-gray-400">~$0.00</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+          
+          <div className="relative bg-gradient-to-r from-blue-600/20 to-purple-600/20 p-0.5 rounded-xl shadow-xl overflow-hidden">
+            <div className="bg-gray-900 rounded-lg overflow-hidden">
+              {/* Header */}
+              <div className="flex justify-between items-center px-6 py-4 border-b border-gray-800">
+                <div className="flex items-center gap-2">
+                  <Coins className="h-5 w-5 text-blue-400" />
+                  <h3 className="text-xl font-semibold">
+                    {isConnected ? t("wallet.tokensBalance") : t("platform.sampleTokens")}
+                  </h3>
+                </div>
+                
+                {isConnected && (
+                  <Button variant="outline" size="sm" className="gap-1">
+                    <RefreshCw className="h-4 w-4" />
+                    <span>{t("general.refresh", "Ανανέωση")}</span>
+                  </Button>
+                )}
               </div>
-            ) : (
-              <Card className="bg-gray-800/50 border-gray-700">
-                <CardContent className="p-6 flex flex-col items-center justify-center text-center py-12">
-                  <Wallet className="h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-xl font-medium mb-2">{t("hero.connectWalletToViewTokens")}</h3>
-                  <p className="text-gray-400 mb-6">{t("hero.needToConnectWallet")}</p>
-                  
-                  <Button onClick={() => navigate('/wallet')} className="gap-2">
-                    <Wallet className="h-4 w-4" />
+              
+              {/* Tokens Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-900/80">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-300">Token</th>
+                      <th className="px-6 py-3 text-right text-sm font-medium text-gray-300">Amount</th>
+                      <th className="px-6 py-3 text-right text-sm font-medium text-gray-300">Value</th>
+                      <th className="px-6 py-3 text-right text-sm font-medium text-gray-300">Change</th>
+                      <th className="px-6 py-3 text-right text-sm font-medium text-gray-300"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-800">
+                    {isLoadingTokens ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-10 text-center">
+                          <div className="flex justify-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : tokensToShow.map((token, index) => (
+                      <tr key={index} className="hover:bg-gray-800/50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-xs font-bold">
+                              {token.symbol?.substring(0, 2)}
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium">{token.name || token.symbol}</div>
+                              <div className="text-sm text-gray-400">{token.symbol}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <div className="text-sm">{token.amount?.toLocaleString()}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <div className="text-sm">${(token as any).value?.toLocaleString() || '-'}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <div className={`text-sm ${(token as any).change > 0 ? 'text-green-500' : (token as any).change < 0 ? 'text-red-500' : 'text-gray-400'}`}>
+                            {(token as any).change > 0 ? '+' : ''}{(token as any).change?.toFixed(2) || '0.00'}%
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="hover:text-blue-400"
+                            onClick={() => navigate('/tokens')}
+                          >
+                            <BarChart3 className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-gray-800 flex justify-between items-center">
+                {isConnected ? (
+                  <Button 
+                    variant="default"
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all"
+                    onClick={() => navigate('/tokens')}
+                  >
+                    {t("general.viewAll", "Προβολή Όλων")}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="default" 
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all"
+                    onClick={() => navigate('/wallet')}
+                  >
+                    <Wallet className="mr-2 h-4 w-4" />
                     {t("wallet.connectWallet")}
                   </Button>
-                </CardContent>
-              </Card>
-            )}
-          </>
-        )}
+                )}
+                
+                <div className="text-sm text-gray-400">
+                  {isConnected 
+                    ? `${tokensToShow.length} tokens` 
+                    : t("hero.needToConnectWallet")}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

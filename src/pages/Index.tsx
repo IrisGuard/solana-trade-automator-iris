@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/hooks/use-language";
 import { Button } from "@/components/ui/button";
@@ -13,38 +13,101 @@ import { UserTokensSection } from "@/components/home/UserTokensSection";
 import { UserBotsSection } from "@/components/home/UserBotsSection";
 import { FaqSection } from "@/components/home/FaqSection";
 import { FooterSection } from "@/components/home/FooterSection";
+import { Layers, Menu, X } from "lucide-react";
 
 export default function Index() {
   const { t } = useLanguage();
   const { isConnected } = usePhantomConnection();
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+  
+  const navigation = [
+    { title: t("general.dashboard"), href: "/dashboard" },
+    { title: t("wallet.walletStatus"), href: "/wallet" },
+    { title: t("makerBot.botSettings"), href: "/bot-control" },
+    { title: t("general.help"), href: "/help" },
+  ];
   
   return (
     <div className="flex flex-col min-h-screen bg-gray-950 text-white">
       {/* Header navigation */}
-      <header className="p-4 border-b border-gray-800">
-        <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-xl font-bold">Solana Trade Automator</h1>
-          <div className="flex items-center gap-4">
-            <Link to="/dashboard" className="text-blue-400 hover:text-blue-300 hidden sm:inline-block">
-              {t("general.dashboard")}
-            </Link>
-            <Link to="/bot-control" className="text-blue-400 hover:text-blue-300 hidden sm:inline-block">
-              {t("makerBot.botSettings")}
-            </Link>
-            <div className="hidden sm:block">
+      <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-gray-900/80 border-b border-gray-800">
+        <div className="container mx-auto flex justify-between items-center p-4">
+          <Link to="/" className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <Layers className="h-4 w-4 text-white" />
+            </div>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent hidden sm:inline-block">
+              Solana Trade Automator
+            </h1>
+          </Link>
+          
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-6">
+            {navigation.map((item, index) => (
+              <Link 
+                key={index}
+                to={item.href} 
+                className="text-gray-300 hover:text-white transition-colors"
+              >
+                {item.title}
+              </Link>
+            ))}
+            
+            <div className="ml-4 flex items-center gap-3">
+              <ThemeToggle />
               <WalletConnectButtonSafe 
-                variant="outline" 
+                variant="default" 
                 size="sm"
-                className="bg-transparent border border-gray-700 text-white"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md shadow-blue-900/20"
               />
             </div>
+          </div>
+          
+          {/* Mobile menu button */}
+          <div className="flex items-center gap-3 md:hidden">
             <ThemeToggle />
+            <button 
+              onClick={toggleMobileMenu}
+              className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-800"
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
         </div>
+        
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-gray-900 border-b border-gray-800">
+            <div className="container mx-auto py-3 px-4">
+              <div className="flex flex-col space-y-3">
+                {navigation.map((item, index) => (
+                  <Link 
+                    key={index}
+                    to={item.href} 
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-gray-300 hover:text-white transition-colors py-2"
+                  >
+                    {item.title}
+                  </Link>
+                ))}
+                <div className="py-2">
+                  <WalletConnectButtonSafe 
+                    variant="default" 
+                    size="sm"
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md shadow-blue-900/20"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
       
-      {/* Main content */}
-      <main className="flex-1">
+      <main className="flex-1 pt-16">
         {/* Hero section */}
         <HeroSection />
         

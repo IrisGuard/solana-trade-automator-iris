@@ -2,7 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
-import { Lock, Wallet, Zap } from "lucide-react";
+import { Lock, Wallet, Zap, ArrowRight, BarChart3, Bot } from "lucide-react";
 import { WalletConnectButtonSafe } from "@/components/wallet/WalletConnectButtonSafe";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/use-language";
@@ -27,38 +27,41 @@ export function HeroSection() {
   };
   
   return (
-    <div className="relative py-12 md:py-24 px-4 bg-gradient-to-b from-gray-900 to-gray-950">
-      <div className="container mx-auto max-w-5xl flex flex-col items-center text-center">
-        {/* Blue floating shape */}
-        <div className="absolute top-1/4 left-1/4 w-32 h-32 md:w-64 md:h-64 bg-blue-500/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/3 w-32 h-32 md:w-48 md:h-48 bg-purple-500/10 rounded-full blur-3xl" />
-        
-        {/* Content */}
-        <div className="relative">
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+    <div className="relative py-16 md:py-28 px-4 bg-gradient-to-b from-gray-900 via-gray-950 to-black overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute top-1/4 -left-24 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-1/3 -right-32 w-80 h-80 bg-purple-700/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
+      <div className="absolute top-2/3 left-1/3 w-40 h-40 bg-cyan-500/10 rounded-full blur-2xl animate-pulse" style={{ animationDelay: "1.5s" }}></div>
+      
+      {/* Content */}
+      <div className="container mx-auto max-w-6xl flex flex-col items-center text-center relative z-10">
+        <div className="relative mb-10">
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">
             Solana Trade Automator
           </h1>
-          <p className="text-lg md:text-xl text-gray-300 max-w-3xl mb-8">
+          <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto mb-8 leading-relaxed">
             {t("hero.tagline")}
           </p>
           
-          <div className="flex flex-col md:flex-row gap-4 w-full justify-center">
+          {/* Main buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Button
               size="lg"
               onClick={handleGetStarted}
-              className="gap-2 w-full md:w-auto"
+              className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white shadow-lg shadow-blue-700/30 hover:shadow-blue-800/40 transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 text-lg py-6"
             >
-              <Zap className="h-5 w-5" />
+              <Zap className="h-5 w-5 mr-2" />
               {t("hero.getStartedButton")}
+              <ArrowRight className="h-5 w-5 ml-2" />
             </Button>
             
             {!isConnected && (
               <WalletConnectButtonSafe
                 variant="outline"
                 size="lg"
-                className="gap-2 w-full md:w-auto bg-white/5 backdrop-blur-sm"
+                className="bg-gradient-to-r from-purple-600/10 to-indigo-600/10 backdrop-blur-md border border-purple-400/20 text-white hover:bg-purple-500/20 hover:border-purple-400/40 shadow-lg shadow-purple-900/20 transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 text-lg py-6"
               >
-                <Wallet className="h-5 w-5" />
+                <Wallet className="h-5 w-5 mr-2" />
                 {t("wallet.connectWallet")}
               </WalletConnectButtonSafe>
             )}
@@ -67,33 +70,107 @@ export function HeroSection() {
               variant="outline"
               size="lg"
               onClick={() => handleNavigateWithToast('/bot-control', t("hero.botControlToast"))}
-              className="gap-2 w-full md:w-auto bg-white/5 backdrop-blur-sm"
+              className="bg-gradient-to-r from-emerald-600/10 to-cyan-600/10 backdrop-blur-md border border-emerald-400/20 text-white hover:bg-emerald-500/20 hover:border-emerald-400/40 shadow-lg shadow-emerald-900/20 transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 text-lg py-6"
             >
-              <Zap className="h-5 w-5" />
+              <Bot className="h-5 w-5 mr-2" />
               <span>{t("makerBot.botSettings")}</span>
             </Button>
           </div>
           
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12">
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4">
-              <p className="text-3xl font-bold text-blue-400">24/7</p>
-              <p className="text-sm text-gray-400">{t("platform.tradingModes")}</p>
-            </div>
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4">
-              <p className="text-3xl font-bold text-purple-400">+25%</p>
-              <p className="text-sm text-gray-400">{t("platform.avgReturns")}</p>
-            </div>
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4">
-              <p className="text-3xl font-bold text-green-400">0.1%</p>
-              <p className="text-sm text-gray-400">{t("platform.lowFees")}</p>
-            </div>
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4">
-              <p className="text-3xl font-bold text-amber-400">100%</p>
-              <p className="text-sm text-gray-400">{t("platform.controlFunds")}</p>
-            </div>
+          {/* Feature buttons */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
+            <FeatureButton 
+              icon={<Wallet className="h-8 w-8" />}
+              title={t("platform.step1Title", "Σύνδεση Πορτοφολιού")} 
+              description={t("platform.step1Desc", "Συνδέστε το πορτοφόλι Solana σας για να ξεκινήσετε τις συναλλαγές")}
+              onClick={() => navigate('/wallet')}
+              gradient="from-blue-600 to-cyan-500"
+            />
+            
+            <FeatureButton 
+              icon={<Bot className="h-8 w-8" />}
+              title={t("platform.step2Title", "Επιλογή Bot")} 
+              description={t("platform.step2Desc", "Επιλέξτε ανάμεσα σε Trading Bot και Market Maker Bot")}
+              onClick={() => navigate('/bot-control')}
+              gradient="from-purple-600 to-pink-500"
+            />
+            
+            <FeatureButton 
+              icon={<BarChart3 className="h-8 w-8" />}
+              title={t("platform.step3Title", "Ρύθμιση Παραμέτρων")} 
+              description={t("platform.step3Desc", "Προσαρμόστε τις παραμέτρους για τις ανάγκες σας")}
+              onClick={() => navigate('/dashboard')}
+              gradient="from-amber-500 to-orange-600"
+            />
+            
+            <FeatureButton 
+              icon={<Zap className="h-8 w-8" />}
+              title={t("platform.step4Title", "Παρακολούθηση & Βελτιστοποίηση")} 
+              description={t("platform.step4Desc", "Παρακολουθήστε την απόδοση των bots σας και βελτιώστε τις στρατηγικές σας")}
+              onClick={() => navigate('/portfolio')}
+              gradient="from-emerald-500 to-teal-600"
+            />
+          </div>
+          
+          {/* Stats Section */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-20">
+            <StatCard value="24/7" label={t("platform.tradingModes", "Αυτόματες Συναλλαγές")} color="blue" />
+            <StatCard value="+25%" label={t("platform.avgReturns", "Μέση Απόδοση")} color="purple" />
+            <StatCard value="0.1%" label={t("platform.lowFees", "Χαμηλές Χρεώσεις")} color="emerald" />
+            <StatCard value="100%" label={t("platform.controlFunds", "Έλεγχος Κεφαλαίων")} color="amber" />
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Feature Button Component
+interface FeatureButtonProps {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  onClick: () => void;
+  gradient: string;
+}
+
+function FeatureButton({ title, description, icon, onClick, gradient }: FeatureButtonProps) {
+  return (
+    <button 
+      onClick={onClick}
+      className={`bg-gradient-to-br ${gradient} p-0.5 rounded-lg shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-xl group`}
+    >
+      <div className="h-full w-full px-5 py-6 bg-gray-900 rounded-md flex flex-col items-center text-center">
+        <div className="mb-4 p-3 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
+          {icon}
+        </div>
+        <h3 className="text-xl font-bold mb-2 group-hover:text-white">{title}</h3>
+        <p className="text-gray-300 text-sm">{description}</p>
+      </div>
+    </button>
+  );
+}
+
+// Stat Card Component
+interface StatCardProps {
+  value: string;
+  label: string;
+  color: 'blue' | 'purple' | 'emerald' | 'amber';
+}
+
+function StatCard({ value, label, color }: StatCardProps) {
+  const colorClasses = {
+    blue: "from-blue-600 to-cyan-500 shadow-blue-700/30",
+    purple: "from-purple-600 to-pink-500 shadow-purple-700/30",
+    emerald: "from-emerald-500 to-teal-600 shadow-emerald-700/30",
+    amber: "from-amber-500 to-orange-600 shadow-amber-700/30"
+  };
+
+  return (
+    <div className={`bg-gradient-to-br ${colorClasses[color]} p-0.5 rounded-lg shadow-lg transition-all hover:shadow-xl`}>
+      <div className="bg-gray-900 h-full w-full rounded-md p-5 text-center">
+        <p className={`text-3xl font-bold bg-gradient-to-r ${colorClasses[color]} bg-clip-text text-transparent mb-1`}>{value}</p>
+        <p className="text-sm text-gray-300">{label}</p>
       </div>
     </div>
   );
