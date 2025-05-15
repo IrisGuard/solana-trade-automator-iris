@@ -1,7 +1,7 @@
 
 import React from "react";
 import { ThemeProvider } from "@/providers/ThemeProvider";
-import { LanguageProvider } from "@/hooks/use-language";
+import { LanguageProvider } from "@/providers/LanguageProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SupabaseAuthProvider } from "@/providers/SupabaseAuthProvider";
 import { Toaster } from "sonner";
