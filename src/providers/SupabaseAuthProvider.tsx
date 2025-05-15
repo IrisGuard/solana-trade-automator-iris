@@ -43,7 +43,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     
     signOut: async () => {
       try {
-        await supabaseAuth.signOut();
+        await authService.signOut();
       } catch (error) {
         console.error('Error signing out:', error);
       }
@@ -51,8 +51,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     
     resetPassword: async (email) => {
       try {
-        // Implementation would depend on your authService
-        await authService.resetPassword?.(email);
+        await authService.resetPassword(email);
         return { error: null };
       } catch (error) {
         return { error: error as Error };
