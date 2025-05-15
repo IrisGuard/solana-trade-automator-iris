@@ -2,8 +2,11 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { User, Session } from '@supabase/supabase-js';
-import type { Tables } from '@/integrations/supabase/types';
+import type { Database } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
+
+// Define the Tables type properly
+type Tables = Database['public']['Tables'];
 
 interface AuthState {
   user: User | null;
