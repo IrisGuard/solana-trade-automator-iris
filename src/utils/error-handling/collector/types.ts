@@ -21,6 +21,8 @@ export interface ErrorData {
     version?: string;
     os?: string;
   };
+  handled?: boolean; // Added the missing 'handled' property
+  autoFixed?: boolean; // Added the missing 'autoFixed' property
 }
 
 export interface ErrorOptions {
@@ -31,12 +33,16 @@ export interface ErrorOptions {
   status?: number;
   errorType?: string;
   simulateDelay?: number;
-  message?: string; // Added the missing message property
-  toastDescription?: string; // Added for toast displays
+  message?: string; // Keep this property
+  toastDescription?: string; // Keep this property
 }
 
 export interface ErrorCollector {
-  captureError(error: Error, options?: ErrorOptions): void;
+  captureError(error: Error, options?: ErrorOptions): string;
   getErrors(): ErrorData[];
   clearErrors(): void;
+  getError(id: string): ErrorData | undefined;
+  removeError(id: string): void;
+  updateError(id: string, updates: Partial<ErrorData>): void;
+  onErrorCaptured(callback: (error: ErrorData) => void): () => void;
 }

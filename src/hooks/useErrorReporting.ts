@@ -8,7 +8,7 @@ interface ErrorReportingOptions {
   component?: string;
   source?: string;
   severity?: 'low' | 'medium' | 'high';
-  details?: any; // Added the missing details property
+  details?: any;
   showUI?: boolean;
   showToast?: boolean;
   toastTitle?: string;
@@ -28,7 +28,7 @@ export function useErrorReporting() {
       ...options
     };
     
-    // Add to error collector
+    // Add to error collector - ensure this returns a string
     const errorId = errorCollector.captureError(error, mergedOptions);
     
     // Display error UI if needed

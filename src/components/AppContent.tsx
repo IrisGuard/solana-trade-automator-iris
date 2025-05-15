@@ -30,7 +30,9 @@ function logWalletError(error: Error, info: React.ErrorInfo) {
   errorCollector.captureError(error, {
     component: "AppContent",
     source: "app",
-    details: info,
+    details: { 
+      componentStack: info.componentStack // Convert React.ErrorInfo to a structure compatible with Record<string, unknown>
+    },
     severity: 'high'
   });
   
