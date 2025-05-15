@@ -22,7 +22,7 @@ export function useWalletEvents(
       // Disconnected handler
       () => {
         console.log("Wallet disconnected event");
-        onDisconnected();
+        return onDisconnected();
       }
     );
     

@@ -71,7 +71,7 @@ export function TokensCard({
           <div className="space-y-4">
             <TokensList 
               tokens={tokens.slice(0, 5)} 
-              tokenPrices={tokenPrices} 
+              tokenPrices={tokenPricesAsNumbers}
               onSelectToken={onSelectToken}
             />
             
