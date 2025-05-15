@@ -11,11 +11,14 @@ export interface ErrorData {
   source: string;
   url: string;
   browserInfo: any;
-  errorCode: string | null;
-  context: any | null;
-  metadata: any | null;
-  status: number | null;
+  errorCode?: string | null;
+  context?: any | null;
+  metadata?: any | null;
+  status?: number | null;
   errorId?: string | null;
+  errorType?: string;
+  details?: any;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
 }
 
 /**
@@ -30,13 +33,16 @@ export interface ErrorOptions {
   metadata?: any;
   status?: number;
   errorId?: string;
+  details?: any;
+  errorType?: string;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
 }
 
 /**
  * Interface for ErrorCollector class
  */
 export interface ErrorCollector {
-  captureError(error: Error | string, options?: ErrorOptions): ErrorData;
+  captureError(error: Error | string, options?: ErrorOptions): string;
   getErrors(): ErrorData[];
   clearErrors(): void;
   getErrorCount(): number;

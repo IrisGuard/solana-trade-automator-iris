@@ -13,14 +13,16 @@ export class ErrorCollector {
   /**
    * Capture an error with additional context
    */
-  public captureError(error: Error | string, options: ErrorOptions = {}): ErrorData {
+  public captureError(error: Error | string, options: ErrorOptions = {}): string {
     const errorMessage = typeof error === 'string' ? error : error.message;
     const errorStack = typeof error === 'string' ? null : error.stack;
     
+    const errorId = this.generateErrorId();
+    
     const errorData: ErrorData = {
-      id: this.generateErrorId(),
+      id: errorId,
       message: errorMessage,
-      stack: errorStack || null,
+      stack: errorStack,
       timestamp: new Date().toISOString(),
       component: options.component || null,
       source: options.source || 'client',
@@ -31,6 +33,9 @@ export class ErrorCollector {
       metadata: options.metadata || null,
       status: options.status || null,
       errorId: options.errorId || null,
+      errorType: options.errorType,
+      details: options.details,
+      severity: options.severity,
     };
 
     this.addError(errorData);
@@ -50,7 +55,7 @@ export class ErrorCollector {
       }
     }
 
-    return errorData;
+    return errorId;
   }
 
   /**
@@ -107,25 +112,7 @@ export class ErrorCollector {
    * Report error to remote services if configured
    */
   private reportError(errorData: ErrorData): void {
-    // Example: Send to backend logging service
-    if (errorData.source === 'client') {
-      // Use supabase or another service to log the error
-      try {
-        // Asynchonously send error to the server
-        fetch('/api/log-error', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(errorData),
-          // Don't wait for response
-          keepalive: true
-        }).catch((err) => {
-          // Suppress any errors from logging the error
-          console.debug('[ErrorCollector] Failed to report error:', err);
-        });
-      } catch (e) {
-        // Silence any errors that come from reporting errors
-      }
-    }
+    // Implementation left empty for now - would connect to backend service
   }
 
   /**

@@ -17,30 +17,30 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       id: supabaseAuth.user.id,
       email: supabaseAuth.user.email,
       created_at: supabaseAuth.user.created_at,
-      profile: supabaseAuth.profile
     } : null,
     session: supabaseAuth.session,
-    loading: supabaseAuth.isLoading,
+    loading: supabaseAuth.loading,
     signIn: async (email, password) => {
       try {
-        return await authService.signInWithPassword(email, password);
+        const result = await authService.signInWithPassword(email, password);
+        return { error: result.error || null };
       } catch (error) {
-        return { error };
+        return { error: error as Error };
       }
     },
     signUp: async (email, password) => {
       try {
-        return await authService.signUp(email, password);
+        const result = await authService.signUp(email, password);
+        return { error: result.error || null, data: result.data };
       } catch (error) {
-        return { error };
+        return { error: error as Error, data: null };
       }
     },
     signOut: async () => {
       try {
         await supabaseAuth.signOut();
-        return { success: true };
       } catch (error) {
-        return { error };
+        console.error('Error signing out:', error);
       }
     }
   };

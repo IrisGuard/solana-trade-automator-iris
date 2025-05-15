@@ -1,14 +1,13 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { Session, User } from '@supabase/supabase-js';
 import { errorCollector } from '@/utils/error-handling/collector';
 
 export function useSupabaseAuth() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<any | null>(null);
+  const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [profile, setProfile] = useState<any | null>(null);
 
   // Function to get the current session and user
   const refreshSession = useCallback(async () => {
@@ -157,6 +156,7 @@ export function useSupabaseAuth() {
   return {
     session,
     user,
+    profile,
     loading,
     error,
     signIn,

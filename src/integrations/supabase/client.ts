@@ -7,3 +7,6 @@ export const supabase = createClient(
   supabaseConfig.url, 
   supabaseConfig.anonKey
 );
+
+// Export a database client alias for backward compatibility
+export const dbClient = supabase;
