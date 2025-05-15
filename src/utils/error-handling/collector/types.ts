@@ -19,7 +19,6 @@ export interface ErrorOptions {
   source?: string;
   details?: any;
   severity?: 'low' | 'medium' | 'high' | 'critical';
-  message?: string;
   status?: number;
   errorType?: string;
   simulateDelay?: number;

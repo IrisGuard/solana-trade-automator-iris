@@ -3,26 +3,37 @@ import { ErrorData, ErrorCollector, ErrorOptions } from './types';
 
 export class ErrorCollectorImpl implements ErrorCollector {
   private errors = new Map<string, ErrorData>();
+  private listeners: ((error: ErrorData) => void)[] = [];
 
   captureError(error: Error, options: ErrorOptions = {}): string {
-    const errorId = options.id || crypto.randomUUID();
+    // Generate a new ID for the error
+    const errorId = crypto.randomUUID();
     
     const errorData: ErrorData = {
-      error,
-      timestamp: Date.now(),
+      id: errorId,
+      message: error.message,
+      stack: error.stack,
       component: options.component || 'unknown',
-      source: options.source || 'app',
-      details: options.details || null,
+      source: options.source || 'client',
+      details: options.details,
+      timestamp: Date.now(),
       severity: options.severity || 'medium',
-      resolved: false
+      status: options.status,
+      errorType: options.errorType,
+      handled: false,
+      autoFixed: false
     };
     
     this.errors.set(errorId, errorData);
+    
+    // Notify listeners
+    this.listeners.forEach(listener => listener(errorData));
+    
     return errorId;
   }
   
-  getAllErrors(): Map<string, ErrorData> {
-    return new Map(this.errors);
+  getErrors(): ErrorData[] {
+    return Array.from(this.errors.values());
   }
   
   clearErrors(): void {
@@ -33,26 +44,23 @@ export class ErrorCollectorImpl implements ErrorCollector {
     return this.errors.get(id);
   }
   
-  removeError(id: string): boolean {
-    return this.errors.delete(id);
+  removeError(id: string): void {
+    this.errors.delete(id);
   }
   
-  updateError(id: string, updates: Partial<ErrorData>): boolean {
+  updateError(id: string, updates: Partial<ErrorData>): void {
     const error = this.errors.get(id);
-    if (!error) return false;
-    
-    this.errors.set(id, { ...error, ...updates });
-    return true;
+    if (error) {
+      this.errors.set(id, { ...error, ...updates });
+    }
   }
   
-  onErrorCaptured(callback: (errorId: string, error: Error) => void): void {
-    // Implementation of the error capture callback
-    const originalCaptureError = this.captureError.bind(this);
+  onErrorCaptured(callback: (error: ErrorData) => void): () => void {
+    this.listeners.push(callback);
     
-    this.captureError = (error: Error, options: ErrorOptions = {}) => {
-      const errorId = originalCaptureError(error, options);
-      callback(errorId, error);
-      return errorId;
+    // Return function to unsubscribe
+    return () => {
+      this.listeners = this.listeners.filter(listener => listener !== callback);
     };
   }
 }

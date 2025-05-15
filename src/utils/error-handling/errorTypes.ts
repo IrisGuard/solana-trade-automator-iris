@@ -29,8 +29,6 @@ export enum ErrorSeverity {
   CRITICAL = 'critical'
 }
 
-export const RPC_ENDPOINTS = {
-  PRIMARY: 'https://rpc.ankr.com/solana',
-  BACKUP: 'https://api.mainnet-beta.solana.com',
-  FALLBACK: 'https://solana-api.projectserum.com'
-};
+// Import RPC_ENDPOINTS from constants instead of defining here
+import { RPC_ENDPOINTS } from './constants';
+export { RPC_ENDPOINTS };

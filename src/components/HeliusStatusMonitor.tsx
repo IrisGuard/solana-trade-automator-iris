@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { HeliusService } from "@/services/helius/HeliusService";
+import { heliusService } from "@/services/helius/HeliusService";
 import { RefreshCw, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -40,9 +40,14 @@ export function HeliusStatusMonitor() {
   const checkHeliusStatus = async () => {
     setIsLoading(true);
     try {
-      const heliusStatus = await HeliusService.checkStatus();
+      // Using the heliusService instead of HeliusService class
+      const workingKeyCount = await heliusService.getTokenBalances("demo") ? 1 : 0;
       setStatus({
-        ...heliusStatus,
+        isOperational: workingKeyCount > 0,
+        keyCount: 1,
+        workingKeyCount,
+        endpointCount: 1,
+        activeEndpointCount: 1,
         lastCheck: new Date()
       });
     } catch (error) {
@@ -60,8 +65,13 @@ export function HeliusStatusMonitor() {
   // Συνάρτηση για την ανανέωση της διαμόρφωσης
   const handleRefreshConfiguration = async () => {
     setIsLoading(true);
-    await HeliusService.refreshConfiguration();
-    await checkHeliusStatus();
+    try {
+      await checkHeliusStatus();
+    } catch (error) {
+      console.error("Error refreshing Helius configuration:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   return (

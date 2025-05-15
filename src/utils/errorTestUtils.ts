@@ -1,27 +1,33 @@
 
-import { ErrorOptions } from './error-handling/collector/types';
 import { errorCollector } from './error-handling/collector';
 
-export const triggerTestError = async (errorType: string, options: ErrorOptions = {}) => {
-  const message = options.message || 'Test error';
-  const { component, details, simulateDelay } = options;
-
-  if (simulateDelay) {
-    await new Promise(resolve => setTimeout(resolve, simulateDelay));
-  }
-
+export function generateTestError(message: string = 'Test Error', options: any = {}) {
   const error = new Error(message);
+  
+  // Add any additional properties to the error object
+  if (options.code) error.name = options.code;
+  
+  // Capture the error using our collector
   const errorId = errorCollector.captureError(error, {
-    component,
-    source: 'test',
-    details,
-    severity: 'low',
-    errorType
+    component: options.component || 'TestComponent',
+    source: options.source || 'test',
+    details: options.details || { test: true },
+    severity: options.severity || 'low',
+    errorType: options.errorType
   });
+  
+  return { errorId, error };
+}
 
-  throw error;
-};
-
-export const clearAllErrors = () => {
+export function clearAllErrors() {
   errorCollector.clearErrors();
-};
+}
+
+export function simulateNetworkError() {
+  const error = new Error('Network request failed');
+  return errorCollector.captureError(error, {
+    component: 'NetworkHandler',
+    source: 'api',
+    severity: 'medium'
+  });
+}

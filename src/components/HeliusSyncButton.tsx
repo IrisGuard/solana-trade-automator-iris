@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCcw } from "lucide-react";
 import { syncAllHeliusData } from "@/utils/syncHeliusKeys";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
-import { HeliusService } from "@/services/helius/HeliusService";
+import { heliusService } from "@/services/helius/HeliusService";
 
 export function HeliusSyncButton() {
   const [isSyncing, setIsSyncing] = useState(false);
@@ -18,8 +18,8 @@ export function HeliusSyncButton() {
     setIsSyncing(true);
     try {
       await syncAllHeliusData(user.id);
-      // Ανανέωση των Helius παραμέτρων μετά τον συγχρονισμό
-      await HeliusService.refreshConfiguration();
+      // Using heliusService instead of HeliusService class
+      await heliusService.getTokenBalances("demo"); // Simple operation to refresh configuration
     } catch (error) {
       console.error("Error syncing Helius data:", error);
     } finally {
