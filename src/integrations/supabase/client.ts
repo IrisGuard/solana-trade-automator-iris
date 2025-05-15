@@ -1,11 +1,11 @@
 
 // Import with renamed import to avoid naming conflicts
 import { supabaseConfig } from '@/utils/supabaseConfig';
-// Import createClient directly from @supabase/supabase-js
-import { createClient } from '@supabase/supabase-js';
+// Import the entire Supabase package and then extract createClient
+import * as supabase from '@supabase/supabase-js';
 
 // Create a single supabase client for interacting with your database
-export const dbClient = createClient(
+export const dbClient = supabase.createClient(
   supabaseConfig.url,
   supabaseConfig.anonKey
 );
