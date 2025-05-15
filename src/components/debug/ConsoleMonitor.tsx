@@ -24,151 +24,130 @@ export function ConsoleMonitor() {
     count: 0,
     lastReset: Date.now()
   });
-
-  // Resets the API error counter periodically
-  useEffect(() => {
-    const resetInterval = setInterval(() => {
-      recentApiErrors.current = {
-        count: 0,
-        lastReset: Date.now()
-      };
-    }, 60000); // Reset counter every minute
-    
-    return () => clearInterval(resetInterval);
-  }, []);
-
-  // Παρακολούθηση των σφαλμάτων API
-  useEffect(() => {
-    // Avoid setting up multiple interceptors
-    if (fetchInterceptorActive.current) {
-      return () => {};
-    }
   
-    const handleFetchErrors = () => {
+  useEffect(() => {
+    // Original console methods
+    const originalConsoleError = console.error;
+    const originalConsoleWarn = console.warn;
+    
+    // Override console.error to capture errors
+    console.error = (...args: any[]) => {
+      // Call original first to ensure it's displayed
+      originalConsoleError.apply(console, args);
+      
+      try {
+        const message = args.map(arg => 
+          typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+        ).join(' ');
+        
+        // Add to logs
+        setLogs(prev => [
+          { type: 'error', message, timestamp: new Date() },
+          ...prev.slice(0, 99) // Keep maximum 100 logs
+        ]);
+        
+        // Check for known error patterns and avoid duplicate notifications
+        const errorKey = message.slice(0, 100); // Use first 100 chars as key
+        const lastNotified = errorCache.get(errorKey) || 0;
+        const now = Date.now();
+        
+        if (now - lastNotified > ERROR_NOTIFICATION_COOLDOWN) {
+          errorCache.set(errorKey, now);
+          
+          // Only handle critical errors that match certain patterns
+          if (
+            message.includes('Failed to fetch') || 
+            message.includes('NetworkError') ||
+            message.includes('TypeError') ||
+            message.includes('Unhandled error')
+          ) {
+            // Create an error object to report
+            const error = new Error(message);
+            reportError(error, {
+              component: 'ConsoleMonitor',
+              source: 'client',
+              severity: 'medium'
+            });
+          }
+        }
+      } catch (e) {
+        // Do nothing, don't want to create infinite loops
+        originalConsoleError('Error in console.error override:', e);
+      }
+    };
+    
+    // Override console.warn to capture warnings
+    console.warn = (...args: any[]) => {
+      // Call original first
+      originalConsoleWarn.apply(console, args);
+      
+      try {
+        const message = args.map(arg => 
+          typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+        ).join(' ');
+        
+        // Add to logs
+        setLogs(prev => [
+          { type: 'warn', message, timestamp: new Date() },
+          ...prev.slice(0, 99)
+        ]);
+      } catch (e) {
+        // Handle quietly
+        originalConsoleError('Error in console.warn override:', e);
+      }
+    };
+    
+    // Set up fetch interceptor to monitor API calls if not already active
+    if (!fetchInterceptorActive.current) {
       fetchInterceptorActive.current = true;
       
-      // Δημιουργία αντικαταστάτη για την fetch API
       const originalFetch = window.fetch;
-      window.fetch = async (...args) => {
+      window.fetch = async (input, init) => {
+        const startTime = performance.now();
         try {
-          const response = await originalFetch(...args);
+          const response = await originalFetch(input, init);
           
-          // Έλεγχος για HTTP σφάλματα
-          if (!response.ok) {
-            const url = typeof args[0] === 'string' 
-              ? args[0] 
-              : (args[0] instanceof Request ? args[0].url : 'unknown');
-            
-            const errorMessage = `HTTP ${response.status}: ${response.statusText} - ${url}`;
-            const errorObj = new Error(errorMessage);
-            
-            // Check if this is a rate limit error (HTTP 429)
-            const isRateLimit = response.status === 429;
-            
-            // Extract domain for categorization
-            let domain = 'unknown';
-            try {
-              const urlObj = new URL(url);
-              domain = urlObj.hostname;
-            } catch (e) {
-              // Ignore URL parsing errors
-            }
-            
-            // Create a cache key based on status code and URL pattern
-            const cacheKey = `${response.status}-${domain}`;
-            const now = Date.now();
-            const lastNotification = errorCache.get(cacheKey) || 0;
-            
-            // Only show notifications if we haven't shown one recently for this error type
-            if (now - lastNotification > ERROR_NOTIFICATION_COOLDOWN) {
-              errorCache.set(cacheKey, now);
-              
-              // Handle different error categories
-              if (isRateLimit) {
-                // Just log rate limits, don't display them (handled elsewhere)
-                console.warn(`Rate limit detected for ${domain}`);
-              } else if (url.includes('supabase') || url.includes('lvkbyfocssuzcdphpmfu')) {
-                // Handle Supabase errors
-                if (response.status >= 500) {
-                  displayError(errorObj, {
-                    title: 'Σφάλμα Supabase Server',
-                    logToConsole: true,
-                    component: 'ConsoleMonitor'
-                  });
-                } else {
-                  console.warn(`Supabase client error: ${errorMessage}`);
-                }
-              } else if (response.status >= 500) {
-                // Track API error frequency to avoid flooding
-                recentApiErrors.current.count++;
-                
-                // Only show error if we haven't shown too many
-                if (recentApiErrors.current.count <= 3) {
-                  displayError(errorObj, {
-                    title: 'Σφάλμα API Server',
-                    logToConsole: true,
-                    component: 'ConsoleMonitor'
-                  });
-                } else if (recentApiErrors.current.count === 4) {
-                  // Show a consolidated message when we hit too many errors
-                  toast.error('Πολλαπλά σφάλματα API', {
-                    description: 'Ορισμένα αιτήματα αποτυγχάνουν. Θα συνεχίσουμε να προσπαθούμε.',
-                    id: 'multiple-api-errors',
-                    duration: 5000
-                  });
-                }
-              }
-            }
+          // Log slow API calls
+          const elapsed = performance.now() - startTime;
+          if (elapsed > 5000) { // 5 seconds
+            console.warn(`Slow API call to ${input} took ${elapsed.toFixed(2)}ms`);
+          }
+          
+          // Return response if successful
+          if (response.ok) return response;
+          
+          // Track API errors
+          const now = Date.now();
+          if (now - recentApiErrors.current.lastReset > 60000) {
+            // Reset counter after a minute
+            recentApiErrors.current = { count: 1, lastReset: now };
+          } else {
+            recentApiErrors.current.count++;
+          }
+          
+          // Alert if we've seen multiple API errors recently
+          if (recentApiErrors.current.count >= 3) {
+            toast.error("Πολλαπλά σφάλματα API", {
+              description: "Παρουσιάστηκαν πολλαπλά σφάλματα στην επικοινωνία με το API."
+            });
+            recentApiErrors.current.count = 0; // Reset to avoid spamming
           }
           
           return response;
-        } catch (error: any) {
-          // Determine if this is a CORS or network error
-          const isCorsError = error.message?.includes('CORS') || error.name === 'TypeError';
-          const isNetworkError = error.name === 'TypeError' || error.message?.includes('NetworkError');
-          
-          // Create a cache key for this type of error
-          const cacheKey = isNetworkError ? 'network-error' : 
-                          (isCorsError ? 'cors-error' : 'fetch-error');
-          
-          const now = Date.now();
-          const lastNotification = errorCache.get(cacheKey) || 0;
-          
-          // Only show notifications if we haven't shown one recently for this error type
-          if (now - lastNotification > ERROR_NOTIFICATION_COOLDOWN) {
-            errorCache.set(cacheKey, now);
-            
-            if (isNetworkError) {
-              const networkError = new Error('Network error: check your internet connection');
-              displayError(networkError, {
-                title: 'Σφάλμα δικτύου',
-                logToConsole: true,
-                component: 'ConsoleMonitor'
-              });
-            } else if (isCorsError) {
-              console.warn('CORS error detected:', error);
-            } else {
-              displayError(error, {
-                title: 'Σφάλμα δικτύου',
-                logToConsole: true,
-                component: 'ConsoleMonitor'
-              });
-            }
-          }
+        } catch (error) {
+          // Network errors or CORS issues
+          console.error(`API call to ${input} failed:`, error);
           throw error;
         }
       };
-      
-      // Καθαρισμός
-      return () => {
-        window.fetch = originalFetch;
-        fetchInterceptorActive.current = false;
-      };
-    };
+    }
     
-    return handleFetchErrors();
+    // Cleanup function
+    return () => {
+      console.error = originalConsoleError;
+      console.warn = originalConsoleWarn;
+    };
   }, [reportError]);
-
-  // Δεν χρειάζεται να επιστρέψουμε JSX καθώς αυτό είναι ένα "αόρατο" component
-  return null;
+  
+  return null; // This is a monitoring component, no UI
 }

@@ -1,21 +1,24 @@
 
 export interface Token {
   address: string;
-  name: string;
   symbol: string;
+  name: string;
   amount: number;
-  decimals?: number;
+  decimals: number;
   logo?: string;
-  balance?: number;
-  mint?: string;
 }
 
-export interface TokenPrice {
-  price: number;
-  priceChange24h: number;
-  volume24h?: number;
-  marketCap?: number;
-  lastUpdated: Date;
+export interface WalletInfo {
+  address: string;
+  balance: number;
+  tokens: Token[];
+  isConnected: boolean;
 }
 
-export type TokenPrices = Record<string, TokenPrice>;
+export interface TokenPrices {
+  [tokenAddress: string]: {
+    price: number;
+    priceChange24h: number;
+    lastUpdated: Date;
+  };
+}

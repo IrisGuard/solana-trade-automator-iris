@@ -1,108 +1,154 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
+import { useErrorReporting } from './useErrorReporting';
+import { useSolanaWallet } from './useSolanaWallet';
 import { Token } from '@/types/wallet';
-import { isPhantomInstalled } from '@/utils/phantomWallet';
 
-export interface Wallet {
-  address: string;
-  publicKey: string;
-}
-
-export const useWalletConnection = () => {
-  const [wallet, setWallet] = useState<Wallet | null>(null);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [isConnecting, setIsConnecting] = useState<boolean>(false);
-  const [walletAddress, setWalletAddress] = useState<string>('');
-  const [solBalance, setSolBalance] = useState<number>(0);
+export function useWalletConnection() {
+  const { address, connected, connecting, balance, refreshBalance, connectWallet: connectSolana, disconnectWallet } = useSolanaWallet();
   const [tokens, setTokens] = useState<Token[]>([]);
-  const [tokenPrices, setTokenPrices] = useState<Record<string, { price: number, priceChange24h: number }>>({});
-  const [isLoadingTokens, setIsLoadingTokens] = useState<boolean>(false);
+  const [isLoadingTokens, setIsLoadingTokens] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tokenPrices, setTokenPrices] = useState<Record<string, { price: number, priceChange24h: number }>>({});
+  const { reportError } = useErrorReporting();
 
-  // Disconnect wallet function
-  const handleDisconnect = useCallback(async (): Promise<void> => {
-    try {
-      setWallet(null);
-      setIsConnected(false);
-      setWalletAddress('');
-      localStorage.removeItem('wallet');
-      
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      return Promise.resolve();
-    } catch (error) {
-      console.error('Disconnect error:', error);
-      return Promise.reject(error);
+  // Check if Phantom is installed
+  const isPhantomInstalled = useCallback(() => {
+    if ('phantom' in window) {
+      const provider = window.phantom?.solana;
+      return provider?.isPhantom || false;
     }
+    return false;
   }, []);
 
-  // Connect wallet function
+  // Connect to wallet
   const connectWallet = useCallback(async () => {
     try {
-      setIsConnecting(true);
-      // Mock connection for now
-      const mockWallet = { address: '123456789abcdef', publicKey: '123456789abcdef' };
-      setWallet(mockWallet);
-      setIsConnected(true);
-      setWalletAddress(mockWallet.address);
+      setError(null);
       
-      // Simulate loading some data
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setSolBalance(Math.random() * 10);
+      if (!isPhantomInstalled()) {
+        const errorMessage = 'Please install Phantom Wallet extension';
+        setError(errorMessage);
+        toast.error('Phantom wallet not detected', {
+          description: 'Please install the Phantom browser extension',
+        });
+        return;
+      }
+
+      await connectSolana('phantom');
       
-      return mockWallet.address;
     } catch (err) {
-      setError('Failed to connect wallet');
-      return null;
-    } finally {
-      setIsConnecting(false);
+      console.error('Failed to connect wallet:', err);
+      if (err instanceof Error) {
+        setError(err.message);
+        reportError(err, {
+          component: 'WalletConnection', 
+          source: 'client',
+          details: { action: 'connectWallet' }
+        });
+      }
     }
-  }, []);
+  }, [isPhantomInstalled, connectSolana, reportError]);
 
   // Refresh wallet data
-  const refreshWalletData = useCallback(() => {
-    if (!isConnected) return;
+  const refreshWalletData = useCallback(async () => {
+    if (!address) return;
     
-    // Mock refreshing data
-    setSolBalance(Math.random() * 10);
-  }, [isConnected]);
+    setIsLoadingTokens(true);
+    try {
+      // Refresh SOL balance
+      await refreshBalance();
+      
+      // Get token list (simplified for demo purposes)
+      const mockTokens: Token[] = [
+        {
+          address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          symbol: 'USDC',
+          name: 'USD Coin',
+          amount: Math.random() * 1000,
+          decimals: 6,
+          logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
+        },
+        {
+          address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+          symbol: 'USDT',
+          name: 'USDT',
+          amount: Math.random() * 500,
+          decimals: 6,
+          logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.png',
+        },
+        {
+          address: 'So11111111111111111111111111111111111111112',
+          symbol: 'SOL',
+          name: 'Wrapped SOL',
+          amount: balance || Math.random() * 10,
+          decimals: 9,
+          logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png',
+        },
+      ];
+      
+      setTokens(mockTokens);
+      
+      // Mock prices for tokens
+      const prices: Record<string, { price: number, priceChange24h: number }> = {};
+      mockTokens.forEach(token => {
+        prices[token.address] = {
+          price: token.symbol === 'SOL' 
+            ? 20 + (Math.random() * 5)
+            : token.symbol === 'USDC' || token.symbol === 'USDT' 
+              ? 0.95 + (Math.random() * 0.1) 
+              : Math.random() * 100,
+          priceChange24h: (Math.random() * 10) - 5 // Between -5% and +5%
+        };
+      });
+      
+      setTokenPrices(prices);
+      
+    } catch (err) {
+      console.error('Failed to refresh wallet data:', err);
+      if (err instanceof Error) {
+        reportError(err, {
+          component: 'WalletConnection',
+          source: 'client',
+          details: { action: 'refreshWalletData' }
+        });
+      }
+    } finally {
+      setIsLoadingTokens(false);
+    }
+  }, [address, balance, refreshBalance, reportError]);
 
   // Select token for trading
   const selectTokenForTrading = useCallback((tokenAddress: string) => {
-    const token = tokens.find(t => t.address === tokenAddress);
-    return token || null;
+    const selectedToken = tokens.find(token => token.address === tokenAddress);
+    if (selectedToken) {
+      console.log('Selected token for trading:', selectedToken);
+      return selectedToken;
+    }
+    return null;
   }, [tokens]);
 
+  // Load tokens when wallet is connected
   useEffect(() => {
-    const initWallet = async () => {
-      const storedWallet = localStorage.getItem('wallet');
-      if (storedWallet) {
-        const parsedWallet = JSON.parse(storedWallet);
-        setWallet(parsedWallet);
-        setIsConnected(true);
-        setWalletAddress(parsedWallet.address);
-      }
-    };
-    initWallet();
-  }, []);
+    if (connected && address) {
+      refreshWalletData();
+    }
+  }, [connected, address, refreshWalletData]);
 
   return {
-    wallet,
-    handleDisconnect,
-    isConnected,
-    isConnecting,
-    walletAddress,
-    solBalance,
+    isConnected: connected,
+    isConnecting: connecting,
+    walletAddress: address,
+    solBalance: balance || 0,
     tokens,
     tokenPrices,
     isLoadingTokens,
     error,
+    isPhantomInstalled: isPhantomInstalled(),
     connectWallet,
-    disconnectWallet: handleDisconnect,
+    disconnectWallet,
     refreshWalletData,
-    selectTokenForTrading,
-    isPhantomInstalled: isPhantomInstalled()
+    selectTokenForTrading
   };
-};
+}

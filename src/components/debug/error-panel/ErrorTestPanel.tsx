@@ -1,80 +1,90 @@
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertCircle } from 'lucide-react';
+import React from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { errorCollector } from "@/utils/error-handling/collector";
+import { displayError } from "@/utils/error-handling/displayError";
+import { useErrorReporting } from "@/hooks/useErrorReporting";
 
 export function ErrorTestPanel() {
-  const [activeTab, setActiveTab] = useState('basic');
+  const { reportError } = useErrorReporting();
+  
+  const generateSimpleError = () => {
+    try {
+      throw new Error("This is a test error");
+    } catch (error) {
+      if (error instanceof Error) {
+        reportError(error, {
+          component: "ErrorTestPanel",
+          severity: "low",
+          details: { action: "generateSimpleError", test: true },
+          showToast: true
+        });
+      }
+    }
+  };
+  
+  const generateComponentError = () => {
+    try {
+      throw new Error("Component rendering failed");
+    } catch (error) {
+      if (error instanceof Error) {
+        reportError(error, {
+          component: "TestComponent",
+          severity: "medium",
+          details: { type: "render", location: "TestComponent.tsx:42" },
+          showUI: true
+        });
+      }
+    }
+  };
+  
+  const generateNetworkError = () => {
+    try {
+      throw new Error("Network request failed: API endpoint not responding");
+    } catch (error) {
+      if (error instanceof Error) {
+        displayError(error, {
+          component: "APIService",
+          source: "network",
+          severity: "high",
+          details: { url: "/api/data", method: "GET" },
+          showToast: true,
+          toastTitle: "Network Error"
+        });
+      }
+    }
+  };
 
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <AlertCircle className="h-5 w-5 text-destructive" />
-          Error Test Panel
-        </CardTitle>
+        <CardTitle>Error Handling Test Panel</CardTitle>
+        <CardDescription>
+          Generate test errors to verify error handling functionality
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="basic">Basic Errors</TabsTrigger>
-            <TabsTrigger value="advanced">Advanced Errors</TabsTrigger>
-            <TabsTrigger value="network">Network Errors</TabsTrigger>
-          </TabsList>
+        <Alert className="mb-4">
+          <AlertDescription>
+            Click the buttons below to generate test errors. These errors are safe and will be captured by the error handling system.
+          </AlertDescription>
+        </Alert>
+        
+        <div className="flex flex-wrap gap-4">
+          <Button variant="outline" onClick={generateSimpleError}>
+            Generate Simple Error
+          </Button>
           
-          <TabsContent value="basic" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <Button 
-                variant="outline" 
-                onClick={() => console.error('Test error triggered from UI')}
-              >
-                Trigger Console Error
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => { throw new Error('Uncaught UI Error'); }}
-              >
-                Trigger Uncaught Error
-              </Button>
-            </div>
-          </TabsContent>
+          <Button variant="outline" onClick={generateComponentError}>
+            Generate Component Error
+          </Button>
           
-          <TabsContent value="advanced" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <Button 
-                variant="outline" 
-                onClick={() => setTimeout(() => { throw new Error('Async Error'); }, 100)}
-              >
-                Trigger Async Error
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => Promise.reject(new Error('Promise Rejection'))}
-              >
-                Trigger Promise Rejection
-              </Button>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="network" className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <Button 
-                variant="outline" 
-                onClick={() => fetch('/non-existent-endpoint')}
-              >
-                Trigger Network Error
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => fetch('/api/timeout', { signal: AbortSignal.timeout(100) })}
-              >
-                Trigger Timeout Error
-              </Button>
-            </div>
-          </TabsContent>
-        </Tabs>
+          <Button variant="outline" onClick={generateNetworkError}>
+            Generate Network Error
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

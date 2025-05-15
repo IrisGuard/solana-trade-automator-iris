@@ -1,161 +1,136 @@
-import { supabase } from '@/lib/supabase';
-import { connection } from '@/services/solana/config';
-import { PublicKey } from '@solana/web3.js';
-import { toast } from 'sonner';
-import { BotError, ErrorSource, ErrorLevel, RPC_ENDPOINTS } from './errorTypes';
-import { fixSupabaseError, fixSolanaError, fixReactError } from './autoFixers';
-import { createEnhancedError } from '@/types/errorTypes';
-import { errorCollector } from './collector';
 
-declare global {
-  interface Window {
-    __REACT_CONTEXT_FALLBACK__?: any;
-  }
+import { toast } from "sonner";
+import { BotError } from "./errorTypes";
+
+interface ErrorEntry {
+  id: string;
+  level: 'INFO' | 'WARNING' | 'CRITICAL';
+  message: string;
+  source: string;
+  stackTrace?: string;
+  timestamp: number;
+  autoResolved?: boolean;
 }
 
-export class ErrorManager {
-  private static instance: ErrorManager;
-  private errors: BotError[] = [];
-  private autoFixRules = {
-    'SUPABASE': fixSupabaseError,
-    'SOLANA-RPC': fixSolanaError,
-    'REACT': fixReactError
-  };
+class ErrorManager {
+  private errors: ErrorEntry[] = [];
+  private maxErrors = 50;
+  private autoFixers: Array<(error: BotError) => Promise<boolean>> = [];
 
-  private constructor() {
-    this.setupGlobalHandlers();
-  }
-
-  public static getInstance(): ErrorManager {
-    if (!ErrorManager.instance) {
-      ErrorManager.instance = new ErrorManager();
+  constructor() {
+    // Restore any errors from localStorage
+    try {
+      const savedErrors = localStorage.getItem('errorManager.errors');
+      if (savedErrors) {
+        this.errors = JSON.parse(savedErrors).slice(0, this.maxErrors);
+      }
+    } catch (e) {
+      console.error("Failed to restore errors from localStorage", e);
     }
-    return ErrorManager.instance;
   }
 
-  private setupGlobalHandlers() {
-    // Catch All Uncaught Errors
-    window.onerror = (message, source, lineno, colno, error) => {
-      this.handleError({
-        message: error?.message || String(message),
-        source: 'CONSOLE',
-        level: 'CRITICAL',
-        stackTrace: error?.stack
-      });
+  registerAutoFixer(fixer: (error: BotError) => Promise<boolean>): void {
+    this.autoFixers.push(fixer);
+  }
+
+  async handleError(error: Error | BotError, source: string): Promise<string> {
+    const id = `error-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const level = this.determineSeverity(error);
+    
+    const errorEntry: ErrorEntry = {
+      id,
+      level,
+      message: error.message || "Unknown error",
+      source,
+      stackTrace: error.stack,
+      timestamp: Date.now()
     };
 
-    // Catch All Unhandled Promise Rejections
-    window.addEventListener('unhandledrejection', (event) => {
-      this.handleError({
-        message: event.reason?.message || 'Unhandled promise rejection',
-        source: 'CONSOLE',
-        level: 'CRITICAL',
-        stackTrace: event.reason?.stack
-      });
-    });
-
-    // Listen to Supabase Errors
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT') this.handleError({
-        message: 'User signed out unexpectedly',
-        source: 'SUPABASE',
-        level: 'WARNING'
-      });
-    });
-
-    // Since connection.on is not available, we'll use a different approach
-    // We'll monitor RPC connection issues through error handling in requests
-    // This is a safer approach than trying to attach to an event that doesn't exist
-    console.info('Solana RPC connection monitoring initialized');
-  }
-
-  public handleError(error: Omit<BotError, 'timestamp'>) {
-    const timestamp = new Date();
-    const fullError: BotError = { ...error, timestamp };
+    // Add error to the beginning of the array
+    this.errors.unshift(errorEntry);
     
-    // Attempt Auto-Fix First
-    let autoResolved = false;
-    if (this.autoFixRules[error.source]) {
-      autoResolved = this.autoFixRules[error.source](fullError);
-      fullError.autoResolved = autoResolved;
+    // Trim the array if it exceeds maxErrors
+    if (this.errors.length > this.maxErrors) {
+      this.errors = this.errors.slice(0, this.maxErrors);
     }
 
-    // Store Error
-    this.errors.push(fullError);
-    
-    // Add to error collector for internal tracking
-    const enhancedError = createEnhancedError(fullError.message, {
-      source: fullError.source,
-      level: fullError.level,
-      stackTrace: fullError.stackTrace,
-      metadata: fullError.metadata,
-      autoResolved: fullError.autoResolved
-    });
-
-    errorCollector.captureError(enhancedError, {
-      component: 'ErrorManager',
-      source: fullError.source,
-      severity: fullError.level === 'CRITICAL' ? 'high' : 
-               fullError.level === 'WARNING' ? 'medium' : 'low'
-    });
-
-    // Sync with Supabase every 10 errors
-    if (this.errors.length % 10 === 0) {
-      this.syncWithSupabase();
-    }
-
-    // Critical Errors Notification
-    if (fullError.level === 'CRITICAL' && !fullError.autoResolved) {
-      this.alertDevTeam(fullError);
-    }
-
-    return fullError.autoResolved;
-  }
-
-  private async syncWithSupabase() {
+    // Save to localStorage
     try {
-      const errorsToSync = this.errors.filter(e => !e.autoResolved);
-      
-      if (errorsToSync.length === 0) return;
-      
-      const { error } = await supabase
-        .from('bot_errors')
-        .insert(errorsToSync.map(e => ({
-          message: e.message,
-          source: e.source,
-          level: e.level,
-          stack_trace: e.stackTrace,
-          metadata: e.metadata,
-          created_at: e.timestamp.toISOString()
-        })));
-
-      if (!error) {
-        this.errors = this.errors.filter(e => e.autoResolved);
-      } else {
-        console.error("Failed to sync errors with Supabase:", error);
-      }
-    } catch (error) {
-      console.error("Error syncing with Supabase:", error);
+      localStorage.setItem('errorManager.errors', JSON.stringify(this.errors));
+    } catch (e) {
+      console.error("Failed to save errors to localStorage", e);
     }
+
+    // Try to auto-fix BotErrors
+    if ('isBotError' in error && error.isBotError) {
+      const botError = error as BotError;
+      for (const fixer of this.autoFixers) {
+        try {
+          const fixed = await fixer(botError);
+          if (fixed) {
+            // Mark as auto-resolved
+            this.markAsResolved(id, true);
+            break;
+          }
+        } catch (fixerError) {
+          console.error("Error in auto-fixer:", fixerError);
+        }
+      }
+    }
+
+    return id;
   }
 
-  private alertDevTeam(error: BotError) {
-    // Display critical error in UI
-    toast.error("Critical Error", {
-      description: error.message,
-      duration: 10000
-    });
-    
-    // Log to console for debugging
-    console.error('CRITICAL ERROR:', error);
-    
-    // Additional alerting logic would go here (e.g., webhook call)
-  }
-
-  public getRecentErrors(): BotError[] {
+  getRecentErrors(): ErrorEntry[] {
     return [...this.errors];
+  }
+
+  clearErrors(): void {
+    this.errors = [];
+    localStorage.removeItem('errorManager.errors');
+  }
+
+  markAsResolved(id: string, autoResolved = false): boolean {
+    const errorIndex = this.errors.findIndex(e => e.id === id);
+    if (errorIndex >= 0) {
+      this.errors[errorIndex] = {
+        ...this.errors[errorIndex],
+        autoResolved
+      };
+      
+      try {
+        localStorage.setItem('errorManager.errors', JSON.stringify(this.errors));
+      } catch (e) {
+        console.error("Failed to save errors to localStorage", e);
+      }
+      
+      return true;
+    }
+    return false;
+  }
+
+  private determineSeverity(error: Error): 'INFO' | 'WARNING' | 'CRITICAL' {
+    const message = error.message.toLowerCase();
+    
+    // Network errors are typically critical
+    if (message.includes('network') || 
+        message.includes('fetch') || 
+        message.includes('api') || 
+        message.includes('timeout')) {
+      return 'CRITICAL';
+    }
+    
+    // User interface or validation errors are warnings
+    if (message.includes('validation') || 
+        message.includes('input') || 
+        message.includes('form')) {
+      return 'WARNING';
+    }
+    
+    // Default to INFO for other errors
+    return 'INFO';
   }
 }
 
-// Initialize and export singleton instance
-export const errorManager = ErrorManager.getInstance();
+// Singleton instance
+export const errorManager = new ErrorManager();

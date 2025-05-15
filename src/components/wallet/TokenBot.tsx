@@ -1,10 +1,13 @@
 
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Token } from "@/types/wallet";
-import { ConnectPrompt } from "./maker-bot/ConnectPrompt";
-import { formatTokenAmount } from "@/utils/tokenUtils";
+import { useLanguage } from "@/hooks/use-language";
 
 interface TokenBotProps {
   tokens: Token[];
@@ -12,67 +15,132 @@ interface TokenBotProps {
   onConnectWallet: () => Promise<void>;
 }
 
-export function TokenBot({ tokens = [], isConnected, onConnectWallet }: TokenBotProps) {
-  const [activeTab, setActiveTab] = useState("overview");
+export function TokenBot({ tokens, isConnected, onConnectWallet }: TokenBotProps) {
+  const [selectedToken, setSelectedToken] = useState<string>("");
+  const [botActive, setBotActive] = useState(false);
+  const { t } = useLanguage();
   
-  // Function to ensure we can actually access the token properties
-  const getFirstTokenAmount = (): string => {
-    if (tokens.length > 0 && tokens[0]) {
-      return formatTokenAmount(tokens[0]);
-    }
-    return "0";
+  // Handle starting the bot
+  const handleStartBot = () => {
+    if (!selectedToken) return;
+    
+    setBotActive(true);
+  };
+  
+  // Handle stopping the bot
+  const handleStopBot = () => {
+    setBotActive(false);
   };
   
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Trading Bot</CardTitle>
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle>{t("tokenBot.title")}</CardTitle>
+            <CardDescription>{t("tokenBot.description")}</CardDescription>
+          </div>
+          
+          {botActive && (
+            <Badge variant="success" className="bg-green-500">
+              {t("tokenBot.active")}
+            </Badge>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         {!isConnected ? (
-          <ConnectPrompt handleConnectWallet={onConnectWallet} />
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {t("tokenBot.connectWallet")}
+            </AlertDescription>
+            <Button 
+              variant="outline" 
+              className="ml-auto"
+              onClick={onConnectWallet}
+            >
+              {t("general.connectWallet")}
+            </Button>
+          </Alert>
         ) : (
-          <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
-              <TabsTrigger value="history">History</TabsTrigger>
-            </TabsList>
-            <TabsContent value="overview" className="space-y-4 mt-4">
-              <div className="grid gap-4">
-                <div className="p-4 border rounded-md">
-                  <h3 className="mb-2 font-medium">Bot Status</h3>
-                  <div className="flex items-center space-x-2">
-                    <div className="h-3 w-3 rounded-full bg-red-500"></div>
-                    <span className="text-sm">Inactive</span>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                {t("tokenBot.selectToken")}
+              </label>
+              <Select
+                value={selectedToken}
+                onValueChange={setSelectedToken}
+                disabled={botActive}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t("tokenBot.selectTokenPlaceholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {tokens.map(token => (
+                    <SelectItem key={token.address} value={token.address}>
+                      <div className="flex items-center">
+                        {token.logo && (
+                          <img
+                            src={token.logo}
+                            alt={token.symbol}
+                            className="w-5 h-5 mr-2 rounded-full"
+                          />
+                        )}
+                        {token.symbol} - {token.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {selectedToken && (
+              <div className="border p-4 rounded-lg">
+                <h3 className="font-medium mb-2">{t("tokenBot.botSettings")}</h3>
+                
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      {t("tokenBot.buyThreshold")}
+                    </p>
+                    <p>3%</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      {t("tokenBot.sellThreshold")}
+                    </p>
+                    <p>5%</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      {t("tokenBot.stopLoss")}
+                    </p>
+                    <p>10%</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      {t("tokenBot.takeProfit")}
+                    </p>
+                    <p>15%</p>
                   </div>
                 </div>
                 
-                <div className="p-4 border rounded-md">
-                  <h3 className="mb-2 font-medium">Available Tokens</h3>
-                  <p className="text-sm">{tokens.length > 0 ? `${tokens.length} tokens available` : 'No tokens found'}</p>
-                  {tokens.length > 0 && (
-                    <div className="mt-2">
-                      <span className="text-sm text-muted-foreground">First token amount: </span>
-                      <span className="font-mono">{getFirstTokenAmount()}</span>
-                    </div>
+                <div className="flex justify-end">
+                  {!botActive ? (
+                    <Button onClick={handleStartBot}>
+                      {t("tokenBot.startBot")}
+                    </Button>
+                  ) : (
+                    <Button variant="destructive" onClick={handleStopBot}>
+                      {t("tokenBot.stopBot")}
+                    </Button>
                   )}
                 </div>
               </div>
-            </TabsContent>
-            <TabsContent value="settings" className="space-y-4 mt-4">
-              <div className="p-4 border rounded-md">
-                <h3 className="mb-2 font-medium">Bot Settings</h3>
-                <p className="text-sm text-muted-foreground">Bot settings will be available soon.</p>
-              </div>
-            </TabsContent>
-            <TabsContent value="history" className="space-y-4 mt-4">
-              <div className="p-4 border rounded-md">
-                <h3 className="mb-2 font-medium">Trading History</h3>
-                <p className="text-sm text-muted-foreground">No trading history available.</p>
-              </div>
-            </TabsContent>
-          </Tabs>
+            )}
+          </div>
         )}
       </CardContent>
     </Card>

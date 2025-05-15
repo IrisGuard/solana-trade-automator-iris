@@ -1,28 +1,29 @@
 
+import { BotError } from '../errorTypes';
+
 export interface ErrorData {
   id: string;
-  message: string;
-  stack?: string;
+  error: BotError | Error;
+  timestamp: Date;
   component?: string;
   source?: string;
+  severity?: 'low' | 'medium' | 'high';
   details?: any;
-  severity?: 'low' | 'medium' | 'high' | 'critical';
-  timestamp: number;
+  resolved?: boolean;
 }
 
 export interface ErrorOptions {
   component?: string;
   source?: string;
+  severity?: 'low' | 'medium' | 'high';
   details?: any;
-  severity?: 'low' | 'medium' | 'high' | 'critical';
-  message?: string;
-  simulateDelay?: number;
-  type?: string;
-  errorType?: string;
+  showUI?: boolean;
+  showToast?: boolean;
 }
 
 export interface ErrorCollector {
-  captureError(error: Error | string, options?: ErrorOptions): string;
+  captureError(error: Error, options?: ErrorOptions): string;
   getErrors(): ErrorData[];
   clearErrors(): void;
+  markResolved(errorId: string): boolean;
 }

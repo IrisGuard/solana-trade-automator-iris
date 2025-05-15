@@ -1,55 +1,68 @@
-import { ErrorData, ErrorOptions, ErrorCollector } from './types';
 
-class ErrorCollectorImplementation implements ErrorCollector {
+import { v4 as uuidv4 } from 'uuid';
+import { ErrorData, ErrorCollector, ErrorOptions } from './types';
+
+class ErrorCollectorImpl implements ErrorCollector {
   private errors: ErrorData[] = [];
-  
-  captureError(error: Error | string, options?: ErrorOptions): string {
-    const errorId = `error-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  private static MAX_ERRORS = 100;
+
+  constructor() {
+    // Initialize with empty errors array
+    this.errors = [];
+  }
+
+  public captureError(error: Error, options: ErrorOptions = {}): string {
+    const errorId = uuidv4();
+    const timestamp = new Date();
     
-    // Extract error details
     const errorData: ErrorData = {
       id: errorId,
-      message: error instanceof Error ? error.message : error,
-      stack: error instanceof Error ? error.stack : undefined,
-      component: options?.component || 'unknown',
-      source: options?.source || 'client',
-      details: options?.details,
-      severity: options?.severity || 'medium',
-      timestamp: Date.now()
+      error,
+      timestamp,
+      component: options.component,
+      source: options.source || 'client',
+      severity: options.severity || 'medium',
+      details: options.details,
+      resolved: false
     };
     
-    // Store error in memory
     this.errors.unshift(errorData);
     
-    // Keep only the last 50 errors
-    if (this.errors.length > 50) {
-      this.errors = this.errors.slice(0, 50);
+    // Trim errors if we have too many
+    if (this.errors.length > ErrorCollectorImpl.MAX_ERRORS) {
+      this.errors = this.errors.slice(0, ErrorCollectorImpl.MAX_ERRORS);
     }
     
-    // Log to console for development
-    console.error('[ErrorCollector]', errorData);
-    
-    // In production, we would send this to a logging service
-    // or to a Supabase table via an API endpoint
-    try {
-      // Here we could send to Supabase or other error tracking service
-      // This is intentionally commented out as implementation depends on
-      // project setup - we don't want to cause more errors
-    } catch (loggingError) {
-      console.error('Error while logging error:', loggingError);
-    }
+    // Log to console for debugging
+    console.error('Error captured:', {
+      id: errorId,
+      message: error.message,
+      component: options.component,
+      source: options.source,
+      severity: options.severity,
+      details: options.details
+    });
     
     return errorId;
   }
   
-  getErrors(): ErrorData[] {
+  public getErrors(): ErrorData[] {
     return [...this.errors];
   }
   
-  clearErrors(): void {
+  public clearErrors(): void {
     this.errors = [];
+  }
+  
+  public markResolved(errorId: string): boolean {
+    const errorIndex = this.errors.findIndex(e => e.id === errorId);
+    if (errorIndex >= 0) {
+      this.errors[errorIndex].resolved = true;
+      return true;
+    }
+    return false;
   }
 }
 
-// Singleton instance
-export const errorCollector: ErrorCollector = new ErrorCollectorImplementation();
+// Export a singleton instance
+export const errorCollector = new ErrorCollectorImpl();
