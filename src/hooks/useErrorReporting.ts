@@ -8,6 +8,7 @@ interface ErrorReportingOptions {
   component?: string;
   source?: string;
   severity?: 'low' | 'medium' | 'high';
+  details?: any; // Added the missing details property
   showUI?: boolean;
   showToast?: boolean;
   toastTitle?: string;

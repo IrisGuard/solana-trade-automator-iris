@@ -11,7 +11,10 @@ export async function fixSupabaseError(error: BotError): Promise<boolean> {
         const { data: sessionData } = await supabase.auth.getSession();
         if (sessionData && sessionData.session) {
           // If we have a session, try to refresh it
-          const { data } = await supabase.auth.refreshSession();
+          // Using the correct method for the current Supabase version
+          const { data } = await supabase.auth.refreshSession({
+            refresh_token: sessionData.session.refresh_token,
+          });
           return !!data.session;
         }
         return false;
