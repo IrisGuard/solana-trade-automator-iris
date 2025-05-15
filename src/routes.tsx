@@ -1,60 +1,47 @@
 
-import React, { Suspense } from 'react';
-import { Route, Routes as RouterRoutes, Navigate, useLocation } from 'react-router-dom';
-import { Layout } from '@/components/layout/Layout';
+import React from "react";
+import { Routes as RouterRoutes, Route } from "react-router-dom";
+import { Layout } from "@/components/layout/Layout";
 
-// Import pages
-const IndexPage = React.lazy(() => import('@/pages/Index'));
-const DashboardPage = React.lazy(() => import('@/pages/Dashboard'));
-const WalletPage = React.lazy(() => import('@/pages/Wallet'));
-const PortfolioPage = React.lazy(() => import('@/pages/Portfolio'));
-const TransactionsPage = React.lazy(() => import('@/pages/Transactions'));
-const TransactionsEnhancedPage = React.lazy(() => import('@/pages/TransactionsEnhanced'));
-const TokensPage = React.lazy(() => import('@/pages/Tokens'));
-const BotsPage = React.lazy(() => import('@/pages/Bots'));
-const BotControlPage = React.lazy(() => import('@/pages/BotControl'));
-const ApiVaultPage = React.lazy(() => import('@/pages/ApiVault'));
-const HelpPage = React.lazy(() => import('@/pages/Help'));
-const NotFoundPage = React.lazy(() => import('@/pages/NotFound'));
-const AuthPage = React.lazy(() => import('@/pages/Auth'));
+// Pages
+import Home from "@/pages/Home";
+import Wallet from "@/pages/Wallet";
+import Dashboard from "@/pages/Dashboard";
+import Tokens from "@/pages/Tokens";
+import Transactions from "@/pages/Transactions";
+import TransactionsEnhanced from "@/pages/TransactionsEnhanced";
+import BotControl from "@/pages/BotControl";
+import ApiVault from "@/pages/ApiVault";
+import Settings from "@/pages/Settings";
+import Security from "@/pages/Security";
+import Help from "@/pages/Help";
+import NotFound from "@/pages/NotFound";
+import Index from "@/pages/Index";
+import Bots from "@/pages/Bots";
+import ChangeApproval from "@/pages/ChangeApproval";
+import Portfolio from "@/pages/Portfolio";
+import Notifications from "@/pages/Notifications";
 
-// Loading component
-const PageLoading = () => (
-  <div className="flex items-center justify-center h-screen">
-    <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-  </div>
-);
-
-// Define the Routes component
 export function Routes() {
   return (
-    <Suspense fallback={<PageLoading />}>
-      <RouterRoutes>
-        {/* Landing page at root */}
-        <Route path="/" element={<IndexPage />} />
-        <Route path="/auth" element={<AuthPage />} />
-        
-        {/* Redirect /home to root */}
-        <Route path="/home" element={<Navigate to="/" replace />} />
-        
-        {/* Authenticated Pages with Layout */}
-        <Route element={<Layout />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/wallet" element={<WalletPage />} />
-          <Route path="/portfolio" element={<PortfolioPage />} />
-          <Route path="/transactions" element={<TransactionsPage />} />
-          <Route path="/transactions-enhanced" element={<TransactionsEnhancedPage />} />
-          <Route path="/tokens" element={<TokensPage />} />
-          <Route path="/bots" element={<BotsPage />} />
-          <Route path="/bot-control" element={<BotControlPage />} />
-          <Route path="/api-vault" element={<ApiVaultPage />} />
-          <Route path="/help" element={<HelpPage />} />
-        </Route>
-        
-        {/* Fallback routes */}
-        <Route path="/404" element={<NotFoundPage />} />
-        <Route path="*" element={<Navigate to="/404" replace />} />
-      </RouterRoutes>
-    </Suspense>
+    <RouterRoutes>
+      <Route path="/" element={<Layout><Index /></Layout>} />
+      <Route path="/home" element={<Layout><Home /></Layout>} />
+      <Route path="/wallet" element={<Layout><Wallet /></Layout>} />
+      <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
+      <Route path="/tokens" element={<Layout><Tokens /></Layout>} />
+      <Route path="/transactions" element={<Layout><Transactions /></Layout>} />
+      <Route path="/transactions-enhanced" element={<Layout><TransactionsEnhanced /></Layout>} />
+      <Route path="/bot-control" element={<Layout><BotControl /></Layout>} />
+      <Route path="/api-vault" element={<Layout><ApiVault /></Layout>} />
+      <Route path="/settings" element={<Layout><Settings /></Layout>} />
+      <Route path="/security" element={<Layout><Security /></Layout>} />
+      <Route path="/help" element={<Layout><Help /></Layout>} />
+      <Route path="/bots" element={<Layout><Bots /></Layout>} />
+      <Route path="/change-approval" element={<Layout><ChangeApproval /></Layout>} />
+      <Route path="/portfolio" element={<Layout><Portfolio /></Layout>} />
+      <Route path="/notifications" element={<Layout><Notifications /></Layout>} />
+      <Route path="*" element={<Layout><NotFound /></Layout>} />
+    </RouterRoutes>
   );
 }

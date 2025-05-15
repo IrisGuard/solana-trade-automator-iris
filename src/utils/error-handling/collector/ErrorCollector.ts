@@ -1,68 +1,60 @@
 
-import { v4 as uuidv4 } from 'uuid';
 import { ErrorData, ErrorCollector, ErrorOptions } from './types';
 
-class ErrorCollectorImpl implements ErrorCollector {
-  private errors: ErrorData[] = [];
-  private static MAX_ERRORS = 100;
+export class ErrorCollectorImpl implements ErrorCollector {
+  private errors = new Map<string, ErrorData>();
 
-  constructor() {
-    // Initialize with empty errors array
-    this.errors = [];
-  }
-
-  public captureError(error: Error, options: ErrorOptions = {}): string {
-    const errorId = uuidv4();
-    const timestamp = new Date();
+  captureError(error: Error, options: ErrorOptions = {}): string {
+    const errorId = options.id || crypto.randomUUID();
     
     const errorData: ErrorData = {
-      id: errorId,
       error,
-      timestamp,
-      component: options.component,
-      source: options.source || 'client',
+      timestamp: Date.now(),
+      component: options.component || 'unknown',
+      source: options.source || 'app',
+      details: options.details || null,
       severity: options.severity || 'medium',
-      details: options.details,
       resolved: false
     };
     
-    this.errors.unshift(errorData);
-    
-    // Trim errors if we have too many
-    if (this.errors.length > ErrorCollectorImpl.MAX_ERRORS) {
-      this.errors = this.errors.slice(0, ErrorCollectorImpl.MAX_ERRORS);
-    }
-    
-    // Log to console for debugging
-    console.error('Error captured:', {
-      id: errorId,
-      message: error.message,
-      component: options.component,
-      source: options.source,
-      severity: options.severity,
-      details: options.details
-    });
-    
+    this.errors.set(errorId, errorData);
     return errorId;
   }
   
-  public getErrors(): ErrorData[] {
-    return [...this.errors];
+  getAllErrors(): Map<string, ErrorData> {
+    return new Map(this.errors);
   }
   
-  public clearErrors(): void {
-    this.errors = [];
+  clearErrors(): void {
+    this.errors.clear();
   }
   
-  public markResolved(errorId: string): boolean {
-    const errorIndex = this.errors.findIndex(e => e.id === errorId);
-    if (errorIndex >= 0) {
-      this.errors[errorIndex].resolved = true;
-      return true;
-    }
-    return false;
+  getError(id: string): ErrorData | undefined {
+    return this.errors.get(id);
+  }
+  
+  removeError(id: string): boolean {
+    return this.errors.delete(id);
+  }
+  
+  updateError(id: string, updates: Partial<ErrorData>): boolean {
+    const error = this.errors.get(id);
+    if (!error) return false;
+    
+    this.errors.set(id, { ...error, ...updates });
+    return true;
+  }
+  
+  onErrorCaptured(callback: (errorId: string, error: Error) => void): void {
+    // Implementation of the error capture callback
+    const originalCaptureError = this.captureError.bind(this);
+    
+    this.captureError = (error: Error, options: ErrorOptions = {}) => {
+      const errorId = originalCaptureError(error, options);
+      callback(errorId, error);
+      return errorId;
+    };
   }
 }
 
-// Export a singleton instance
-export const errorCollector = new ErrorCollectorImpl();
+export const errorCollector: ErrorCollector = new ErrorCollectorImpl();

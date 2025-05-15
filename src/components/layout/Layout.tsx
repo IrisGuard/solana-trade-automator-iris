@@ -1,18 +1,26 @@
 
-import React from 'react';
+import React from "react";
+import { Header } from "./Header";
+import { Sidebar } from "./Sidebar";
+import { MainLayout } from "./MainLayout";
+import { HelpButton } from "../help/HelpButton";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children }) => {
+export function Layout({ children }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="flex min-h-screen flex-col">
-        <div className="flex-1">
+    <div className="flex h-screen bg-background">
+      <Sidebar />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header />
+        <MainLayout>
           {children}
-        </div>
+        </MainLayout>
       </div>
+      <HelpButton />
     </div>
   );
-};
+}

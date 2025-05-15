@@ -2,7 +2,7 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 // Available languages
-type LanguageType = 'en' | 'el';
+export type LanguageType = 'en' | 'el';
 
 interface LanguageContextType {
   language: LanguageType;
@@ -10,7 +10,7 @@ interface LanguageContextType {
   t: (key: string, params?: Record<string, string>) => string;
 }
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+export const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 // Simple translations
 const translations: Record<LanguageType, Record<string, string>> = {
@@ -51,12 +51,4 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
       {children}
     </LanguageContext.Provider>
   );
-};
-
-export const useLanguage = (): LanguageContextType => {
-  const context = useContext(LanguageContext);
-  if (context === undefined) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
-  }
-  return context;
 };
