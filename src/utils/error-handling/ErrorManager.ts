@@ -1,23 +1,12 @@
 
-import { errorCollector } from './collector';
 import { supabase } from '@/lib/supabase';
 import { connection } from '@/services/solana/config';
 import { PublicKey } from '@solana/web3.js';
 import { toast } from 'sonner';
+import { BotError, ErrorSource, ErrorLevel, RPC_ENDPOINTS } from './errorTypes';
+import { fixSupabaseError, fixSolanaError, fixReactError } from './autoFixers';
 import { createEnhancedError } from '@/types/errorTypes';
-
-type ErrorSource = 'SUPABASE' | 'SOLANA-RPC' | 'CONSOLE' | 'REACT';
-type ErrorLevel = 'CRITICAL' | 'WARNING' | 'INFO';
-
-interface BotError {
-  timestamp: Date;
-  message: string;
-  source: ErrorSource;
-  level: ErrorLevel;
-  stackTrace?: string;
-  metadata?: Record<string, unknown>;
-  autoResolved?: boolean;
-}
+import { errorCollector } from './collector';
 
 declare global {
   interface Window {
@@ -29,9 +18,9 @@ export class ErrorManager {
   private static instance: ErrorManager;
   private errors: BotError[] = [];
   private autoFixRules = {
-    'SUPABASE': this.fixSupabaseError.bind(this),
-    'SOLANA-RPC': this.fixSolanaError.bind(this),
-    'REACT': this.fixReactError.bind(this)
+    'SUPABASE': fixSupabaseError,
+    'SOLANA-RPC': fixSolanaError,
+    'REACT': fixReactError
   };
 
   private constructor() {
@@ -124,96 +113,6 @@ export class ErrorManager {
     return fullError.autoResolved;
   }
 
-  private async fixSupabaseError(error: BotError): Promise<boolean> {
-    try {
-      if (error.message.includes('JWT expired')) {
-        const { data } = await supabase.auth.refreshSession();
-        return !!data.session;
-      }
-      
-      if (error.message.includes('network error')) {
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        // Note: supabase doesn't have a direct reconnect method, it will auto-reconnect
-        return true;
-      }
-      
-      return false;
-    } catch (fixError) {
-      console.error("Error fixing Supabase error:", fixError);
-      return false;
-    }
-  }
-
-  private async fixSolanaError(error: BotError): Promise<boolean> {
-    try {
-      // Test current RPC endpoint
-      const testKey = new PublicKey('So11111111111111111111111111111111111111112');
-      
-      try {
-        await connection.getBalance(testKey);
-      } catch (testError) {
-        // RPC endpoint is failing, switch to backup
-        if (error.metadata?.rpcEndpoint) {
-          const currentEndpoint = String(error.metadata.rpcEndpoint);
-          const newEndpoint = currentEndpoint.includes('mainnet') 
-            ? RPC_ENDPOINTS.BACKUP
-            : RPC_ENDPOINTS.FALLBACK;
-          
-          // Update the connection endpoint
-          // Note: _rpcEndpoint is not directly accessible, so we create a notification instead
-          toast.info("Switching to backup RPC endpoint", { 
-            description: `Switched from ${currentEndpoint} to ${newEndpoint}` 
-          });
-          
-          return true;
-        }
-      }
-      
-      return false;
-    } catch (error) {
-      console.error("Error fixing Solana error:", error);
-      return false;
-    }
-  }
-
-  private fixReactError(error: BotError): boolean {
-    // Auto-fix common React errors
-    if (error.message.includes('jsx-runtime')) {
-      this.injectJsxRuntimeFallback();
-      return true;
-    }
-    
-    if (error.message.includes('createContext')) {
-      this.fixReactContextIssue();
-      return true;
-    }
-    
-    return false;
-  }
-
-  private injectJsxRuntimeFallback() {
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/react@18/umd/react.production.min.js';
-    script.onload = () => {
-      toast.success("React runtime patched", {
-        description: "JSX runtime issue fixed, reloading page..."
-      });
-      setTimeout(() => window.location.reload(), 2000);
-    };
-    document.head.appendChild(script);
-  }
-
-  private fixReactContextIssue() {
-    if (!window.__REACT_CONTEXT_FALLBACK__ && window.React) {
-      window.__REACT_CONTEXT_FALLBACK__ = window.React.createContext;
-      toast.success("React context patched", {
-        description: "React createContext issue fixed"
-      });
-      return true;
-    }
-    return false;
-  }
-
   private async syncWithSupabase() {
     try {
       const errorsToSync = this.errors.filter(e => !e.autoResolved);
@@ -258,13 +157,6 @@ export class ErrorManager {
     return [...this.errors];
   }
 }
-
-// Define RPC endpoints
-export const RPC_ENDPOINTS = {
-  PRIMARY: 'https://solana-mainnet.rpcpool.com',
-  BACKUP: 'https://api.mainnet-beta.solana.com',
-  FALLBACK: 'https://ssc-dao.genesysgo.net'
-};
 
 // Initialize and export singleton instance
 export const errorManager = ErrorManager.getInstance();

@@ -58,16 +58,16 @@ function patchJSXRuntime() {
     if (window.React && !window.__PATCHED_JSX_RUNTIME) {
       window.__PATCHED_JSX_RUNTIME = true;
       
-      // Ensure createElement is available
+      // Get React instance
       const ReactModule = window.React;
       
-      // Ensure jsx and jsxs functions are available by using createElement as fallback
-      if (!ReactModule.jsx) {
-        ReactModule.jsx = ReactModule.createElement;
+      // Use type assertion to add jsx and jsxs functions
+      if (!('jsx' in ReactModule)) {
+        (ReactModule as any).jsx = ReactModule.createElement;
       }
       
-      if (!ReactModule.jsxs) {
-        ReactModule.jsxs = ReactModule.createElement;
+      if (!('jsxs' in ReactModule)) {
+        (ReactModule as any).jsxs = ReactModule.createElement;
       }
       
       // Expose React to global scope for debugging
