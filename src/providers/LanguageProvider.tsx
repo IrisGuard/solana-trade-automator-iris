@@ -6,10 +6,12 @@ import elTranslations from "@/locales/el";
 // Available languages
 export type LanguageType = 'en' | 'el';
 
+type TranslationParams = Record<string, string> | string;
+
 interface LanguageContextType {
   language: LanguageType;
   setLanguage: (lang: LanguageType) => void;
-  t: (key: string, defaultValue?: string) => string;
+  t: (key: string, paramsOrDefault?: TranslationParams) => string;
 }
 
 export const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -28,9 +30,15 @@ const translations = {
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children, defaultLanguage = 'en' }) => {
   const [language, setLanguage] = useState<LanguageType>(defaultLanguage);
   
-  const t = (key: string, defaultValue?: string): string => {
+  const t = (key: string, paramsOrDefault?: TranslationParams): string => {
     // Διαχωρισμός του κλειδιού με τελείες για πλοήγηση σε nested objects
     const keys = key.split('.');
+    let defaultValue: string | undefined;
+    
+    // Έλεγχος αν το paramsOrDefault είναι string (defaultValue) ή αντικείμενο (params)
+    if (typeof paramsOrDefault === 'string') {
+      defaultValue = paramsOrDefault;
+    }
     
     try {
       // Αναζήτηση της μετάφρασης στο επιλεγμένο language
@@ -49,6 +57,13 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children, de
       if (text === undefined) {
         console.warn(`Δεν βρέθηκε μετάφραση για το κλειδί: ${key}`);
         return defaultValue || key;
+      }
+      
+      // Αν το paramsOrDefault είναι αντικείμενο, αντικαταστήστε τις παραμέτρους στο κείμενο
+      if (paramsOrDefault && typeof paramsOrDefault === 'object') {
+        Object.entries(paramsOrDefault).forEach(([paramKey, paramValue]) => {
+          text = text.replace(`{{${paramKey}}}`, paramValue);
+        });
       }
       
       return text;
