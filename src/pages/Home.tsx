@@ -55,14 +55,14 @@ export default function Home() {
   }, [isConnected]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <Wallet className="h-5 w-5 text-primary" />
             <div className="flex-1">
-              <CardTitle>Καλώς ήρθατε στο Solana Trade Automator</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-xl sm:text-2xl">Καλώς ήρθατε στο Solana Trade Automator</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
                 Αυτοματοποιήστε τις συναλλαγές σας και διαχειριστείτε τα περιουσιακά σας στοιχεία με ασφάλεια
               </CardDescription>
             </div>
@@ -98,7 +98,7 @@ export default function Home() {
         </CardContent>
       </Card>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <TokenBot 
           tokens={tokens}
           isConnected={isConnected}
@@ -107,37 +107,37 @@ export default function Home() {
         
         <Card>
           <CardHeader>
-            <CardTitle>Αρχίστε με το Solana Trading</CardTitle>
+            <CardTitle className="text-xl">Αρχίστε με το Solana Trading</CardTitle>
             <CardDescription>{t("platform.gettingStarted")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 border rounded-lg">
-                  <h3 className="text-lg font-medium mb-2">1. {t("platform.step1Title")}</h3>
-                  <p className="text-sm text-muted-foreground">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+                <div className="p-3 sm:p-4 border rounded-lg">
+                  <h3 className="text-base sm:text-lg font-medium mb-1 sm:mb-2">1. {t("platform.step1Title")}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-4">
                     {t("platform.step1Desc")}
                   </p>
                 </div>
                 
-                <div className="p-4 border rounded-lg">
-                  <h3 className="text-lg font-medium mb-2">2. {t("platform.step2Title")}</h3>
-                  <p className="text-sm text-muted-foreground">
+                <div className="p-3 sm:p-4 border rounded-lg">
+                  <h3 className="text-base sm:text-lg font-medium mb-1 sm:mb-2">2. {t("platform.step2Title")}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-4">
                     {t("platform.step2Desc")}
                   </p>
                 </div>
                 
-                <div className="p-4 border rounded-lg">
-                  <h3 className="text-lg font-medium mb-2">3. {t("platform.step3Title")}</h3>
-                  <p className="text-sm text-muted-foreground">
+                <div className="p-3 sm:p-4 border rounded-lg">
+                  <h3 className="text-base sm:text-lg font-medium mb-1 sm:mb-2">3. {t("platform.step3Title")}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-4">
                     {t("platform.step3Desc")}
                   </p>
                 </div>
               </div>
               
-              <div className="mt-4 p-4 bg-primary/10 rounded-lg">
-                <h3 className="text-lg font-medium mb-2">{t("platform.automationTitle")}</h3>
-                <ul className="list-disc pl-5 space-y-2">
+              <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-primary/10 rounded-lg">
+                <h3 className="text-base sm:text-lg font-medium mb-2">{t("platform.automationTitle")}</h3>
+                <ul className="list-disc pl-5 space-y-1 sm:space-y-2 text-xs sm:text-sm">
                   <li>{t("platform.benefit1")}</li>
                   <li>{t("platform.benefit2")}</li>
                   <li>{t("platform.benefit3")}</li>

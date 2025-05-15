@@ -35,8 +35,8 @@ export function TokensList({
   // Loading state
   if (isLoadingTokens) {
     return (
-      <div className="py-8 flex flex-col items-center justify-center text-center">
-        <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
+      <div className="py-6 sm:py-8 flex flex-col items-center justify-center text-center">
+        <Loader2 className="h-8 w-8 sm:h-10 sm:w-10 text-primary animate-spin mb-3 sm:mb-4" />
         <p className="text-muted-foreground">Φόρτωση tokens...</p>
       </div>
     );
@@ -47,7 +47,7 @@ export function TokensList({
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
-        <AlertDescription>{connectionError}</AlertDescription>
+        <AlertDescription className="text-sm">{connectionError}</AlertDescription>
       </Alert>
     );
   }
@@ -55,12 +55,12 @@ export function TokensList({
   // Empty state - no tokens at all
   if (tokens.length === 0) {
     return (
-      <div className="py-8 text-center">
-        <div className="bg-primary/10 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-4">
-          <AlertCircle className="h-8 w-8 text-primary" />
+      <div className="py-6 sm:py-8 text-center">
+        <div className="bg-primary/10 rounded-full h-12 w-12 sm:h-16 sm:w-16 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+          <AlertCircle className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
         </div>
-        <h3 className="text-lg font-medium mb-1">Δεν βρέθηκαν tokens</h3>
-        <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+        <h3 className="text-base sm:text-lg font-medium mb-1">Δεν βρέθηκαν tokens</h3>
+        <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto px-2">
           Δεν έχετε καθόλου tokens στο πορτοφόλι σας. Για να χρησιμοποιήσετε την πλατφόρμα μας, 
           χρειάζεστε tokens SOL ή άλλα SPL tokens.
         </p>
@@ -78,7 +78,7 @@ export function TokensList({
   // Empty search results
   if (filteredTokens.length === 0) {
     return (
-      <div className="py-8 text-center">
+      <div className="py-6 sm:py-8 text-center">
         <p className="text-muted-foreground">Δεν βρέθηκαν αποτελέσματα για την αναζήτησή σας.</p>
         <Button 
           variant="link" 
@@ -91,7 +91,7 @@ export function TokensList({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2 sm:space-y-3">
       {filteredTokens.map((token) => (
         <TokenItem
           key={token.address}

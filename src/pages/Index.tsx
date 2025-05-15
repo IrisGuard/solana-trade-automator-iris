@@ -14,6 +14,7 @@ import { UserBotsSection } from "@/components/home/UserBotsSection";
 import { FaqSection } from "@/components/home/FaqSection";
 import { FooterSection } from "@/components/home/FooterSection";
 import { Layers, Menu, X } from "lucide-react";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 
 export default function Index() {
   const { t } = useLanguage();
@@ -40,24 +41,25 @@ export default function Index() {
             <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
               <Layers className="h-4 w-4 text-white" />
             </div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent hidden sm:inline-block">
+            <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent hidden sm:inline-block truncate max-w-[240px]">
               Solana Trade Automator
             </h1>
           </Link>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-3 lg:gap-6">
             {navigation.map((item, index) => (
               <Link 
                 key={index}
                 to={item.href} 
-                className="text-gray-300 hover:text-white transition-colors"
+                className="text-sm lg:text-base text-gray-300 hover:text-white transition-colors whitespace-nowrap"
               >
                 {item.title}
               </Link>
             ))}
             
-            <div className="ml-4 flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <LanguageToggle />
               <ThemeToggle />
               <WalletConnectButtonSafe 
                 variant="default" 
@@ -69,6 +71,7 @@ export default function Index() {
           
           {/* Mobile menu button */}
           <div className="flex items-center gap-3 md:hidden">
+            <LanguageToggle />
             <ThemeToggle />
             <button 
               onClick={toggleMobileMenu}
