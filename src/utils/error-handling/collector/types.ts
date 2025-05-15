@@ -21,8 +21,8 @@ export interface ErrorData {
     version?: string;
     os?: string;
   };
-  handled?: boolean; // Added the missing 'handled' property
-  autoFixed?: boolean; // Added the missing 'autoFixed' property
+  handled?: boolean;
+  autoFixed?: boolean;
 }
 
 export interface ErrorOptions {
@@ -33,8 +33,8 @@ export interface ErrorOptions {
   status?: number;
   errorType?: string;
   simulateDelay?: number;
-  message?: string; // Keep this property
-  toastDescription?: string; // Keep this property
+  message?: string;
+  toastDescription?: string;
 }
 
 export interface ErrorCollector {

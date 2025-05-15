@@ -13,7 +13,7 @@ export interface DisplayErrorOptions {
   sendToChat?: boolean;
   useCollector?: boolean;
   severity?: 'low' | 'medium' | 'high' | 'critical';
-  title?: string; // Added title property
+  title?: string;
 }
 
 export function displayError(error: Error, options: DisplayErrorOptions = {}) {
@@ -32,7 +32,6 @@ export function displayError(error: Error, options: DisplayErrorOptions = {}) {
       source: options.source,
       details: options.details,
       severity: options.severity,
-      // We no longer pass message since we've removed it from the type
     });
   }
   
