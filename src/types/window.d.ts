@@ -27,6 +27,6 @@ interface Window {
     Fragment?: typeof import('react').Fragment;
   };
   
-  // Προσθήκη για το router patch
+  // Property for router patch
   patchedReactRouter?: boolean;
 }

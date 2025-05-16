@@ -10,7 +10,7 @@ export function ensureRouterCompatibility(): void {
       window.React = window.React || React as typeof window.React;
       
       // Σημειώνουμε ότι έχουμε εφαρμόσει το router patch
-      window.patchedReactRouter = true;
+      (window as any).patchedReactRouter = true;
       
       console.log('React Router patches applied successfully');
     } catch (error) {
