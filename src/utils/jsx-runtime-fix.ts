@@ -14,7 +14,10 @@ export const jsxs = jsxRuntime.jsxs;
 export const Fragment = React.Fragment;
 
 // For development runtime compatibility
-export const jsxDEV = jsx; // Fallback for development mode
+export const jsxDEV = function(type, props, key, isStaticChildren, source, self) {
+  // Development version uses the same function as production but with more parameters
+  return jsx(type, props, key);
+};
 
 // Create a compatibility layer for older code that might import directly
 export default {
@@ -46,7 +49,7 @@ if (typeof window !== 'undefined' && window.React) {
   // Add jsxDEV for development mode
   if (!window.React.jsxDEV) {
     Object.defineProperty(window.React, 'jsxDEV', {
-      value: jsx, // Use jsx as fallback
+      value: jsxDEV,
       configurable: true,
       writable: false
     });

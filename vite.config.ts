@@ -1,4 +1,3 @@
-
 import { defineConfig, type ConfigEnv, type PluginOption } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -20,8 +19,6 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         tsDecorators: true,
         // Fix jsx runtime
         jsxImportSource: '@/utils/jsx-runtime-fix',
-        // Always use dev mode for consistent JSX runtime
-        development: true
       }),
       mode === 'development' && componentTagger(),
     ].filter(Boolean) as PluginOption[],

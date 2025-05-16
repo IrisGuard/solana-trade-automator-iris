@@ -24,6 +24,7 @@ interface Window {
   React?: typeof import('react') & {
     jsx?: any;
     jsxs?: any;
+    jsxDEV?: any;
     Fragment?: typeof import('react').Fragment;
   };
   
