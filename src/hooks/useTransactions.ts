@@ -51,16 +51,16 @@ export const useTransactions = ({ walletAddress, limit = 10 }: UseTransactionsPr
           console.log('Found transactions in Supabase:', dbTransactions.length);
           
           // Map database transactions to the Transaction interface
-          const mappedTransactions: Transaction[] = dbTransactions.map((tx) => ({
+          const mappedTransactions: Transaction[] = dbTransactions.map((tx: any) => ({
             id: tx.id,
             type: tx.type || 'unknown',
-            token: tx.token || 'SOL',
+            token: 'SOL', // Default token if not present
             amount: tx.amount || '0',
-            price: tx.price || '$0.00',
-            value: tx.value || '$0.00',
+            price: '$0.00', // Default price if not present
+            value: '$0.00', // Default value if not present
             timestamp: tx.created_at || new Date().toISOString(),
             status: tx.status || 'completed',
-            bot: tx.bot_id ? 'Trading Bot' : 'Manual',
+            bot: tx.source === 'bot' ? 'Trading Bot' : 'Manual', // Determine if from bot
             signature: tx.signature
           }));
           
@@ -78,7 +78,7 @@ export const useTransactions = ({ walletAddress, limit = 10 }: UseTransactionsPr
         console.log('Found transactions on Helius:', heliusTransactions.length);
         
         // Map Helius transactions to the Transaction interface
-        const mappedTransactions: Transaction[] = heliusTransactions.map((tx, index) => {
+        const mappedTransactions: Transaction[] = heliusTransactions.map((tx: any, index: number) => {
           // Parse the transaction data
           const txType = tx.type || 'UNKNOWN';
           let tokenSymbol = 'UNKNOWN';
@@ -118,7 +118,7 @@ export const useTransactions = ({ walletAddress, limit = 10 }: UseTransactionsPr
       }
     } catch (error) {
       console.error('Error fetching transactions:', error);
-      errorCollector.collectError(error, {
+      errorCollector.captureError(error, {
         component: 'useTransactions',
         source: 'hook',
         details: { walletAddress, limit }

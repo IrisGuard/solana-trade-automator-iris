@@ -3,6 +3,7 @@ import { heliusKeyManager } from './HeliusKeyManager';
 import { HELIUS_BASE_URL, HELIUS_CONFIG } from './HeliusConfig';
 import { mockTransactions, generateMockTransactions } from '../mocks/mockTransactions';
 import { errorCollector } from '@/utils/error-handling/collector';
+import { validationService } from './ValidationService';
 
 class HeliusService {
   /**
@@ -61,7 +62,7 @@ class HeliusService {
       }
     } catch (error) {
       console.error("Error fetching transaction history:", error);
-      errorCollector.collectError(error, {
+      errorCollector.captureError(error, {
         component: 'HeliusService',
         method: 'getTransactionHistory',
         additional: `Wallet: ${walletAddress.substring(0, 8)}...`
@@ -96,7 +97,7 @@ class HeliusService {
       return data.tokens || [];
     } catch (error) {
       console.error("Error fetching token balances:", error);
-      errorCollector.collectError(error, {
+      errorCollector.captureError(error, {
         component: 'HeliusService',
         method: 'getTokenBalances',
         additional: `Wallet: ${walletAddress.substring(0, 8)}...`
@@ -141,13 +142,46 @@ class HeliusService {
       return data || [];
     } catch (error) {
       console.error("Error fetching token metadata:", error);
-      errorCollector.collectError(error, {
+      errorCollector.captureError(error, {
         component: 'HeliusService',
         method: 'getTokenMetadata',
         additional: `Token count: ${tokenAddresses.length}`
       });
       
       return [];
+    }
+  }
+
+  /**
+   * Check if an API key is valid by using validation service
+   */
+  public async checkApiKey(apiKey: string): Promise<boolean> {
+    try {
+      return await validationService.checkApiKey(apiKey);
+    } catch (error) {
+      console.error("Error checking API key:", error);
+      errorCollector.captureError(error, {
+        component: 'HeliusService',
+        method: 'checkApiKey'
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Reinitialize service (for use after API key changes)
+   */
+  public async reinitialize(): Promise<void> {
+    try {
+      // Refresh keys from storage
+      await heliusKeyManager.refreshKeys();
+      console.log("HeliusService reinitialized successfully");
+    } catch (error) {
+      console.error("Error reinitializing HeliusService:", error);
+      errorCollector.captureError(error, {
+        component: 'HeliusService',
+        method: 'reinitialize'
+      });
     }
   }
 }

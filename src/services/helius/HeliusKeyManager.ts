@@ -49,16 +49,16 @@ class HeliusKeyManager {
     try {
       this.lastRefreshTime = now;
       
-      // Get API keys from Supabase
+      // Get API keys from Supabase - using api_keys_storage, not api_keys
       const { data, error } = await supabase
-        .from('api_keys')
+        .from('api_keys_storage')
         .select('key_value')
-        .eq('key_type', 'helius')
-        .eq('is_active', true);
+        .eq('service', 'helius')
+        .eq('status', 'active');
       
       if (error) {
         console.error('Error fetching Helius API keys:', error);
-        errorCollector.collectError(error, {
+        errorCollector.captureError(error, {
           component: 'HeliusKeyManager',
           method: 'refreshKeys',
           additional: 'Fallback to existing keys'
@@ -87,7 +87,7 @@ class HeliusKeyManager {
       return this.apiKeys.length > 0;
     } catch (error) {
       console.error('Exception refreshing Helius API keys:', error);
-      errorCollector.collectError(error, {
+      errorCollector.captureError(error, {
         component: 'HeliusKeyManager',
         method: 'refreshKeys',
         additional: 'Unexpected exception'
@@ -104,6 +104,25 @@ class HeliusKeyManager {
     if (!this.isInitialized) {
       await this.refreshKeys();
     }
+  }
+
+  /**
+   * Force reload after configuration changes
+   */
+  public async forceReload(): Promise<void> {
+    this.isInitialized = false;
+    this.lastRefreshTime = 0;
+    await this.refreshKeys();
+    console.log("HeliusKeyManager force reloaded");
+  }
+
+  /**
+   * Initialize for first use
+   */
+  public async initialize(): Promise<void> {
+    this.isInitialized = false;
+    await this.refreshKeys();
+    console.log("HeliusKeyManager initialized");
   }
 }
 

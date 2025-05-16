@@ -4,10 +4,10 @@ export interface Transaction {
   type: string;
   status: string;
   amount: string;
-  from?: any;
-  to?: any;
+  from?: string;
+  to?: string;
   timestamp: number;
   blockTime: number;
-  tokenAddress?: any;
+  tokenAddress?: string;
   token?: string;
 }
