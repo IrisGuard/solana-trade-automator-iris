@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useWalletConnection } from './useWalletConnection';
 import { useErrorReporting } from './useErrorReporting';
 import { Token } from '@/types/wallet';
-import { BotStatus, TradingBotConfig, TradingOrder } from './trading-bot/types';
+import { BotStatus, TradingBotConfig, TradingOrder, OrderStatus, OrderType } from './trading-bot/types';
 import { toast } from 'sonner';
 import { sendToken } from '@/services/solana/wallet/transfer';
 import { jupiterService } from '@/services/solana/jupiterService';
@@ -112,7 +112,7 @@ export function useTradingBot() {
         amount: amount,
         token: config.selectedToken,
         status: 'pending',
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
       
       setActiveOrders(prevOrders => [...prevOrders, newOrder]);
@@ -128,11 +128,16 @@ export function useTradingBot() {
       if (success) {
         // Update order status
         setActiveOrders(prevOrders => 
-          prevOrders.map(order => 
-            order.id === orderId 
-              ? { ...order, status: 'completed' } 
-              : order
-          )
+          prevOrders.map(order => {
+            if (order.id === orderId) {
+              return {
+                ...order,
+                status: 'completed' as OrderStatus,
+                executedAt: new Date().toISOString()
+              };
+            }
+            return order;
+          })
         );
         
         // Record transaction in database
@@ -152,11 +157,15 @@ export function useTradingBot() {
       } else {
         // Update order status to failed
         setActiveOrders(prevOrders => 
-          prevOrders.map(order => 
-            order.id === orderId 
-              ? { ...order, status: 'failed' } 
-              : order
-          )
+          prevOrders.map(order => {
+            if (order.id === orderId) {
+              return {
+                ...order,
+                status: 'failed' as OrderStatus
+              };
+            }
+            return order;
+          })
         );
         
         return null;
@@ -194,7 +203,7 @@ export function useTradingBot() {
         amount: amount,
         token: config.selectedToken,
         status: 'pending',
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
       
       setActiveOrders(prevOrders => [...prevOrders, newOrder]);
@@ -210,11 +219,16 @@ export function useTradingBot() {
       if (success) {
         // Update order status
         setActiveOrders(prevOrders => 
-          prevOrders.map(order => 
-            order.id === orderId 
-              ? { ...order, status: 'completed' } 
-              : order
-          )
+          prevOrders.map(order => {
+            if (order.id === orderId) {
+              return {
+                ...order,
+                status: 'completed' as OrderStatus,
+                executedAt: new Date().toISOString()
+              };
+            }
+            return order;
+          })
         );
         
         // Record transaction in database
@@ -234,11 +248,15 @@ export function useTradingBot() {
       } else {
         // Update order status to failed
         setActiveOrders(prevOrders => 
-          prevOrders.map(order => 
-            order.id === orderId 
-              ? { ...order, status: 'failed' } 
-              : order
-          )
+          prevOrders.map(order => {
+            if (order.id === orderId) {
+              return {
+                ...order,
+                status: 'failed' as OrderStatus
+              };
+            }
+            return order;
+          })
         );
         
         return null;
@@ -391,11 +409,15 @@ export function useTradingBot() {
       // Cancel any pending orders 
       // In a real implementation, this would cancel orders with the exchange
       setActiveOrders(prevOrders => 
-        prevOrders.map(order => 
-          order.status === 'pending' 
-            ? { ...order, status: 'cancelled' } 
-            : order
-        )
+        prevOrders.map(order => {
+          if (order.status === 'pending') {
+            return {
+              ...order,
+              status: 'canceled' as OrderStatus
+            };
+          }
+          return order;
+        })
       );
       
       setBotStatus('idle');

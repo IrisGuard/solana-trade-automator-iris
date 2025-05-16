@@ -1,81 +1,66 @@
 
-import { useState, useCallback } from 'react';
-import { toast } from 'sonner';
+import { useEffect, useState, useCallback } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { Token } from '@/types/wallet';
-import { solanaService } from '@/services/solana';
+import { priceService } from '@/services/solana/priceService';
+import { TokenPriceData } from '@/services/solana/priceService';
 
 export function useTokens() {
+  const { publicKey, connected } = useWallet();
   const [tokens, setTokens] = useState<Token[]>([]);
-  const [selectedToken, setSelectedToken] = useState<Token | null>(null);
-  const [tokenPrices, setTokenPrices] = useState<Record<string, { price: number, priceChange24h: number }>>({}); 
-  const [isLoadingTokens, setIsLoadingTokens] = useState<boolean>(false);
-
-  // Load tokens from the Phantom wallet
-  const fetchAndSetTokens = useCallback(async (address: string) => {
-    try {
-      setIsLoadingTokens(true);
-      
-      toast.loading('Φόρτωση tokens...');
-      
-      // Use solanaService to load real tokens
-      const userTokens = await solanaService.fetchAllTokenBalances(address);
-      setTokens(userTokens);
-      
-      toast.success('Τα tokens φορτώθηκαν επιτυχώς');
-      return userTokens;
-    } catch (err) {
-      console.error('Error fetching tokens:', err);
-      toast.error('Σφάλμα κατά τη φόρτωση των tokens');
-      setTokens([]);
-      return [];
-    } finally {
-      setIsLoadingTokens(false);
-      toast.dismiss();
-    }
-  }, []);
-
-  // Select a token for trading
-  const selectTokenForTrading = useCallback((tokenAddress: string) => {
-    const token = tokens.find(t => t.address === tokenAddress);
-    if (token) {
-      setSelectedToken(token);
-      toast.success(`Επιλέχθηκε το ${token.symbol} για trading`);
-      return token;
-    }
-    return null;
-  }, [tokens]);
-
-  // Fetch token prices
-  const fetchTokenPrices = useCallback(async () => {
-    try {
-      if (tokens.length === 0) return {};
-      
-      // Fix: Convert array of addresses to a comma-separated string or handle individually
-      const pricesData: Record<string, { price: number, priceChange24h: number }> = {};
-      
-      for (const token of tokens) {
-        const priceData = await solanaService.fetchTokenPrices(token.address);
-        if (priceData) {
-          pricesData[token.address] = priceData;
+  const [tokenPrices, setTokenPrices] = useState<Record<string, TokenPriceData>>({});
+  
+  // Load available tokens
+  useEffect(() => {
+    if (connected && publicKey) {
+      const loadTokens = async () => {
+        try {
+          // In a real implementation, this would fetch tokens from a service
+          const demoTokens: Token[] = [
+            { address: 'So11111111111111111111111111111111111111112', symbol: 'SOL', name: 'Solana', amount: 2.5, decimals: 9 },
+            { address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', symbol: 'USDC', name: 'USD Coin', amount: 500, decimals: 6 },
+            { address: '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R', symbol: 'RAY', name: 'Raydium', amount: 100, decimals: 6 }
+          ];
+          setTokens(demoTokens);
+          
+          // Fetch prices for the tokens
+          await loadTokenPrices(demoTokens.map(t => t.address));
+        } catch (error) {
+          console.error("Error loading tokens:", error);
         }
-      }
+      };
       
-      setTokenPrices(pricesData);
-      return pricesData;
+      loadTokens();
+    }
+  }, [connected, publicKey]);
+
+  // Load token prices
+  const loadTokenPrices = async (addresses: string[]) => {
+    try {
+      const prices = await priceService.fetchTokenPrices(addresses);
+      setTokenPrices(prices);
     } catch (error) {
       console.error("Error fetching token prices:", error);
-      return {};
     }
+  };
+
+  // Find token details
+  const findTokenDetails = useCallback((tokenAddress: string | null): Token | undefined => {
+    if (!tokenAddress) return undefined;
+    return tokens.find(t => t.address === tokenAddress);
   }, [tokens]);
+
+  // Get price for a specific token
+  const getTokenPrice = useCallback((tokenAddress: string | null): TokenPriceData | undefined => {
+    if (!tokenAddress) return undefined;
+    return tokenPrices[tokenAddress];
+  }, [tokenPrices]);
 
   return {
     tokens,
-    selectedToken,
     tokenPrices,
-    isLoadingTokens,
-    fetchAndSetTokens,
-    selectTokenForTrading,
-    fetchTokenPrices,
-    setSelectedToken
+    findTokenDetails,
+    getTokenPrice,
+    loadTokenPrices
   };
 }

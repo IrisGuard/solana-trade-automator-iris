@@ -1,12 +1,13 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { priceService } from '@/services/solana/priceService';
 
 // Define the TokenPriceInfo type to include all necessary properties
 export interface TokenPriceInfo {
   price: number;
   change24h: number;
-  highPrice24h?: number; // Make this property optional
+  highPrice24h?: number;
   lowPrice24h?: number;
   volume24h?: number;
   marketCap?: number;
@@ -25,42 +26,39 @@ export const usePriceSubscription = (tokenAddress: string | null) => {
   useEffect(() => {
     if (!tokenAddress) return;
 
-    // Simulate price subscription
     let intervalId: ReturnType<typeof setInterval>;
     
-    const setupPriceUpdates = () => {
+    const setupPriceUpdates = async () => {
       // Initial update
-      updatePrice();
+      await updatePrice();
       
       // Subscribe to price updates
-      intervalId = setInterval(() => {
-        updatePrice();
+      intervalId = setInterval(async () => {
+        await updatePrice();
       }, 10000); // Update every 10 seconds
       
       setIsSubscribed(true);
     };
     
-    const updatePrice = () => {
+    const updatePrice = async () => {
       try {
-        // Generate random price changes to simulate real updates
-        const basePrice = 100; // Base price for all tokens
-        const variance = Math.random() * 10 - 5; // Random variance between -5 and +5
-        const newPrice = basePrice + variance;
-        const change = ((newPrice - basePrice) / basePrice) * 100;
+        // Get real price from service
+        const priceData = await priceService.getTokenPrice(tokenAddress);
         
-        // Update with valid properties for our TokenPriceInfo type
-        setPriceInfo({
-          price: newPrice,
-          change24h: change,
-          highPrice24h: newPrice + (Math.random() * 5),
-          lowPrice24h: newPrice - (Math.random() * 5),
-          volume24h: 1000000 + (Math.random() * 500000),
-          marketCap: 100000000 + (Math.random() * 10000000),
-          lastUpdated: new Date(),
-        });
-        
-        setLastUpdate(new Date());
-        setError(null);
+        if (priceData && typeof priceData.price === 'number') {
+          // Update with valid properties for our TokenPriceInfo type
+          setPriceInfo({
+            price: priceData.price,
+            change24h: priceData.priceChange24h || 0,
+            highPrice24h: priceData.price * 1.05, // Estimate high as 5% above current
+            lowPrice24h: priceData.price * 0.95, // Estimate low as 5% below current
+            volume24h: priceData.volume24h,
+            marketCap: priceData.marketCap,
+          });
+          
+          setLastUpdate(new Date());
+          setError(null);
+        }
       } catch (err) {
         setError(err as Error);
         toast.error('Failed to update token price');

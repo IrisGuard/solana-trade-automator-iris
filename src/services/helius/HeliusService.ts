@@ -1,4 +1,3 @@
-
 import { heliusKeyManager } from './HeliusKeyManager';
 import { HELIUS_BASE_URL, HELIUS_CONFIG } from './HeliusConfig';
 import { mockTransactions, generateMockTransactions } from '../mocks/mockTransactions';
@@ -149,6 +148,55 @@ class HeliusService {
       });
       
       return [];
+    }
+  }
+
+  /**
+   * Get token price data from Helius API
+   * @param tokenAddress Token address to get price for
+   * @returns Price data object or null if error
+   */
+  public async getTokenPrice(tokenAddress: string) {
+    try {
+      // Ensure we have a valid API key
+      await heliusKeyManager.refreshKeys();
+      
+      // Create the URL for the Helius API
+      const url = new URL(`${HELIUS_BASE_URL}/token-price`);
+      
+      // Add the API key
+      const apiKey = heliusKeyManager.getApiKey();
+      url.searchParams.append('api-key', apiKey);
+      
+      // Make the API call
+      const response = await fetch(url.toString(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ mintAccount: tokenAddress })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Helius API error: ${response.status} - ${await response.text()}`);
+      }
+      
+      const data = await response.json();
+      return {
+        price: data.price || 0,
+        priceChange24h: data.priceChange24h || 0,
+        volume24h: data.volume24h || 0,
+        marketCap: data.marketCap || 0
+      };
+    } catch (error) {
+      console.error("Error fetching token price:", error);
+      errorCollector.captureError(error, {
+        component: 'HeliusService',
+        method: 'getTokenPrice',
+        additional: `Token: ${tokenAddress.substring(0, 8)}...`
+      });
+      
+      return null;
     }
   }
 

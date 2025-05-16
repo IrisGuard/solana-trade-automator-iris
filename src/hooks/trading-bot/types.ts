@@ -5,7 +5,7 @@ export type BotStatus = 'idle' | 'running' | 'paused' | 'error';
 
 export type OrderType = 'buy' | 'sell' | 'stop-loss' | 'take-profit' | 'limit-buy' | 'limit-sell';
 
-export type OrderStatus = 'pending' | 'executed' | 'canceled' | 'failed';
+export type OrderStatus = 'pending' | 'completed' | 'canceled' | 'failed';
 
 export interface TradingOrder {
   id: string;
@@ -14,8 +14,8 @@ export interface TradingOrder {
   amount: number;
   token: string;
   status: OrderStatus;
-  createdAt: Date;
-  executedAt?: Date;
+  createdAt: string;
+  executedAt?: string;
 }
 
 export interface TradingBotConfig {
@@ -74,8 +74,8 @@ export interface ActiveOrder {
 }
 
 export interface TokenPriceInfo {
-  currentPrice: number;
-  priceChange24h: number;
-  high24h?: number;
-  low24h?: number;
+  price: number;
+  change24h: number;
+  highPrice24h?: number;
+  lowPrice24h?: number;
 }

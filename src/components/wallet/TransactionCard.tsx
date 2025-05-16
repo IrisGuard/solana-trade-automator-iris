@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
-import { sendToken } from "@/services/solana/wallet/transfer";
-import { jupiterService } from "@/services/solana/jupiterService";
+import { sendToken } from "@/services/solana";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
 import { TransactionConfirmationModal, TransactionDetails } from "../transactions/TransactionConfirmationModal";
 

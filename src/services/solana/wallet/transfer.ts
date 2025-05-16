@@ -1,4 +1,3 @@
-
 import { 
   PublicKey, 
   Transaction, 
@@ -150,25 +149,24 @@ export const sendSPLToken = async (
     const adjustedAmount = amount * Math.pow(10, tokenDecimals);
     
     // Get or create associated token accounts
+    // Create a dummy signer object for the getOrCreateAssociatedTokenAccount function
+    // Note: This is just to satisfy the function signature - actual signing happens via Phantom
+    const dummySigner = {
+      publicKey: fromPubkey,
+    };
+    
+    // Use dummySigner for source account
     const fromTokenAccount = await getOrCreateAssociatedTokenAccount(
       connection,
-      // We need a signer here, but we'll use a dummy keypair since Phantom will sign
-      // @ts-ignore - This will be replaced by Phantom signing
-      {
-        publicKey: fromPubkey,
-        signTransaction: () => { throw new Error('Use Phantom to sign'); }
-      },
+      dummySigner as any,
       tokenMint,
       fromPubkey
     );
     
+    // Use dummySigner for destination account
     const toTokenAccount = await getOrCreateAssociatedTokenAccount(
       connection,
-      // @ts-ignore - This will be replaced by Phantom signing
-      {
-        publicKey: fromPubkey,
-        signTransaction: () => { throw new Error('Use Phantom to sign'); }
-      },
+      dummySigner as any,
       tokenMint,
       toPubkey
     );
