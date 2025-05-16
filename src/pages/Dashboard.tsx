@@ -51,20 +51,20 @@ export default function Dashboard() {
       if (!isConnected || !walletAddress || !user?.id) return;
       
       try {
-        // Use a type-safe approach with explicit typing to avoid TypeScript issues
-        const response = await supabase
+        // Use a simpler approach with specific column selection and no complex type inference
+        const { data, error } = await supabase
           .from('bots')
           .select('id,active,user_id')
           .eq('user_id', user.id)
-          .eq('is_primary', true)
-          .limit(1);
+          .eq('is_primary', true);
           
-        // Handle potential errors
-        if (response.error) throw response.error;
+        // Handle potential errors directly
+        if (error) throw error;
         
         // Set bot status if data exists
-        if (response.data && response.data.length > 0) {
-          setBotActive(!!response.data[0].active); // Convert to boolean with !!
+        if (data && data.length > 0) {
+          const isActive = typeof data[0].active === 'boolean' ? data[0].active : false;
+          setBotActive(isActive);
         }
       } catch (err) {
         console.error('Error fetching bot status:', err);
@@ -89,27 +89,28 @@ export default function Dashboard() {
       const newStatus = !botActive;
       
       // First, check if a bot exists for this user
-      const { data: existingBot } = await supabase
+      const { data: existingBots, error: fetchError } = await supabase
         .from('bots')
         .select('id')
         .eq('user_id', user.id)
-        .eq('is_primary', true)
-        .maybeSingle();
+        .eq('is_primary', true);
       
-      if (existingBot) {
+      if (fetchError) throw fetchError;
+      
+      if (existingBots && existingBots.length > 0) {
         // Update existing bot
-        const { error } = await supabase
+        const { error: updateError } = await supabase
           .from('bots')
           .update({ 
             active: newStatus, 
             updated_at: new Date().toISOString() 
           })
-          .eq('id', existingBot.id);
+          .eq('id', existingBots[0].id);
         
-        if (error) throw error;
+        if (updateError) throw updateError;
       } else {
         // Create new bot
-        const { error } = await supabase
+        const { error: insertError } = await supabase
           .from('bots')
           .insert({ 
             user_id: user.id, 
@@ -119,7 +120,7 @@ export default function Dashboard() {
             is_primary: true 
           });
         
-        if (error) throw error;
+        if (insertError) throw insertError;
       }
       
       setBotActive(newStatus);
