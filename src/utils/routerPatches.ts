@@ -1,30 +1,10 @@
 
-import * as React from 'react';
-
-// Προσθήκη τύπων για το window object
-declare global {
-  interface Window {
-    React: typeof React;
-    patchedReactRouter: boolean;
-  }
+// This utility handles compatibility issues between different versions of React Router
+export function ensureRouterCompatibility() {
+  // This is a placeholder function to handle any router-specific issues
+  console.log('Εφαρμογή διορθώσεων συμβατότητας για το React Router');
+  
+  // In a real implementation, this would include polyfills or workarounds for specific issues
+  
+  return true;
 }
-
-// Εξαγωγή της συνάρτησης για εφαρμογή συμβατότητας με το React Router
-export function ensureRouterCompatibility(): void {
-  if (typeof window !== 'undefined') {
-    try {
-      // Βεβαιώνουμε ότι έχουμε πλήρες React object
-      window.React = window.React || React;
-      
-      // Σημειώνουμε ότι έχουμε εφαρμόσει το router patch
-      window.patchedReactRouter = true;
-      
-      console.log('React Router patches applied successfully');
-    } catch (error) {
-      console.error('Error applying router patches:', error);
-    }
-  }
-}
-
-// Για συμβατότητα με παλαιότερες εκδόσεις κώδικα
-export default ensureRouterCompatibility;

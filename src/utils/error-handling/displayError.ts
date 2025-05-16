@@ -1,45 +1,29 @@
 
 import { toast } from 'sonner';
-import { errorCollector } from './collector';
 
-export interface DisplayErrorOptions {
-  component?: string;
-  source?: string;
-  details?: any;
+interface DisplayErrorOptions {
   showToast?: boolean;
   toastTitle?: string;
   toastDescription?: string;
-  logToConsole?: boolean;
-  sendToChat?: boolean;
-  useCollector?: boolean;
-  severity?: 'low' | 'medium' | 'high' | 'critical';
-  title?: string;
+  duration?: number;
 }
 
 export function displayError(error: Error, options: DisplayErrorOptions = {}) {
-  // Log to console if requested
-  if (options.logToConsole !== false) {
-    console.error('[Error]', error);
-    if (options.details) {
-      console.error('[Error Details]', options.details);
-    }
-  }
+  const {
+    showToast = true,
+    toastTitle = 'Σφάλμα',
+    toastDescription,
+    duration = 5000
+  } = options;
   
-  // Use error collector if requested
-  if (options.useCollector !== false) {
-    errorCollector.captureError(error, {
-      component: options.component,
-      source: options.source,
-      details: options.details,
-      severity: options.severity,
-    });
-  }
+  // Always log to console
+  console.error('Error displayed:', error);
   
-  // Show toast if requested
-  if (options.showToast) {
-    toast.error(options.toastTitle || options.title || 'Error', {
-      description: options.toastDescription || error.message,
-      duration: 5000
+  // Show toast notification if requested
+  if (showToast) {
+    toast.error(toastTitle, {
+      description: toastDescription || error.message,
+      duration
     });
   }
   

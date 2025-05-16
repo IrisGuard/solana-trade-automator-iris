@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { isPhantomInstalled } from '@/utils/phantomWallet';
@@ -120,7 +119,11 @@ export function useWalletConnection(): WalletConnectionHook {
     setIsConnected(true);
     
     // Fetch balances and tokens
-    await refreshWalletData(address);
+    try {
+      await refreshWalletData(address);
+    } catch (err) {
+      console.error("Σφάλμα κατά τη φόρτωση δεδομένων πορτοφολιού:", err);
+    }
   }, []);
   
   // Disconnect wallet
@@ -163,10 +166,10 @@ export function useWalletConnection(): WalletConnectionHook {
     try {
       console.log('Ανανέωση δεδομένων πορτοφολιού για διεύθυνση:', walletToUse);
       
-      // Get SOL balance using solanaService instead of mock data
+      // Get SOL balance using solanaService
       try {
         console.log("Λήψη υπολοίπου SOL...");
-        const balance = await solanaService.fetchSOLBalance(walletToUse);
+        const balance = await solanaService?.fetchSOLBalance?.(walletToUse) || 0;
         console.log('Ελήφθη υπόλοιπο SOL:', balance);
         setSolBalance(balance);
       } catch (balanceError) {
@@ -176,7 +179,11 @@ export function useWalletConnection(): WalletConnectionHook {
       
       // Load token data
       console.log("Λήψη δεδομένων token...");
-      await loadWalletData(walletToUse);
+      if (loadWalletData) {
+        await loadWalletData(walletToUse);
+      } else {
+        console.error("Η μέθοδος loadWalletData δεν είναι διαθέσιμη");
+      }
       console.log("Η ανανέωση δεδομένων πορτοφολιού ολοκληρώθηκε");
     } catch (err: any) {
       console.error('Σφάλμα ανανέωσης δεδομένων πορτοφολιού:', err);

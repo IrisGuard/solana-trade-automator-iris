@@ -1,96 +1,61 @@
 
 import { useState, useCallback } from 'react';
-import { Token, TokenPrices } from '@/types/wallet';
-import { toast } from 'sonner';
-import { heliusService } from '@/services/helius/HeliusService';
-import { useErrorReporting } from '@/hooks/useErrorReporting';
+import { Token } from '@/types/wallet';
+import { TokenPrices } from '@/services/solana/price/types';
+import { tokenService } from '@/services/solana/token';
 
 export function useWalletData() {
   const [tokens, setTokens] = useState<Token[]>([]);
   const [tokenPrices, setTokenPrices] = useState<TokenPrices>({});
   const [isLoadingTokens, setIsLoadingTokens] = useState(false);
-  const { reportError } = useErrorReporting();
+  const [selectedToken, setSelectedToken] = useState<Token | null>(null);
 
-  // Load wallet data
-  const loadWalletData = useCallback(async (address: string) => {
-    setIsLoadingTokens(true);
+  // Load wallet data including tokens and prices
+  const loadWalletData = useCallback(async (walletAddress: string) => {
+    if (!walletAddress) return;
     
+    setIsLoadingTokens(true);
     try {
-      console.log('Loading wallet data for address:', address);
+      console.log(`Φόρτωση δεδομένων για το πορτοφόλι: ${walletAddress}`);
       
-      // Try to get token balances from Helius
-      try {
-        console.log('Fetching token balances from Helius...');
-        const tokenBalances = await heliusService.getTokenBalances(address);
-        
-        if (tokenBalances && tokenBalances.length) {
-          console.log('Received token balances:', tokenBalances);
-          
-          // Get metadata for tokens
-          const tokenAddresses = tokenBalances.map(t => t.mint);
-          const tokenMetadataList = await heliusService.getTokenMetadata(tokenAddresses);
-          
-          // Create a map for easy lookup
-          const tokenMetadataMap = tokenMetadataList.reduce((acc, token) => {
-            acc[token.mint] = token;
-            return acc;
-          }, {} as Record<string, any>);
-          
-          // Process token data
-          const processedTokens = tokenBalances.map(token => {
-            const metadata = tokenMetadataMap[token.mint] || {};
-            return {
-              address: token.mint,
-              symbol: metadata.symbol || 'Unknown',
-              name: metadata.name || 'Unknown Token',
-              amount: token.amount || 0,
-              decimals: token.decimals || 9,
-              logo: metadata.logoURI || ''
-            };
-          }).filter(token => token.amount > 0); // Filter out zero-balance tokens
-          
-          console.log('Processed tokens:', processedTokens);
-          setTokens(processedTokens);
-          
-          // Set mock prices for now - would be replaced with real price API
-          const prices: TokenPrices = {};
-          processedTokens.forEach(token => {
-            prices[token.address] = {
-              price: Math.random() * 100,
-              priceChange24h: (Math.random() * 20) - 10,
-              lastUpdated: new Date()
-            };
-          });
-          
+      // Fetch tokens
+      const fetchedTokens = await tokenService.fetchTokens(walletAddress);
+      console.log(`Ελήφθησαν ${fetchedTokens.length} tokens`);
+      setTokens(fetchedTokens);
+      
+      // Fetch token prices if there are any tokens
+      if (fetchedTokens.length > 0) {
+        const tokenAddresses = fetchedTokens.map(token => token.address);
+        try {
+          const prices = await tokenService.fetchTokenPrices(tokenAddresses);
           setTokenPrices(prices);
-        } else {
-          console.log('No token balances received or empty array returned');
-          setTokens([]);
+        } catch (priceError) {
+          console.error('Σφάλμα λήψης τιμών token:', priceError);
         }
-      } catch (tokenError) {
-        console.error('Error fetching token balances:', tokenError);
-        reportError(tokenError);
-        setTokens([]);
       }
-    } catch (err: any) {
-      console.error('Error loading wallet data:', err);
-      reportError(err);
+    } catch (error) {
+      console.error('Σφάλμα φόρτωσης δεδομένων πορτοφολιού:', error);
     } finally {
       setIsLoadingTokens(false);
     }
-  }, [reportError]);
+  }, []);
 
   // Select token for trading
   const selectTokenForTrading = useCallback((tokenAddress: string) => {
-    const selectedToken = tokens.find(t => t.address === tokenAddress);
-    
-    if (selectedToken) {
-      toast.success(`Επιλέχθηκε το ${selectedToken.symbol || selectedToken.name} για συναλλαγές`);
-      return selectedToken;
+    const token = tokens.find(t => t.address === tokenAddress);
+    if (token) {
+      setSelectedToken(token);
+      return token;
     }
-    
     return null;
   }, [tokens]);
 
-  return { tokens, tokenPrices, isLoadingTokens, loadWalletData, selectTokenForTrading };
+  return {
+    tokens,
+    tokenPrices,
+    isLoadingTokens,
+    selectedToken,
+    loadWalletData,
+    selectTokenForTrading
+  };
 }

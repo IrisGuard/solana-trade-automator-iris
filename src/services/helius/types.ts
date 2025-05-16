@@ -1,5 +1,14 @@
 
-// Common types for Helius API responses
+export interface Transaction {
+  id?: string;
+  signature?: string;
+  type: string;
+  status: string;
+  amount?: number | string;
+  timestamp?: number;
+  from?: string;
+  to?: string;
+}
 
 export interface TokenBalance {
   mint: string;
@@ -12,21 +21,4 @@ export interface TokenMetadata {
   name: string;
   symbol: string;
   logoURI?: string;
-  decimals: number;
-}
-
-export interface Transaction {
-  signature: string;
-  type?: string;
-  timestamp: string;
-  tokenTransfers?: Array<{
-    tokenName?: string;
-    amount?: number;
-    decimals?: number;
-  }>;
-  nativeTransfers?: Array<{
-    amount: number;
-    fromUserAccount: string;
-    toUserAccount: string;
-  }>;
 }
