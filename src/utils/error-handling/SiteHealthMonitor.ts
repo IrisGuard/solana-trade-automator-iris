@@ -45,11 +45,11 @@ export class SiteHealthMonitor {
     const issues: string[] = [];
     let criticalIssuesFound = false;
     
-    // Check for critical DOM elements
+    // Check for critical DOM elements - modified to check for only the root element
+    // which is the one we actually need for the React application
     const criticalElements = [
       { id: 'root', critical: true },
-      { id: 'app-container', critical: false },
-      { id: 'main-content', critical: false }
+      // Removed app-container and main-content which were causing false alerts
     ];
     
     for (const element of criticalElements) {

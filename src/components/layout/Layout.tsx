@@ -19,7 +19,7 @@ export function Layout({ children }: LayoutProps) {
         <Header />
         <div className="flex flex-1 overflow-hidden">
           {!isMobile && <Sidebar />}
-          <main className="flex-1 px-3 py-3 md:px-6 md:py-6 overflow-auto">
+          <main id="main-content" className="flex-1 px-3 py-3 md:px-6 md:py-6 overflow-auto">
             {children}
           </main>
         </div>

@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { Routes } from "@/routes";
@@ -17,6 +18,7 @@ import { EmergencyRecovery } from "@/components/emergency/EmergencyRecovery";
 import { initProtectionSystem } from "@/utils/errorTestUtils";
 import { HelpButton } from "@/components/help/HelpButton";
 import { HealthStatusIndicator } from "@/components/monitoring/HealthStatusIndicator";
+import { DOMErrorHandler } from "@/components/errors/DOMErrorHandler";
 
 // Εφαρμογή διορθώσεων συμβατότητας του React Router
 ensureRouterCompatibility();
@@ -97,6 +99,7 @@ export function AppContent() {
       )}
       onError={logError}
     >
+      <DOMErrorHandler />
       <BrowserRouter>
         <ThemeProvider>
           <LanguageProvider defaultLanguage="el">
@@ -105,11 +108,15 @@ export function AppContent() {
                 <TooltipProvider>
                   <SolanaWalletProvider>
                     <WalletProviderWrapper>
-                      <Routes />
-                      <EmergencyRecovery />
-                      <HealthStatusIndicator />
-                      <HelpButton />
-                      <Toaster position="top-right" richColors />
+                      <div id="app-container" className="app-root">
+                        <div id="main-content" className="app-content">
+                          <Routes />
+                          <EmergencyRecovery />
+                          <HealthStatusIndicator />
+                          <HelpButton />
+                          <Toaster position="top-right" richColors />
+                        </div>
+                      </div>
                     </WalletProviderWrapper>
                   </SolanaWalletProvider>
                 </TooltipProvider>
