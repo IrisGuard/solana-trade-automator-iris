@@ -52,8 +52,8 @@ export function EnhancedTransactionHistory({
     amount: tx.amount,
     from: undefined,
     to: undefined,
-    timestamp: tx.timestamp,
-    blockTime: new Date(tx.timestamp).getTime(),
+    timestamp: tx.timestamp ? new Date(tx.timestamp).getTime() : Date.now(),
+    blockTime: tx.timestamp ? new Date(tx.timestamp).getTime() / 1000 : Math.floor(Date.now() / 1000),
     tokenAddress: undefined
   }));
 
