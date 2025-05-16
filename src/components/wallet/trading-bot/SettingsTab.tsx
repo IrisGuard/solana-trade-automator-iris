@@ -91,7 +91,7 @@ export function SettingsTab({
                   </div>
                   <div>
                     <span className="text-muted-foreground">Τιμή:</span>{" "}
-                    ${selectedTokenPrice?.currentPrice?.toFixed(4) || "N/A"}
+                    ${selectedTokenPrice?.price?.toFixed(4) || "N/A"}
                   </div>
                   <div>
                     <span className="text-muted-foreground">Μεταβολή 24h:</span>{" "}

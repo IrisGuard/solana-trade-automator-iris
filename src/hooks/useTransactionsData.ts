@@ -117,6 +117,9 @@ export const useTransactionsData = (walletAddress: string) => {
         const existingTx = await transactionRecordService.getTransactionBySignature(tx.signature);
         
         if (!existingTx) {
+          // We need to ensure that token is defined before sending to the database
+          const token = tx.token || 'SOL';
+          
           // Create a database-compatible transaction object
           await transactionRecordService.recordTransaction({
             signature: tx.signature,
@@ -128,7 +131,7 @@ export const useTransactionsData = (walletAddress: string) => {
             destination: tx.destination,
             wallet_address: walletAddress,
             user_id: user.id,
-            token: tx.token,
+            token,
             value_usd: tx.value_usd
           });
         }
