@@ -17,11 +17,14 @@ class HeliusKeyManager {
       console.log('Initializing HeliusKeyManager');
       await this.loadApiKeysFromSupabase();
       this.initialized = true;
+      console.log(`HeliusKeyManager initialized with ${this.apiKeysArray.length} keys`);
     } catch (error) {
       console.error('Failed to initialize HeliusKeyManager:', error);
       this.reportError(new Error('Failed to initialize HeliusKeyManager'));
-      // Add fallback key for development
-      this.registerApiKey('fallback-key', 'development-key');
+      
+      // Add fallback key for development - using the provided key
+      this.registerApiKey('ddb32813-1f4b-459d-8964-310b1b73a053', 'default-key');
+      this.initialized = true;
     }
   }
 
@@ -31,9 +34,13 @@ class HeliusKeyManager {
       this.apiKeys.clear();
       this.apiKeysArray = [];
       await this.loadApiKeysFromSupabase();
+      console.log(`HeliusKeyManager reloaded with ${this.apiKeysArray.length} keys`);
     } catch (error) {
       console.error('Failed to reload Helius API keys:', error);
       this.reportError(new Error('Failed to reload Helius API keys'));
+      
+      // Make sure we have the default key
+      this.registerApiKey('ddb32813-1f4b-459d-8964-310b1b73a053', 'default-key');
     }
   }
 
@@ -54,7 +61,8 @@ class HeliusKeyManager {
         console.log(`Loaded ${data.length} Helius API keys from Supabase`);
       } else {
         console.log('No Helius API keys found in Supabase, using fallback');
-        this.registerApiKey('development-fallback-key', 'fallback');
+        // Use the provided key as fallback
+        this.registerApiKey('ddb32813-1f4b-459d-8964-310b1b73a053', 'default-fallback');
       }
     } catch (error) {
       console.error('Failed to load Helius API keys from Supabase:', error);
@@ -63,9 +71,14 @@ class HeliusKeyManager {
   }
 
   public getApiKey(): string {
+    if (!this.initialized) {
+      console.warn('HeliusKeyManager not initialized, returning default key');
+      return 'ddb32813-1f4b-459d-8964-310b1b73a053';
+    }
+    
     if (this.apiKeysArray.length === 0) {
       this.reportError(new Error('No Helius API keys available'));
-      return '';
+      return 'ddb32813-1f4b-459d-8964-310b1b73a053';
     }
 
     const key = this.apiKeysArray[this.currentKeyIndex];
@@ -74,7 +87,9 @@ class HeliusKeyManager {
   }
 
   private rotateKey(): void {
-    this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeysArray.length;
+    if (this.apiKeysArray.length > 1) {
+      this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeysArray.length;
+    }
   }
 
   public registerApiKey(key: string, alias?: string): boolean {
@@ -87,6 +102,7 @@ class HeliusKeyManager {
       const keyAlias = alias || `helius-key-${this.apiKeys.size + 1}`;
       this.apiKeys.set(keyAlias, key);
       this.apiKeysArray = Array.from(this.apiKeys.values());
+      console.log(`Registered Helius API key: ${key.substring(0, 8)}... as ${keyAlias}`);
       return true;
     } catch (error) {
       this.reportError(new Error('Failed to register API key'));
@@ -125,6 +141,10 @@ class HeliusKeyManager {
 
   public getKeyCount(): number {
     return this.apiKeysArray.length;
+  }
+  
+  public isInitialized(): boolean {
+    return this.initialized;
   }
 
   private reportError(error: Error): void {

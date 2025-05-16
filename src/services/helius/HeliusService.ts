@@ -11,28 +11,111 @@ class HeliusService {
   private apiKeyStatus = false;
   private retryCount = 0;
   private maxRetries = 3;
+  private initialized = false;
 
   constructor() {
     console.log('HeliusService initialized');
     // Check API key when service initializes
-    this.checkApiKeyStatus();
+    this.initialize();
   }
   
-  private async checkApiKeyStatus() {
-    const apiKey = this.getApiKey();
-    if (apiKey) {
-      this.apiKeyStatus = await this.checkApiKey(apiKey);
-      console.log('Helius API key status:', this.apiKeyStatus ? 'valid' : 'invalid');
+  public async initialize() {
+    try {
+      console.log('Initializing HeliusService');
+      // First ensure heliusKeyManager is initialized
+      if (heliusKeyManager && !heliusKeyManager.isInitialized()) {
+        await heliusKeyManager.initialize();
+      }
+      
+      const apiKey = this.getApiKey();
+      if (apiKey) {
+        this.apiKeyStatus = await this.checkApiKey(apiKey);
+        console.log('Helius API key status:', this.apiKeyStatus ? 'valid' : 'invalid');
+        
+        if (this.apiKeyStatus) {
+          console.log('Helius service successfully initialized with valid API key');
+          this.initialized = true;
+        } else {
+          console.warn('Helius API key invalid or unreachable');
+          this.reportError(new Error('Invalid Helius API key during initialization'));
+        }
+      } else {
+        console.warn('No Helius API key available during initialization');
+      }
+    } catch (error) {
+      console.error('Error initializing HeliusService:', error);
+      this.reportError(new Error(`Failed to initialize HeliusService: ${error}`));
+    }
+  }
+  
+  // This method will be called by syncHeliusKeys to reinitialize the service
+  public async reinitialize() {
+    try {
+      console.log('Reinitializing HeliusService');
+      // Reset state
+      this.apiKeyStatus = false;
+      this.retryCount = 0;
+      this.initialized = false;
+      
+      // Reinitialize
+      await this.initialize();
+      
+      // Test the connection with a lightweight API call
+      const isConnected = await this.testConnection();
+      if (isConnected) {
+        toast.success('Επιτυχής σύνδεση με το Helius API');
+        return true;
+      } else {
+        toast.error('Αποτυχία σύνδεσης με το Helius API');
+        return false;
+      }
+    } catch (error) {
+      console.error('Error reinitializing HeliusService:', error);
+      this.reportError(new Error(`Failed to reinitialize HeliusService: ${error}`));
+      return false;
+    }
+  }
+  
+  // Simple test connection method
+  private async testConnection(): Promise<boolean> {
+    try {
+      const apiKey = this.getApiKey();
+      if (!apiKey) return false;
+      
+      // Use the status endpoint to verify connection
+      const url = `${this.baseUrl}/status?api-key=${apiKey}`;
+      const response = await fetch(url);
+      return response.ok;
+    } catch (error) {
+      console.error('Error testing Helius connection:', error);
+      return false;
     }
   }
 
   public async getTokenBalances(address: string): Promise<any[]> {
     try {
+      // Ensure initialized
+      if (!this.initialized) {
+        await this.initialize();
+      }
+      
       this.retryCount = 0;
       return await this.fetchTokenBalancesWithRetry(address);
     } catch (error) {
       this.reportError(new Error(`Final failure to get token balances: ${error}`));
       console.error('All retries failed when fetching token balances:', error);
+      
+      // Show toast to user when token loading fails
+      toast.error('Αποτυχία φόρτωσης tokens', {
+        description: 'Προσπαθήστε να συγχρονίσετε ξανά το κλειδί Helius',
+        action: {
+          label: 'Συγχρονισμός',
+          onClick: () => {
+            this.reinitialize();
+          }
+        }
+      });
+      
       return [];
     }
   }
@@ -44,7 +127,8 @@ class HeliusService {
       if (!apiKey) {
         console.log('Missing API key for Helius call');
         toast.error('Λείπει το κλειδί API Helius', {
-          description: 'Παρακαλούμε προσθέστε ένα κλειδί API Helius στο API Vault'
+          description: 'Παρακαλούμε προσθέστε ένα κλειδί API Helius στο API Vault',
+          duration: 5000
         });
         return [];
       }
@@ -54,7 +138,7 @@ class HeliusService {
         return [];
       }
       
-      console.log(`Fetching token balances for address: ${address}`);
+      console.log(`Fetching token balances for address: ${address} with API key: ${apiKey.substring(0, 8)}...`);
       
       const url = `${this.baseUrl}/token-balances?api-key=${apiKey}&address=${address}`;
       
@@ -186,7 +270,32 @@ class HeliusService {
   }
 
   private getApiKey(): string {
-    return heliusKeyManager.getApiKey();
+    if (!heliusKeyManager) {
+      this.reportError(new Error('HeliusKeyManager is not initialized'));
+      return '';
+    }
+    
+    try {
+      // Debug log the key count
+      const keyCount = heliusKeyManager.getKeyCount();
+      console.log(`HeliusKeyManager has ${keyCount} API keys`);
+      
+      // Get the key from HeliusKeyManager
+      const apiKey = heliusKeyManager.getApiKey();
+      if (!apiKey) {
+        this.reportError(new Error('HeliusKeyManager returned empty API key'));
+        console.log('Attempting to use default key');
+        return "ddb32813-1f4b-459d-8964-310b1b73a053"; // Default key as fallback
+      }
+      
+      // Avoid logging full API key for security, just log first few characters
+      console.log(`Retrieved API key: ${apiKey.substring(0, 8)}...`);
+      return apiKey;
+    } catch (error) {
+      console.error('Error getting API key:', error);
+      this.reportError(new Error(`Failed to get API key: ${error}`));
+      return "ddb32813-1f4b-459d-8964-310b1b73a053"; // Default key as fallback
+    }
   }
 
   private getEndpoint(): string {

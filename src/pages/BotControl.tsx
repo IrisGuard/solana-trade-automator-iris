@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TradingBotContent } from "@/components/wallet/trading-bot/TradingBotContent";
 import { EnhancedTradingBotTab } from "@/components/wallet/trading-bot/EnhancedTradingBotTab";
@@ -11,11 +11,19 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { AppNavigation } from "@/components/navigation/AppNavigation";
 import { ConnectivityStatus } from "@/components/wallet/trading-bot/components/ConnectivityStatus";
 import { GradientCard } from "@/components/ui/gradient-card";
+import { HeliusSyncComponent } from "@/components/wallet/HeliusSyncComponent";
 
 export default function BotControlPage() {
   const [activeTab, setActiveTab] = useState<string>("settings");
   const tradingBotState = useTradingBot();
-  const { isConnected } = useWalletConnection();
+  const { isConnected, refreshWalletData, walletAddress } = useWalletConnection();
+
+  // Handle HeliusSync callback
+  const handleHeliusSync = () => {
+    if (isConnected && walletAddress) {
+      refreshWalletData(walletAddress);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -24,6 +32,9 @@ export default function BotControlPage() {
         description="Αυτοματοποιημένη διαχείριση συναλλαγών στο Solana blockchain"
         breadcrumbs={[{ label: "Trading Bot" }]}
         variant="green"
+        actions={
+          isConnected && <HeliusSyncComponent onSync={handleHeliusSync} />
+        }
       />
       
       {/* Quick Navigation */}

@@ -2,9 +2,10 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { addHeliusEndpoints, addHeliusKey } from "./addHeliusEndpoints";
-// Use the correct import for heliusKeyManager
-import { heliusKeyManager } from "@/services/solana/HeliusKeyManager";
+// Fix the import path to use the correct HeliusKeyManager instance
+import { heliusKeyManager } from "@/services/helius/HeliusKeyManager";
 import { heliusEndpointMonitor } from "@/services/helius/HeliusEndpointMonitor";
+import { heliusService } from "@/services/helius/HeliusService";
 
 /**
  * Συγχρονισμός όλων των δεδομένων που σχετίζονται με το Helius API
@@ -14,15 +15,17 @@ export async function syncAllHeliusData(userId: string): Promise<boolean> {
   try {
     toast.loading('Συγχρονισμός δεδομένων Helius...');
     
-    // Συγχρονισμός των κλειδιών Helius - pass empty string as API key
-    // User will need to add their actual API key later
-    const keyResult = await addHeliusKey(userId, "");
+    // Συγχρονισμός των κλειδιών Helius
+    // Use the provided API key instead of empty string
+    const apiKey = "ddb32813-1f4b-459d-8964-310b1b73a053";
+    const keyResult = await addHeliusKey(userId, apiKey);
     
     // Συγχρονισμός των endpoints - χωρίς hardcoded κλειδιά
     const endpointResult = await addHeliusEndpoints();
     
     // Ανανέωση των διαχειριστών - use the methods we added
     try {
+      console.log("Forcing reload of HeliusKeyManager");
       // Try the forceReload method first
       if (heliusKeyManager) {
         await heliusKeyManager.forceReload();
@@ -39,14 +42,18 @@ export async function syncAllHeliusData(userId: string): Promise<boolean> {
       await heliusEndpointMonitor.forceReload();
     }
     
+    // Reinitialize HeliusService after key update
+    try {
+      console.log("Reinitializing HeliusService");
+      await heliusService.reinitialize();
+    } catch (error) {
+      console.error("Error reinitializing HeliusService:", error);
+    }
+    
     if (keyResult && endpointResult) {
       toast.success('Τα δεδομένα Helius συγχρονίστηκαν επιτυχώς');
-      toast.info('Προσθέστε το κλειδί API σας για να χρησιμοποιήσετε τις υπηρεσίες Helius', {
-        duration: 5000,
-        action: {
-          label: "Οδηγός Helius",
-          onClick: () => window.open("https://dev.helius.xyz/dashboard/app", "_blank")
-        }
+      toast.info(`Το κλειδί API Helius προστέθηκε: ${apiKey.substring(0, 8)}...`, {
+        duration: 5000
       });
       return true;
     } else {

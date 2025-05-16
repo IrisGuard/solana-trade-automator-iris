@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { EnhancedLandingNav } from "@/components/home/enhanced/EnhancedLandingNav";
 import { GradientHeading } from "@/components/ui/gradient-heading";
 import { GradientCard } from "@/components/ui/gradient-card";
+import { HeliusSyncComponent } from "@/components/wallet/HeliusSyncComponent";
 
 export default function Home() {
   const [isPageLoading, setIsPageLoading] = useState(true);
@@ -42,6 +43,13 @@ export default function Home() {
   // Wrapper for connectWallet to match expected return type
   const handleConnectWallet = async () => {
     await connectWallet();
+  };
+  
+  // Handle HeliusSync callback
+  const handleHeliusSync = () => {
+    if (isConnected && walletAddress) {
+      refreshWalletData(walletAddress);
+    }
   };
   
   useEffect(() => {
@@ -80,6 +88,13 @@ export default function Home() {
 
       {/* Enhanced Navigation Menu */}
       <EnhancedLandingNav />
+
+      {/* Helius Sync Button */}
+      {isConnected && (
+        <div className="flex justify-end">
+          <HeliusSyncComponent onSync={handleHeliusSync} />
+        </div>
+      )}
 
       {/* Main Card */}
       <GradientCard

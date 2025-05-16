@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,6 +13,9 @@ import { SimulationTab } from "@/components/wallet/SimulationTab";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { AppNavigation } from "@/components/navigation/AppNavigation";
 import { GradientCard } from "@/components/ui/gradient-card";
+import { HeliusSyncComponent } from "@/components/wallet/HeliusSyncComponent";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export default function WalletPage() {
   const {
@@ -33,6 +36,13 @@ export default function WalletPage() {
   // Default tab
   const [activeTab, setActiveTab] = React.useState("overview");
 
+  // Handle HeliusSyncComponent callback
+  const handleHeliusSync = () => {
+    if (isConnected && walletAddress) {
+      refreshWalletData(walletAddress);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader 
@@ -41,15 +51,20 @@ export default function WalletPage() {
         breadcrumbs={[{ label: "Wallet" }]}
         variant="purple"
         actions={
-          isConnected ? (
-            <Button variant="outline" onClick={disconnectWallet}>
-              Αποσύνδεση
-            </Button>
-          ) : (
-            <Button onClick={connectWallet}>
-              Σύνδεση Πορτοφολιού
-            </Button>
-          )
+          <div className="flex gap-2">
+            {isConnected && (
+              <HeliusSyncComponent onSync={handleHeliusSync} />
+            )}
+            {isConnected ? (
+              <Button variant="outline" onClick={disconnectWallet}>
+                Αποσύνδεση
+              </Button>
+            ) : (
+              <Button onClick={connectWallet}>
+                Σύνδεση Πορτοφολιού
+              </Button>
+            )}
+          </div>
         }
       />
       
@@ -57,6 +72,13 @@ export default function WalletPage() {
       <div className="mb-6">
         <AppNavigation variant="colorful" />
       </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       <GradientCard variant="purple">
         <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
