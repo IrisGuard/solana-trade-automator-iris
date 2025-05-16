@@ -75,7 +75,7 @@ export class SiteHealthMonitor {
     }
     
     // Check error count
-    const recentErrorsCount = errorCollector.getRecentErrors(10).length;
+    const recentErrorsCount = errorCollector.getRecentErrors().length;
     if (recentErrorsCount > 5) {
       issues.push(`High number of errors detected: ${recentErrorsCount}`);
       criticalIssuesFound = true;

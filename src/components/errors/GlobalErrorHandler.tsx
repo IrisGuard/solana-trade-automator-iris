@@ -17,7 +17,7 @@ export function GlobalErrorHandler() {
   useEffect(() => {
     const checkForErrors = () => {
       // Use the correct getRecentErrors method we just added
-      const allErrors = errorCollector.getRecentErrors(10);
+      const allErrors = errorCollector.getRecentErrors();
       
       setErrors(allErrors);
       

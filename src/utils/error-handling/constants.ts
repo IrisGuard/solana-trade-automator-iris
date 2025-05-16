@@ -1,24 +1,25 @@
 
-// Define constants for error handling
+/**
+ * Constants used in error handling throughout the application
+ */
 
+// Solana RPC endpoints for fallback scenarios
 export const RPC_ENDPOINTS = {
-  PRIMARY: 'https://rpc.ankr.com/solana',
-  BACKUP: 'https://api.mainnet-beta.solana.com',
-  FALLBACK: 'https://solana-api.projectserum.com'
+  PRIMARY: 'https://api.mainnet-beta.solana.com',
+  BACKUP: 'https://solana-api.projectserum.com',
+  FALLBACK: 'https://rpc.ankr.com/solana'
 };
 
-export const ERROR_TYPES = {
-  NETWORK: 'network',
-  VALIDATION: 'validation',
-  AUTHENTICATION: 'authentication',
-  AUTHORIZATION: 'authorization',
-  INTERNAL: 'internal',
-  UNKNOWN: 'unknown'
+// Error reporting endpoints
+export const ERROR_REPORTING = {
+  ENDPOINT: '/api/errors/report',
+  TIMEOUT: 10000 // 10 seconds
 };
 
-export const ERROR_SEVERITIES = {
-  LOW: 'low',
-  MEDIUM: 'medium',
+// Severity levels mapping
+export const SEVERITY_LEVELS = {
+  CRITICAL: 'critical',
   HIGH: 'high',
-  CRITICAL: 'critical'
+  MEDIUM: 'medium',
+  LOW: 'low'
 };

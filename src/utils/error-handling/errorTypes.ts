@@ -34,6 +34,18 @@ export interface EnhancedError extends Error {
 }
 
 /**
+ * Bot error interface for handling errors in bot-related functionality
+ */
+export interface BotError extends Error {
+  code?: string;
+  metadata?: Record<string, any>;
+  severity?: ErrorSeverity;
+  timestamp?: string;
+  source?: string;
+  [key: string]: any;
+}
+
+/**
  * Creates an enhanced error with custom properties
  */
 export function createEnhancedError(message: string, properties: Partial<EnhancedError> = {}): EnhancedError {
