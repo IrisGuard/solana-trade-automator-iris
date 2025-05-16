@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Eye, EyeOff, Copy, RefreshCw } from "lucide-react";
 import { ApiKeyWithState } from "@/services/api-keys/types";
-import { formatKeyDisplay } from '@/hooks/api-keys/useApiKeyVisibility';
 
 interface ApiKeysListProps {
   apiKeys: ApiKeyWithState[];
