@@ -208,8 +208,27 @@ export class SiteBackupService {
   }
   
   private static rotateBackups(backup: SiteBackup): void {
-    // Move each backup one position
-    for (let i = this.BACKUP_KEYS.length - 1; i > 0; i--) {
+    // Βεβαιώνουμε πρώτα ότι έχουμε αποθηκεύσει το τελευταίο αντίγραφο
+    // πριν το διαγράψουμε
+    const lastIndex = this.BACKUP_KEYS.length - 1;
+    const lastBackup = localStorage.getItem(this.BACKUP_KEYS[lastIndex]);
+    
+    // Εάν υπάρχει ένα αντίγραφο στην τελευταία θέση, το καταγράφουμε και το διαγράφουμε
+    if (lastBackup) {
+      try {
+        const oldestBackup = JSON.parse(lastBackup) as SiteBackup;
+        const date = new Date(oldestBackup.timestamp).toLocaleString();
+        console.log(`Διαγραφή παλαιότερου αντιγράφου από ${date}`);
+      } catch (e) {
+        console.warn("Δεν ήταν δυνατή η ανάγνωση του τελευταίου αντιγράφου");
+      }
+      
+      // Διαγράφουμε το παλιότερο αντίγραφο
+      localStorage.removeItem(this.BACKUP_KEYS[lastIndex]);
+    }
+    
+    // Move each backup one position (starting from the last position and moving backwards)
+    for (let i = lastIndex; i > 0; i--) {
       const prevBackup = localStorage.getItem(this.BACKUP_KEYS[i - 1]);
       if (prevBackup) {
         localStorage.setItem(this.BACKUP_KEYS[i], prevBackup);
