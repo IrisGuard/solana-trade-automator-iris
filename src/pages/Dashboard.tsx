@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConnectWalletCard } from "@/components/home/ConnectWalletCard";
@@ -98,7 +97,7 @@ export default function Dashboard() {
     ? `${walletAddress.substring(0, 4)}...${walletAddress.substring(walletAddress.length - 4)}`
     : '';
 
-  // Explicitly type the bot status function to avoid infinite type instantiation
+  // Define the bot status toggle function with a more specific return type
   const toggleBotStatus = async (): Promise<void> => {
     if (!user?.id) return;
     

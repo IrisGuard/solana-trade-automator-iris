@@ -89,9 +89,13 @@ export function useApiKeyManager({ userId, onSuccess }: UseApiKeyManagerProps = 
     setIsUpdating(true);
     
     try {
-      // Make sure the status is one of the allowed values
-      if (updates.status && !['active', 'expired', 'revoked', 'failing'].includes(updates.status as string)) {
-        updates.status = 'active'; // Default to 'active' if an invalid status is provided
+      // Make sure the status is one of the allowed values if it's being updated
+      if (updates.status !== undefined) {
+        // Ensure status is one of the allowed values from the union type
+        const validStatuses: ApiKeyEntry['status'][] = ['active', 'expired', 'revoked', 'failing'];
+        if (!validStatuses.includes(updates.status as ApiKeyEntry['status'])) {
+          updates.status = 'active'; // Default to 'active' if an invalid status is provided
+        }
       }
       
       const { data, error } = await supabase
