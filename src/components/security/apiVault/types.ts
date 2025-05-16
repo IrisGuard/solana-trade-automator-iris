@@ -9,6 +9,7 @@ export interface ApiKey {
   isEncrypted?: boolean;
   createdAt?: string;
   doNotSync?: boolean;    // Optional flag to prevent syncing to database
+  permissions?: string[];  // Adding permissions property
 }
 
 export type ApiKeyStatus = 'active' | 'expired' | 'revoked' | 'testing';

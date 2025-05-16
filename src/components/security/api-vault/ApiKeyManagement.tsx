@@ -101,7 +101,7 @@ export function ApiKeyManagement({
                 
                 <div className="relative bg-secondary p-2 rounded font-mono text-sm mb-3 flex items-center">
                   <code className="flex-1 overflow-x-auto">
-                    {visibleKeys[key.id] ? key.key : '•'.repeat(Math.min(key.key.length, 32))}
+                    {visibleKeys[key.id] ? key.key : '•'.repeat(Math.min(key.key?.length || 0, 32))}
                   </code>
                   <Button
                     variant="ghost"
@@ -119,7 +119,7 @@ export function ApiKeyManagement({
                     variant="ghost"
                     size="sm"
                     className="h-6 w-6 p-0"
-                    onClick={() => copyKeyToClipboard(key.key)}
+                    onClick={() => key.key && copyKeyToClipboard(key.key)}
                   >
                     <Copy className="h-3.5 w-3.5" />
                   </Button>

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ApiKey } from "../types";
 import { ApiIntegrationService } from "../ApiIntegrationService";
 import { toast } from "sonner";
-import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { useAuth } from "@/hooks/useAuth";
 
 export function useSupabaseSync() {
   const [isSyncing, setIsSyncing] = useState(false);

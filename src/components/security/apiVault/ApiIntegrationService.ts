@@ -11,7 +11,7 @@ export class ApiIntegrationService {
     try {
       // Get existing keys from Supabase
       const { data: existingKeys } = await supabase
-        .from('api_keys')
+        .from('api_keys_storage')
         .select('id')
         .eq('user_id', userId);
       
@@ -32,11 +32,11 @@ export class ApiIntegrationService {
         if (existingIds.includes(key.id)) {
           // Update existing key
           const { error } = await supabase
-            .from('api_keys')
+            .from('api_keys_storage')
             .update({
               name: key.name,
               service: key.service,
-              value: 'key' in key ? key.key : '', // Use key property if it exists
+              key_value: key.key || '', // Use key property if it exists
               description: key.description || '',
               status: key.status,
               is_encrypted: 'isEncrypted' in key ? key.isEncrypted : false,
@@ -49,13 +49,13 @@ export class ApiIntegrationService {
         } else {
           // Insert new key
           const { error } = await supabase
-            .from('api_keys')
+            .from('api_keys_storage')
             .insert({
               id: key.id,
               user_id: userId,
               name: key.name,
               service: key.service,
-              value: 'key' in key ? key.key : '', // Use key property if it exists
+              key_value: key.key || '', // Use key property if it exists
               description: key.description || '',
               status: key.status,
               is_encrypted: 'isEncrypted' in key ? key.isEncrypted : false,
@@ -79,7 +79,7 @@ export class ApiIntegrationService {
   static async fetchKeysFromSupabase(userId: string): Promise<ApiKey[]> {
     try {
       const { data, error } = await supabase
-        .from('api_keys')
+        .from('api_keys_storage')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
@@ -91,7 +91,7 @@ export class ApiIntegrationService {
         id: item.id,
         name: item.name,
         service: item.service,
-        key: item.value,
+        key: item.key_value,
         description: item.description,
         status: item.status,
         isEncrypted: item.is_encrypted,
@@ -122,7 +122,7 @@ export class ApiIntegrationService {
   static async deleteApiKey(keyId: string, userId: string): Promise<boolean> {
     try {
       const { error } = await supabase
-        .from('api_keys')
+        .from('api_keys_storage')
         .delete()
         .eq('id', keyId)
         .eq('user_id', userId);
@@ -141,13 +141,13 @@ export class ApiIntegrationService {
       const keyValue = 'key' in key ? key.key : '';
       
       const { data, error } = await supabase
-        .from('api_keys')
+        .from('api_keys_storage')
         .upsert({
           id: key.id,
           user_id: userId,
           name: key.name,
           service: key.service,
-          value: keyValue,
+          key_value: keyValue,
           description: key.description || '',
           status: key.status,
           is_encrypted: 'isEncrypted' in key ? key.isEncrypted : false,
@@ -163,7 +163,7 @@ export class ApiIntegrationService {
         id: data.id,
         name: data.name,
         service: data.service,
-        key: data.value,
+        key: data.key_value,
         description: data.description,
         status: data.status,
         isEncrypted: data.is_encrypted,
