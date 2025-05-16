@@ -1,12 +1,11 @@
 
-// Import with renamed import to avoid naming conflicts
 import { supabaseConfig } from '@/utils/supabaseConfig';
-// Import the Supabase package correctly for version 2.x
-import { createBrowserClient } from '@supabase/ssr';
+// Import the Supabase package correctly
+import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/integrations/supabase/types';
 
 // Create a single supabase client for interacting with your database
-export const dbClient = createBrowserClient<Database>(
+export const dbClient = createClient<Database>(
   supabaseConfig.url,
   supabaseConfig.anonKey
 );
