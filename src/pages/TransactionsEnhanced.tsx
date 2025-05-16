@@ -145,12 +145,15 @@ export default function TransactionsEnhanced() {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Transaction Summary component */}
-        <TransactionSummary transactions={filteredTransactions.length > 0 ? filteredTransactions : transactions} />
+        <TransactionSummary 
+          transactions={filteredTransactions.length > 0 ? filteredTransactions : transactions} 
+        />
         
-        {/* Token Activity component - pass walletAddress prop */}
+        {/* TokenActivity component - pass walletAddress and transactions props */}
         <TokenActivity 
           walletAddress=""
-          transactions={filteredTransactions.length > 0 ? filteredTransactions : transactions} 
+          transactions={filteredTransactions.length > 0 ? filteredTransactions : transactions}
+          uniqueTokens={uniqueTokens} 
         />
       </div>
 

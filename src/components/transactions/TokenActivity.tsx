@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useTransactionsData } from "@/hooks/useTransactionsData";
-import { useTransactions } from "@/hooks/useTransactions";
 import { getUniqueTokens, formatDate } from "@/utils/transactionUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,9 +12,15 @@ interface TokenActivityProps {
   walletAddress: string;
   transactions?: Transaction[];
   isRefreshing?: boolean;
+  uniqueTokens?: string[]; // Add this prop to fix the error
 }
 
-export function TokenActivity({ walletAddress, transactions, isRefreshing }: TokenActivityProps) {
+export function TokenActivity({ 
+  walletAddress, 
+  transactions, 
+  isRefreshing,
+  uniqueTokens: propUniqueTokens 
+}: TokenActivityProps) {
   const { transactions: fetchedTransactions, isLoading } = useTransactionsData(walletAddress);
   const [uniqueTokens, setUniqueTokens] = useState<string[]>([]);
   const [tokenBalances, setTokenBalances] = useState<{ [token: string]: number }>({});
@@ -24,8 +29,8 @@ export function TokenActivity({ walletAddress, transactions, isRefreshing }: Tok
     // Use fetched transactions if available, otherwise fallback to transactions prop
     const allTransactions = fetchedTransactions || transactions || [];
     
-    // Calculate unique tokens
-    const tokens = getUniqueTokens(allTransactions);
+    // Calculate unique tokens - use provided uniqueTokens if available
+    const tokens = propUniqueTokens || getUniqueTokens(allTransactions);
     setUniqueTokens(tokens);
     
     // Calculate token balances
@@ -41,7 +46,7 @@ export function TokenActivity({ walletAddress, transactions, isRefreshing }: Tok
       }
     });
     setTokenBalances(balances);
-  }, [transactions, fetchedTransactions, isRefreshing]);
+  }, [transactions, fetchedTransactions, isRefreshing, propUniqueTokens]);
   
   return (
     <Card>

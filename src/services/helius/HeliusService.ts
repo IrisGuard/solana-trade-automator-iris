@@ -65,5 +65,5 @@ export const heliusService = new HeliusService();
 // Εξάγουμε την κλάση για χρήση σε άλλα αρχεία
 export default HeliusService;
 
-// Re-export types for backward compatibility using 'export type'
+// Re-export types for backward compatibility using 'export type' to fix TS1205 errors
 export type { Transaction, TokenBalance, TokenMetadata } from "./types";
