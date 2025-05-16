@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@/hooks/useUser";
@@ -71,7 +72,6 @@ export const useTransactions = ({ walletAddress, limit = 10 }: UseTransactionsPr
       
       // If no transactions found in DB or user not authenticated, try Helius
       console.log('Fetching transactions from Helius for wallet:', walletAddress);
-      // Χρήση του getTransactionHistory που έχουμε πλέον διαθέσιμο
       const heliusTransactions = await heliusService.getTransactionHistory(walletAddress, limit);
       
       if (heliusTransactions && heliusTransactions.length > 0) {
@@ -146,6 +146,6 @@ export const useTransactions = ({ walletAddress, limit = 10 }: UseTransactionsPr
   return {
     transactions,
     loading,
-    refreshTransactions: fetchTransactions
+    refreshTransactions
   };
 };

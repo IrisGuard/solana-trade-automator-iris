@@ -11,7 +11,6 @@ export const fetchTokenBalance = async (wallet: string, tokenAddress: string): P
   console.log(`Fetching balance for token ${tokenAddress} in wallet ${wallet}`);
   
   try {
-    // Χρήση της διορθωμένης μεθόδου getTokenBalances
     const tokenBalances = await heliusService.getTokenBalances(wallet);
     const token = tokenBalances.find(t => t.mint === tokenAddress);
     return token?.amount || 0;
@@ -26,7 +25,7 @@ export const fetchAllTokenBalances = async (walletAddress: string): Promise<Toke
   console.log(`Fetching all token balances for wallet ${walletAddress}`);
   
   try {
-    // Χρήση της διορθωμένης μεθόδου getTokenBalances
+    // Try using Helius service
     const tokenBalances = await heliusService.getTokenBalances(walletAddress);
     
     if (!tokenBalances || !tokenBalances.length) {
@@ -36,7 +35,6 @@ export const fetchAllTokenBalances = async (walletAddress: string): Promise<Toke
     
     // Get metadata for tokens
     const tokenAddresses = tokenBalances.map(t => t.mint);
-    // Χρήση της προστεθείσας μεθόδου getTokenMetadata
     const tokenMetadataList = await heliusService.getTokenMetadata(tokenAddresses);
     
     // Create a map for easy lookup

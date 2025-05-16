@@ -40,7 +40,7 @@ export function HeliusStatusMonitor() {
   const checkHeliusStatus = async () => {
     setIsLoading(true);
     try {
-      // Διόρθωση για να χρησιμοποιήσει την getTokenBalances αντί της fetchTokenBalances
+      // Using the heliusService instead of HeliusService class
       const workingKeyCount = await heliusService.getTokenBalances("demo") ? 1 : 0;
       setStatus({
         isOperational: workingKeyCount > 0,

@@ -1,7 +1,10 @@
+
 import { useState, useEffect, useCallback } from "react";
-import { dbClient } from "@/integrations/supabase/client";
-import { solanaService } from "@/services/solana";
+import { supabase } from "@/integrations/supabase/client";
+import { heliusService } from "@/services/helius/HeliusService";
+import { transactionRecordService } from "@/services/transactions/TransactionRecordService";
 import { useUser } from "@/hooks/useUser";
+import { toast } from "sonner";
 
 export interface Transaction {
   id: string;
@@ -10,12 +13,12 @@ export interface Transaction {
   status: string;
   amount: string;
   timestamp: Date;
-  token: string; // Αλλαγή από προαιρετικό σε υποχρεωτικό
+  token?: string;
   source?: string;
   destination?: string;
   block_time?: string;
   wallet_address: string;
-  value_usd: string; // Προσθήκη για συμβατότητα
+  value_usd?: number;
 }
 
 export const useTransactionsData = (walletAddress: string) => {
@@ -35,49 +38,42 @@ export const useTransactionsData = (walletAddress: string) => {
     setError(null);
 
     try {
-      // Fetch transactions from Solana (Helius)
-      const solanaTransactions = await solanaService.fetchTransactions(address, 20);
+      // Fetch transactions from Helius
+      const solanaTransactions = await heliusService.fetchTransactions(address, 20);
       
-      // Also fetch transactions from our database
-      const { data: dbTransactions, error: dbError } = await dbClient
-        .from("transactions")
-        .select("*")
-        .eq("wallet_address", address)
-        .order("created_at", { ascending: false })
-        .limit(50);
+      // Fetch transactions from our database
+      const dbTransactions = await transactionRecordService.getTransactions(address, 50);
 
-      if (dbError) {
-        throw dbError;
-      }
-
-      // Process and merge transactions
+      // Process Helius transactions
       const processedSolanaTransactions = solanaTransactions.map((tx: any) => ({
-        id: tx.id || tx.signature || Math.random().toString(),
+        id: tx.id || tx.signature || `helius_${Math.random().toString(36).substring(2, 15)}`,
         signature: tx.signature,
         type: tx.type || 'transfer',
         status: tx.status || 'confirmed',
         amount: tx.amount || '0',
         timestamp: new Date(tx.timestamp || tx.blockTime * 1000 || Date.now()),
-        token: tx.token || 'SOL', // Πάντα παρέχουμε ένα token
+        token: tx.token || 'SOL',
         source: tx.source || '',
         destination: tx.destination || '',
         block_time: tx.blockTime ? new Date(tx.blockTime * 1000).toISOString() : undefined,
         wallet_address: address,
-        value_usd: tx.value || '$0' // Προσθήκη για συμβατότητα
+        value_usd: tx.value_usd || undefined
       }));
 
-      const processedDbTransactions = (dbTransactions || []).map((tx: any) => ({
-        id: tx.id || tx.signature || Math.random().toString(),
+      // Process database transactions
+      const processedDbTransactions: Transaction[] = dbTransactions.map((tx: any) => ({
+        id: tx.id || tx.signature || `db_${Math.random().toString(36).substring(2, 15)}`,
         signature: tx.signature,
         type: tx.type || 'transfer',
         status: tx.status || 'confirmed',
         amount: tx.amount || '0',
         timestamp: new Date(tx.block_time || tx.created_at || Date.now()),
-        token: tx.token || 'SOL', // Πάντα παρέχουμε ένα token
+        token: tx.token || 'SOL',
         source: tx.source || '',
         destination: tx.destination || '',
         wallet_address: tx.wallet_address,
-        value_usd: '$0' // Προσθήκη για συμβατότητα
+        value_usd: tx.value_usd || undefined,
+        block_time: tx.block_time
       }));
 
       // Merge and deduplicate transactions using signature as unique identifier
@@ -90,7 +86,7 @@ export const useTransactionsData = (walletAddress: string) => {
         }
       });
 
-      // Store transactions in database (only those that don't already exist)
+      // Store new Helius transactions in our database
       await storeNewTransactionsInDb(processedSolanaTransactions, address);
 
       // Sort by timestamp, most recent first
@@ -102,6 +98,7 @@ export const useTransactionsData = (walletAddress: string) => {
     } catch (err) {
       console.error("Error fetching transactions:", err);
       setError(err instanceof Error ? err : new Error("Failed to fetch transactions"));
+      toast.error("Failed to fetch transaction history");
     } finally {
       setIsLoading(false);
     }
@@ -109,23 +106,22 @@ export const useTransactionsData = (walletAddress: string) => {
 
   // Store new transactions in database
   const storeNewTransactionsInDb = async (transactions: Transaction[], walletAddress: string) => {
+    if (!user?.id) {
+      console.log("No user ID available, skipping database storage");
+      return;
+    }
+
     try {
-      // For each transaction, check if it exists in DB and insert if not
       for (const tx of transactions) {
-        if (!user?.id) {
-          console.log("No user ID available, skipping database storage");
-          continue;
-        }
+        // Check if transaction already exists
+        const existingTx = await transactionRecordService.getTransactionBySignature(tx.signature);
         
-        const { data: existingTx } = await dbClient
-          .from("transactions")
-          .select("signature")
-          .eq("signature", tx.signature)
-          .single();
-          
         if (!existingTx) {
+          // We need to ensure that token is defined before sending to the database
+          const token = tx.token || 'SOL';
+          
           // Create a database-compatible transaction object
-          const dbTx = {
+          await transactionRecordService.recordTransaction({
             signature: tx.signature,
             type: tx.type,
             status: tx.status,
@@ -134,10 +130,10 @@ export const useTransactionsData = (walletAddress: string) => {
             source: tx.source,
             destination: tx.destination,
             wallet_address: walletAddress,
-            user_id: user.id  // Add the user_id field that was missing
-          };
-          
-          await dbClient.from("transactions").insert(dbTx);
+            user_id: user.id,
+            token,
+            value_usd: tx.value_usd
+          });
         }
       }
     } catch (error) {
@@ -160,5 +156,5 @@ export const useTransactionsData = (walletAddress: string) => {
     }
   }, [walletAddress, fetchTransactions]);
 
-  return { transactions, isLoading, error, refresh: () => fetchTransactions(walletAddress) };
+  return { transactions, isLoading, error, refresh };
 };

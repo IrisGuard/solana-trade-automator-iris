@@ -2,7 +2,6 @@
 import { toast } from 'sonner';
 import { heliusService } from '@/services/helius/HeliusService';
 import { errorCollector } from '@/utils/error-handling/collector';
-import { TokenPriceInfo } from '@/hooks/trading-bot/types';
 
 export interface TokenPriceData {
   price: number;
