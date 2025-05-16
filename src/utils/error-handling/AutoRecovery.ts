@@ -57,7 +57,10 @@ export class AutoRecovery {
     // Record error timestamp and clean up old entries
     const now = Date.now();
     errorTimestamps.push(now);
-    errorTimestamps.splice(0, errorTimestamps.findIndex(ts => ts >= now - ERROR_WINDOW_MS));
+    const oldestIndex = errorTimestamps.findIndex(ts => ts >= now - ERROR_WINDOW_MS);
+    if (oldestIndex > 0) {
+      errorTimestamps.splice(0, oldestIndex);
+    }
     
     // Check if we've exceeded the threshold for errors in the time window
     const recentErrorsCount = errorTimestamps.length;

@@ -69,7 +69,9 @@ export function initProtectionSystem() {
   };
   
   // Attach to window for emergency access
-  window.siteHealth = protectionSystem;
+  if (typeof window !== 'undefined') {
+    window.siteHealth = protectionSystem;
+  }
   
   return protectionSystem;
 }

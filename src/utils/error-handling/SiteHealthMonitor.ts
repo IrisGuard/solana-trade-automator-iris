@@ -15,98 +15,144 @@ interface HealthStatus {
   timestamp: string;
 }
 
+// For health check results exposed to components
+interface HealthCheckResult {
+  healthy: boolean;
+  criticalIssuesFound: boolean;
+  issues: string[];
+}
+
 // Track initialization
 let isMonitoring = false;
 
 export const SiteHealthMonitor = {
+  // Add checkHealth method for direct access
+  checkHealth: (): HealthCheckResult => {
+    console.log('SiteHealthMonitor: Direct health check called');
+    
+    // Component checks
+    const reactStatus = checkReactHealth();
+    const routerStatus = checkRouterHealth();
+    const domStatus = checkDOMHealth();
+    
+    // Determine overall status
+    const hasErrors = [reactStatus, routerStatus, domStatus].some(s => s.status === 'error');
+    const hasWarnings = [reactStatus, routerStatus, domStatus].some(s => s.status === 'warning');
+    
+    let overallStatus: 'healthy' | 'degraded' | 'critical' = 'healthy';
+    if (hasErrors) overallStatus = 'critical';
+    else if (hasWarnings) overallStatus = 'degraded';
+    
+    // Extra helper property for emergency recovery
+    const healthInfo: HealthCheckResult = {
+      healthy: overallStatus === 'healthy',
+      criticalIssuesFound: overallStatus === 'critical',
+      issues: Object.entries({
+        react: reactStatus,
+        router: routerStatus,
+        dom: domStatus
+      })
+        .filter(([_, c]) => c.status !== 'ok')
+        .map(([name, c]) => `${name}: ${c.details || c.status}`)
+    };
+    
+    return healthInfo;
+  },
+  
   start: () => {
     if (isMonitoring) {
       console.log('SiteHealthMonitor: Already monitoring');
-      return;
+      return () => {};
     }
     
     if (typeof window === 'undefined') {
       console.log('SiteHealthMonitor: Cannot start in SSR environment');
-      return;
+      return () => {};
     }
     
     console.log('SiteHealthMonitor: Starting health monitoring');
     isMonitoring = true;
     
     // Initialize health data
-    window.siteHealth = {
-      ...(window.siteHealth || {}),
-      
-      // Check health of various components
-      check: (): HealthStatus => {
-        console.log('SiteHealthMonitor: Performing health check');
+    if (typeof window !== 'undefined') {
+      window.siteHealth = {
+        ...(window.siteHealth || {}),
         
-        // Component checks
-        const reactStatus = checkReactHealth();
-        const routerStatus = checkRouterHealth();
-        const domStatus = checkDOMHealth();
-        
-        // Determine overall status
-        const hasErrors = [reactStatus, routerStatus, domStatus].some(s => s.status === 'error');
-        const hasWarnings = [reactStatus, routerStatus, domStatus].some(s => s.status === 'warning');
-        
-        let overallStatus: HealthStatus['status'] = 'healthy';
-        if (hasErrors) overallStatus = 'critical';
-        else if (hasWarnings) overallStatus = 'degraded';
-        
-        const status: HealthStatus = {
-          status: overallStatus,
-          components: {
-            react: reactStatus,
-            router: routerStatus,
-            dom: domStatus
-          },
-          timestamp: new Date().toISOString()
-        };
-        
-        // Save last status
-        window.siteHealth.lastCheck = status;
-        
-        return status;
-      },
-      
-      // Get the last check result
-      getLastCheck: (): HealthStatus | undefined => {
-        return window.siteHealth?.lastCheck;
-      },
-      
-      // Force a full repair
-      repair: () => {
-        console.log('SiteHealthMonitor: Initiating repair');
-        try {
-          // Re-apply React patches
-          const { ensureReactCompatibility } = require('../reactPatches');
-          ensureReactCompatibility();
+        // Check health of various components
+        check: (): any => {
+          console.log('SiteHealthMonitor: Performing health check');
           
-          // Re-apply router patches
-          const { ensureRouterCompatibility } = require('../routerPatches');
-          ensureRouterCompatibility();
+          // Component checks
+          const reactStatus = checkReactHealth();
+          const routerStatus = checkRouterHealth();
+          const domStatus = checkDOMHealth();
           
-          return { 
-            success: true, 
-            message: 'Repair completed successfully'
+          // Determine overall status
+          const hasErrors = [reactStatus, routerStatus, domStatus].some(s => s.status === 'error');
+          const hasWarnings = [reactStatus, routerStatus, domStatus].some(s => s.status === 'warning');
+          
+          let overallStatus: 'healthy' | 'degraded' | 'critical' = 'healthy';
+          if (hasErrors) overallStatus = 'critical';
+          else if (hasWarnings) overallStatus = 'degraded';
+          
+          const status: HealthStatus = {
+            status: overallStatus,
+            components: {
+              react: reactStatus,
+              router: routerStatus,
+              dom: domStatus
+            },
+            timestamp: new Date().toISOString()
           };
-        } catch (error) {
-          console.error('SiteHealthMonitor: Repair failed', error);
-          return { 
-            success: false, 
-            message: `Repair failed: ${error instanceof Error ? error.message : String(error)}`
-          };
+          
+          // Save last status
+          if (window.siteHealth) {
+            window.siteHealth.lastCheck = status;
+          }
+          
+          return status;
+        },
+        
+        // Get the last check result
+        getLastCheck: (): HealthStatus | undefined => {
+          return window.siteHealth?.lastCheck;
+        },
+        
+        // Force a full repair
+        repair: () => {
+          console.log('SiteHealthMonitor: Initiating repair');
+          try {
+            // Re-apply React patches
+            const { ensureReactCompatibility } = require('../reactPatches');
+            ensureReactCompatibility();
+            
+            // Re-apply router patches
+            const { ensureRouterCompatibility } = require('../routerPatches');
+            ensureRouterCompatibility();
+            
+            return { 
+              success: true, 
+              message: 'Repair completed successfully'
+            };
+          } catch (error) {
+            console.error('SiteHealthMonitor: Repair failed', error);
+            return { 
+              success: false, 
+              message: `Repair failed: ${error instanceof Error ? error.message : String(error)}`
+            };
+          }
         }
-      }
-    };
+      };
+    }
     
     // Run initial health check
-    window.siteHealth.check();
+    if (typeof window !== 'undefined' && window.siteHealth) {
+      window.siteHealth.check();
+    }
     
     // Set up periodic checks
     const checkInterval = setInterval(() => {
-      if (!document.hidden) { // Only run when tab is visible
+      if (typeof window !== 'undefined' && !document.hidden && window.siteHealth) {
         window.siteHealth.check();
       }
     }, 60000); // Check every minute
@@ -120,7 +166,7 @@ export const SiteHealthMonitor = {
 };
 
 // Helper functions for health checks
-function checkReactHealth() {
+function checkReactHealth(): { status: 'ok' | 'warning' | 'error'; details?: string } {
   try {
     // Check if React is available
     if (!window.React) {
@@ -146,7 +192,7 @@ function checkReactHealth() {
   }
 }
 
-function checkRouterHealth() {
+function checkRouterHealth(): { status: 'ok' | 'warning' | 'error'; details?: string } {
   try {
     // Check if React Router is available
     if (!window.patchedReactRouter) {
@@ -162,7 +208,7 @@ function checkRouterHealth() {
   }
 }
 
-function checkDOMHealth() {
+function checkDOMHealth(): { status: 'ok' | 'warning' | 'error'; details?: string } {
   try {
     // Check if we can access basic DOM elements
     if (!document || !document.getElementById('root')) {

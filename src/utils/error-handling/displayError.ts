@@ -2,7 +2,7 @@
 import { toast } from "sonner";
 import { errorCollector } from "./collector";
 
-interface DisplayErrorOptions {
+export interface DisplayErrorOptions {
   component?: string;
   toastTitle?: string;
   showToast?: boolean;
@@ -10,6 +10,9 @@ interface DisplayErrorOptions {
   sendToChat?: boolean;
   useCollector?: boolean;
   silent?: boolean;
+  source?: string; // Προσθέτουμε την ιδιότητα source
+  severity?: string;
+  details?: any;
 }
 
 /**
@@ -23,7 +26,9 @@ export function displayError(error: Error, options: DisplayErrorOptions = {}) {
     logToConsole = true,
     sendToChat = false,
     useCollector = true,
-    silent = false
+    silent = false,
+    source = "client", // Προσθέτουμε προεπιλεγμένη τιμή
+    severity = "medium"
   } = options;
 
   // Log to console
@@ -35,8 +40,8 @@ export function displayError(error: Error, options: DisplayErrorOptions = {}) {
   if (useCollector) {
     errorCollector.captureError(error, {
       component,
-      source: 'client',
-      severity: 'medium'
+      source,
+      severity: severity as any
     });
   }
   

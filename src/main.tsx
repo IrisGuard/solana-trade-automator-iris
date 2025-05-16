@@ -1,6 +1,6 @@
 
-import React from 'react'
 import ReactDOM from 'react-dom/client'
+import * as ReactModule from 'react'
 import App from './App.tsx'
 import './index.css'
 
@@ -17,6 +17,7 @@ import { SiteBackupService } from './utils/site-protection/SiteBackupService'
 import { HelpButton } from './components/help/HelpButton.tsx'
 // Important: We'll use SiteHealthMonitor from the MonitoringSystem component to prevent double initialization
 import { MonitoringSystem } from './components/monitoring/MonitoringSystem'
+import { SiteHealthMonitor } from './utils/error-handling/SiteHealthMonitor'
 
 // Create initial backup if needed
 if (!localStorage.getItem('site_structure_backup')) {
@@ -43,7 +44,7 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault();
     console.log('Manual health check triggered via keyboard shortcut');
     // We can still use SiteHealthMonitor directly for manual checks
-    const healthStatus = window.siteHealth?.check();
+    const healthStatus = SiteHealthMonitor.checkHealth();
     console.log('Health check results:', healthStatus);
   }
 });
@@ -51,8 +52,8 @@ document.addEventListener('keydown', (e) => {
 // Initialize React
 console.log('Initializing React application...');
 
-// Ensure we're using our patched React
-const React = window.React || React;
+// Get React from window (after patches are applied) or fallback to imported module
+const React = window.React || ReactModule;
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
