@@ -11,6 +11,7 @@ import { AppContent } from './components/AppContent.tsx'
 // Initialize early protection mechanism before rendering
 import { SiteBackupService } from './utils/site-protection/SiteBackupService'
 import { HelpButton } from './components/help/HelpButton.tsx'
+import { SiteHealthMonitor } from './utils/error-handling/SiteHealthMonitor'
 
 // Create initial backup if needed
 if (!localStorage.getItem('site_structure_backup')) {
@@ -22,6 +23,14 @@ if (!localStorage.getItem('site_structure_backup')) {
   }
 }
 
+// Start health monitoring
+try {
+  console.log('Starting site health monitoring...');
+  SiteHealthMonitor.start();
+} catch (e) {
+  console.error('Failed to start health monitoring:', e);
+}
+
 // Add keyboard shortcut for emergency recovery
 document.addEventListener('keydown', (e) => {
   if (e.altKey && e.shiftKey && e.key === 'R') {
@@ -31,9 +40,18 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// Add keyboard shortcut for manual health check
+document.addEventListener('keydown', (e) => {
+  if (e.altKey && e.shiftKey && e.key === 'C') {
+    e.preventDefault();
+    console.log('Manual health check triggered via keyboard shortcut');
+    const healthStatus = SiteHealthMonitor.checkHealth();
+    console.log('Health check results:', healthStatus);
+  }
+});
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />
-    <HelpButton />
   </React.StrictMode>
 )

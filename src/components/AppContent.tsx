@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { Routes } from "@/routes";
@@ -17,6 +16,7 @@ import { SupabaseAuthProvider } from "@/providers/SupabaseAuthProvider";
 import { EmergencyRecovery } from "@/components/emergency/EmergencyRecovery";
 import { initProtectionSystem } from "@/utils/errorTestUtils";
 import { HelpButton } from "@/components/help/HelpButton";
+import { HealthStatusIndicator } from "@/components/monitoring/HealthStatusIndicator";
 
 // Εφαρμογή διορθώσεων συμβατότητας του React Router
 ensureRouterCompatibility();
@@ -107,6 +107,8 @@ export function AppContent() {
                     <WalletProviderWrapper>
                       <Routes />
                       <EmergencyRecovery />
+                      <HealthStatusIndicator />
+                      <HelpButton />
                       <Toaster position="top-right" richColors />
                     </WalletProviderWrapper>
                   </SolanaWalletProvider>

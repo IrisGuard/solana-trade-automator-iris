@@ -18,6 +18,7 @@ import { CommandList } from "./CommandList";
 import { PlatformGuide } from "./PlatformGuide";
 import { HelpSearch } from "./HelpSearch";
 import { SolanaDocumentation } from "./SolanaDocumentation";
+import { SystemProtectionGuide } from "./SystemProtectionGuide";
 import { useErrorReporting } from "@/hooks/useErrorReporting";
 
 interface HelpPanelProps {
