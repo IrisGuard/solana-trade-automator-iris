@@ -5,11 +5,13 @@ import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { Loader2, Check, AlertCircle } from "lucide-react";
 import { addHeliusEndpoints, addHeliusKey } from "@/utils/addHeliusEndpoints";
 import { toast } from "sonner";
+import { useRouter } from "next/router";
 
 export function HeliusIntegrationButton() {
   const [isAdding, setIsAdding] = React.useState(false);
   const [isAdded, setIsAdded] = React.useState(false);
   const { user } = useAuth();
+  const router = useRouter();
 
   const handleAddHelius = async () => {
     if (!user) {
@@ -19,15 +21,23 @@ export function HeliusIntegrationButton() {
 
     setIsAdding(true);
     try {
-      // Προσθήκη των endpoints
+      // Προσθήκη των endpoints με placeholders για τα κλειδιά
       await addHeliusEndpoints();
       
-      // Προσθήκη του κλειδιού στην κλειδοθήκη
-      // Pass empty string as API key so user can input it later
+      // Προσθήκη template κλειδιού στην κλειδοθήκη για να το συμπληρώσει ο χρήστης
       await addHeliusKey(user.id, "");
       
       setIsAdded(true);
       toast.success("Τα endpoints του Helius προστέθηκαν επιτυχώς! Προσθέστε το κλειδί API σας στην κλειδοθήκη.");
+      
+      // Προτροπή για προσθήκη πραγματικού κλειδιού
+      toast.info("Μεταβείτε στο helius.xyz για να αποκτήσετε ένα πραγματικό κλειδί API", {
+        duration: 5000,
+        action: {
+          label: "Επίσκεψη",
+          onClick: () => window.open("https://dev.helius.xyz/dashboard/app", "_blank")
+        }
+      });
     } catch (error) {
       console.error("Error adding Helius integration:", error);
       toast.error("Σφάλμα κατά την προσθήκη του Helius");

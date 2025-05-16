@@ -20,14 +20,14 @@ interface UseApiKeyListResult {
 
 export function useApiKeyList({ 
   userId,
-  includeDemoKeys = true
+  includeDemoKeys = false // Changed default to false - don't include demo keys by default
 }: UseApiKeyListProps): UseApiKeyListResult {
   const [keys, setKeys] = useState<ApiKeyEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchKeys = async () => {
-    if (!userId && !includeDemoKeys) {
+    if (!userId) {
       setKeys([]);
       setLoading(false);
       return;
@@ -63,19 +63,7 @@ export function useApiKeyList({
         }
       }
       
-      // If includeDemoKeys or no keys found, add demo keys
-      if (includeDemoKeys && (fetchedKeys.length === 0 || !userId)) {
-        fetchedKeys.push({
-          id: 'demo-helius',
-          user_id: userId || 'demo',
-          name: 'Helius API Demo Key',
-          service: 'helius',
-          key_value: 'ddb32813-1f4b-459d-8964-310b1b73a053',
-          status: 'active',
-          created_at: new Date().toISOString()
-        });
-      }
-      
+      // No more demo keys
       setKeys(fetchedKeys);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load API keys';
@@ -96,8 +84,10 @@ export function useApiKeyList({
 
   const deleteKey = async (keyId: string): Promise<boolean> => {
     if (!userId) return false;
+    
+    // Demo keys should not exist anymore, but just in case
     if (keyId.startsWith('demo-')) {
-      toast.error('Cannot delete demo keys');
+      toast.error('Δεν είναι δυνατή η διαγραφή κλειδιών demo');
       return false;
     }
     
@@ -111,7 +101,7 @@ export function useApiKeyList({
       if (error) throw error;
       
       setKeys(prev => prev.filter(key => key.id !== keyId));
-      toast.success('API key deleted successfully');
+      toast.success('Το κλειδί API διαγράφηκε επιτυχώς');
       return true;
     } catch (err) {
       console.error('Error deleting API key:', err);
@@ -120,7 +110,7 @@ export function useApiKeyList({
         source: 'deleteKey',
         details: { keyId }
       });
-      toast.error('Failed to delete API key');
+      toast.error('Αποτυχία διαγραφής κλειδιού API');
       return false;
     }
   };

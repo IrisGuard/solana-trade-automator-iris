@@ -7,7 +7,7 @@ import { heliusEndpointMonitor } from "@/services/helius/HeliusEndpointMonitor";
 
 /**
  * Συγχρονισμός όλων των δεδομένων που σχετίζονται με το Helius API
- * (κλειδιά και endpoints)
+ * (κλειδιά και endpoints) - χωρίς χρήση demo κλειδιών
  */
 export async function syncAllHeliusData(userId: string): Promise<boolean> {
   try {
@@ -17,7 +17,7 @@ export async function syncAllHeliusData(userId: string): Promise<boolean> {
     // User will need to add their actual API key later
     const keyResult = await addHeliusKey(userId, "");
     
-    // Συγχρονισμός των endpoints
+    // Συγχρονισμός των endpoints - χωρίς hardcoded κλειδιά
     const endpointResult = await addHeliusEndpoints();
     
     // Ανανέωση των διαχειριστών - make sure they have forceReload method
@@ -33,6 +33,13 @@ export async function syncAllHeliusData(userId: string): Promise<boolean> {
     
     if (keyResult && endpointResult) {
       toast.success('Τα δεδομένα Helius συγχρονίστηκαν επιτυχώς');
+      toast.info('Προσθέστε το κλειδί API σας για να χρησιμοποιήσετε τις υπηρεσίες Helius', {
+        duration: 5000,
+        action: {
+          label: "Οδηγός Helius",
+          onClick: () => window.open("https://dev.helius.xyz/dashboard/app", "_blank")
+        }
+      });
       return true;
     } else {
       toast.error('Υπήρξαν κάποια σφάλματα κατά τον συγχρονισμό των δεδομένων Helius');

@@ -2,16 +2,17 @@
 import { ApiKey } from "../types";
 
 // Demo API keys to help users get started with the API Vault feature
+// All demo keys have been replaced with placeholder values
 export const demoKeys: ApiKey[] = [
   {
     id: "demo-helius-1",
-    name: "Helius API Demo Key",
-    key: "ddb32813-1f4b-459d-8964-310b1b73a053",
+    name: "Helius API (Placeholder)",
+    key: "[Your Helius API Key]",
     service: "helius",
     createdAt: new Date().toISOString(),
-    description: "Demo key for Helius API testing",
-    status: "active",
-    isWorking: true
+    description: "Add your Helius API key here",
+    status: "pending",
+    isWorking: false
   },
   {
     id: "demo-solana-1", 

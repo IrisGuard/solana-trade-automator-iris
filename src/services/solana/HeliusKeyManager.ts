@@ -50,6 +50,8 @@ export class HeliusKeyManager {
 
   public getKey(): string {
     if (!this.isInitialized || this.apiKeys.length === 0) {
+      // No keys available - return empty string
+      // The application should handle this case appropriately
       return "";
     }
 
@@ -81,6 +83,14 @@ export class HeliusKeyManager {
         return this.apiKeyTestResults[key];
       }
       
+      // No empty keys
+      if (!key || key.trim() === "" || 
+          key === "[Your Helius API Key]" ||
+          key === "ΧΡΕΙΑΖΕΤΑΙ_ΚΛΕΙΔΙ_API") {
+        this.apiKeyTestResults[key] = false;
+        return false;
+      }
+      
       const url = `https://api.helius.xyz/v0/addresses/8szGkuLTAux9XMgZ2vtY39jVSowEcpBfFfD8hZ6AbM9J/balances?api-key=${key}`;
       
       const response = await fetch(url);
@@ -110,6 +120,14 @@ export class HeliusKeyManager {
   // Method to register a new key
   public async registerKey(key: string, name: string = "Helius API Key"): Promise<boolean> {
     try {
+      // Skip empty or placeholder keys
+      if (!key || key.trim() === "" || 
+          key === "[Your Helius API Key]" ||
+          key === "ΧΡΕΙΑΖΕΤΑΙ_ΚΛΕΙΔΙ_API") {
+        toast.error("Παρακαλώ εισάγετε ένα έγκυρο κλειδί Helius API");
+        return false;
+      }
+
       // Check if the key is valid first
       const isValid = await this.testKey(key);
       
@@ -171,43 +189,33 @@ export class HeliusKeyManager {
         }
         
         if (response.data && response.data.length > 0) {
-          // Extract API keys
-          const keys = response.data.map(item => item.key_value);
-          this.apiKeys = keys.filter(Boolean);
+          // Extract API keys and filter out placeholders and empty keys
+          const keys = response.data
+            .map(item => item.key_value)
+            .filter(key => 
+              key && 
+              key.trim() !== "" && 
+              key !== "[Your Helius API Key]" &&
+              key !== "ΧΡΕΙΑΖΕΤΑΙ_ΚΛΕΙΔΙ_API"
+            );
+            
+          this.apiKeys = keys;
           console.log(`Loaded ${this.apiKeys.length} Helius API keys from Supabase`);
           return;
         }
       }
       
-      // If no keys in Supabase, look in localStorage as backup
-      const storedKeys = localStorage.getItem('helius_api_keys');
-      if (storedKeys) {
-        try {
-          const parsedKeys = JSON.parse(storedKeys);
-          if (Array.isArray(parsedKeys) && parsedKeys.length > 0) {
-            this.apiKeys = parsedKeys.filter(Boolean);
-            console.log(`Loaded ${this.apiKeys.length} Helius API keys from localStorage`);
-            return;
-          }
-        } catch (e) {
-          console.error("Error parsing stored Helius keys:", e);
-        }
-      }
-      
-      console.log("No Helius API keys found in storage");
+      console.log("No valid Helius API keys found in storage");
+      this.apiKeys = [];
     } catch (error) {
       console.error("Error loading Helius API keys:", error);
       this.apiKeys = [];
     }
   }
   
-  // Save keys to localStorage
+  // No longer needed since we're not storing demo keys in localStorage
   private saveKeysToStorage(): void {
-    try {
-      localStorage.setItem('helius_api_keys', JSON.stringify(this.apiKeys));
-    } catch (error) {
-      console.error("Error saving Helius API keys to storage:", error);
-    }
+    // Method intentionally empty - we use Supabase for storage now
   }
 }
 

@@ -1,74 +1,57 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { heliusKeyManager } from "@/services/solana/HeliusKeyManager";
 
 /**
- * These are the demo API keys to be registered with the system.
- * Each key is dedicated to a specific type of Helius endpoint.
+ * Placeholder configuration for Helius API endpoints
+ * All hardcoded keys have been removed
  */
 export const HELIUS_API_KEYS = {
   // Standard API endpoints (RPC)
-  mainnet_rpc: "ddb32813-1f4b-459d-8964-310b1b73a053",
+  mainnet_rpc: "",
   
   // API versions for different services
-  api_v0: "ddb32813-1f4b-459d-8964-310b1b73a053",
+  api_v0: "",
   
   // Additional endpoint types
   eclipse: "",
   
   // WebSocket endpoints
-  websocket: "ddb32813-1f4b-459d-8964-310b1b73a053",
+  websocket: "",
   
-  // Additional keys for different purposes (all 6 keys)
-  key1: "ddb32813-1f4b-459d-8964-310b1b73a053",
-  key2: "ddb32813-1f4b-459d-8964-310b1b73a053",
-  key3: "ddb32813-1f4b-459d-8964-310b1b73a053",
-  key4: "ddb32813-1f4b-459d-8964-310b1b73a053",
-  key5: "ddb32813-1f4b-459d-8964-310b1b73a053",
-  key6: "ddb32813-1f4b-459d-8964-310b1b73a053"
+  // Additional keys for different purposes
+  key1: "",
+  key2: "",
+  key3: "",
+  key4: "",
+  key5: "",
+  key6: ""
 };
 
-// Helius API endpoints configuration
+// Helius API endpoints configuration - placeholders instead of hardcoded keys
 export const HELIUS_ENDPOINTS = {
   // Standard RPC endpoint
-  rpc: "https://mainnet.helius-rpc.com/?api-key=",
+  rpc: "https://mainnet.helius-rpc.com/?api-key={API_KEY}",
   
   // API v0 endpoints (enhanced transaction info)
-  api_v0_transactions: "https://api.helius.xyz/v0/transactions/?api-key=",
-  api_v0_addresses: "https://api.helius.xyz/v0/addresses/{address}/transactions/?api-key=",
+  api_v0_transactions: "https://api.helius.xyz/v0/transactions/?api-key={API_KEY}",
+  api_v0_addresses: "https://api.helius.xyz/v0/addresses/{address}/transactions/?api-key={API_KEY}",
   
   // Eclipse endpoint
   eclipse: "https://eclipse.helius-rpc.com/",
   
   // WebSocket
-  websocket: "wss://mainnet.helius-rpc.com/?api-key="
+  websocket: "wss://mainnet.helius-rpc.com/?api-key={API_KEY}"
 };
 
 /**
- * Registers all available Helius API keys with the system
- * @param userId The ID of the user registering the keys
- * @returns True if successful, false otherwise
+ * Registers Helius API keys with the system.
+ * Note: Now requires real API keys to be provided by the user.
  */
 export const registerHeliusApiKeys = async (userId: string): Promise<boolean> => {
   try {
-    const results = await Promise.all([
-      registerMainnetRpcKey(userId),
-      registerApiV0Key(userId),
-      registerWebSocketKey(userId),
-      registerAdditionalKeys(userId)
-    ]);
-    
-    // Initialize the key manager after registration
-    await heliusKeyManager.initialize();
-    
-    const successCount = results.filter(result => result).length;
-    if (successCount > 0) {
-      toast.success(`Επιτυχής προσθήκη ${successCount} κλειδιών Helius`);
-      return true;
-    }
-    
-    return false;
+    toast.info("Για να χρησιμοποιήσετε το Helius API, προσθέστε ένα πραγματικό κλειδί API στην κλειδοθήκη σας.");
+    return true;
   } catch (error) {
     console.error('Σφάλμα κατά την προσθήκη των κλειδιών Helius:', error);
     toast.error('Σφάλμα κατά την προσθήκη των κλειδιών Helius');
@@ -76,207 +59,30 @@ export const registerHeliusApiKeys = async (userId: string): Promise<boolean> =>
   }
 };
 
-/**
- * Register the additional 6 Helius keys
- */
+// Removing all implementation details that use demo keys, keeping just the function signatures
 const registerAdditionalKeys = async (userId: string): Promise<boolean> => {
-  try {
-    let successCount = 0;
-    
-    // Register each of the 6 additional keys with different service names
-    const keyMappings = [
-      { key: HELIUS_API_KEYS.key1, service: 'helius-key1', name: 'Helius Key 1' },
-      { key: HELIUS_API_KEYS.key2, service: 'helius-key2', name: 'Helius Key 2' },
-      { key: HELIUS_API_KEYS.key3, service: 'helius-key3', name: 'Helius Key 3' },
-      { key: HELIUS_API_KEYS.key4, service: 'helius-key4', name: 'Helius Key 4' },
-      { key: HELIUS_API_KEYS.key5, service: 'helius-key5', name: 'Helius Key 5' },
-      { key: HELIUS_API_KEYS.key6, service: 'helius-key6', name: 'Helius Key 6' }
-    ];
-    
-    for (const mapping of keyMappings) {
-      if (!mapping.key) continue;
-      
-      // Check if key already exists
-      const { data: existingKeys, error: checkError } = await supabase
-        .from('api_keys_storage')
-        .select('*')
-        .eq('key_value', mapping.key)
-        .eq('service', mapping.service);
-      
-      if (checkError) {
-        console.error(`Error checking for ${mapping.name}:`, checkError);
-        continue;
-      }
-      
-      if (existingKeys && existingKeys.length > 0) {
-        console.log(`${mapping.name} already exists`);
-        successCount++;
-        continue;
-      }
-      
-      // Insert the key
-      const { error } = await supabase
-        .from('api_keys_storage')
-        .insert({
-          name: mapping.name,
-          key_value: mapping.key,
-          service: mapping.service,
-          description: `Additional Helius API key ${mapping.name.split(' ').pop()}`,
-          status: "active",
-          user_id: userId,
-          is_encrypted: false
-        });
-        
-      if (error) {
-        console.error(`Error adding ${mapping.name}:`, error);
-        continue;
-      }
-      
-      console.log(`Successfully added ${mapping.name}`);
-      successCount++;
-    }
-    
-    return successCount > 0;
-  } catch (error) {
-    console.error('Error adding additional Helius keys:', error);
-    return false;
-  }
+  // Guide user to add their own API keys
+  toast.info("Προσθέστε τα δικά σας κλειδιά API Helius");
+  return true;
 };
 
-/**
- * Register the Helius Mainnet RPC key
- */
 const registerMainnetRpcKey = async (userId: string): Promise<boolean> => {
-  if (!HELIUS_API_KEYS.mainnet_rpc) return false;
-  
-  try {
-    // Check if key already exists
-    const { data: existingKeys, error: checkError } = await supabase
-      .from('api_keys_storage')
-      .select('*')
-      .eq('key_value', HELIUS_API_KEYS.mainnet_rpc)
-      .eq('service', 'helius-rpc');
-    
-    if (checkError) throw checkError;
-    
-    if (existingKeys && existingKeys.length > 0) {
-      console.log('RPC key already exists');
-      return true;
-    }
-    
-    // Insert the key
-    const { error } = await supabase
-      .from('api_keys_storage')
-      .insert({
-        name: "Helius Mainnet RPC",
-        key_value: HELIUS_API_KEYS.mainnet_rpc,
-        service: "helius-rpc",
-        description: "Standard mainnet RPC endpoint",
-        status: "active",
-        user_id: userId,
-        is_encrypted: false
-      });
-      
-    if (error) throw error;
-    
-    console.log('Successfully added Helius Mainnet RPC key');
-    return true;
-  } catch (error) {
-    console.error('Error adding Helius Mainnet RPC key:', error);
-    return false;
-  }
+  toast.info("Προσθέστε το κλειδί RPC Helius Mainnet");
+  return true;
 };
 
-/**
- * Register the Helius API v0 key
- */
 const registerApiV0Key = async (userId: string): Promise<boolean> => {
-  if (!HELIUS_API_KEYS.api_v0) return false;
-  
-  try {
-    // Check if key already exists
-    const { data: existingKeys, error: checkError } = await supabase
-      .from('api_keys_storage')
-      .select('*')
-      .eq('key_value', HELIUS_API_KEYS.api_v0)
-      .eq('service', 'helius-api-v0');
-    
-    if (checkError) throw checkError;
-    
-    if (existingKeys && existingKeys.length > 0) {
-      console.log('API v0 key already exists');
-      return true;
-    }
-    
-    // Insert the key
-    const { error } = await supabase
-      .from('api_keys_storage')
-      .insert({
-        name: "Helius API v0",
-        key_value: HELIUS_API_KEYS.api_v0,
-        service: "helius-api-v0",
-        description: "Enhanced transaction data API",
-        status: "active",
-        user_id: userId,
-        is_encrypted: false
-      });
-      
-    if (error) throw error;
-    
-    console.log('Successfully added Helius API v0 key');
-    return true;
-  } catch (error) {
-    console.error('Error adding Helius API v0 key:', error);
-    return false;
-  }
+  toast.info("Προσθέστε το κλειδί API v0 Helius");
+  return true;
 };
 
-/**
- * Register the Helius WebSocket key
- */
 const registerWebSocketKey = async (userId: string): Promise<boolean> => {
-  if (!HELIUS_API_KEYS.websocket) return false;
-  
-  try {
-    // Check if key already exists
-    const { data: existingKeys, error: checkError } = await supabase
-      .from('api_keys_storage')
-      .select('*')
-      .eq('key_value', HELIUS_API_KEYS.websocket)
-      .eq('service', 'helius-websocket');
-    
-    if (checkError) throw checkError;
-    
-    if (existingKeys && existingKeys.length > 0) {
-      console.log('WebSocket key already exists');
-      return true;
-    }
-    
-    // Insert the key
-    const { error } = await supabase
-      .from('api_keys_storage')
-      .insert({
-        name: "Helius WebSocket",
-        key_value: HELIUS_API_KEYS.websocket,
-        service: "helius-websocket",
-        description: "Real-time data via WebSocket",
-        status: "active",
-        user_id: userId,
-        is_encrypted: false
-      });
-      
-    if (error) throw error;
-    
-    console.log('Successfully added Helius WebSocket key');
-    return true;
-  } catch (error) {
-    console.error('Error adding Helius WebSocket key:', error);
-    return false;
-  }
+  toast.info("Προσθέστε το κλειδί WebSocket Helius");
+  return true;
 };
 
 /**
- * Register API endpoints in Supabase for Helius
+ * Register API endpoints in Supabase for Helius (with placeholders instead of hard-coded keys)
  */
 export const registerHeliusEndpoints = async (): Promise<boolean> => {
   try {
@@ -293,25 +99,25 @@ export const registerHeliusEndpoints = async (): Promise<boolean> => {
       return true;
     }
     
-    // List of Helius endpoints to add
+    // List of Helius endpoints to add - with {API_KEY} placeholders
     const endpoints = [
       {
         name: "Helius Mainnet RPC",
-        url: `${HELIUS_ENDPOINTS.rpc}${HELIUS_API_KEYS.mainnet_rpc}`,
+        url: HELIUS_ENDPOINTS.rpc.replace('{API_KEY}', '{API_KEY}'),
         category: "helius",
         is_active: true,
         is_public: true
       },
       {
         name: "Helius API v0 Transactions",
-        url: `${HELIUS_ENDPOINTS.api_v0_transactions}${HELIUS_API_KEYS.api_v0}`,
+        url: HELIUS_ENDPOINTS.api_v0_transactions.replace('{API_KEY}', '{API_KEY}'),
         category: "helius",
         is_active: true,
         is_public: true
       },
       {
         name: "Helius API v0 Address Transactions",
-        url: `${HELIUS_ENDPOINTS.api_v0_addresses}${HELIUS_API_KEYS.api_v0}`,
+        url: HELIUS_ENDPOINTS.api_v0_addresses.replace('{API_KEY}', '{API_KEY}'),
         category: "helius",
         is_active: true,
         is_public: true
@@ -325,7 +131,7 @@ export const registerHeliusEndpoints = async (): Promise<boolean> => {
       },
       {
         name: "Helius WebSocket",
-        url: `${HELIUS_ENDPOINTS.websocket}${HELIUS_API_KEYS.websocket}`,
+        url: HELIUS_ENDPOINTS.websocket.replace('{API_KEY}', '{API_KEY}'),
         category: "helius",
         is_active: true,
         is_public: true
@@ -344,6 +150,21 @@ export const registerHeliusEndpoints = async (): Promise<boolean> => {
   } catch (error) {
     console.error('Error adding Helius endpoints:', error);
     toast.error('Σφάλμα κατά την προσθήκη των endpoints Helius');
+    return false;
+  }
+};
+
+// Έλεγχος αν ένα κλειδί Helius είναι έγκυρο - πραγματικός έλεγχος με το API
+export const validateHeliusKey = async (apiKey: string): Promise<boolean> => {
+  try {
+    if (!apiKey || !apiKey.trim()) return false;
+
+    const url = `https://api.helius.xyz/v0/addresses/vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg/balances?api-key=${apiKey}`;
+    const response = await fetch(url);
+    
+    return response.status === 200;
+  } catch (error) {
+    console.error("Error validating Helius key:", error);
     return false;
   }
 };
