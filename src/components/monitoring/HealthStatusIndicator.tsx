@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -44,7 +43,7 @@ export function HealthStatusIndicator() {
     warning: "Προειδοποιήσεις",
     critical: "Κρίσιμα ζητήματα"
   };
-
+  
   // Check health on mount and periodically
   useEffect(() => {
     checkSystemHealth();
