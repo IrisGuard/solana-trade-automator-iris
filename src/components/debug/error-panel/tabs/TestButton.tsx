@@ -3,7 +3,6 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { errorCollector } from '@/utils/error-handling/collector';
 import type { ErrorOptions } from '@/utils/error-handling/collector/types';
-import type { ErrorData } from '@/utils/error-handling/collector';
 
 interface TestButtonProps {
   label: string;
@@ -49,24 +48,19 @@ export const TestButton: React.FC<TestButtonProps> = ({
         // Add message to the error itself, not to the options
         error.message = options.message || `Error triggered by test button: ${label}`;
         
-        errorCollector.captureError(error, {
-          component: options.component || 'TestButton',
-          source: 'ErrorTestPanel',
-          details: options.details,
-          method: options.errorType,
-          severity: 'medium'
-        });
+        errorCollector.captureError(error, errorOptions);
 
         // For test purposes, throw the error
         throw error;
       }
     } catch (error) {
-      errorCollector.captureError(error as Error, {
+      const errorOptions: ErrorOptions = {
         component: options.component || 'TestButton',
         source: 'ErrorTestPanel',
-        method: options.errorType,
-        severity: 'medium'
-      });
+        errorType: options.errorType
+      };
+      
+      errorCollector.captureError(error as Error, errorOptions);
     }
   };
 

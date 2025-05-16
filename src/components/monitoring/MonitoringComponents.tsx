@@ -68,7 +68,7 @@ export function PublishErrorMonitor() {
             })
             .catch(error => {
               displayError(error, {
-                toastTitle: "Σφάλμα κατά τη δημοσίευση",
+                title: "Σφάλμα κατά τη δημοσίευση",
                 showToast: true,
                 logToConsole: true,
                 sendToChat: true,

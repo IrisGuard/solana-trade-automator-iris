@@ -36,7 +36,7 @@ export class ErrorCollector {
       errorId: options.errorId || null,
       errorType: options.errorType,
       details: options.details,
-      severity: options.severity || 'medium', // Updated to include 'critical'
+      severity: options.severity,
       options: options
     };
 

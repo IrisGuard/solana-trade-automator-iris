@@ -1,160 +1,125 @@
-
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { heliusService } from "@/services/helius/HeliusService";
-import { transactionRecordService } from "@/services/transactions/TransactionRecordService";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
+import { heliusService } from "@/services/helius/HeliusService";
+import { Transaction } from "@/types/transaction-types";
 
-export interface Transaction {
-  id: string;
-  signature: string;
-  type: string;
-  status: string;
-  amount: string;
-  timestamp: Date;
-  token?: string;
-  source?: string;
-  destination?: string;
-  block_time?: string;
-  wallet_address: string;
-  value_usd?: number;
-}
+// Helper constant for SOL to lamport conversion
+const LAMPORTS_PER_SOL = 1000000000;
 
-export const useTransactionsData = (walletAddress: string) => {
+export const useTransactionsData = (walletAddress?: string) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
   const { user } = useUser();
 
-  const fetchTransactions = useCallback(async (address: string) => {
-    if (!address) {
-      setTransactions([]);
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Fetch transactions from Helius
-      const solanaTransactions = await heliusService.fetchTransactions(address, 20);
-      
-      // Fetch transactions from our database
-      const dbTransactions = await transactionRecordService.getTransactions(address, 50);
-
-      // Process Helius transactions
-      const processedSolanaTransactions = solanaTransactions.map((tx: any) => ({
-        id: tx.id || tx.signature || `helius_${Math.random().toString(36).substring(2, 15)}`,
-        signature: tx.signature,
-        type: tx.type || 'transfer',
-        status: tx.status || 'confirmed',
-        amount: tx.amount || '0',
-        timestamp: new Date(tx.timestamp || tx.blockTime * 1000 || Date.now()),
-        token: tx.token || 'SOL',
-        source: tx.source || '',
-        destination: tx.destination || '',
-        block_time: tx.blockTime ? new Date(tx.blockTime * 1000).toISOString() : undefined,
-        wallet_address: address,
-        value_usd: tx.value_usd || undefined
-      }));
-
-      // Process database transactions
-      const processedDbTransactions: Transaction[] = dbTransactions.map((tx: any) => ({
-        id: tx.id || tx.signature || `db_${Math.random().toString(36).substring(2, 15)}`,
-        signature: tx.signature,
-        type: tx.type || 'transfer',
-        status: tx.status || 'confirmed',
-        amount: tx.amount || '0',
-        timestamp: new Date(tx.block_time || tx.created_at || Date.now()),
-        token: tx.token || 'SOL',
-        source: tx.source || '',
-        destination: tx.destination || '',
-        wallet_address: tx.wallet_address,
-        value_usd: tx.value_usd || undefined,
-        block_time: tx.block_time
-      }));
-
-      // Merge and deduplicate transactions using signature as unique identifier
-      const mergedTransactions = [...processedSolanaTransactions];
-      
-      // Add DB transactions that don't exist in the Solana transactions
-      processedDbTransactions.forEach(dbTx => {
-        if (!mergedTransactions.some(tx => tx.signature === dbTx.signature)) {
-          mergedTransactions.push(dbTx);
-        }
-      });
-
-      // Store new Helius transactions in our database
-      await storeNewTransactionsInDb(processedSolanaTransactions, address);
-
-      // Sort by timestamp, most recent first
-      const sortedTransactions = mergedTransactions.sort((a, b) => 
-        b.timestamp.getTime() - a.timestamp.getTime()
-      );
-
-      setTransactions(sortedTransactions);
-    } catch (err) {
-      console.error("Error fetching transactions:", err);
-      setError(err instanceof Error ? err : new Error("Failed to fetch transactions"));
-      toast.error("Failed to fetch transaction history");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user]);
-
-  // Store new transactions in database
-  const storeNewTransactionsInDb = async (transactions: Transaction[], walletAddress: string) => {
-    if (!user?.id) {
-      console.log("No user ID available, skipping database storage");
-      return;
-    }
-
-    try {
-      for (const tx of transactions) {
-        // Check if transaction already exists
-        const existingTx = await transactionRecordService.getTransactionBySignature(tx.signature);
-        
-        if (!existingTx) {
-          // We need to ensure that token is defined before sending to the database
-          const token = tx.token || 'SOL';
-          
-          // Create a database-compatible transaction object
-          await transactionRecordService.recordTransaction({
-            signature: tx.signature,
-            type: tx.type,
-            status: tx.status,
-            amount: tx.amount,
-            block_time: tx.timestamp.toISOString(),
-            source: tx.source,
-            destination: tx.destination,
-            wallet_address: walletAddress,
-            user_id: user.id,
-            token,
-            value_usd: tx.value_usd
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error storing transactions in database:", error);
-      // Non-critical error, we can continue
-    }
-  };
-
-  // Initial fetch
   useEffect(() => {
-    if (walletAddress) {
-      fetchTransactions(walletAddress);
-    }
-  }, [walletAddress, fetchTransactions]);
+    const fetchTransactions = async () => {
+      if (!walletAddress) {
+        setIsLoading(false);
+        setTransactions([]);
+        return;
+      }
 
-  // Refresh function
-  const refresh = useCallback(() => {
-    if (walletAddress) {
-      fetchTransactions(walletAddress);
-    }
-  }, [walletAddress, fetchTransactions]);
+      setIsLoading(true);
+      try {
+        // First try to fetch from Supabase if user is authenticated
+        if (user?.id) {
+          console.log('Fetching transactions from Supabase for wallet:', walletAddress);
+          
+          // Fetch transactions from Supabase
+          const { data: dbTransactions, error } = await supabase
+            .from('transactions')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('wallet_address', walletAddress)
+            .order('created_at', { ascending: false })
+            .limit(10);
 
-  return { transactions, isLoading, error, refresh };
+          if (error) throw error;
+
+          if (dbTransactions && dbTransactions.length > 0) {
+            console.log('Found transactions in Supabase:', dbTransactions.length);
+            
+            // Map database transactions to the Transaction interface
+            const mappedTransactions: Transaction[] = dbTransactions.map((tx) => ({
+              id: tx.id,
+              type: tx.type || 'unknown',
+              token: tx.type === 'SOL_TRANSFER' ? 'SOL' : 'SPL',
+              amount: tx.amount || '0',
+              price: '$0.00', // This would come from a price service
+              value: '$0.00', // This would come from a price service
+              timestamp: tx.created_at,
+              status: tx.status || 'completed',
+              bot: 'Manual', // This would come from bot data
+              signature: tx.signature
+            }));
+            
+            setTransactions(mappedTransactions);
+            setIsLoading(false);
+            return;
+          }
+        }
+        
+        // If no transactions found in DB or user not authenticated, try Helius
+        console.log('Fetching transactions from Helius for wallet:', walletAddress);
+        const heliusTransactions = await heliusService.getTransactionHistory(walletAddress);
+        
+        if (heliusTransactions && heliusTransactions.length > 0) {
+          console.log('Found transactions on Helius:', heliusTransactions.length);
+          
+          // Map Helius transactions to the Transaction interface
+          const mappedTransactions: Transaction[] = heliusTransactions.map((tx, index) => {
+            // Parse the transaction data - in a real app this would be more sophisticated
+            const txType = tx.type || 'UNKNOWN';
+            let tokenSymbol = 'UNKNOWN';
+            
+            if (tx.tokenTransfers && tx.tokenTransfers.length > 0) {
+              tokenSymbol = tx.tokenTransfers[0]?.tokenName || 'SPL';
+            } else {
+              tokenSymbol = 'SOL';
+            }
+            
+            // Extract amount
+            let amount = '0';
+            if (tx.tokenTransfers && tx.tokenTransfers.length > 0) {
+              amount = tx.tokenTransfers[0]?.amount?.toString() || '0';
+            } else if (tx.nativeTransfers && tx.nativeTransfers.length > 0) {
+              amount = (tx.nativeTransfers[0]?.amount / LAMPORTS_PER_SOL).toString() || '0';
+            }
+            
+            return {
+              id: tx.signature || `tx-${index}`,
+              type: txType.toLowerCase(),
+              token: tokenSymbol,
+              amount: amount,
+              price: '$0.00',
+              value: '$0.00',
+              timestamp: tx.timestamp || new Date().toISOString(),
+              status: 'completed',
+              bot: 'Manual',
+              signature: tx.signature
+            };
+          });
+          
+          setTransactions(mappedTransactions);
+        } else {
+          console.log('No transactions found for wallet');
+          setTransactions([]);
+        }
+      } catch (error) {
+        console.error('Error fetching transactions:', error);
+        toast.error('Σφάλμα φόρτωσης συναλλαγών', {
+          description: 'Δοκιμάστε να ανανεώσετε τη σελίδα'
+        });
+        setTransactions([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTransactions();
+  }, [user, walletAddress]);
+
+  return { transactions, isLoading };
 };

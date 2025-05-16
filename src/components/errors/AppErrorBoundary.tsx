@@ -13,7 +13,7 @@ export function AppErrorBoundary({ children, fallbackComponent }: AppErrorBounda
   // Error logger
   const logError = (error: Error, info: { componentStack: string }) => {
     displayError(error, {
-      toastTitle: "Σφάλμα εφαρμογής",
+      title: "Σφάλμα εφαρμογής",
       showToast: true,
       logToConsole: true,
       sendToChat: true,

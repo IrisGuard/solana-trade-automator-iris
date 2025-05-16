@@ -11,7 +11,6 @@ export interface ErrorDisplayOptions {
   source?: string;
   sendToChat?: boolean;
   title?: string;
-  toastTitle?: string;
   useCollector?: boolean;
   notifyUser?: boolean;
 }
@@ -59,6 +58,4 @@ export interface ErrorOptions {
   details?: any;
   browserInfo?: any;
   useCollector?: boolean;
-  toastTitle?: string;
-  title?: string;
 }

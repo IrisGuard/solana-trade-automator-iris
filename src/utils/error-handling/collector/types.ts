@@ -31,7 +31,7 @@ export interface ErrorData {
   errorId?: string | null;
   errorType?: string;
   details?: any;
-  severity?: 'low' | 'medium' | 'high' | 'critical';
+  severity?: string;
   options: ErrorOptions;
 }
 

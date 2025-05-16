@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
@@ -29,25 +29,23 @@ export function EnhancedTransactionHistory({
     limit
   });
 
-  // Helper function for badge styling
+  // Helper function for badge styling - now using the new badge variant
   const getStatusBadgeClass = (status: string) => {
-    return status.toLowerCase().includes('success') || status.toLowerCase().includes('completed')
+    return status === 'Success' 
       ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-      : status.toLowerCase().includes('pending')
-      ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
       : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
   };
 
   // Helper function for transaction type icons
   const getTypeIcon = (type: string) => {
-    const lowerType = type.toLowerCase();
-    if (lowerType.includes('send') || lowerType.includes('transfer_out')) return '↑';
-    if (lowerType.includes('receive') || lowerType.includes('transfer_in')) return '↓';
-    if (lowerType.includes('swap')) return '↔';
+    if (type.toLowerCase().includes('send')) return '↑';
+    if (type.toLowerCase().includes('receive')) return '↓';
+    if (type.toLowerCase().includes('swap')) return '↔';
     return '•';
   };
 
   // Convert transactions to the format expected by TransactionList and TransactionFooter
+  // Ensure timestamp is properly converted from string to number
   const adaptedTransactions: TransactionListType[] = transactions.map(tx => ({
     signature: tx.signature || tx.id || '',
     type: tx.type,
@@ -55,15 +53,10 @@ export function EnhancedTransactionHistory({
     amount: tx.amount,
     from: undefined,
     to: undefined,
-    // Ensure timestamp is properly converted from string to number
-    timestamp: typeof tx.timestamp === 'string' 
-      ? new Date(tx.timestamp).getTime() 
-      : (tx.timestamp || Date.now()),
-    blockTime: typeof tx.timestamp === 'string'
-      ? new Date(tx.timestamp).getTime() / 1000
-      : Math.floor((tx.timestamp || Date.now()) / 1000),
-    tokenAddress: undefined,
-    token: tx.token
+    // Convert string timestamp to number or use current time as fallback
+    timestamp: tx.timestamp ? new Date(tx.timestamp).getTime() : Date.now(),
+    blockTime: tx.timestamp ? new Date(tx.timestamp).getTime() / 1000 : Math.floor(Date.now() / 1000),
+    tokenAddress: undefined
   }));
 
   return (

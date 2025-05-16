@@ -102,7 +102,7 @@ export function useBotActions() {
           type: 'buy',
           token: config.selectedToken,
           amount: 0.5,
-          price: tokenPrice?.price || 0,  // Use price instead of currentPrice
+          price: tokenPrice?.currentPrice || 0,
           status: 'pending',
           createdAt: new Date().toISOString()
         },
@@ -111,7 +111,7 @@ export function useBotActions() {
           type: 'stop-loss',
           token: config.selectedToken,
           amount: 0.5,
-          price: (tokenPrice?.price || 0) * (1 - config.stopLoss / 100),  // Use price instead of currentPrice
+          price: (tokenPrice?.currentPrice || 0) * (1 - config.stopLoss / 100),
           status: 'pending',
           createdAt: new Date().toISOString()
         }

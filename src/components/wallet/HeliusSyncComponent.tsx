@@ -7,7 +7,6 @@ import { syncAllHeliusData } from "@/utils/syncHeliusKeys";
 import { Loader2, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
-import { v4 as uuidv4 } from 'uuid';
 
 export function HeliusSyncComponent({ onSync }: { onSync?: () => void }) {
   const [isSyncing, setIsSyncing] = useState(false);
@@ -16,24 +15,24 @@ export function HeliusSyncComponent({ onSync }: { onSync?: () => void }) {
   const [retryCount, setRetryCount] = useState(0);
 
   const handleSync = async () => {
-    // Use a default value if user is not authenticated
-    const userId = user?.id || uuidv4();
+    if (!user) {
+      toast.error("Πρέπει να είστε συνδεδεμένοι για να συγχρονίσετε τα δεδομένα Helius");
+      return;
+    }
     
     setIsSyncing(true);
     setHasError(false);
     try {
-      console.log("Έναρξη συγχρονισμού Helius για χρήστη:", userId);
-      const result = await syncAllHeliusData(userId);
+      console.log("Έναρξη συγχρονισμού Helius για χρήστη:", user.id);
+      const result = await syncAllHeliusData(user.id);
       if (result) {
         setHasError(false);
         setRetryCount(0);
         console.log("Συγχρονισμός Helius ολοκληρώθηκε επιτυχώς");
-        toast.success("Συγχρονισμός Helius ολοκληρώθηκε επιτυχώς");
       } else {
         setHasError(true);
         setRetryCount(prev => prev + 1);
         console.error("Συγχρονισμός Helius απέτυχε");
-        toast.error("Συγχρονισμός Helius απέτυχε");
       }
       if (onSync) {
         onSync();
@@ -42,9 +41,6 @@ export function HeliusSyncComponent({ onSync }: { onSync?: () => void }) {
       console.error("Σφάλμα συγχρονισμού Helius:", error);
       setHasError(true);
       setRetryCount(prev => prev + 1);
-      toast.error("Σφάλμα συγχρονισμού Helius", {
-        description: "Παρακαλώ προσπαθήστε ξανά αργότερα"
-      });
     } finally {
       setIsSyncing(false);
     }
@@ -52,26 +48,14 @@ export function HeliusSyncComponent({ onSync }: { onSync?: () => void }) {
 
   // Προσπάθεια αυτόματου συγχρονισμού κατά την εκκίνηση του component
   useEffect(() => {
-    let mounted = true;
-    
     const autoSync = async () => {
-      // Use a valid UUID even if user is not available
-      if ((hasError || retryCount === 0) && mounted) {
+      if (user && (hasError || retryCount === 0)) {
         console.log("Αυτόματος συγχρονισμός Helius...");
         await handleSync();
       }
     };
-    
-    // Add a small delay to ensure component is fully mounted
-    const timeoutId = setTimeout(() => {
-      autoSync();
-    }, 1000);
-    
-    return () => {
-      mounted = false;
-      clearTimeout(timeoutId);
-    };
-  }, [hasError, retryCount]);
+    autoSync();
+  }, [user, hasError]);
 
   if (hasError) {
     return (
@@ -103,7 +87,7 @@ export function HeliusSyncComponent({ onSync }: { onSync?: () => void }) {
       variant="outline"
       size="sm"
       onClick={handleSync}
-      disabled={isSyncing}
+      disabled={isSyncing || !user}
       className="gap-2"
     >
       {isSyncing ? (

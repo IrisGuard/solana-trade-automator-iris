@@ -69,7 +69,6 @@ export function ApiKeyCheckButton() {
           let isWorking = false;
           
           if (service === 'helius') {
-            // Use the checkApiKey method we added to HeliusService
             isWorking = await heliusService.checkApiKey(key.key_value);
           } else {
             // Default to true for other services until we implement specific checks

@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Transaction } from "@/types/transaction-types";
-import { adaptTransactionsDataToTypes } from "@/utils/transactionAdapter";
 
 interface TokenActivityProps {
   walletAddress: string;
@@ -28,9 +27,7 @@ export function TokenActivity({
   
   useEffect(() => {
     // Use fetched transactions if available, otherwise fallback to transactions prop
-    // Make sure to adapt the fetched transactions to the expected type
-    const adaptedFetchedTransactions = fetchedTransactions ? adaptTransactionsDataToTypes(fetchedTransactions) : [];
-    const allTransactions = transactions || adaptedFetchedTransactions || [];
+    const allTransactions = fetchedTransactions || transactions || [];
     
     // Calculate unique tokens - use provided uniqueTokens if available
     const tokens = propUniqueTokens || getUniqueTokens(allTransactions);

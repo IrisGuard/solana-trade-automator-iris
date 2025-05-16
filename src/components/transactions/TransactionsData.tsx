@@ -4,7 +4,6 @@ import { useTransactionsData } from "@/hooks/useTransactionsData";
 import { TransactionsList } from "./TransactionsList";
 import { TransactionFilterType } from "@/types/transaction-types";
 import { getUniqueTokens, formatDate } from "@/utils/transactionUtils";
-import { adaptTransactionsDataToTypes } from "@/utils/transactionAdapter";
 
 interface TransactionsDataProps {
   walletAddress: string;
@@ -15,12 +14,9 @@ interface TransactionsDataProps {
 export function TransactionsData({ walletAddress, filterType, isRefreshing }: TransactionsDataProps) {
   const { transactions, isLoading } = useTransactionsData(walletAddress);
   
-  // Adapt transactions to the expected type
-  const adaptedTransactions = adaptTransactionsDataToTypes(transactions);
-  
   return (
     <TransactionsList 
-      transactions={adaptedTransactions} 
+      transactions={transactions} 
       filterType={filterType} 
       isLoading={isLoading}
       isRefreshing={isRefreshing}
