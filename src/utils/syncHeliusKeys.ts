@@ -13,8 +13,9 @@ export async function syncAllHeliusData(userId: string): Promise<boolean> {
   try {
     toast.loading('Συγχρονισμός δεδομένων Helius...');
     
-    // Συγχρονισμός των κλειδιών Helius
-    const keyResult = await addHeliusKey(userId);
+    // Συγχρονισμός των κλειδιών Helius - pass empty string as API key
+    // User will need to add their actual API key later
+    const keyResult = await addHeliusKey(userId, "");
     
     // Συγχρονισμός των endpoints
     const endpointResult = await addHeliusEndpoints();

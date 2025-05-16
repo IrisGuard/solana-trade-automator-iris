@@ -62,37 +62,39 @@ export const addHeliusEndpoints = async (): Promise<boolean> => {
 };
 
 // Προσθέτει το κλειδί API Helius στην κλειδοθήκη του χρήστη
-export const addHeliusKey = async (userId: string, apiKey: string): Promise<boolean> => {
-  if (!apiKey || !apiKey.trim()) {
+export const addHeliusKey = async (userId: string, apiKey: string = ""): Promise<boolean> => {
+  if (apiKey && !apiKey.trim()) {
     toast.error("Παρακαλώ εισάγετε ένα έγκυρο κλειδί API");
     return false;
   }
 
   try {
     // Έλεγχος αν υπάρχει ήδη το κλειδί
-    const { data: existingKeys, error: checkError } = await supabase
-      .from('api_keys_storage')
-      .select('*')
-      .eq('service', 'helius')
-      .eq('key_value', apiKey)
-      .eq('user_id', userId);
-    
-    if (checkError) throw checkError;
-    
-    // Αν υπάρχουν ήδη κλειδιά με την ίδια τιμή, επιστρέφουμε αποτυχία
-    if (existingKeys && existingKeys.length > 0) {
-      console.log('Κλειδί Helius με την ίδια τιμή υπάρχει ήδη');
-      toast.error("Αυτό το κλειδί API υπάρχει ήδη");
-      return false;
+    if (apiKey) {
+      const { data: existingKeys, error: checkError } = await supabase
+        .from('api_keys_storage')
+        .select('*')
+        .eq('service', 'helius')
+        .eq('key_value', apiKey)
+        .eq('user_id', userId);
+      
+      if (checkError) throw checkError;
+      
+      // Αν υπάρχουν ήδη κλειδιά με την ίδια τιμή, επιστρέφουμε αποτυχία
+      if (existingKeys && existingKeys.length > 0) {
+        console.log('Κλειδί Helius με την ίδια τιμή υπάρχει ήδη');
+        toast.error("Αυτό το κλειδί API υπάρχει ήδη");
+        return false;
+      }
     }
     
     // Δημιουργία νέου κλειδιού Helius
     const heliusKey = {
       name: "Helius API Key",
-      key_value: apiKey,
+      key_value: apiKey || "ΧΡΕΙΑΖΕΤΑΙ_ΚΛΕΙΔΙ_API", // Placeholder if no key provided
       service: "helius",
       description: "Key for accessing Helius API services",
-      status: "active",
+      status: apiKey ? "active" : "pending", // Mark as pending if no key provided
       user_id: userId,
       is_encrypted: false
     };
@@ -105,7 +107,12 @@ export const addHeliusKey = async (userId: string, apiKey: string): Promise<bool
     if (error) throw error;
     
     console.log('Επιτυχής προσθήκη κλειδιού Helius');
-    toast.success("Το κλειδί API προστέθηκε επιτυχώς");
+    
+    if (apiKey) {
+      toast.success("Το κλειδί API προστέθηκε επιτυχώς");
+    } else {
+      toast.info("Δημιουργήθηκε εγγραφή κλειδιού. Παρακαλώ προσθέστε το πραγματικό κλειδί API στις ρυθμίσεις.");
+    }
     
     return true;
   } catch (error) {

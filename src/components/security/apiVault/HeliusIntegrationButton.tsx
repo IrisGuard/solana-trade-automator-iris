@@ -23,10 +23,11 @@ export function HeliusIntegrationButton() {
       await addHeliusEndpoints();
       
       // Προσθήκη του κλειδιού στην κλειδοθήκη
-      await addHeliusKey(user.id);
+      // Pass empty string as API key so user can input it later
+      await addHeliusKey(user.id, "");
       
       setIsAdded(true);
-      toast.success("Το κλειδί και τα endpoints του Helius προστέθηκαν επιτυχώς!");
+      toast.success("Τα endpoints του Helius προστέθηκαν επιτυχώς! Προσθέστε το κλειδί API σας στην κλειδοθήκη.");
     } catch (error) {
       console.error("Error adding Helius integration:", error);
       toast.error("Σφάλμα κατά την προσθήκη του Helius");
