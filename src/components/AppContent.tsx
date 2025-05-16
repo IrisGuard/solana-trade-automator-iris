@@ -19,6 +19,7 @@ import { initProtectionSystem } from "@/utils/errorTestUtils";
 import { HelpButton } from "@/components/help/HelpButton";
 import { HealthStatusIndicator } from "@/components/monitoring/HealthStatusIndicator";
 import { DOMErrorHandler } from "@/components/errors/DOMErrorHandler";
+import { MonitoringSystem } from "@/components/monitoring/MonitoringSystem";
 
 // Εφαρμογή διορθώσεων συμβατότητας του React Router
 ensureRouterCompatibility();
@@ -99,6 +100,7 @@ export function AppContent() {
       )}
       onError={logError}
     >
+      <MonitoringSystem />
       <DOMErrorHandler />
       <BrowserRouter>
         <ThemeProvider>

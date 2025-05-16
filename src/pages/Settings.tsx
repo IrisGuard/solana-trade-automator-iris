@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth"; 
 import { ErrorLogsViewer } from "@/components/settings/ErrorLogsViewer";
 import { useLanguage } from "@/hooks/use-language";
+import { ErrorDashboard } from "@/components/errors/ErrorDashboard";
 
 export default function Settings() {
   const { user } = useAuth();
@@ -26,6 +27,7 @@ export default function Settings() {
           <TabsTrigger value="notifications">{t("settings.notifications")}</TabsTrigger>
           <TabsTrigger value="advanced">{t("settings.advanced")}</TabsTrigger>
           <TabsTrigger value="diagnostics">{t("settings.diagnostics")}</TabsTrigger>
+          <TabsTrigger value="errorDashboard">{t("settings.errorDashboard")}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="account">
@@ -116,6 +118,10 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+        
+        <TabsContent value="errorDashboard">
+          <ErrorDashboard />
         </TabsContent>
       </Tabs>
     </div>

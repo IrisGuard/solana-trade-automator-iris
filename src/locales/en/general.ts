@@ -1,4 +1,3 @@
-
 export const general = {
   loading: "Loading...",
   error: "Error",
@@ -21,4 +20,14 @@ export const general = {
   visit: "Visit",
   filter: "Filter",
   sort: "Sort",
+  dashboard: "Dashboard",
+  settings: "Settings",
+  profile: "Profile",
+  logout: "Logout",
+  login: "Login",
+  register: "Register",
+  connectionLost: "Connection Lost",
+  connectionRestored: "Connection Restored",
+  checkYourConnection: "Check your internet connection",
+  internetConnectionRestored: "Internet connection has been restored"
 };

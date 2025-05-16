@@ -8,6 +8,7 @@ export const settings = {
   systemInfo: "Πληροφορίες Συστήματος",
   browser: "Πρόγραμμα Περιήγησης",
   language: "Γλώσσα",
+  errorDashboard: "Πίνακας Σφαλμάτων",
   errorMonitoring: "Παρακολούθηση Σφαλμάτων",
   errorMonitoringDescription: "Προβολή και διαχείριση των σφαλμάτων και των μηνυμάτων της κονσόλας για εύκολη αποσφαλμάτωση",
   applicationErrors: "Σφάλματα Εφαρμογής",
@@ -35,5 +36,8 @@ export const settings = {
   selectMessageForDetails: "Επιλέξτε ένα μήνυμα για προβολή λεπτομερειών",
   manageAccount: "Διαχείριση Λογαριασμού",
   platformPreferences: "Προτιμήσεις Πλατφόρμας",
-  comingSoon: "Διαθέσιμο σύντομα"
+  comingSoon: "Διαθέσιμο σύντομα",
+  consoleLogs: "Αρχεία Καταγραφής Κονσόλας",
+  noLogsRecorded: "Δεν υπάρχουν καταγεγραμμένα αρχεία",
+  selectLogForDetails: "Επιλέξτε ένα αρχείο καταγραφής για λεπτομέρειες"
 };

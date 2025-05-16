@@ -1,28 +1,30 @@
 
 import { general } from './el/general';
+import { hero } from './el/hero';
+import { botExplanation } from './el/botExplanation';
+import { faq } from './el/faq';
 import { wallet } from './el/wallet';
+import { platform } from './el/platform';
 import { settings } from './el/settings';
 import { security } from './el/security';
 import { apiVault } from './el/apiVault';
+import { help } from './el/help';
 import { makerBot } from './el/makerBot';
 import { simulation } from './el/simulation';
-import { help } from './el/help';
-import { platform } from './el/platform';
-import { hero } from './el/hero';
-import { faq } from './el/faq';
-import { botExplanation } from './el/botExplanation';
+import { errors } from './el/errors';
 
-export default {
+export const el = {
   general,
+  hero,
+  botExplanation,
+  faq,
   wallet,
+  platform,
   settings,
   security,
   apiVault,
+  help,
   makerBot,
   simulation,
-  help,
-  platform,
-  hero,
-  faq,
-  botExplanation
+  errors
 };

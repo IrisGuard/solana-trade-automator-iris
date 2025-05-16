@@ -8,6 +8,7 @@ export const settings = {
   systemInfo: "System Information",
   browser: "Browser",
   language: "Language",
+  errorDashboard: "Error Dashboard",
   errorMonitoring: "Error Monitoring",
   errorMonitoringDescription: "View and manage application errors and console messages for easy debugging",
   applicationErrors: "Application Errors",
@@ -35,5 +36,8 @@ export const settings = {
   selectMessageForDetails: "Select a message to view details",
   manageAccount: "Manage Account",
   platformPreferences: "Platform Preferences",
-  comingSoon: "Coming Soon"
+  comingSoon: "Coming Soon",
+  consoleLogs: "Console Logs", 
+  noLogsRecorded: "No logs recorded",
+  selectLogForDetails: "Select a log to view details"
 };
