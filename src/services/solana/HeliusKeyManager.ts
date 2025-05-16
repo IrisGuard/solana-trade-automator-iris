@@ -1,223 +1,419 @@
+import { clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
+import { Helius } from 'helius-sdk';
+import { errorCollector } from '@/utils/error-handling/collector';
+import { supabase } from '@/integrations/supabase/client';
+import { ApiKeyEntry } from '@/services/api-keys/types';
+import { v4 as uuidv4 } from 'uuid';
 
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { errorCollector } from "@/utils/error-handling/collector";
+const DEFAULT_NETWORKS = [
+  {
+    name: 'Mainnet Beta',
+    value: 'mainnet-beta',
+    endpoint: clusterApiUrl('mainnet-beta'),
+  },
+  {
+    name: 'Devnet',
+    value: 'devnet',
+    endpoint: clusterApiUrl('devnet'),
+  },
+  {
+    name: 'Testnet',
+    value: 'testnet',
+    endpoint: clusterApiUrl('testnet'),
+  },
+];
 
 export class HeliusKeyManager {
-  private apiKeys: string[] = [];
-  private currentKeyIndex: number = 0;
-  private isInitialized: boolean = false;
-  private lastRotation: number = 0;
-  private static instance: HeliusKeyManager;
-  private apiKeyTestResults: Record<string, boolean> = {};
+  private apiKey: string;
+  private helius: Helius | null = null;
+  private connection: Connection | null = null;
+  private network: string;
+  private userId: string | undefined;
 
-  constructor() {
-    this.init();
+  constructor(apiKey: string, network: string = 'mainnet-beta', userId: string | undefined = undefined) {
+    this.apiKey = apiKey;
+    this.network = network;
+    this.userId = userId;
+    this.initializeHelius();
   }
 
-  public static getInstance(): HeliusKeyManager {
-    if (!HeliusKeyManager.instance) {
-      HeliusKeyManager.instance = new HeliusKeyManager();
-    }
-    return HeliusKeyManager.instance;
-  }
-
-  private async init() {
+  private initializeHelius() {
     try {
-      await this.loadKeysFromStorage();
-      this.isInitialized = true;
-      this.lastRotation = Date.now();
-      console.log("HeliusKeyManager initialized");
+      const endpoint = DEFAULT_NETWORKS.find(n => n.value === this.network)?.endpoint || clusterApiUrl(this.network as any);
+      this.helius = new Helius(this.apiKey, {
+        baseUrl: 'https://rpc.helius.xyz',
+      });
+      this.connection = new Connection(endpoint);
     } catch (error) {
-      console.error("Error initializing HeliusKeyManager:", error);
-      errorCollector.captureError(error instanceof Error ? error : new Error("Failed to initialize HeliusKeyManager"), {
-        component: "HeliusKeyManager",
-        source: "client"
+      console.error("Error initializing Helius:", error);
+      errorCollector.captureError(error instanceof Error ? error : new Error('Failed to initialize Helius'), {
+        component: 'HeliusKeyManager',
+        source: 'initializeHelius',
+        details: { apiKey: this.apiKey, network: this.network }
       });
     }
   }
-  
-  public async initialize(): Promise<void> {
-    await this.forceReload();
-    this.isInitialized = true;
-    console.log("HeliusKeyManager initialized explicitly");
-  }
 
-  public async forceReload(): Promise<void> {
-    await this.loadKeysFromStorage();
-    this.lastRotation = Date.now();
-  }
-
-  public getKey(): string {
-    if (!this.isInitialized || this.apiKeys.length === 0) {
-      // No keys available - return empty string
-      // The application should handle this case appropriately
-      return "";
-    }
-
-    // Rotate key if it's been more than 1 hour
-    if (Date.now() - this.lastRotation > 3600000) {
-      this.rotateKey();
-    }
-
-    return this.apiKeys[this.currentKeyIndex];
-  }
-
-  public getAllKeys(): string[] {
-    return [...this.apiKeys];
-  }
-
-  private rotateKey() {
-    if (this.apiKeys.length <= 1) return;
-    
-    this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeys.length;
-    this.lastRotation = Date.now();
-    
-    console.log(`Rotated to Helius API key #${this.currentKeyIndex + 1}/${this.apiKeys.length}`);
-  }
-
-  public async testKey(key: string): Promise<boolean> {
+  public async getEnhancedTransactions(account: string) {
     try {
-      // Cache results to avoid repeated tests
-      if (this.apiKeyTestResults[key] !== undefined) {
-        return this.apiKeyTestResults[key];
+      if (!this.helius) {
+        throw new Error("Helius SDK not initialized.");
       }
-      
-      // No empty keys
-      if (!key || key.trim() === "" || 
-          key === "[Your Helius API Key]" ||
-          key === "ΧΡΕΙΑΖΕΤΑΙ_ΚΛΕΙΔΙ_API") {
-        this.apiKeyTestResults[key] = false;
-        return false;
+      const response = await this.helius.getEnhancedTransactions({
+        account,
+      });
+      return response;
+    } catch (error) {
+      console.error("Error fetching enhanced transactions:", error);
+      errorCollector.captureError(error instanceof Error ? error : new Error('Failed to get enhanced transactions'), {
+        component: 'HeliusKeyManager',
+        source: 'getEnhancedTransactions',
+        details: { account }
+      });
+      return null;
+    }
+  }
+
+  public async getAccountNFTs(account: string) {
+    try {
+      if (!this.helius) {
+        throw new Error("Helius SDK not initialized.");
       }
-      
-      const url = `https://api.helius.xyz/v0/addresses/8szGkuLTAux9XMgZ2vtY39jVSowEcpBfFfD8hZ6AbM9J/balances?api-key=${key}`;
-      
-      const response = await fetch(url);
-      const isValid = response.status === 200;
-      
-      // Cache the result
-      this.apiKeyTestResults[key] = isValid;
-      
-      return isValid;
+      const response = await this.helius.getAccountNFTs(account);
+      return response;
+    } catch (error) {
+      console.error("Error fetching account NFTs:", error);
+      errorCollector.captureError(error instanceof Error ? error : new Error('Failed to get account NFTs'), {
+        component: 'HeliusKeyManager',
+        source: 'getAccountNFTs',
+        details: { account }
+      });
+      return null;
+    }
+  }
+
+  public async getNFTMetadata(mintAccount: string) {
+    try {
+      if (!this.helius) {
+        throw new Error("Helius SDK not initialized.");
+      }
+      const response = await this.helius.getNFTMetadata(mintAccount);
+      return response;
+    } catch (error) {
+      console.error("Error fetching NFT metadata:", error);
+      errorCollector.captureError(error instanceof Error ? error : new Error('Failed to get NFT metadata'), {
+        component: 'HeliusKeyManager',
+        source: 'getNFTMetadata',
+        details: { mintAccount }
+      });
+      return null;
+    }
+  }
+
+  public async getSPLMetadata(mintAccount: string) {
+    try {
+      if (!this.helius) {
+        throw new Error("Helius SDK not initialized.");
+      }
+      const response = await this.helius.getSPLMetadata(mintAccount);
+      return response;
+    } catch (error) {
+      console.error("Error fetching SPL metadata:", error);
+      errorCollector.captureError(error instanceof Error ? error : new Error('Failed to get SPL metadata'), {
+        component: 'HeliusKeyManager',
+        source: 'getSPLMetadata',
+        details: { mintAccount }
+      });
+      return null;
+    }
+  }
+
+  public async getAsset(id: string) {
+    try {
+      if (!this.helius) {
+        throw new Error("Helius SDK not initialized.");
+      }
+      const response = await this.helius.getAsset(id);
+      return response;
+    } catch (error) {
+      console.error("Error fetching asset:", error);
+      errorCollector.captureError(error instanceof Error ? error : new Error('Failed to get asset'), {
+        component: 'HeliusKeyManager',
+        source: 'getAsset',
+        details: { id }
+      });
+      return null;
+    }
+  }
+
+  public async getAssets(
+    ownerAddress?: string,
+    grouping?: string,
+    groupingValue?: string,
+    limit?: number,
+    page?: number
+  ) {
+    try {
+      if (!this.helius) {
+        throw new Error("Helius SDK not initialized.");
+      }
+
+      const options: any = {};
+      if (ownerAddress) options.ownerAddress = ownerAddress;
+      if (grouping && groupingValue) options.grouping = [grouping, groupingValue];
+      if (limit) options.limit = limit;
+      if (page) options.page = page;
+
+      const response = await this.helius.getAssets(options);
+      return response;
+    } catch (error) {
+      console.error("Error fetching assets:", error);
+      errorCollector.captureError(error instanceof Error ? error : new Error('Failed to get assets'), {
+        component: 'HeliusKeyManager',
+        source: 'getAssets',
+        details: { ownerAddress, grouping, groupingValue, limit, page }
+      });
+      return null;
+    }
+  }
+
+  public async getAssetsByAuthority(
+    authority: string,
+    limit?: number,
+    page?: number
+  ) {
+    try {
+      if (!this.helius) {
+        throw new Error("Helius SDK not initialized.");
+      }
+
+      const options: any = {
+        authority,
+        limit,
+        page
+      };
+
+      const response = await this.helius.getAssetsByAuthority(options);
+      return response;
+    } catch (error) {
+      console.error("Error fetching assets by authority:", error);
+      errorCollector.captureError(error instanceof Error ? error : new Error('Failed to get assets by authority'), {
+        component: 'HeliusKeyManager',
+        source: 'getAssetsByAuthority',
+        details: { authority, limit, page }
+      });
+      return null;
+    }
+  }
+
+  public async getAssetsByCreator(
+    creator: string,
+    limit?: number,
+    page?: number
+  ) {
+    try {
+      if (!this.helius) {
+        throw new Error("Helius SDK not initialized.");
+      }
+
+      const options: any = {
+        creator,
+        limit,
+        page
+      };
+
+      const response = await this.helius.getAssetsByCreator(options);
+      return response;
+    } catch (error) {
+      console.error("Error fetching assets by creator:", error);
+      errorCollector.captureError(error instanceof Error ? error : new Error('Failed to get assets by creator'), {
+        component: 'HeliusKeyManager',
+        source: 'getAssetsByCreator',
+        details: { creator, limit, page }
+      });
+      return null;
+    }
+  }
+
+  public async getFirstVerifiedCreator(mint: string) {
+    try {
+      if (!this.helius) {
+        throw new Error("Helius SDK not initialized.");
+      }
+      const response = await this.helius.getFirstVerifiedCreator(mint);
+      return response;
+    } catch (error) {
+      console.error("Error fetching first verified creator:", error);
+      errorCollector.captureError(error instanceof Error ? error : new Error('Failed to get first verified creator'), {
+        component: 'HeliusKeyManager',
+        source: 'getFirstVerifiedCreator',
+        details: { mint }
+      });
+      return null;
+    }
+  }
+
+  public async getTransactions(
+    account: string,
+    limit?: number,
+    page?: number
+  ) {
+    try {
+      if (!this.helius) {
+        throw new Error("Helius SDK not initialized.");
+      }
+
+      const options: any = {
+        account,
+        limit,
+        page
+      };
+
+      const response = await this.helius.getTransactions(options);
+      return response;
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      errorCollector.captureError(error instanceof Error ? error : new Error('Failed to get transactions'), {
+        component: 'HeliusKeyManager',
+        source: 'getTransactions',
+        details: { account, limit, page }
+      });
+      return null;
+    }
+  }
+
+  public async getTokenList() {
+    try {
+      if (!this.helius) {
+        throw new Error("Helius SDK not initialized.");
+      }
+      const response = await this.helius.getTokenList();
+      return response;
+    } catch (error) {
+      console.error("Error fetching token list:", error);
+      errorCollector.captureError(error instanceof Error ? error : new Error('Failed to get token list'), {
+        component: 'HeliusKeyManager',
+        source: 'getTokenList'
+      });
+      return null;
+    }
+  }
+
+  public async getAddressesByDelegate(delegate: string) {
+    try {
+      if (!this.helius) {
+        throw new Error("Helius SDK not initialized.");
+      }
+      const response = await this.helius.getAddressesByDelegate(delegate);
+      return response;
+    } catch (error) {
+      console.error("Error fetching addresses by delegate:", error);
+      errorCollector.captureError(error instanceof Error ? error : new Error('Failed to get addresses by delegate'), {
+        component: 'HeliusKeyManager',
+        source: 'getAddressesByDelegate',
+        details: { delegate }
+      });
+      return null;
+    }
+  }
+
+  public async isHealthy(): Promise<boolean> {
+    try {
+      if (!this.connection) {
+        throw new Error("Solana connection not initialized.");
+      }
+      const health = await this.connection.isHealthy();
+      return health;
+    } catch (error) {
+      console.error("Error checking connection health:", error);
+      errorCollector.captureError(error instanceof Error ? error : new Error('Failed to check connection health'), {
+        component: 'HeliusKeyManager',
+        source: 'isHealthy'
+      });
+      return false;
+    }
+  }
+
+  public async getLatestBlockHeight(): Promise<number | null> {
+    try {
+      if (!this.connection) {
+        throw new Error("Solana connection not initialized.");
+      }
+      const slot = await this.connection.getSlot();
+      return slot;
+    } catch (error) {
+      console.error("Error getting current slot:", error);
+      errorCollector.captureError(error instanceof Error ? error : new Error('Failed to get current slot'), {
+        component: 'HeliusKeyManager',
+        source: 'getLatestBlockHeight'
+      });
+      return null;
+    }
+  }
+
+  public async getBalance(publicKey: string): Promise<number | null> {
+    try {
+      if (!this.connection) {
+        throw new Error("Solana connection not initialized.");
+      }
+      const pubKey = new PublicKey(publicKey);
+      const balance = await this.connection.getBalance(pubKey);
+      return balance;
+    } catch (error) {
+      console.error("Error getting balance:", error);
+      errorCollector.captureError(error instanceof Error ? error : new Error('Failed to get balance'), {
+        component: 'HeliusKeyManager',
+        source: 'getBalance',
+        details: { publicKey }
+      });
+      return null;
+    }
+  }
+
+  public async testKey(): Promise<boolean> {
+    try {
+      const isHeliusInitialized = !!this.helius;
+      const isSolanaHealthy = await this.isHealthy();
+      return isHeliusInitialized && isSolanaHealthy;
     } catch (error) {
       console.error("Error testing Helius key:", error);
-      this.apiKeyTestResults[key] = false;
-      return false;
-    }
-  }
-
-  public async testAllKeys(): Promise<Record<string, boolean>> {
-    const results: Record<string, boolean> = {};
-    
-    for (const key of this.apiKeys) {
-      results[key] = await this.testKey(key);
-    }
-    
-    return results;
-  }
-
-  // Method to register a new key
-  public async registerKey(key: string, name: string = "Helius API Key"): Promise<boolean> {
-    try {
-      // Skip empty or placeholder keys
-      if (!key || key.trim() === "" || 
-          key === "[Your Helius API Key]" ||
-          key === "ΧΡΕΙΑΖΕΤΑΙ_ΚΛΕΙΔΙ_API") {
-        toast.error("Παρακαλώ εισάγετε ένα έγκυρο κλειδί Helius API");
-        return false;
-      }
-
-      // Check if the key is valid first
-      const isValid = await this.testKey(key);
-      
-      if (!isValid) {
-        toast.error("Μη έγκυρο κλειδί Helius API");
-        return false;
-      }
-      
-      // Check if key already exists
-      if (this.apiKeys.includes(key)) {
-        toast.info("Αυτό το κλειδί Helius API είναι ήδη καταχωρημένο");
-        return false;
-      }
-      
-      // Save to Supabase if possible
-      if (supabase) {
-        const response = await supabase
-          .from('api_keys_storage')
-          .insert({
-            name,
-            service: 'helius',
-            key_value: key,
-            status: 'active'
-          });
-          
-        if (response.error) {
-          console.error("Error saving key to Supabase:", response.error);
-          throw new Error(response.error.message);
-        }
-      }
-      
-      // Add to local cache
-      this.apiKeys.push(key);
-      toast.success("Το κλειδί Helius API καταχωρήθηκε επιτυχώς");
-      
-      return true;
-    } catch (error) {
-      console.error("Error registering Helius key:", error);
-      errorCollector.captureError(error instanceof Error ? error : new Error("Failed to register Helius key"), {
-        component: "HeliusKeyManager",
-        source: "client"
+      errorCollector.captureError(error instanceof Error ? error : new Error('Failed to test Helius key'), {
+        component: 'HeliusKeyManager',
+        source: 'testKey'
       });
       return false;
     }
   }
 
-  private async loadKeysFromStorage(): Promise<void> {
+  public async addKeyToDatabase(keyData: any) {
     try {
-      // Try to load from Supabase first
-      if (supabase) {
-        const response = await supabase
-          .from('api_keys_storage')
-          .select()
-          .eq('service', 'helius')
-          .eq('status', 'active');
-          
-        if (response.error) {
-          throw response.error;
-        }
-        
-        if (response.data && response.data.length > 0) {
-          // Extract API keys and filter out placeholders and empty keys
-          const keys = response.data
-            .map(item => item.key_value)
-            .filter(key => 
-              key && 
-              key.trim() !== "" && 
-              key !== "[Your Helius API Key]" &&
-              key !== "ΧΡΕΙΑΖΕΤΑΙ_ΚΛΕΙΔΙ_API"
-            );
-            
-          this.apiKeys = keys;
-          console.log(`Loaded ${this.apiKeys.length} Helius API keys from Supabase`);
-          return;
-        }
-      }
+      const { name, service, key_value, status } = keyData;
       
-      console.log("No valid Helius API keys found in storage");
-      this.apiKeys = [];
+      // Make sure we provide all required fields
+      const { error } = await supabase
+        .from('api_keys_storage')
+        .insert({
+          name,
+          service,
+          key_value,
+          status,
+          user_id: (await supabase.auth.getUser()).data.user?.id || '' // Ensure user_id is provided
+        });
+        
+      if (error) throw error;
+      return { success: true };
     } catch (error) {
-      console.error("Error loading Helius API keys:", error);
-      this.apiKeys = [];
+      console.error('Error adding key to database:', error);
+      return { success: false, error };
     }
+  };
+
+  public getApiKey(): string {
+    return this.apiKey;
   }
-  
-  // No longer needed since we're not storing demo keys in localStorage
-  private saveKeysToStorage(): void {
-    // Method intentionally empty - we use Supabase for storage now
+
+  public setApiKey(apiKey: string): void {
+    this.apiKey = apiKey;
+    this.initializeHelius();
   }
 }
-
-// Export a singleton instance
-export const heliusKeyManager = HeliusKeyManager.getInstance();

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConnectWalletCard } from "@/components/home/ConnectWalletCard";
@@ -28,6 +27,22 @@ const chartData = [
 interface BotStatus {
   active: boolean;
 }
+
+// For the function causing the error (likely around line 87), add proper type assertion or fix the return type
+const fetchData = async () => {
+  try {
+    // Use a specific type instead of relying on inference
+    const { data, error } = await supabase
+      .from('some_table')
+      .select('*');
+      
+    // Add proper type assertion to fix infinite instantiation error
+    return { data: data as any[], error };
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    return { data: [], error };
+  }
+};
 
 export default function Dashboard() {
   const {

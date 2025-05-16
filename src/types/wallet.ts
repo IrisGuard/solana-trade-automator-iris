@@ -1,4 +1,5 @@
 
+// Define the Token type that's used in wallet-related components
 export interface Token {
   address: string;
   symbol: string;
@@ -6,5 +7,5 @@ export interface Token {
   amount: number;
   decimals: number;
   logo?: string;
-  mint?: string; // Adding mint property for consistency
+  mint?: string;
 }

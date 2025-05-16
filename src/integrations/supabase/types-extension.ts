@@ -81,6 +81,59 @@ export type ExtendedDatabase = Database & {
           }
         ];
       };
+      wallet_tokens: {
+        Row: {
+          id: string;
+          user_id: string;
+          wallet_address: string;
+          address: string;
+          symbol: string;
+          name: string;
+          amount: number;
+          decimals: number;
+          logo?: string;
+          mint?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          wallet_address: string;
+          address: string;
+          symbol: string;
+          name: string;
+          amount: number;
+          decimals: number;
+          logo?: string;
+          mint?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          wallet_address?: string;
+          address?: string;
+          symbol?: string;
+          name?: string;
+          amount?: number;
+          decimals?: number;
+          logo?: string;
+          mint?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wallet_tokens_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
   };
 };

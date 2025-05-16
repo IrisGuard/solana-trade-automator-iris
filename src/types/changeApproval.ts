@@ -19,11 +19,3 @@ export interface PendingChange {
   rejected_reason?: string;
   created_at?: string;
 }
-
-export interface ChangeSubmitData {
-  title?: string;
-  description?: string;
-  table_name?: string;
-  record_id?: string;
-  changes_json?: Record<string, any>;
-}

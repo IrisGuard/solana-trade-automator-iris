@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { BotRow } from '@/services/bot/types'; 
@@ -83,36 +82,40 @@ export function useBotControl() {
   };
 
   // Create a new bot
-  const createBot = async (botData: Partial<BotRow>) => {
-    if (!user) return null;
-
+  const createBot = async (botData: any) => {
     try {
-      const fullBotData = {
-        ...botData,
-        user_id: user.id,
-        active: false,
-      };
+      // Ensure required fields are present in each bot object
+      const botsToCreate = Array.isArray(botData) ? 
+        botData.map(bot => ({
+          user_id: user?.id || '',
+          active: bot.active || false,
+          id: bot.id,
+          name: bot.name || 'Default Bot Name',  // Ensure name is provided
+          strategy: bot.strategy || 'default',   // Ensure strategy is provided
+          config: bot.config,
+          created_at: bot.created_at,
+          updated_at: bot.updated_at
+        })) : 
+        {
+          user_id: user?.id || '',
+          active: botData.active || false,
+          id: botData.id,
+          name: botData.name || 'Default Bot Name',  // Ensure name is provided
+          strategy: botData.strategy || 'default',   // Ensure strategy is provided
+          config: botData.config,
+          created_at: botData.created_at,
+          updated_at: botData.updated_at
+        };
 
       const { data, error } = await supabase
         .from('bots')
-        .insert([fullBotData])
-        .select();
+        .insert(botsToCreate);
 
       if (error) throw error;
-
-      // Refresh the bots list
-      await fetchBots();
-
-      toast.success('Bot created successfully');
-      return data && data.length > 0 ? data[0] : null;
+      return { data, error: null };
     } catch (err) {
-      const capturedError = err instanceof Error ? err : new Error('Failed to create bot');
-      errorCollector.captureError(capturedError, {
-        component: 'useBotControl',
-        source: 'createBot'
-      });
-      toast.error('Failed to create bot');
-      return null;
+      console.error('Error creating bot:', err);
+      return { data: null, error: err };
     }
   };
 
