@@ -78,7 +78,8 @@ export function useWalletConnect() {
     return false;
   };
 
-  const handleConnectClick = async () => {
+  // Update the handler to accept the event parameter
+  const handleConnectClick = async (event?: React.MouseEvent<HTMLButtonElement>) => {
     if (isConnecting || isThrottled()) return;
     
     try {
