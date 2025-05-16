@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { dbClient } from "@/integrations/supabase/client";
 import { solanaService } from "@/services/solana";
+import { useUser } from "@/hooks/useUser";
 
 export interface Transaction {
   id: string;
@@ -21,6 +22,7 @@ export const useTransactionsData = (walletAddress: string) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const { user } = useUser();
 
   const fetchTransactions = useCallback(async (address: string) => {
     if (!address) {
@@ -101,13 +103,18 @@ export const useTransactionsData = (walletAddress: string) => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
 
   // Store new transactions in database
   const storeNewTransactionsInDb = async (transactions: Transaction[], walletAddress: string) => {
     try {
       // For each transaction, check if it exists in DB and insert if not
       for (const tx of transactions) {
+        if (!user?.id) {
+          console.log("No user ID available, skipping database storage");
+          continue;
+        }
+        
         const { data: existingTx } = await dbClient
           .from("transactions")
           .select("signature")
@@ -124,7 +131,8 @@ export const useTransactionsData = (walletAddress: string) => {
             block_time: tx.timestamp.toISOString(),
             source: tx.source,
             destination: tx.destination,
-            wallet_address: walletAddress
+            wallet_address: walletAddress,
+            user_id: user.id  // Add the user_id field that was missing
           };
           
           await dbClient.from("transactions").insert(dbTx);

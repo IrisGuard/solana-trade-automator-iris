@@ -73,9 +73,13 @@ export interface ActiveOrder {
   createdAt: string;
 }
 
+// Fixed TokenPriceInfo interface to ensure consistency across the application
 export interface TokenPriceInfo {
-  price: number;
-  change24h: number;
-  highPrice24h?: number;
-  lowPrice24h?: number;
+  price: number;           // Current token price
+  change24h: number;       // 24-hour price change percentage
+  highPrice24h?: number;   // 24-hour high price
+  lowPrice24h?: number;    // 24-hour low price
+  volume24h?: number;      // 24-hour trading volume
+  marketCap?: number;      // Token market capitalization
+  lastUpdated?: Date;      // When the price data was last updated
 }
