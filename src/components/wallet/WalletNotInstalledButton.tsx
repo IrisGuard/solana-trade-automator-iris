@@ -5,7 +5,7 @@ import { AlertCircle } from "lucide-react";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 interface WalletNotInstalledButtonProps extends ButtonProps {
-  onClick: () => void;
+  onClick: React.MouseEventHandler<HTMLButtonElement>; // Update to correct event handler type
 }
 
 export function WalletNotInstalledButton({ 

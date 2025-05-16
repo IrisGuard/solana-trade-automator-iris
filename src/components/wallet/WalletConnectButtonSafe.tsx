@@ -27,7 +27,7 @@ export function WalletConnectButtonSafe({
       <WalletNotInstalledButton 
         className={className}
         size={size}
-        onClick={handleConnectClick}
+        onClick={handleConnectClick} // This is now properly typed
         {...props}
       />
     );
