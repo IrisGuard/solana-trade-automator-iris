@@ -1,7 +1,7 @@
 
 // Import with renamed import to avoid naming conflicts
 import { supabaseConfig } from '@/utils/supabaseConfig';
-// Import the Supabase package correctly - createClient is not a named export
+// Import the Supabase package correctly - createClient is a default export
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/integrations/supabase/types';
 
