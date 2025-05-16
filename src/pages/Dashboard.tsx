@@ -19,7 +19,7 @@ const chartData = [
   { name: 'Ιουλ', value: 2800, month: 'Ιούλιος' },
 ];
 
-// Define a simple interface for bot data to avoid infinite type instantiation
+// Define a simplified interface for bot data to prevent infinite type instantiation
 interface BotData {
   id: string;
   active: boolean;

@@ -6,6 +6,7 @@ import { BotStatusCard } from "../home/BotStatusCard";
 import { TokensCard } from "../home/TokensCard";
 import { TransactionsCard } from "../home/TransactionsCard";
 import { ApiKeysSection } from "./ApiKeysSection";
+import { PerformanceMetricsCard } from "./PerformanceMetricsCard";
 import { Token } from "@/types/wallet";
 import { TokenPrices } from "@/services/solana/price/types";
 
@@ -50,7 +51,7 @@ export function DashboardContent({
       />
 
       <PortfolioChart chartData={chartData} />
-
+      
       <div className="grid gap-6 md:grid-cols-2">
         <BotStatusCard 
           isActive={botActive} 
@@ -66,6 +67,9 @@ export function DashboardContent({
           onSelectToken={selectTokenForTrading}
         />
       </div>
+
+      {/* Performance Metrics Section */}
+      <PerformanceMetricsCard />
 
       {/* API Keys Section */}
       <ApiKeysSection />
