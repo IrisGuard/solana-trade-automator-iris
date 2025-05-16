@@ -210,6 +210,13 @@ class HeliusService {
       return [];
     }
   }
+
+  /**
+   * Get transaction history for an address (alias for compatibility)
+   */
+  public async getTransactionHistory(address: string, limit: number = 10): Promise<any[]> {
+    return this.fetchTransactions(address, limit);
+  }
   
   /**
    * Fetch token balances for a wallet address
@@ -229,6 +236,65 @@ class HeliusService {
         details: { address }
       });
       throw error;
+    }
+  }
+  
+  /**
+   * Get token metadata for a list of token addresses
+   */
+  public async getTokenMetadata(tokenAddresses: string[]): Promise<any[]> {
+    try {
+      const apiKey = heliusKeyManager.getApiKey();
+      const url = `${HELIUS_BASE_URL}/token-metadata?api-key=${apiKey}`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ mintAccounts: tokenAddresses }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching token metadata:', error);
+      errorCollector.captureError(error, {
+        component: 'HeliusService',
+        method: 'getTokenMetadata',
+        details: { tokenCount: tokenAddresses.length }
+      });
+      return [];
+    }
+  }
+
+  /**
+   * Get price information for a token
+   */
+  public async getTokenPrice(tokenAddress: string): Promise<any> {
+    try {
+      const apiKey = heliusKeyManager.getApiKey();
+      const url = `${HELIUS_BASE_URL}/token-price?api-key=${apiKey}&mint=${tokenAddress}`;
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error(`Error fetching token price for ${tokenAddress}:`, error);
+      errorCollector.captureError(error, {
+        component: 'HeliusService',
+        method: 'getTokenPrice',
+        details: { tokenAddress }
+      });
+      return null;
     }
   }
   

@@ -11,7 +11,7 @@ export const fetchTokenBalance = async (wallet: string, tokenAddress: string): P
   console.log(`Fetching balance for token ${tokenAddress} in wallet ${wallet}`);
   
   try {
-    const tokenBalances = await heliusService.getTokenBalances(wallet);
+    const tokenBalances = await heliusService.fetchTokenBalances(wallet);
     const token = tokenBalances.find(t => t.mint === tokenAddress);
     return token?.amount || 0;
   } catch (error) {
@@ -26,7 +26,7 @@ export const fetchAllTokenBalances = async (walletAddress: string): Promise<Toke
   
   try {
     // Try using Helius service
-    const tokenBalances = await heliusService.getTokenBalances(walletAddress);
+    const tokenBalances = await heliusService.fetchTokenBalances(walletAddress);
     
     if (!tokenBalances || !tokenBalances.length) {
       console.log('No tokens found or empty response from Helius');

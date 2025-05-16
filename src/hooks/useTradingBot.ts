@@ -1,8 +1,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { TokenPriceInfo } from "./trading-bot/types";
-import { TradingBotConfig, TradingBotHook } from "./trading-bot/types";
+import { TradingBotConfig, TradingBotHook, TokenPriceInfo, TradingOrder } from "./trading-bot/types";
 import { useBotActions } from "./trading-bot/useBotActions";
 import { errorCollector } from "@/utils/error-handling/collector";
 import { toast } from "sonner";
@@ -117,16 +116,17 @@ export function useTradingBot(): TradingBotHook {
       
       // Fetch token price (simulated here)
       const price = Math.random() * 100;
-      const priceChange24h = (Math.random() * 20) - 10;
+      const priceChange = (Math.random() * 20) - 10;
       
       setSelectedTokenPrice({
         price,
-        change24h: priceChange24h,
+        change24h: priceChange,
         highPrice24h: price * 1.05,
         lowPrice24h: price * 0.95,
         volume24h: price * 10000,
         marketCap: price * 1000000,
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
+        priceChange24h: priceChange // Add this to match required type
       });
       
     } catch (error) {
@@ -165,7 +165,8 @@ export function useTradingBot(): TradingBotHook {
               ...prev,
               price: newPrice,
               change24h: prev.change24h + (randomChange / currentPrice * 100) / 24, // Adjust 24h change
-              lastUpdated: new Date()
+              lastUpdated: new Date(),
+              priceChange24h: prev.priceChange24h + (randomChange / currentPrice * 100) / 24 // Update this too
             };
           });
           
@@ -357,6 +358,17 @@ export function useTradingBot(): TradingBotHook {
     }
   }, [stopBotAction]);
   
+  // Convert activeOrders to TradingOrder[] for compatibility
+  const convertedActiveOrders: TradingOrder[] = activeOrders.map(order => ({
+    id: order.id,
+    type: order.type as any,
+    token: order.token,
+    price: order.price,
+    amount: order.amount,
+    status: order.status as any,
+    createdAt: order.createdAt
+  }));
+  
   return {
     config,
     updateConfig,
@@ -365,7 +377,7 @@ export function useTradingBot(): TradingBotHook {
     stopBot,
     isLoading: isLoading || isBotLoading,
     botStatus,
-    activeOrders,
+    activeOrders: convertedActiveOrders,
     selectedTokenPrice,
     selectedTokenDetails,
     tokens,

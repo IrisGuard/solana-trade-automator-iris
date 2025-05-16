@@ -86,8 +86,10 @@ export const useTransactionsData = (walletAddress: string) => {
         }
       });
 
-      // Store new Helius transactions in our database
-      await storeNewTransactionsInDb(processedSolanaTransactions, address);
+      // Store new Helius transactions in our database if user is logged in
+      if (user?.id) {
+        await storeNewTransactionsInDb(processedSolanaTransactions, address);
+      }
 
       // Sort by timestamp, most recent first
       const sortedTransactions = mergedTransactions.sort((a, b) => 
@@ -128,7 +130,7 @@ export const useTransactionsData = (walletAddress: string) => {
             destination: tx.destination,
             wallet_address: walletAddress,
             user_id: user.id,
-            token: tx.token,
+            token: tx.token || 'SOL',
             value_usd: tx.value_usd
           });
         }

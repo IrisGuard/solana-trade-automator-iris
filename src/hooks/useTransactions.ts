@@ -72,7 +72,7 @@ export const useTransactions = ({ walletAddress, limit = 10 }: UseTransactionsPr
       
       // If no transactions found in DB or user not authenticated, try Helius
       console.log('Fetching transactions from Helius for wallet:', walletAddress);
-      const heliusTransactions = await heliusService.getTransactionHistory(walletAddress, limit);
+      const heliusTransactions = await heliusService.fetchTransactions(walletAddress, limit);
       
       if (heliusTransactions && heliusTransactions.length > 0) {
         console.log('Found transactions on Helius:', heliusTransactions.length);

@@ -10,6 +10,7 @@ import { Toaster } from './components/ui/toaster';
 import { GlobalErrorHandler } from './components/errors/GlobalErrorHandler';
 import { ToastProvider } from './providers/ToastProvider';
 import { SupabaseAuthProvider } from './providers/SupabaseAuthProvider';
+import { HeliusStatusMonitor } from './components/HeliusStatusMonitor';
 
 function App() {
   return (
