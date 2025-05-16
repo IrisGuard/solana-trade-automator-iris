@@ -20,7 +20,7 @@ interface UseApiKeyListResult {
 
 export function useApiKeyList({ 
   userId,
-  includeDemoKeys = false // Changed default to false - don't include demo keys by default
+  includeDemoKeys = false // Demo keys are disabled by default
 }: UseApiKeyListProps): UseApiKeyListResult {
   const [keys, setKeys] = useState<ApiKeyEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,12 +41,12 @@ export function useApiKeyList({
       
       // If user is logged in, fetch their keys
       if (userId) {
-        const { data, error } = await supabase
+        const { data, error: fetchError } = await supabase
           .from('api_keys_storage')
           .select('*')
           .eq('user_id', userId);
           
-        if (error) throw error;
+        if (fetchError) throw fetchError;
         
         if (data) {
           fetchedKeys = data.map((item) => ({
@@ -63,7 +63,7 @@ export function useApiKeyList({
         }
       }
       
-      // No more demo keys
+      // No more demo keys included by default
       setKeys(fetchedKeys);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load API keys';
