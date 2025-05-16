@@ -11,6 +11,7 @@ interface SearchResultItemProps {
     url: string;
     category: string;
     icon?: React.ReactNode;
+    iconName?: string;
   };
 }
 

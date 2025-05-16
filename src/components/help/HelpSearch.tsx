@@ -1,12 +1,13 @@
 
 import React, { useState } from "react";
 import { useLanguage } from "@/hooks/use-language";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Wallet, Bot, Lock, Database, Settings, FileText, BookOpen } from "lucide-react";
 import { SearchForm } from "./search/SearchForm";
 import { CategoryFilters } from "./search/CategoryFilters";
 import { SearchResults } from "./search/SearchResults";
 import { SuggestedResources } from "./search/SuggestedResources";
 import { allResources, platformHelpResources } from "./search/helpResources";
+import { Shield, ArrowsUpDown } from "./search/icons";
 
 export function HelpSearch() {
   const { t } = useLanguage();
@@ -17,6 +18,28 @@ export function HelpSearch() {
   
   // Extract unique categories for filtering
   const categories = Array.from(new Set(allResources.map(resource => resource.category)));
+  
+  // Function to get the icon component based on icon name
+  const getIconByName = (iconName: string) => {
+    switch (iconName) {
+      case "Wallet": return <Wallet className="h-4 w-4" />;
+      case "Bot": return <Bot className="h-4 w-4" />;
+      case "Lock": return <Lock className="h-4 w-4" />;
+      case "Database": return <Database className="h-4 w-4" />;
+      case "Settings": return <Settings className="h-4 w-4" />;
+      case "FileText": return <FileText className="h-4 w-4" />;
+      case "BookOpen": return <BookOpen className="h-4 w-4" />;
+      case "Shield": return <Shield className="h-4 w-4" />;
+      case "ArrowsUpDown": return <ArrowsUpDown className="h-4 w-4" />;
+      default: return null;
+    }
+  };
+  
+  // Transform the resources to include the actual React icon components
+  const resourcesWithIcons = platformHelpResources.map(resource => ({
+    ...resource,
+    icon: getIconByName(resource.iconName)
+  }));
   
   const handleSearch = () => {
     if (!searchTerm.trim() && !categoryFilter) {
@@ -35,6 +58,15 @@ export function HelpSearch() {
       const categoryMatch = !categoryFilter || resource.category === categoryFilter;
       
       return termMatch && categoryMatch;
+    }).map(resource => {
+      // Add the icon component if it exists in the iconName
+      if ('iconName' in resource) {
+        return {
+          ...resource,
+          icon: getIconByName(resource.iconName as string)
+        };
+      }
+      return resource;
     });
     
     setSearchResults(results);
@@ -70,7 +102,7 @@ export function HelpSearch() {
       
       <div className="space-y-4 pt-2">
         {searchResults.length === 0 && (searchTerm.trim() === "" && !categoryFilter) ? (
-          <SuggestedResources resources={platformHelpResources} />
+          <SuggestedResources resources={resourcesWithIcons} />
         ) : (
           <SearchResults 
             searchResults={searchResults}
