@@ -9,16 +9,14 @@ class HeliusKeyManager {
   private isInitialized = false;
   private lastRefreshTime = 0;
   private refreshInterval = 60 * 1000; // 1 minute
-  private fallbackKey = 'ddb32813-1f4b-459d-8964-310b1b73a053'; // Default fallback key
+  private retryCount = 0;
+  private maxRetries = 3;
+  private fallbackKey = FALLBACK_HELIUS_KEY || 'ddb32813-1f4b-459d-8964-310b1b73a053';
 
   constructor() {
     // Initialize with default fallback key
     this.apiKeys = [this.fallbackKey];
-    
-    // If configured fallback key exists, add it too
-    if (FALLBACK_HELIUS_KEY && FALLBACK_HELIUS_KEY !== this.fallbackKey) {
-      this.apiKeys.push(FALLBACK_HELIUS_KEY);
-    }
+    this.initialize();
   }
 
   /**
@@ -51,15 +49,15 @@ class HeliusKeyManager {
   public async refreshKeys(): Promise<boolean> {
     const now = Date.now();
     
-    // Don't refresh too frequently
-    if (now - this.lastRefreshTime < this.refreshInterval && this.isInitialized) {
+    // Don't refresh too frequently unless forced
+    if (now - this.lastRefreshTime < this.refreshInterval && this.isInitialized && this.retryCount === 0) {
       return this.apiKeys.length > 0;
     }
 
     try {
       this.lastRefreshTime = now;
       
-      // Get API keys from Supabase - using api_keys_storage, not api_keys
+      // Get API keys from Supabase
       const { data, error } = await supabase
         .from('api_keys_storage')
         .select('key_value')
@@ -67,15 +65,7 @@ class HeliusKeyManager {
         .eq('status', 'active');
       
       if (error) {
-        console.error('Error fetching Helius API keys:', error);
-        errorCollector.captureError(error, {
-          component: 'HeliusKeyManager',
-          method: 'refreshKeys',
-          additional: 'Fallback to existing keys'
-        });
-        
-        this.ensureKeyAvailability();
-        return this.apiKeys.length > 0;
+        throw error;
       }
       
       // Extract keys from result
@@ -85,8 +75,21 @@ class HeliusKeyManager {
         if (keys.length > 0) {
           this.apiKeys = keys;
           this.isInitialized = true;
+          this.retryCount = 0;
+          console.log(`Loaded ${keys.length} Helius API keys`);
           return true;
         }
+      }
+      
+      // If no keys found and we haven't exceeded max retries, try again later
+      if (this.retryCount < this.maxRetries) {
+        this.retryCount++;
+        console.warn(`No Helius API keys found, will retry (${this.retryCount}/${this.maxRetries})`);
+        
+        // Schedule a retry with exponential backoff
+        setTimeout(() => this.refreshKeys(), Math.pow(2, this.retryCount) * 1000);
+      } else {
+        console.error("Failed to load Helius API keys after maximum retries");
       }
       
       // Make sure we have at least the fallback key
@@ -108,24 +111,31 @@ class HeliusKeyManager {
   }
   
   /**
-   * Make sure keys are loaded before use
+   * Validate an API key against the Helius API
    */
-  private async ensureInitialized(): Promise<void> {
-    if (!this.isInitialized) {
-      await this.refreshKeys();
+  public async validateApiKey(apiKey: string): Promise<boolean> {
+    try {
+      const url = `https://api.helius.xyz/v0/addresses/vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg/balances?api-key=${apiKey}`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (response.status === 200) {
+        return true;
+      }
+      
+      if (response.status === 429) {
+        console.warn("Helius API rate limit exceeded during validation");
+      }
+      
+      return false;
+    } catch (error) {
+      console.error("Error validating Helius API key:", error);
+      return false;
     }
   }
-
-  /**
-   * Force reload after configuration changes
-   */
-  public async forceReload(): Promise<void> {
-    this.isInitialized = false;
-    this.lastRefreshTime = 0;
-    await this.refreshKeys();
-    console.log("HeliusKeyManager force reloaded");
-  }
-
+  
   /**
    * Initialize for first use
    */
@@ -133,6 +143,17 @@ class HeliusKeyManager {
     this.isInitialized = false;
     await this.refreshKeys();
     console.log("HeliusKeyManager initialized");
+  }
+  
+  /**
+   * Force reload after configuration changes
+   */
+  public async forceReload(): Promise<void> {
+    this.isInitialized = false;
+    this.lastRefreshTime = 0;
+    this.retryCount = 0;
+    await this.refreshKeys();
+    console.log("HeliusKeyManager force reloaded");
   }
 }
 
