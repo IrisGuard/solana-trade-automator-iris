@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 
 export function useApiKeyVisibility() {
-  // Keep track of which key IDs should be visible
+  // Keep track of which key IDs should be visible using an object
   const [visibleKeyIds, setVisibleKeyIds] = useState<Record<string, boolean>>({});
   
   // Toggle visibility for a key
