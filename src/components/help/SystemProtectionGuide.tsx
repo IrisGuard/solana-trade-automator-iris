@@ -66,7 +66,7 @@ export function SystemProtectionGuide() {
                 </p>
                 <ul className="list-disc list-inside text-sm mt-1">
                   <li>Μέσω της κονσόλας: <code>window.siteBackup.create()</code></li>
-                  <li>Από το μενού διαχείρισης στις "Ρυθμίσεις > Ασφάλεια"</li>
+                  <li>Από το μενού διαχείρισης στις "Ρυθμίσεις &gt; Ασφάλεια"</li>
                 </ul>
               </div>
             </div>
@@ -271,7 +271,7 @@ export function SystemProtectionGuide() {
               </table>
               
               <p className="text-sm mt-2">
-                Για πλήρη πρόσβαση στην τεκμηρίωση, επισκεφθείτε τη σελίδα "Ρυθμίσεις > Τεχνική Τεκμηρίωση" ή συμβουλευτείτε τα σχόλια στον πηγαίο κώδικα.
+                Για πλήρη πρόσβαση στην τεκμηρίωση, επισκεφθείτε τη σελίδα "Ρυθμίσεις &gt; Τεχνική Τεκμηρίωση" ή συμβουλευτείτε τα σχόλια στον πηγαίο κώδικα.
               </p>
             </div>
           </AccordionContent>
@@ -281,3 +281,4 @@ export function SystemProtectionGuide() {
     </div>
   );
 }
+
