@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EnhancedTransactionFilters } from "@/components/transactions/EnhancedTransactionFilters";
@@ -145,7 +146,7 @@ export default function TransactionsEnhanced() {
         {/* Transaction Summary component */}
         <TransactionSummary transactions={filteredTransactions.length > 0 ? filteredTransactions : transactions} />
         
-        {/* Token Activity component */}
+        {/* Token Activity component - pass the correct props */}
         <TokenActivity 
           transactions={filteredTransactions.length > 0 ? filteredTransactions : transactions}
           uniqueTokens={uniqueTokens} 

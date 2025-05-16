@@ -5,11 +5,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export interface OrdersTabProps {
-  orders: TradingOrder[];
+  activeOrders: TradingOrder[];
 }
 
-export function OrdersTab({ orders }: OrdersTabProps) {
-  if (!orders || orders.length === 0) {
+export function OrdersTab({ activeOrders }: OrdersTabProps) {
+  if (!activeOrders || activeOrders.length === 0) {
     return (
       <div className="text-center p-4 text-muted-foreground">
         Δεν υπάρχουν ενεργές εντολές αυτή τη στιγμή.
@@ -19,7 +19,7 @@ export function OrdersTab({ orders }: OrdersTabProps) {
 
   return (
     <div className="space-y-4">
-      {orders.map(order => (
+      {activeOrders.map(order => (
         <Card key={order.id} className="overflow-hidden">
           <CardContent className="p-0">
             <div className="p-4 border-b bg-muted/20">

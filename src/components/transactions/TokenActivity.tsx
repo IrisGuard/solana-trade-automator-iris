@@ -4,13 +4,17 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { useTransactions, getUniqueTokens } from "./TransactionsData";
 
 export interface TokenActivityProps {
-  walletAddress: string;
-  isRefreshing: boolean;
+  walletAddress?: string;
+  isRefreshing?: boolean;
+  transactions?: any[];
+  uniqueTokens?: string[];
 }
 
-export function TokenActivity({ walletAddress, isRefreshing }: TokenActivityProps) {
-  const { transactions } = useTransactions(walletAddress);
-  const uniqueTokens = getUniqueTokens(transactions || []);
+export function TokenActivity({ walletAddress, isRefreshing, transactions: propTransactions, uniqueTokens: propUniqueTokens }: TokenActivityProps) {
+  // Use props if provided, otherwise fetch from hook
+  const { transactions: hookTransactions } = useTransactions(walletAddress);
+  const transactions = propTransactions || hookTransactions || [];
+  const uniqueTokens = propUniqueTokens || getUniqueTokens(transactions);
   
   if (!transactions || transactions.length === 0) {
     return (

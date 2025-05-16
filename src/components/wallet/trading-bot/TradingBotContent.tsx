@@ -7,9 +7,8 @@ import { MonitorTab } from "./MonitorTab";
 import { OrdersTab } from "./OrdersTab";
 import { HistoryTab } from "./HistoryTab";
 import { TradingBotHook } from "@/hooks/trading-bot/types";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
 
 interface TradingBotContentProps {
   tradingBotState: TradingBotHook;
@@ -43,20 +42,23 @@ export function TradingBotContent({ tradingBotState, tab, setTab }: TradingBotCo
     }
   };
 
+  // Convert BotStatus to the expected type for components
+  const safeStatus = botStatus === 'error' ? 'idle' : botStatus;
+
   // Function to render proper tab content
   const renderTabContent = () => {
     switch (tab) {
       case "monitor":
         return (
           <MonitorTab
-            botStatus={botStatus}
+            botStatus={safeStatus}
             selectedTokenDetails={selectedTokenDetails}
             selectedTokenPrice={selectedTokenPrice}
             activeOrders={activeOrders}
           />
         );
       case "orders":
-        return <OrdersTab orders={activeOrders} />;
+        return <OrdersTab activeOrders={activeOrders} />;
       case "history":
         return <HistoryTab />;
       case "settings":
@@ -206,6 +208,14 @@ export function TradingBotContent({ tradingBotState, tab, setTab }: TradingBotCo
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {botStatus === 'error' && (
+              <Alert className="mb-4" variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Υπήρξε σφάλμα με το bot. Παρακαλώ επανεκκινήστε το ή επικοινωνήστε με την υποστήριξη.
+                </AlertDescription>
+              </Alert>
+            )}
             {renderTabContent()}
           </CardContent>
         </Card>
