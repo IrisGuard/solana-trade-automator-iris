@@ -26,9 +26,9 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
-        // Fix JSX runtime issue with correct paths
-        'react/jsx-runtime': 'react/jsx-runtime',
-        'react/jsx-dev-runtime': 'react/jsx-dev-runtime',
+        // Fix JSX runtime issue with correct paths - key fix
+        'react/jsx-runtime': path.resolve(__dirname, 'src/utils/jsx-runtime-fix.ts'),
+        'react/jsx-dev-runtime': path.resolve(__dirname, 'src/utils/jsx-runtime-fix.ts'),
         // Fix polyfill path issues - explicitly map each required polyfill
         buffer: 'buffer/',
         // Fix the process polyfill path - important change
@@ -78,7 +78,10 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         // Add React and React Router DOM to the optimization
         'react',
         'react-dom',
-        'react-router-dom'
+        'react-router-dom',
+        // Add all Radix UI components to the optimization
+        '@radix-ui/react-slot',
+        '@radix-ui/react-compose-refs'
       ],
       // Force optimization of problematic dependencies
       force: true,
@@ -89,7 +92,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         // Improve CommonJS handling for React
         requireReturnsDefault: 'auto',
         // Add explicit includes for process module
-        include: [/node_modules\/process/, /node_modules\/buffer/, /node_modules\/react-router-dom/],
+        include: [/node_modules\/process/, /node_modules\/buffer/, /node_modules\/react-router-dom/, /node_modules\/@radix-ui/],
       },
       rollupOptions: {
         plugins: [
@@ -100,6 +103,10 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         external: ['process/browser', 'react'], 
         onwarn(warning, warn) {
           if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
+            return;
+          }
+          // Suppress warnings about JSX annotations
+          if (warning.code === 'SOURCEMAP_ERROR' && warning.message.includes('/*#__PURE__*/')) {
             return;
           }
           warn(warning);

@@ -1,0 +1,41 @@
+
+/**
+ * JSX Runtime Proxy
+ * 
+ * This file fixes compatibility issues between Radix UI components and React's JSX runtime.
+ * It creates proxy exports that match what Radix UI expects.
+ */
+import * as React from 'react';
+import * as jsxRuntime from 'react/jsx-runtime';
+
+// Explicitly re-export the jsx and jsxs functions from React
+export const jsx = jsxRuntime.jsx || React.createElement;
+export const jsxs = jsxRuntime.jsxs || React.createElement;
+export const Fragment = React.Fragment;
+
+// Create a compatibility layer for older code that might import directly
+export default {
+  jsx,
+  jsxs,
+  Fragment
+};
+
+// Apply patches to global React if in browser environment
+if (typeof window !== 'undefined' && window.React) {
+  // Make sure React.jsx and React.jsxs are defined
+  if (!window.React.jsx) {
+    Object.defineProperty(window.React, 'jsx', {
+      value: jsx,
+      configurable: true,
+      writable: false
+    });
+  }
+  
+  if (!window.React.jsxs) {
+    Object.defineProperty(window.React, 'jsxs', {
+      value: jsxs,
+      configurable: true,
+      writable: false
+    });
+  }
+}

@@ -5,6 +5,9 @@ import 'process/browser';
 import 'stream-browserify';
 import 'util/';
 
+// Import JSX runtime fix BEFORE importing React components
+import './utils/jsx-runtime-fix';
+
 // Import React compatibility patches
 import { ensureReactCompatibility } from './utils/reactPatches';
 
