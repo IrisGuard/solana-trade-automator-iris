@@ -20,6 +20,7 @@ import { HelpButton } from "@/components/help/HelpButton";
 import { HealthStatusIndicator } from "@/components/monitoring/HealthStatusIndicator";
 import { DOMErrorHandler } from "@/components/errors/DOMErrorHandler";
 import { MonitoringSystem } from "@/components/monitoring/MonitoringSystem";
+import { PermanentRestoreButton } from "@/components/emergency/PermanentRestoreButton";
 
 // Εφαρμογή διορθώσεων συμβατότητας του React Router
 ensureRouterCompatibility();
@@ -100,6 +101,7 @@ export function AppContent() {
       )}
       onError={logError}
     >
+      <DOMErrorHandler />
       <BrowserRouter>
         <ThemeProvider>
           <LanguageProvider defaultLanguage="el">
@@ -114,8 +116,8 @@ export function AppContent() {
                           <EmergencyRecovery />
                           <HealthStatusIndicator />
                           <HelpButton />
+                          <PermanentRestoreButton />
                           <Toaster position="top-right" richColors />
-                          {/* Μετακίνησα το MonitoringSystem εδώ, μέσα στο LanguageProvider */}
                           <MonitoringSystem />
                         </div>
                       </div>
