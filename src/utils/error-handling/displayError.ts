@@ -11,6 +11,7 @@ interface DisplayErrorOptions {
   source?: string;
   details?: any;
   errorType?: string;
+  title?: string; // Added missing 'title' property
 }
 
 /**
@@ -34,7 +35,7 @@ export const displayError = (
   
   // Display toast if requested
   if (options.showToast) {
-    toast.error(options.toastTitle || 'Error', {
+    toast.error(options.toastTitle || options.title || 'Error', {
       description: message,
       id: errorId
     });
