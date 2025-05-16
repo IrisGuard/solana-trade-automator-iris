@@ -5,6 +5,7 @@ import { PortfolioChart } from "./PortfolioChart";
 import { BotStatusCard } from "../home/BotStatusCard";
 import { TokensCard } from "../home/TokensCard";
 import { TransactionsCard } from "../home/TransactionsCard";
+import { ApiKeysSection } from "./ApiKeysSection";
 import { Token } from "@/types/wallet";
 import { TokenPrices } from "@/services/solana/price/types";
 
@@ -65,6 +66,9 @@ export function DashboardContent({
           onSelectToken={selectTokenForTrading}
         />
       </div>
+
+      {/* API Keys Section */}
+      <ApiKeysSection />
 
       <TransactionsCard 
         walletAddress={walletAddress} 
