@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { BotRow } from '@/services/bot/types'; 
@@ -90,13 +91,13 @@ export function useBotControl() {
       }
 
       if (Array.isArray(botData)) {
-        // Handle array of bots
+        // Handle array of bots - ensuring all required fields are present
         const botsToCreate = botData.map(bot => ({
           user_id: user.id,
           active: bot.active || false,
           id: bot.id,
-          name: bot.name || 'Default Bot Name',
-          strategy: bot.strategy || 'default',
+          name: bot.name || 'Default Bot Name', // Ensure name is always provided
+          strategy: bot.strategy || 'default',   // Ensure strategy is always provided
           config: bot.config,
           created_at: bot.created_at,
           updated_at: bot.updated_at
@@ -109,13 +110,13 @@ export function useBotControl() {
         if (error) throw error;
         return { data, error: null };
       } else {
-        // Handle single bot object
+        // Handle single bot object - ensuring all required fields are present
         const botToCreate = {
           user_id: user.id,
           active: botData.active || false,
           id: botData.id,
-          name: botData.name || 'Default Bot Name',
-          strategy: botData.strategy || 'default',
+          name: botData.name || 'Default Bot Name', // Ensure name is always provided
+          strategy: botData.strategy || 'default',   // Ensure strategy is always provided
           config: botData.config,
           created_at: botData.created_at,
           updated_at: botData.updated_at

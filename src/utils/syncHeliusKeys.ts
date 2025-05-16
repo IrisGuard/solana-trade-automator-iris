@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { addHeliusEndpoints, addHeliusKey } from "./addHeliusEndpoints";
-// Fix the import to use the named export
+// Use the correct import for heliusKeyManager
 import { heliusKeyManager } from "@/services/solana/HeliusKeyManager";
 import { heliusEndpointMonitor } from "@/services/helius/HeliusEndpointMonitor";
 
@@ -21,11 +21,18 @@ export async function syncAllHeliusData(userId: string): Promise<boolean> {
     // Συγχρονισμός των endpoints - χωρίς hardcoded κλειδιά
     const endpointResult = await addHeliusEndpoints();
     
-    // Ανανέωση των διαχειριστών - make sure they have forceReload method
-    if (typeof heliusKeyManager.forceReload === 'function') {
-      await heliusKeyManager.forceReload();
-    } else {
-      await heliusKeyManager.initialize();
+    // Ανανέωση των διαχειριστών - use the methods we added
+    try {
+      // Try the forceReload method first
+      if (heliusKeyManager) {
+        await heliusKeyManager.forceReload();
+      }
+    } catch (error) {
+      // Fall back to initialize if forceReload fails
+      console.log("Falling back to initialize method", error);
+      if (heliusKeyManager) {
+        await heliusKeyManager.initialize();
+      }
     }
     
     if (heliusEndpointMonitor && typeof heliusEndpointMonitor.forceReload === 'function') {

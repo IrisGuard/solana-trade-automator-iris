@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,7 +36,7 @@ export function useApiKeyManager({ userId, onSuccess }: UseApiKeyManagerProps = 
         service,
         key_value: keyValue,
         // Use a valid literal value for status from the allowed enum
-        status: 'active' as const,
+        status: 'active',
         created_at: new Date().toISOString(),
         description
       };
@@ -88,6 +89,11 @@ export function useApiKeyManager({ userId, onSuccess }: UseApiKeyManagerProps = 
     setIsUpdating(true);
     
     try {
+      // Make sure the status is one of the allowed values
+      if (updates.status && !['active', 'expired', 'revoked', 'failing'].includes(updates.status as string)) {
+        updates.status = 'active'; // Default to 'active' if an invalid status is provided
+      }
+      
       const { data, error } = await supabase
         .from('api_keys_storage')
         .update(updates)

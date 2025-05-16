@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConnectWalletCard } from "@/components/home/ConnectWalletCard";
@@ -28,16 +29,21 @@ interface BotStatus {
   active: boolean;
 }
 
-// For the function causing the error (likely around line 87), add proper type assertion or fix the return type
-const fetchData = async () => {
+interface DashboardData {
+  id: string;
+  [key: string]: any;
+}
+
+// For the function causing the error, update to use a valid table name
+const fetchData = async (): Promise<{ data: DashboardData[] | null, error: any }> => {
   try {
-    // Use a specific type instead of relying on inference
+    // Use one of the valid tables instead of "some_table"
     const { data, error } = await supabase
-      .from('some_table')
-      .select('*');
+      .from('bots')
+      .select('*')
+      .limit(10);
       
-    // Add proper type assertion to fix infinite instantiation error
-    return { data: data as any[], error };
+    return { data, error };
   } catch (error) {
     console.error('Error fetching data:', error);
     return { data: [], error };
@@ -92,8 +98,8 @@ export default function Dashboard() {
     ? `${walletAddress.substring(0, 4)}...${walletAddress.substring(walletAddress.length - 4)}`
     : '';
 
-  // Toggle bot status
-  const toggleBotStatus = async () => {
+  // Explicitly type the bot status function to avoid infinite type instantiation
+  const toggleBotStatus = async (): Promise<void> => {
     if (!user?.id) return;
     
     setBotLoading(true);

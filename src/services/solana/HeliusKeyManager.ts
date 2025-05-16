@@ -1,5 +1,4 @@
 import { clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
-import { Helius } from 'helius-sdk';
 import { errorCollector } from '@/utils/error-handling/collector';
 import { supabase } from '@/integrations/supabase/client';
 import { ApiKeyEntry } from '@/services/api-keys/types';
@@ -23,10 +22,94 @@ const DEFAULT_NETWORKS = [
   },
 ];
 
+// Mock Helius class to match our usage patterns
+class HeliusClient {
+  private apiKey: string;
+  private baseUrl: string;
+
+  constructor(apiKey: string) {
+    this.apiKey = apiKey;
+    this.baseUrl = 'https://api.helius.xyz/v0';
+  }
+
+  // Mock implementations of all the required methods
+  async getEnhancedTransactions(options: { account: string }) {
+    return this.fetchFromHelius(`/addresses/${options.account}/transactions`);
+  }
+
+  async getAccountNFTs(account: string) {
+    return this.fetchFromHelius(`/addresses/${account}/nfts`);
+  }
+
+  async getNFTMetadata(mintAccount: string) {
+    return this.fetchFromHelius(`/nfts/${mintAccount}`);
+  }
+
+  async getSPLMetadata(mintAccount: string) {
+    return this.fetchFromHelius(`/tokens/${mintAccount}`);
+  }
+
+  async getAsset(id: string) {
+    return this.fetchFromHelius(`/assets/${id}`);
+  }
+
+  async getAssets(options: any) {
+    return this.fetchFromHelius('/assets', options);
+  }
+
+  async getAssetsByAuthority(options: { authority: string; limit?: number; page?: number }) {
+    return this.fetchFromHelius('/assets-by-authority', options);
+  }
+
+  async getAssetsByCreator(options: { creator: string; limit?: number; page?: number }) {
+    return this.fetchFromHelius('/assets-by-creator', options);
+  }
+
+  async getFirstVerifiedCreator(mint: string) {
+    return this.fetchFromHelius(`/nfts/${mint}/verified-creator`);
+  }
+
+  async getTransactions(options: { account: string; limit?: number; page?: number }) {
+    return this.fetchFromHelius(`/addresses/${options.account}/transactions`, options);
+  }
+
+  async getTokenList() {
+    return this.fetchFromHelius('/tokens/list');
+  }
+
+  async getAddressesByDelegate(delegate: string) {
+    return this.fetchFromHelius(`/addresses-by-delegate/${delegate}`);
+  }
+
+  private async fetchFromHelius(endpoint: string, params?: any): Promise<any> {
+    try {
+      const url = new URL(`${this.baseUrl}${endpoint}`);
+      url.searchParams.append('api-key', this.apiKey);
+      
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined) {
+            url.searchParams.append(key, String(value));
+          }
+        });
+      }
+      
+      const response = await fetch(url.toString());
+      if (!response.ok) {
+        throw new Error(`Helius API error: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Helius API error:', error);
+      throw error;
+    }
+  }
+}
+
 // Export the class as default and as a named export for compatibility
 export class HeliusKeyManager {
   private apiKey: string;
-  private helius: Helius | null = null;
+  private helius: HeliusClient | null = null;
   private connection: Connection | null = null;
   private network: string;
   private userId: string | undefined;
@@ -41,9 +124,7 @@ export class HeliusKeyManager {
   private initializeHelius() {
     try {
       const endpoint = DEFAULT_NETWORKS.find(n => n.value === this.network)?.endpoint || clusterApiUrl(this.network as any);
-      this.helius = new Helius(this.apiKey, {
-        baseUrl: 'https://rpc.helius.xyz',
-      });
+      this.helius = new HeliusClient(this.apiKey);
       this.connection = new Connection(endpoint);
     } catch (error) {
       console.error("Error initializing Helius:", error);
@@ -52,6 +133,28 @@ export class HeliusKeyManager {
         source: 'initializeHelius',
         details: { apiKey: this.apiKey, network: this.network }
       });
+    }
+  }
+
+  public async forceReload(): Promise<void> {
+    try {
+      // Re-initialize the Helius client with the current API key
+      this.initializeHelius();
+      console.log("Helius client reloaded successfully");
+    } catch (error) {
+      console.error("Error during force reload:", error);
+      throw error;
+    }
+  }
+
+  public async initialize(): Promise<void> {
+    try {
+      // Initialize the Helius client (alternative method for syncHeliusKeys.ts)
+      this.initializeHelius();
+      console.log("Helius client initialized successfully");
+    } catch (error) {
+      console.error("Error during initialization:", error);
+      throw error;
     }
   }
 
