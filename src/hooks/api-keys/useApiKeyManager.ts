@@ -35,6 +35,7 @@ export function useApiKeyManager({ userId, onSuccess }: UseApiKeyManagerProps = 
         name,
         service,
         key_value: keyValue,
+        // Use a valid literal value for status
         status: 'active',
         created_at: new Date().toISOString(),
         description
