@@ -4,9 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { WalletConnectedContent } from "@/components/home/WalletConnectedContent";
 import { WalletDisconnectedContent } from "@/components/home/WalletDisconnectedContent";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, Home as HomeIcon, Wallet, Bot, Shield, HelpCircle } from "lucide-react";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
 import { useLanguage } from "@/hooks/use-language";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const [isPageLoading, setIsPageLoading] = useState(true);
@@ -63,7 +65,35 @@ export default function Home() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-6">
+      {/* Navigation Menu */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Link to="/dashboard">
+          <Button variant="outline" className="w-full flex items-center gap-2 h-16">
+            <HomeIcon className="h-5 w-5" />
+            <span>Dashboard</span>
+          </Button>
+        </Link>
+        <Link to="/wallet">
+          <Button variant="outline" className="w-full flex items-center gap-2 h-16">
+            <Wallet className="h-5 w-5" />
+            <span>Wallet</span>
+          </Button>
+        </Link>
+        <Link to="/bot-control">
+          <Button variant="outline" className="w-full flex items-center gap-2 h-16">
+            <Bot className="h-5 w-5" />
+            <span>Trading Bot</span>
+          </Button>
+        </Link>
+        <Link to="/help">
+          <Button variant="outline" className="w-full flex items-center gap-2 h-16">
+            <HelpCircle className="h-5 w-5" />
+            <span>Βοήθεια</span>
+          </Button>
+        </Link>
+      </div>
+
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">

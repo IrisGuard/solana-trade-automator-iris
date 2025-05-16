@@ -9,6 +9,8 @@ class HeliusService {
   private currentEndpoint = 0;
   private endpoints = ['mainnet-beta', 'devnet'];
   private apiKeyStatus = false;
+  private retryCount = 0;
+  private maxRetries = 3;
 
   constructor() {
     console.log('HeliusService initialized');
@@ -25,6 +27,17 @@ class HeliusService {
   }
 
   public async getTokenBalances(address: string): Promise<any[]> {
+    try {
+      this.retryCount = 0;
+      return await this.fetchTokenBalancesWithRetry(address);
+    } catch (error) {
+      this.reportError(new Error(`Final failure to get token balances: ${error}`));
+      console.error('All retries failed when fetching token balances:', error);
+      return [];
+    }
+  }
+  
+  private async fetchTokenBalancesWithRetry(address: string): Promise<any[]> {
     try {
       const apiKey = this.getApiKey();
       
@@ -62,6 +75,17 @@ class HeliusService {
       
       return data.tokens || [];
     } catch (error) {
+      // Handle retry logic
+      if (this.retryCount < this.maxRetries) {
+        this.retryCount++;
+        console.log(`Retry attempt ${this.retryCount} for token balances...`);
+        this.rotateEndpoint();
+        // Add exponential backoff delay
+        const delay = Math.pow(2, this.retryCount) * 1000;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return this.fetchTokenBalancesWithRetry(address);
+      }
+      
       this.reportError(new Error(`Failed to get token balances: ${error}`));
       console.error('Error fetching token balances:', error);
       return [];
@@ -77,7 +101,7 @@ class HeliusService {
         return [];
       }
       
-      const url = `${this.baseUrl}/addresses/${address}/transactions?api-key=${apiKey}&limit=10`;
+      const url = `${this.baseUrl}/addresses/${address}/transactions?api-key=${apiKey}&limit=20`;
       
       const response = await fetch(url);
       if (!response.ok) {
@@ -85,6 +109,7 @@ class HeliusService {
       }
       
       const data = await response.json();
+      console.log(`Retrieved ${data?.length || 0} transactions for address: ${address}`);
       return data || [];
     } catch (error) {
       this.reportError(new Error(`Failed to get transaction history: ${error}`));
@@ -133,6 +158,32 @@ class HeliusService {
       return [];
     }
   }
+  
+  // Get enriched transaction history with more details
+  public async getEnrichedTransactions(address: string): Promise<any[]> {
+    try {
+      const apiKey = this.getApiKey();
+      
+      if (!apiKey || !address) {
+        console.log('Missing API key or address for Helius enriched transactions call');
+        return [];
+      }
+      
+      const url = `${this.baseUrl}/addresses/${address}/enriched-transactions?api-key=${apiKey}&limit=20`;
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Helius API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log(`Retrieved ${data?.length || 0} enriched transactions`);
+      return data || [];
+    } catch (error) {
+      this.reportError(new Error(`Failed to get enriched transactions: ${error}`));
+      return [];
+    }
+  }
 
   private getApiKey(): string {
     return heliusKeyManager.getApiKey();
@@ -144,6 +195,7 @@ class HeliusService {
 
   private rotateEndpoint(): void {
     this.currentEndpoint = (this.currentEndpoint + 1) % this.endpoints.length;
+    console.log(`Rotating to endpoint: ${this.getEndpoint()}`);
   }
 
   private reportError(error: Error): void {

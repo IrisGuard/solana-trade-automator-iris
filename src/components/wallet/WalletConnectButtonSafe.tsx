@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { isPhantomInstalled } from "@/utils/phantomWallet";
 import { useLanguage } from "@/hooks/use-language";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useErrorReporting } from "@/hooks/useErrorReporting";
 
 export function WalletConnectButtonSafe({
   children,
@@ -18,13 +19,17 @@ export function WalletConnectButtonSafe({
   const { t } = useLanguage();
   const [isAttemptingConnect, setIsAttemptingConnect] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [lastAttempt, setLastAttempt] = useState(0);
+  
+  const { reportError } = useErrorReporting();
   
   const { 
     isConnected, 
     isConnecting: hookConnecting, 
     connectWallet, 
     disconnectWallet,
-    walletAddress
+    walletAddress,
+    refreshWalletData
   } = useWalletConnection();
   
   // Συνδυάζουμε την κατάσταση από το hook και την τοπική κατάσταση
@@ -37,11 +42,32 @@ export function WalletConnectButtonSafe({
   useEffect(() => {
     if (isConnected) {
       setRetryCount(0);
+      
+      // Refresh wallet data when connected
+      const refreshData = async () => {
+        try {
+          await refreshWalletData();
+        } catch (err) {
+          console.error("Error refreshing wallet data:", err);
+        }
+      };
+      
+      refreshData();
     }
-  }, [isConnected]);
+  }, [isConnected, refreshWalletData]);
+  
+  // Prevent rapid clicking
+  const isThrottled = () => {
+    const now = Date.now();
+    if (now - lastAttempt < 2000) {
+      return true;
+    }
+    setLastAttempt(now);
+    return false;
+  };
   
   const handleClick = async () => {
-    if (isConnecting) return;
+    if (isConnecting || isThrottled()) return;
     
     try {
       setIsAttemptingConnect(true);
@@ -70,6 +96,11 @@ export function WalletConnectButtonSafe({
       }
     } catch (error) {
       console.error("Σφάλμα στο WalletConnectButtonSafe:", error);
+      reportError(error, {
+        component: 'WalletConnectButtonSafe',
+        source: 'client',
+        details: { action: 'handleClick', retryCount }
+      });
       
       // Different message based on retry count
       if (retryCount > 2) {
@@ -133,7 +164,7 @@ export function WalletConnectButtonSafe({
               <span>Wallet Απαιτείται</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
+          <TooltipContent className="bg-background border shadow-lg p-2">
             <p>Το Phantom wallet δεν είναι εγκατεστημένο. Κάντε κλικ για εγκατάσταση.</p>
           </TooltipContent>
         </Tooltip>
