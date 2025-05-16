@@ -20,7 +20,7 @@ const chartData = [
 ];
 
 // Define a simplified interface for bot data - avoiding recursive/complex types
-interface BotData {
+interface SimpleBotData {
   id: string;
   active: boolean;
   user_id: string;
