@@ -6,7 +6,6 @@ import './index.css'
 
 // Polyfills for Solana web3.js
 import './polyfills'
-import { AppContent } from './components/AppContent.tsx'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
