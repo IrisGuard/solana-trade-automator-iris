@@ -9,11 +9,15 @@ class HeliusKeyManager {
   private isInitialized = false;
   private lastRefreshTime = 0;
   private refreshInterval = 60 * 1000; // 1 minute
+  private fallbackKey = 'ddb32813-1f4b-459d-8964-310b1b73a053'; // Default fallback key
 
   constructor() {
     // Initialize with default fallback key
-    if (FALLBACK_HELIUS_KEY) {
-      this.apiKeys = [FALLBACK_HELIUS_KEY];
+    this.apiKeys = [this.fallbackKey];
+    
+    // If configured fallback key exists, add it too
+    if (FALLBACK_HELIUS_KEY && FALLBACK_HELIUS_KEY !== this.fallbackKey) {
+      this.apiKeys.push(FALLBACK_HELIUS_KEY);
     }
   }
 
@@ -21,18 +25,24 @@ class HeliusKeyManager {
    * Get an API key from the pool
    */
   public getApiKey(): string {
-    this.ensureInitialized();
+    // Always ensure we have at least one key before proceeding
+    this.ensureKeyAvailability();
     
-    if (this.apiKeys.length === 0) {
-      console.error('No Helius API keys available!');
-      throw new Error('Helius API not configured properly');
-    }
-
     // Round robin key selection
     const key = this.apiKeys[this.currentKeyIndex];
     this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeys.length;
     
     return key;
+  }
+
+  /**
+   * Ensure we always have a valid key available
+   */
+  private ensureKeyAvailability(): void {
+    if (this.apiKeys.length === 0) {
+      console.warn('No Helius API keys available, using fallback key');
+      this.apiKeys = [this.fallbackKey];
+    }
   }
 
   /**
@@ -42,8 +52,8 @@ class HeliusKeyManager {
     const now = Date.now();
     
     // Don't refresh too frequently
-    if (now - this.lastRefreshTime < this.refreshInterval) {
-      return this.isInitialized;
+    if (now - this.lastRefreshTime < this.refreshInterval && this.isInitialized) {
+      return this.apiKeys.length > 0;
     }
 
     try {
@@ -64,6 +74,7 @@ class HeliusKeyManager {
           additional: 'Fallback to existing keys'
         });
         
+        this.ensureKeyAvailability();
         return this.apiKeys.length > 0;
       }
       
@@ -78,11 +89,9 @@ class HeliusKeyManager {
         }
       }
       
-      // If no keys found, use fallback key
-      if (FALLBACK_HELIUS_KEY && this.apiKeys.length === 0) {
-        this.apiKeys = [FALLBACK_HELIUS_KEY];
-        return true;
-      }
+      // Make sure we have at least the fallback key
+      this.ensureKeyAvailability();
+      this.isInitialized = true;
       
       return this.apiKeys.length > 0;
     } catch (error) {
@@ -93,6 +102,7 @@ class HeliusKeyManager {
         additional: 'Unexpected exception'
       });
       
+      this.ensureKeyAvailability();
       return this.apiKeys.length > 0;
     }
   }

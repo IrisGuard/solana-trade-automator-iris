@@ -41,7 +41,7 @@ export function useWalletConnection(): WalletConnectionHook {
     
     // Fetch balances and tokens
     await refreshWalletData(address);
-  }, [setWalletAddress, setIsConnected]);
+  }, [setWalletAddress, setIsConnected, refreshWalletData]);
   
   // Setup persistence hook (auto-reconnection)
   useWalletPersistence(connectToWallet, isConnected, isConnecting);
@@ -61,7 +61,7 @@ export function useWalletConnection(): WalletConnectionHook {
     }
     
     return address;
-  }, [coreConnectWallet, user?.id]);
+  }, [coreConnectWallet, user?.id, refreshWalletData]);
   
   // Refresh wallet data
   const refreshWalletData = useCallback(async (address?: string) => {
