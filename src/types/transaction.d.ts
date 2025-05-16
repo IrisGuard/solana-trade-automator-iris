@@ -3,10 +3,10 @@ export interface Transaction {
   signature: string;
   type: string;
   status: string;
-  amount?: string | number;
+  amount: string;
   from?: string;
   to?: string;
-  timestamp?: number;
+  timestamp: number;
   blockTime: number;
   tokenAddress?: string;
   token?: string;

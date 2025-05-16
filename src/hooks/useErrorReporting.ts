@@ -35,6 +35,7 @@ export function useErrorReporting() {
     if (options.showUI) {
       displayError(error, {
         showToast: true,
+        toastTitle: options.toastTitle,
         ...options
       });
     } else if (options.showToast) {

@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { isPhantomInstalled, connectPhantomWallet } from '@/utils/phantomWallet';
+import { isPhantomInstalled, connectPhantomWallet, disconnectPhantomWallet } from '@/utils/phantomWallet';
 import { toast } from 'sonner';
 
 export function useWalletAddress() {

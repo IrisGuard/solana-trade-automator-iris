@@ -32,7 +32,7 @@ export function TransactionList({
     );
   }
   
-  if (transactions.length === 0) {
+  if (!transactions || transactions.length === 0) {
     return (
       <div className="py-6 text-center text-muted-foreground mb-6">
         <p>Δεν βρέθηκαν συναλλαγές</p>
@@ -64,7 +64,7 @@ export function TransactionList({
           
           <div className="flex flex-col items-end gap-1">
             <div className="font-medium">
-              {tx.amount ? `${Number(tx.amount).toFixed(4)} SOL` : ""}
+              {tx.amount ? `${Number(tx.amount).toFixed(4)} ${tx.token || 'SOL'}` : ""}
             </div>
             <span className={`px-2 py-0.5 rounded-full text-xs ${getStatusBadgeClass(tx.status)}`}>
               {tx.status}

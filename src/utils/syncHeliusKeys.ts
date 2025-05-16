@@ -27,12 +27,10 @@ export async function syncAllHeliusData(userId: string): Promise<boolean> {
     // Ανανέωση των διαχειριστών - χρησιμοποιώντας τις μεθόδους που προσθέσαμε
     try {
       console.log("Επανεκκίνηση HeliusKeyManager");
-      if (heliusKeyManager && typeof heliusKeyManager.forceReload === 'function') {
+      if (heliusKeyManager) {
         await heliusKeyManager.forceReload();
-      } else if (heliusKeyManager && typeof heliusKeyManager.initialize === 'function') {
-        await heliusKeyManager.initialize();
       } else {
-        console.error("Δεν βρέθηκε μέθοδος forceReload ή initialize στο heliusKeyManager");
+        console.error("Δεν βρέθηκε το heliusKeyManager");
       }
     } catch (error) {
       console.error("Σφάλμα κατά την επανεκκίνηση του HeliusKeyManager:", error);
@@ -45,10 +43,10 @@ export async function syncAllHeliusData(userId: string): Promise<boolean> {
     // Επανεκκίνηση του HeliusService μετά την ενημέρωση του κλειδιού
     try {
       console.log("Επανεκκίνηση HeliusService");
-      if (heliusService && typeof heliusService.reinitialize === 'function') {
+      if (heliusService) {
         await heliusService.reinitialize();
       } else {
-        console.error("Δεν βρέθηκε μέθοδος reinitialize στο heliusService");
+        console.error("Δεν βρέθηκε το heliusService");
       }
     } catch (error) {
       console.error("Σφάλμα κατά την επανεκκίνηση του HeliusService:", error);

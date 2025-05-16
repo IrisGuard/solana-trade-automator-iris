@@ -1,47 +1,45 @@
 
 import { toast } from 'sonner';
 import { errorCollector } from './collector';
+import type { ErrorData } from './collector';
 
-export interface DisplayErrorOptions {
+interface DisplayErrorOptions {
+  showToast?: boolean;
+  toastTitle?: string;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
   component?: string;
   source?: string;
   details?: any;
-  showToast?: boolean;
-  toastTitle?: string;
-  toastDescription?: string;
-  logToConsole?: boolean;
-  sendToChat?: boolean;
-  useCollector?: boolean;
-  severity?: 'low' | 'medium' | 'high' | 'critical';
-  title?: string;
+  errorType?: string;
+  title?: string; // Added missing 'title' property
 }
 
-export function displayError(error: Error, options: DisplayErrorOptions = {}) {
-  // Log to console if requested
-  if (options.logToConsole !== false) {
-    console.error('[Error]', error);
-    if (options.details) {
-      console.error('[Error Details]', options.details);
-    }
-  }
+/**
+ * Utility to display errors to the user and log them to the collector
+ */
+export const displayError = (
+  error: Error | string,
+  options: DisplayErrorOptions = {}
+): string => {
+  const errorObj = typeof error === 'string' ? new Error(error) : error;
+  const message = errorObj.message || 'An unknown error occurred';
+
+  // Collect the error
+  const errorId = errorCollector.captureError(errorObj, {
+    component: options.component || 'unknown',
+    source: options.source || 'client',
+    method: options.errorType,
+    severity: options.severity || 'medium',
+    details: options.details
+  });
   
-  // Use error collector if requested
-  if (options.useCollector !== false) {
-    errorCollector.captureError(error, {
-      component: options.component,
-      source: options.source,
-      details: options.details,
-      severity: options.severity,
-    });
-  }
-  
-  // Show toast if requested
+  // Display toast if requested
   if (options.showToast) {
     toast.error(options.toastTitle || options.title || 'Error', {
-      description: options.toastDescription || error.message,
-      duration: 5000
+      description: message,
+      id: errorId
     });
   }
   
-  return error;
-}
+  return errorId;
+};

@@ -11,12 +11,7 @@ export interface Transaction {
   status: string;
   bot: string;
   signature?: string;
-  blockTime?: number;
-  from?: string;
-  to?: string;
-  tokenAddress?: string;
 }
 
 // Define the Transaction filter types
 export type TransactionFilterType = 'all' | 'sent' | 'received';
-

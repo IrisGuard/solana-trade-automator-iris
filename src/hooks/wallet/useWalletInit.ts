@@ -1,6 +1,6 @@
 
 import { useEffect, useCallback } from 'react';
-import { isPhantomInstalled, connectTrustedPhantomWallet } from '@/utils/phantomWallet';
+import { isPhantomInstalled, connectPhantomWallet } from '@/utils/phantomWallet';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 
 /**
@@ -23,7 +23,7 @@ export function useWalletInit(
           console.log("Phantom is installed, attempting trusted connection...");
           // Try to connect to a trusted wallet session
           try {
-            const address = await connectTrustedPhantomWallet();
+            const address = await connectPhantomWallet(true);
             if (address) {
               console.log("Trusted connection successful:", address);
               setWalletAddress(address);

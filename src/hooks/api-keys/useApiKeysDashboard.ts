@@ -69,6 +69,7 @@ export function useApiKeysDashboard(limit = 4) {
   // Test API key functionality
   const testApiKey = useCallback(async (key: ApiKeyWithState) => {
     if (key.service === 'helius') {
+      // Use the checkApiKey method we added to HeliusService
       const isWorking = await heliusService.checkApiKey(key.key_value);
       
       // Update key status in database
