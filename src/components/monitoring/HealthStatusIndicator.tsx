@@ -204,7 +204,7 @@ export function HealthStatusIndicator() {
             </CardHeader>
             <CardContent className="px-0 space-y-4">
               {health.issues.length > 0 && (
-                <Alert variant={health.status === 'critical' ? 'destructive' : 'warning'} className="mt-2">
+                <Alert variant={health.status === 'critical' ? 'destructive' : 'default'} className="mt-2">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
                     <p className="font-medium">Εντοπίστηκαν {health.issues.length} ζητήματα</p>

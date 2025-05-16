@@ -86,6 +86,32 @@ export function testBackupRecovery() {
   return { backupCreated, restored };
 }
 
+// Added missing clearAllErrors function
+export function clearAllErrors() {
+  // Clear any error state from localStorage
+  const errorKeys = Object.keys(localStorage).filter(key => 
+    key.startsWith('error_') || 
+    key.includes('_error') || 
+    key.includes('_errors')
+  );
+  
+  // Remove each error-related item
+  errorKeys.forEach(key => localStorage.removeItem(key));
+  
+  // Clear error collector if available
+  try {
+    const { errorCollector } = require('./error-handling/collector');
+    if (errorCollector && typeof errorCollector.clearErrors === 'function') {
+      errorCollector.clearErrors();
+    }
+  } catch (e) {
+    console.warn('Error collector not available:', e);
+  }
+  
+  console.log('All errors have been cleared');
+  return true;
+}
+
 // Export utilities for console use
 window.testUtils = {
   simulateError,
