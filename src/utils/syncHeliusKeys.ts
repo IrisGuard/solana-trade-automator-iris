@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { addHeliusEndpoints, addHeliusKey } from "./addHeliusEndpoints";
+// Fix the import to use the named export
 import { heliusKeyManager } from "@/services/solana/HeliusKeyManager";
 import { heliusEndpointMonitor } from "@/services/helius/HeliusEndpointMonitor";
 

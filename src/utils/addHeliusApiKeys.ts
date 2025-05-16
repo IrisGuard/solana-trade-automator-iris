@@ -1,5 +1,7 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+// Fix the import to use the named export
 import { heliusKeyManager } from "@/services/solana/HeliusKeyManager";
 
 /**

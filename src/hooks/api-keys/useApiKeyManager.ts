@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,8 +34,8 @@ export function useApiKeyManager({ userId, onSuccess }: UseApiKeyManagerProps = 
         name,
         service,
         key_value: keyValue,
-        // Use a valid literal value for status
-        status: 'active',
+        // Use a valid literal value for status from the allowed enum
+        status: 'active' as const,
         created_at: new Date().toISOString(),
         description
       };

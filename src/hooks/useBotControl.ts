@@ -81,38 +81,53 @@ export function useBotControl() {
     }
   };
 
-  // Create a new bot
+  // Create a new bot - fixed function with proper typing
   const createBot = async (botData: any) => {
     try {
-      // Ensure required fields are present in each bot object
-      const botsToCreate = Array.isArray(botData) ? 
-        botData.map(bot => ({
-          user_id: user?.id || '',
+      // Ensure user is available
+      if (!user) {
+        return { data: null, error: new Error("User not authenticated") };
+      }
+
+      if (Array.isArray(botData)) {
+        // Handle array of bots
+        const botsToCreate = botData.map(bot => ({
+          user_id: user.id,
           active: bot.active || false,
           id: bot.id,
-          name: bot.name || 'Default Bot Name',  // Ensure name is provided
-          strategy: bot.strategy || 'default',   // Ensure strategy is provided
+          name: bot.name || 'Default Bot Name',
+          strategy: bot.strategy || 'default',
           config: bot.config,
           created_at: bot.created_at,
           updated_at: bot.updated_at
-        })) : 
-        {
-          user_id: user?.id || '',
+        }));
+
+        const { data, error } = await supabase
+          .from('bots')
+          .insert(botsToCreate);
+
+        if (error) throw error;
+        return { data, error: null };
+      } else {
+        // Handle single bot object
+        const botToCreate = {
+          user_id: user.id,
           active: botData.active || false,
           id: botData.id,
-          name: botData.name || 'Default Bot Name',  // Ensure name is provided
-          strategy: botData.strategy || 'default',   // Ensure strategy is provided
+          name: botData.name || 'Default Bot Name',
+          strategy: botData.strategy || 'default',
           config: botData.config,
           created_at: botData.created_at,
           updated_at: botData.updated_at
         };
 
-      const { data, error } = await supabase
-        .from('bots')
-        .insert(botsToCreate);
+        const { data, error } = await supabase
+          .from('bots')
+          .insert(botToCreate);
 
-      if (error) throw error;
-      return { data, error: null };
+        if (error) throw error;
+        return { data, error: null };
+      }
     } catch (err) {
       console.error('Error creating bot:', err);
       return { data: null, error: err };

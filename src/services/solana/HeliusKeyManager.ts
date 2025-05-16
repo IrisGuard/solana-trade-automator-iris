@@ -23,6 +23,7 @@ const DEFAULT_NETWORKS = [
   },
 ];
 
+// Export the class as default and as a named export for compatibility
 export class HeliusKeyManager {
   private apiKey: string;
   private helius: Helius | null = null;
@@ -322,8 +323,9 @@ export class HeliusKeyManager {
       if (!this.connection) {
         throw new Error("Solana connection not initialized.");
       }
-      const health = await this.connection.isHealthy();
-      return health;
+      // Use a different method to check health since isHealthy is not available
+      const blockHeight = await this.connection.getBlockHeight();
+      return blockHeight > 0;
     } catch (error) {
       console.error("Error checking connection health:", error);
       errorCollector.captureError(error instanceof Error ? error : new Error('Failed to check connection health'), {
@@ -417,3 +419,9 @@ export class HeliusKeyManager {
     this.initializeHelius();
   }
 }
+
+// Create an instance of the HeliusKeyManager for compatibility with imports
+export const heliusKeyManager = new HeliusKeyManager("", "mainnet-beta");
+
+// Re-export for backward compatibility
+export default HeliusKeyManager;

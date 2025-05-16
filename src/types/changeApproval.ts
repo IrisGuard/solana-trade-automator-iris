@@ -19,3 +19,12 @@ export interface PendingChange {
   rejected_reason?: string;
   created_at?: string;
 }
+
+// Add the missing ChangeSubmitData interface
+export interface ChangeSubmitData {
+  table_name: string;
+  record_id: string;
+  changes_json: Record<string, any>;
+  title?: string;
+  description?: string;
+}
