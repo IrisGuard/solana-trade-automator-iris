@@ -13,12 +13,15 @@ interface ErrorReportingOptions {
   showToast?: boolean;
   toastTitle?: string;
   toastDescription?: string;
+  logToConsole?: boolean;
 }
 
 export function useErrorReporting() {
   const reportError = useCallback((error: Error, options: ErrorReportingOptions = {}) => {
-    // Log to console
-    console.error('Error reported:', error);
+    // Log to console if needed
+    if (options.logToConsole) {
+      console.error('Error reported:', error);
+    }
     
     // Add default options
     const mergedOptions = {
@@ -36,6 +39,7 @@ export function useErrorReporting() {
       displayError(error, {
         showToast: true,
         toastTitle: options.toastTitle,
+        logToConsole: options.logToConsole,
         ...options
       });
     } else if (options.showToast) {
