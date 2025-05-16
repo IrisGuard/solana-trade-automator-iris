@@ -11,7 +11,7 @@ export const demoKeys: ApiKey[] = [
     service: "helius",
     createdAt: new Date().toISOString(),
     description: "Add your Helius API key here",
-    status: "pending",
+    status: "active", // Changed from "pending" to "active" to match the allowed types
     isWorking: false
   },
   {

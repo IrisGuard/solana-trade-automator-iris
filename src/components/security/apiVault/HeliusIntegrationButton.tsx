@@ -5,13 +5,14 @@ import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { Loader2, Check, AlertCircle } from "lucide-react";
 import { addHeliusEndpoints, addHeliusKey } from "@/utils/addHeliusEndpoints";
 import { toast } from "sonner";
-import { useRouter } from "next/router";
+// Remove next/router import and use the custom hook instead
+import { useRouterNavigation } from "@/hooks/use-router";
 
 export function HeliusIntegrationButton() {
   const [isAdding, setIsAdding] = React.useState(false);
   const [isAdded, setIsAdded] = React.useState(false);
   const { user } = useAuth();
-  const router = useRouter();
+  const { goTo } = useRouterNavigation(); // Use our custom hook
 
   const handleAddHelius = async () => {
     if (!user) {
