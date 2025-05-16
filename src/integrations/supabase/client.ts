@@ -1,7 +1,7 @@
 
 import { supabaseConfig } from '@/utils/supabaseConfig';
-// Use the default export pattern which is more reliable across versions
-import { createClient } from '@supabase/supabase-js';
+// Import from specific entry point which is consistent across versions
+import { createClient } from '@supabase/supabase-js/dist/module';
 import type { Database } from '@/integrations/supabase/types';
 
 // Create a single supabase client for interacting with your database
