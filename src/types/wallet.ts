@@ -9,3 +9,15 @@ export interface Token {
   logo?: string;
   mint?: string;
 }
+
+// Add TokenPrice interface
+export interface TokenPrice {
+  price: number;
+  priceChange24h: number;
+  lastUpdated?: Date;
+}
+
+// Add TokenPrices interface
+export interface TokenPrices {
+  [tokenAddress: string]: TokenPrice;
+}

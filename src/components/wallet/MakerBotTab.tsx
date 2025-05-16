@@ -1,158 +1,278 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { TabsContent } from "@/components/ui/tabs";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { ConnectPrompt } from "./maker-bot/ConnectPrompt";
-import { BotSettings } from "./maker-bot/BotSettings";
-import { PriceBoost } from "./maker-bot/PriceBoost";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { InfoIcon, AlertCircle } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Bot, Loader2, RefreshCw } from "lucide-react";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
+import { PriceBoost } from "./maker-bot/PriceBoost";
+import { makerBotService, MakerBotConfig, BoostConfig } from "@/services/bot/makerBotService";
 import { toast } from "sonner";
-import { botsService } from "@/services/botsService";
 
-export function MakerBotTab() {
-  const { 
-    isConnected, 
-    walletAddress, 
-    solBalance, 
-    tokens,
-    connectWallet
-  } = useWalletConnection();
+interface MakerBotTabProps {
+  isConnected: boolean;
+}
 
-  // Bot configuration state
-  const [isSimulation, setIsSimulation] = useState<boolean>(true);
-  const [makers, setMakers] = useState<number>(100);
-  const [minDelay, setMinDelay] = useState<number>(5);
-  const [maxDelay, setMaxDelay] = useState<number>(15);
-  const [tokenAmount, setTokenAmount] = useState<number>(100);
-  const [solAmount, setSolAmount] = useState<number>(0.5);
-  const [botActive, setBotActive] = useState<boolean>(false);
-  const [priceBoost, setPriceBoost] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+export function MakerBotTab({ isConnected }: MakerBotTabProps) {
+  const { walletAddress, tokens } = useWalletConnection();
+  const [botConfig, setBotConfig] = useState<MakerBotConfig>({
+    isSimulation: true,
+    makers: 5,
+    minDelay: 10,
+    maxDelay: 30,
+    tokenAmount: 100,
+    solAmount: 0.1
+  });
+  const [selectedToken, setSelectedToken] = useState<string | undefined>(undefined);
+  const [priceBoost, setPriceBoost] = useState(5);
+  const [isBotRunning, setIsBotRunning] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Toggle simulation mode
-  const toggleSimulation = () => {
-    setIsSimulation(!isSimulation);
+  const handleConfigChange = (field: keyof MakerBotConfig, value: any) => {
+    setBotConfig(prev => ({ ...prev, [field]: value }));
   };
 
-  // Start the bot
-  const handleStartBot = () => {
-    if (solBalance < solAmount) {
-      toast.error("Ανεπαρκές υπόλοιπο SOL", {
-        description: `Χρειάζεστε τουλάχιστον ${solAmount} SOL για να εκκινήσετε το bot`
+  const handleStartBot = async () => {
+    if (!walletAddress || !isConnected) return;
+    
+    setIsLoading(true);
+    
+    try {
+      // Update config with selected token
+      const configWithToken: MakerBotConfig = {
+        ...botConfig,
+        selectedToken
+      };
+      
+      const success = await makerBotService.startBot(walletAddress, configWithToken);
+      
+      if (success) {
+        toast.success("Το Maker Bot ξεκίνησε με επιτυχία");
+        setIsBotRunning(true);
+      } else {
+        toast.error("Πρόβλημα στην εκκίνηση του Maker Bot");
+      }
+    } catch (error) {
+      console.error("Error starting maker bot:", error);
+      toast.error("Σφάλμα", { 
+        description: error instanceof Error ? error.message : "Πρόβλημα στην εκκίνηση του maker bot"
       });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleStopBot = async () => {
+    if (!walletAddress) return;
+    
+    setIsLoading(true);
+    
+    try {
+      const success = await makerBotService.stopBot(walletAddress);
+      
+      if (success) {
+        toast.success("Το Maker Bot σταμάτησε");
+        setIsBotRunning(false);
+      } else {
+        toast.error("Πρόβλημα στη διακοπή του Maker Bot");
+      }
+    } catch (error) {
+      console.error("Error stopping maker bot:", error);
+      toast.error("Σφάλμα", { 
+        description: error instanceof Error ? error.message : "Πρόβλημα στη διακοπή του maker bot"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBoostPrice = async () => {
+    if (!walletAddress || !selectedToken) {
+      toast.error("Παρακαλώ επιλέξτε ένα token");
       return;
     }
-
+    
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setBotActive(true);
-      setIsLoading(false);
-      toast.success("Το Maker Bot ξεκίνησε επιτυχώς", {
-        description: isSimulation ? "Λειτουργεί σε mode προσομοίωσης" : "Εκτελούνται πραγματικές συναλλαγές"
+    try {
+      const boostConfig: BoostConfig = {
+        boostPercentage: priceBoost,
+        duration: 10, // 10 minutes
+        gradual: true
+      };
+      
+      const success = await makerBotService.boostPrice(walletAddress, selectedToken, boostConfig);
+      
+      if (success) {
+        toast.success(`Η τιμή του token αυξάνεται κατά ${priceBoost}%`);
+      } else {
+        toast.error("Πρόβλημα στην αύξηση τιμής");
+      }
+    } catch (error) {
+      console.error("Error boosting price:", error);
+      toast.error("Σφάλμα", { 
+        description: error instanceof Error ? error.message : "Πρόβλημα στην αύξηση τιμής"
       });
-    }, 1500);
-  };
-
-  // Stop the bot
-  const handleStopBot = () => {
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setBotActive(false);
+    } finally {
       setIsLoading(false);
-      toast.success("Το Maker Bot σταμάτησε επιτυχώς");
-    }, 1000);
-  };
-
-  // Handle price boost
-  const handleBoostPrice = () => {
-    if (priceBoost <= 0) {
-      toast.error("Παρακαλώ επιλέξτε ένα θετικό ποσοστό αύξησης τιμής");
-      return;
     }
-
-    setIsLoading(true);
-    
-    // Simulate price boost API call
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success(`Η τιμή αυξήθηκε κατά ${priceBoost}%`, {
-        description: "Η διαδικασία αύξησης της τιμής έχει ξεκινήσει και θα ολοκληρωθεί σύντομα"
-      });
-    }, 2000);
-  };
-
-  // Default connectWallet function
-  const handleConnectWallet = async () => {
-    await connectWallet();
   };
 
   return (
     <TabsContent value="maker-bot">
-      <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Maker Bot</CardTitle>
+            <CardTitle>Ρυθμίσεις Maker Bot</CardTitle>
             <CardDescription>
-              Παρέχετε ρευστότητα και κερδίστε από τα spreads με τον Maker Bot
+              Παραμετροποιήστε το maker bot για την αγορά και πώληση tokens
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             {!isConnected ? (
-              <ConnectPrompt handleConnectWallet={handleConnectWallet} size="large" />
-            ) : error ? (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <BotSettings 
-                  isSimulation={isSimulation}
-                  makers={makers}
-                  minDelay={minDelay}
-                  maxDelay={maxDelay}
-                  tokenAmount={tokenAmount}
-                  solAmount={solAmount}
-                  botActive={botActive}
-                  toggleSimulation={toggleSimulation}
-                  setMakers={setMakers}
-                  setMinDelay={setMinDelay}
-                  setMaxDelay={setMaxDelay}
-                  setTokenAmount={setTokenAmount}
-                  setSolAmount={setSolAmount}
-                  handleStartBot={handleStartBot}
-                  handleStopBot={handleStopBot}
-                />
-                
-                <PriceBoost 
-                  isConnected={isConnected}
-                  priceBoost={priceBoost}
-                  botActive={botActive}
-                  setPriceBoost={setPriceBoost}
-                  handleBoostPrice={handleBoostPrice}
-                />
-              </div>
-            )}
-          </CardContent>
-          {isConnected && (
-            <CardFooter className="bg-muted/50 border-t">
-              <div className="w-full text-sm text-muted-foreground">
-                <p>
-                  Ο Maker Bot δημιουργεί τεχνητή ρευστότητα και όγκο συναλλαγών για τα tokens σας, αυξάνοντας την 
-                  ορατότητά τους και βοηθώντας στην αύξηση της τιμής. Με την επιλογή προσομοίωσης, μπορείτε να 
-                  δοκιμάσετε τη λειτουργία χωρίς πραγματικές συναλλαγές.
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <Bot className="h-12 w-12 mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-medium mb-2">Συνδέστε το wallet σας</h3>
+                <p className="text-muted-foreground mb-4">
+                  Για να χρησιμοποιήσετε το Maker Bot πρέπει πρώτα να συνδέσετε το wallet σας
                 </p>
               </div>
-            </CardFooter>
-          )}
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="token-select">Επιλογή Token</Label>
+                  <select
+                    id="token-select"
+                    className="w-full p-2 border rounded-md"
+                    value={selectedToken || ""}
+                    onChange={(e) => setSelectedToken(e.target.value || undefined)}
+                    disabled={isBotRunning || isLoading}
+                  >
+                    <option value="">Επιλέξτε Token</option>
+                    {tokens.map((token) => (
+                      <option key={token.address} value={token.address}>
+                        {token.symbol} - {token.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <Label htmlFor="makers">Makers: {botConfig.makers}</Label>
+                  </div>
+                  <Slider
+                    id="makers"
+                    min={1}
+                    max={20}
+                    step={1}
+                    value={[botConfig.makers]}
+                    onValueChange={(values) => handleConfigChange("makers", values[0])}
+                    disabled={isBotRunning || isLoading}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="min-delay">Min Delay (s): {botConfig.minDelay}</Label>
+                    <Slider
+                      id="min-delay"
+                      min={1}
+                      max={60}
+                      step={1}
+                      value={[botConfig.minDelay]}
+                      onValueChange={(values) => handleConfigChange("minDelay", values[0])}
+                      disabled={isBotRunning || isLoading}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="max-delay">Max Delay (s): {botConfig.maxDelay}</Label>
+                    <Slider
+                      id="max-delay"
+                      min={1}
+                      max={120}
+                      step={1}
+                      value={[botConfig.maxDelay]}
+                      onValueChange={(values) => handleConfigChange("maxDelay", values[0])}
+                      disabled={isBotRunning || isLoading}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="token-amount">Token Amount</Label>
+                    <Input
+                      id="token-amount"
+                      type="number"
+                      value={botConfig.tokenAmount}
+                      onChange={(e) => handleConfigChange("tokenAmount", Number(e.target.value))}
+                      disabled={isBotRunning || isLoading}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="sol-amount">SOL Amount</Label>
+                    <Input
+                      id="sol-amount"
+                      type="number"
+                      value={botConfig.solAmount}
+                      onChange={(e) => handleConfigChange("solAmount", Number(e.target.value))}
+                      disabled={isBotRunning || isLoading}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="simulation"
+                    checked={botConfig.isSimulation}
+                    onCheckedChange={(checked) => handleConfigChange("isSimulation", checked)}
+                    disabled={isBotRunning || isLoading}
+                  />
+                  <Label htmlFor="simulation">Simulation Mode</Label>
+                </div>
+
+                <div>
+                  <Button
+                    className="w-full"
+                    onClick={isBotRunning ? handleStopBot : handleStartBot}
+                    disabled={!selectedToken || isLoading}
+                    variant={isBotRunning ? "destructive" : "default"}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Επεξεργασία...
+                      </>
+                    ) : isBotRunning ? (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Διακοπή Bot
+                      </>
+                    ) : (
+                      <>
+                        <Bot className="mr-2 h-4 w-4" />
+                        Εκκίνηση Bot
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </>
+            )}
+          </CardContent>
         </Card>
+
+        <PriceBoost
+          isConnected={isConnected}
+          priceBoost={priceBoost}
+          botActive={isBotRunning}
+          setPriceBoost={setPriceBoost}
+          handleBoostPrice={handleBoostPrice}
+        />
       </div>
     </TabsContent>
   );

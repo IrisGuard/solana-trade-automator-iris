@@ -155,3 +155,64 @@ export function formatDate(dateString: string): string {
     hour12: true
   }).format(date);
 }
+
+interface TransactionsDataProps {
+  walletAddress: string;
+  filterType: 'all' | 'sent' | 'received';
+  isRefreshing: boolean;
+}
+
+// Export the TransactionsData component that was missing
+export function TransactionsData({ walletAddress, filterType, isRefreshing }: TransactionsDataProps) {
+  const { transactions, isLoading } = useTransactions(walletAddress);
+  const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
+  
+  useEffect(() => {
+    if (!transactions) return;
+    
+    let filtered = [...transactions];
+    
+    if (filterType === 'sent') {
+      filtered = filtered.filter(tx => tx.type === 'sent' || tx.type === 'transfer_out');
+    } else if (filterType === 'received') {
+      filtered = filtered.filter(tx => tx.type === 'received' || tx.type === 'transfer_in');
+    }
+    
+    setFilteredTransactions(filtered);
+  }, [transactions, filterType, isRefreshing]);
+  
+  if (isLoading) {
+    return <div className="flex justify-center p-8">Loading transactions...</div>;
+  }
+  
+  if (filteredTransactions.length === 0) {
+    return <div className="text-center p-4 text-muted-foreground">No transactions found.</div>;
+  }
+  
+  return (
+    <div className="space-y-4">
+      {filteredTransactions.map(transaction => (
+        <div 
+          key={transaction.id} 
+          className="flex items-center justify-between p-3 border rounded-lg"
+        >
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-full ${transaction.type.includes('sent') || transaction.type.includes('out') ? 'bg-red-100' : 'bg-green-100'}`}>
+              <span className={transaction.type.includes('sent') || transaction.type.includes('out') ? 'text-red-500' : 'text-green-500'}>
+                {transaction.type.includes('sent') || transaction.type.includes('out') ? '↑' : '↓'}
+              </span>
+            </div>
+            <div>
+              <div className="font-medium">{transaction.token}</div>
+              <div className="text-sm text-muted-foreground">{formatDate(transaction.timestamp)}</div>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="font-medium">{transaction.amount}</div>
+            <div className="text-sm text-muted-foreground">{transaction.status}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
