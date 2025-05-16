@@ -10,6 +10,9 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useErrorDashboard } from '@/hooks/useErrorDashboard';
 import { ErrorSeverity } from '@/utils/error-handling/errorTypes';
 
+// Define the ErrorSource type to match the one in useErrorDashboard.ts
+type ErrorSource = 'application' | 'network' | 'console' | 'database' | 'all';
+
 export function ErrorDashboard() {
   const { t } = useTranslation();
   const { 
@@ -23,7 +26,7 @@ export function ErrorDashboard() {
     totalErrors
   } = useErrorDashboard();
   
-  const [selectedTab, setSelectedTab] = useState('application');
+  const [selectedTab, setSelectedTab] = useState<ErrorSource>('application');
   const [selectedError, setSelectedError] = useState<any>(null);
 
   // Reset selected error when tab changes
@@ -130,7 +133,7 @@ export function ErrorDashboard() {
         </div>
       </div>
 
-      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-4">
+      <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as ErrorSource)} className="space-y-4">
         <TabsList className="grid grid-cols-4 md:w-[600px]">
           <TabsTrigger value="application">
             <AlertCircle className="h-4 w-4 mr-2" />

@@ -41,21 +41,30 @@ export function useErrorDashboard() {
         timestamp: error.timestamp,
         errorType: 'application',
         autoResolved: error.autoResolved,
-        stackTrace: error.stackTrace
+        stackTrace: error.stackTrace,
+        // Add source property to fix the TypeScript error
+        source: error.source
       }));
       
       // Combine and filter application errors
       setApplicationErrors([
         ...collectorErrors,
         ...systemErrors
-      ].filter(err => !['network', 'api', 'database'].includes(err.source?.toLowerCase() || '')));
+      ].filter(err => {
+        const source = (err.source || '').toLowerCase();
+        return !['network', 'api', 'database'].includes(source);
+      }));
       
       // Filter network errors
       setNetworkErrors(collectorErrors.filter(
-        err => ['network', 'api'].includes(err.source?.toLowerCase() || '') ||
-              err.message?.toLowerCase().includes('network') ||
-              err.message?.toLowerCase().includes('fetch') ||
-              err.message?.toLowerCase().includes('api')
+        err => {
+          const source = (err.source || '').toLowerCase();
+          const message = (err.message || '').toLowerCase();
+          return ['network', 'api'].includes(source) ||
+                message.includes('network') ||
+                message.includes('fetch') ||
+                message.includes('api');
+        }
       ));
       
       // Get console logs that are errors

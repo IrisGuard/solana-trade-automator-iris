@@ -1,7 +1,7 @@
 
 import React, { createContext, useState, useContext, ReactNode } from 'react';
-import enTranslations from "@/locales/en";
-import elTranslations from "@/locales/el";
+import { en } from "@/locales/en";
+import { el } from "@/locales/el";
 
 // Available languages
 export type LanguageType = 'en' | 'el';
@@ -21,45 +21,45 @@ interface LanguageProviderProps {
   defaultLanguage?: LanguageType;
 }
 
-// Συνδυασμένες μεταφράσεις
+// Combined translations
 const translations = {
-  en: enTranslations,
-  el: elTranslations
+  en: en,
+  el: el
 };
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children, defaultLanguage = 'en' }) => {
   const [language, setLanguage] = useState<LanguageType>(defaultLanguage);
   
   const t = (key: string, paramsOrDefault?: TranslationParams): string => {
-    // Διαχωρισμός του κλειδιού με τελείες για πλοήγηση σε nested objects
+    // Split the key by dots to navigate nested objects
     const keys = key.split('.');
     let defaultValue: string | undefined;
     
-    // Έλεγχος αν το paramsOrDefault είναι string (defaultValue) ή αντικείμενο (params)
+    // Check if paramsOrDefault is a string (defaultValue) or an object (params)
     if (typeof paramsOrDefault === 'string') {
       defaultValue = paramsOrDefault;
     }
     
     try {
-      // Αναζήτηση της μετάφρασης στο επιλεγμένο language
+      // Search for translation in selected language
       let text = keys.reduce((obj: any, key) => {
         return obj?.[key];
       }, translations[language]);
       
-      // Αν δεν βρεθεί, δοκιμάζουμε στα αγγλικά ως fallback
+      // If not found, try in English as fallback
       if (text === undefined && language !== 'en') {
         text = keys.reduce((obj: any, key) => {
           return obj?.[key];
         }, translations['en']);
       }
       
-      // Αν ακόμα δεν βρεθεί, επιστρέφουμε το defaultValue αν υπάρχει, αλλιώς το κλειδί
+      // If still not found, return defaultValue if exists, otherwise the key
       if (text === undefined) {
-        console.warn(`Δεν βρέθηκε μετάφραση για το κλειδί: ${key}`);
+        console.warn(`Translation not found for key: ${key}`);
         return defaultValue || key;
       }
       
-      // Αν το paramsOrDefault είναι αντικείμενο, αντικαταστήστε τις παραμέτρους στο κείμενο
+      // If paramsOrDefault is an object, replace parameters in the text
       if (paramsOrDefault && typeof paramsOrDefault === 'object') {
         Object.entries(paramsOrDefault).forEach(([paramKey, paramValue]) => {
           text = text.replace(`{{${paramKey}}}`, paramValue);
@@ -68,7 +68,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children, de
       
       return text;
     } catch (e) {
-      console.warn(`Σφάλμα κατά την αναζήτηση μετάφρασης για το κλειδί: ${key}`, e);
+      console.warn(`Error looking for translation for key: ${key}`, e);
       return defaultValue || key;
     }
   };
