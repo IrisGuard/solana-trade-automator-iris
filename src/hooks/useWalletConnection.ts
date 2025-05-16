@@ -33,6 +33,25 @@ export function useWalletConnection(): WalletConnectionHook {
   const { reportError } = useErrorReporting();
   const { user } = useUser();
 
+  // Refresh wallet data - define this function before using it
+  const refreshWalletData = useCallback(async (address?: string) => {
+    const walletToUse = address || walletAddress;
+    
+    if (!walletToUse) {
+      console.log("Δεν υπάρχει διεύθυνση πορτοφολιού για ανανέωση δεδομένων");
+      return;
+    }
+    
+    try {
+      console.log('Ανανέωση δεδομένων πορτοφολιού για διεύθυνση:', walletToUse);
+      await loadWalletData(walletToUse);
+      console.log("Η ανανέωση δεδομένων πορτοφολιού ολοκληρώθηκε");
+    } catch (err: any) {
+      console.error('Σφάλμα ανανέωσης δεδομένων πορτοφολιού:', err);
+      reportError(err);
+    }
+  }, [walletAddress, loadWalletData, reportError]);
+
   // Connect to a specific wallet address
   const connectToWallet = useCallback(async (address: string) => {
     console.log("Σύνδεση με το πορτοφόλι:", address);
@@ -62,25 +81,6 @@ export function useWalletConnection(): WalletConnectionHook {
     
     return address;
   }, [coreConnectWallet, user?.id, refreshWalletData]);
-  
-  // Refresh wallet data
-  const refreshWalletData = useCallback(async (address?: string) => {
-    const walletToUse = address || walletAddress;
-    
-    if (!walletToUse) {
-      console.log("Δεν υπάρχει διεύθυνση πορτοφολιού για ανανέωση δεδομένων");
-      return;
-    }
-    
-    try {
-      console.log('Ανανέωση δεδομένων πορτοφολιού για διεύθυνση:', walletToUse);
-      await loadWalletData(walletToUse);
-      console.log("Η ανανέωση δεδομένων πορτοφολιού ολοκληρώθηκε");
-    } catch (err: any) {
-      console.error('Σφάλμα ανανέωσης δεδομένων πορτοφολιού:', err);
-      reportError(err);
-    }
-  }, [walletAddress, loadWalletData, reportError]);
 
   return {
     isConnected,
