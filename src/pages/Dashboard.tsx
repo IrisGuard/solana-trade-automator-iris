@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConnectWalletCard } from "@/components/home/ConnectWalletCard";
@@ -28,6 +29,7 @@ interface BotStatus {
   active: boolean;
 }
 
+// Define data interface to resolve type instantiation issues
 interface DashboardData {
   id: string;
   [key: string]: any;
@@ -45,7 +47,7 @@ const fetchData = async (): Promise<{ data: DashboardData[] | null, error: any }
     return { data, error };
   } catch (error) {
     console.error('Error fetching data:', error);
-    return { data: [], error };
+    return { data: null, error };
   }
 };
 
@@ -97,7 +99,7 @@ export default function Dashboard() {
     ? `${walletAddress.substring(0, 4)}...${walletAddress.substring(walletAddress.length - 4)}`
     : '';
 
-  // Define the bot status toggle function with a more specific return type
+  // Define the bot status toggle function with explicit return type and no complex inference
   const toggleBotStatus = async (): Promise<void> => {
     if (!user?.id) return;
     
