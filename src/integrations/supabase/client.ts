@@ -1,6 +1,6 @@
 
 import { supabaseConfig } from '@/utils/supabaseConfig';
-// Import the create client function correctly from Supabase v2
+// Use the default export pattern which is more reliable across versions
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/integrations/supabase/types';
 
