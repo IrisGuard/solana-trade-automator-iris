@@ -10,6 +10,7 @@ import { ToastProvider } from './providers/ToastProvider';
 import { WalletProvider } from '@solana/wallet-adapter-react';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
+import { LanguageProvider } from './providers/LanguageProvider';
 
 // Import wallet adapter CSS
 import '@solana/wallet-adapter-react-ui/styles.css';
@@ -23,25 +24,27 @@ function App() {
 
   return (
     <ToastProvider>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
-          <WalletConnectProvider>
-            <BrowserRouter>
-              <div className="min-h-screen flex flex-col">
-                <Navbar />
-                <main className="flex-1">
-                  <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/wallet" element={<WalletPage />} />
-                    <Route path="/dashboard" element={<DashboardPage />} />
-                    <Route path="*" element={<AppContent />} />
-                  </Routes>
-                </main>
-              </div>
-            </BrowserRouter>
-          </WalletConnectProvider>
-        </WalletModalProvider>
-      </WalletProvider>
+      <LanguageProvider defaultLanguage="el">
+        <WalletProvider wallets={wallets} autoConnect>
+          <WalletModalProvider>
+            <WalletConnectProvider>
+              <BrowserRouter>
+                <div className="min-h-screen flex flex-col">
+                  <Navbar />
+                  <main className="flex-1">
+                    <Routes>
+                      <Route path="/" element={<HomePage />} />
+                      <Route path="/wallet" element={<WalletPage />} />
+                      <Route path="/dashboard" element={<DashboardPage />} />
+                      <Route path="*" element={<AppContent />} />
+                    </Routes>
+                  </main>
+                </div>
+              </BrowserRouter>
+            </WalletConnectProvider>
+          </WalletModalProvider>
+        </WalletProvider>
+      </LanguageProvider>
     </ToastProvider>
   );
 }
