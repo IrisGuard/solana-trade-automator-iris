@@ -100,8 +100,6 @@ export function AppContent() {
       )}
       onError={logError}
     >
-      <MonitoringSystem />
-      <DOMErrorHandler />
       <BrowserRouter>
         <ThemeProvider>
           <LanguageProvider defaultLanguage="el">
@@ -117,6 +115,8 @@ export function AppContent() {
                           <HealthStatusIndicator />
                           <HelpButton />
                           <Toaster position="top-right" richColors />
+                          {/* Μετακίνησα το MonitoringSystem εδώ, μέσα στο LanguageProvider */}
+                          <MonitoringSystem />
                         </div>
                       </div>
                     </WalletProviderWrapper>
