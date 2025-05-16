@@ -7,6 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@/hooks/useUser";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { AppNavigation } from "@/components/navigation/AppNavigation";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 // Define simple interfaces for bot data
 interface BotData {
@@ -198,12 +202,27 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <DashboardHeader
-        username={user?.username}
-        userLoading={userLoading}
-        isConnected={isConnected}
-        onRefreshData={refreshWalletData}
+      <PageHeader 
+        title="Πίνακας Ελέγχου"
+        description={!userLoading && user?.username ? `Καλωσήρθατε, ${user.username}!` : "Συνολική επισκόπηση του χαρτοφυλακίου σας"}
+        breadcrumbs={[{ label: "Dashboard" }]}
+        variant="blue"
+        actions={
+          <Button 
+            variant="outline" 
+            onClick={refreshWalletData}
+            disabled={!isConnected || isLoadingTokens}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Ανανέωση Δεδομένων
+          </Button>
+        }
       />
+      
+      {/* Quick Navigation */}
+      <div className="mb-6">
+        <AppNavigation variant="colorful" />
+      </div>
 
       {isConnected && walletAddress ? (
         <DashboardContent

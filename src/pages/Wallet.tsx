@@ -10,6 +10,9 @@ import { EnhancedTradingBotTab } from "@/components/wallet/trading-bot/EnhancedT
 import { MakerBotTab } from "@/components/wallet/MakerBotTab";
 import { ApiVaultTab } from "@/components/wallet/ApiVaultTab";
 import { SimulationTab } from "@/components/wallet/SimulationTab";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { AppNavigation } from "@/components/navigation/AppNavigation";
+import { GradientCard } from "@/components/ui/gradient-card";
 
 export default function WalletPage() {
   const {
@@ -32,54 +35,96 @@ export default function WalletPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Wallet & Trading Bot</h2>
-        {isConnected ? (
-          <Button variant="outline" onClick={disconnectWallet}>
-            Disconnect Wallet
-          </Button>
-        ) : (
-          <Button onClick={connectWallet}>
-            Connect Wallet
-          </Button>
-        )}
+      <PageHeader 
+        title="Wallet & Trading Bot"
+        description="Διαχειριστείτε το πορτοφόλι σας και τα trading bots"
+        breadcrumbs={[{ label: "Wallet" }]}
+        variant="purple"
+        actions={
+          isConnected ? (
+            <Button variant="outline" onClick={disconnectWallet}>
+              Αποσύνδεση
+            </Button>
+          ) : (
+            <Button onClick={connectWallet}>
+              Σύνδεση Πορτοφολιού
+            </Button>
+          )
+        }
+      />
+      
+      {/* Quick Navigation */}
+      <div className="mb-6">
+        <AppNavigation variant="colorful" />
       </div>
 
-      <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid grid-cols-6">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="tokens">Tokens</TabsTrigger>
-          <TabsTrigger value="trading-bot">Trading Bot</TabsTrigger>
-          <TabsTrigger value="maker-bot">Maker Bot</TabsTrigger>
-          <TabsTrigger value="api-vault">API Vault</TabsTrigger>
-          <TabsTrigger value="simulation">Simulation</TabsTrigger>
-        </TabsList>
+      <GradientCard variant="purple">
+        <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid grid-cols-2 md:grid-cols-6 w-full">
+            <TabsTrigger value="overview" className="text-sm">Επισκόπηση</TabsTrigger>
+            <TabsTrigger value="tokens" className="text-sm">Tokens</TabsTrigger>
+            <TabsTrigger value="trading-bot" className="text-sm">Trading Bot</TabsTrigger>
+            <TabsTrigger value="maker-bot" className="text-sm">Maker Bot</TabsTrigger>
+            <TabsTrigger value="api-vault" className="text-sm">API Vault</TabsTrigger>
+            <TabsTrigger value="simulation" className="text-sm">Προσομοίωση</TabsTrigger>
+          </TabsList>
 
-        <WalletOverview 
-          isConnected={isConnected}
-          walletAddress={walletAddress}
-          solBalance={solBalance}
-          handleConnectWallet={connectWallet}
-          handleDisconnectWallet={disconnectWallet}
-        />
+          <WalletOverview 
+            isConnected={isConnected}
+            walletAddress={walletAddress}
+            solBalance={solBalance}
+            handleConnectWallet={connectWallet}
+            handleDisconnectWallet={disconnectWallet}
+          />
 
-        <TokensTab 
-          isConnected={isConnected}
-          tokenBalance={tokens && tokens.length > 0 ? tokens[0].amount : 0}
-          solBalance={solBalance}
-          handleConnectWallet={connectWallet}
-        />
+          <TokensTab 
+            isConnected={isConnected}
+            tokenBalance={tokens && tokens.length > 0 ? tokens[0].amount : 0}
+            solBalance={solBalance}
+            handleConnectWallet={connectWallet}
+          />
+          
+          <EnhancedTradingBotTab />
+
+          <MakerBotTab 
+            isConnected={isConnected}
+          />
+
+          <ApiVaultTab />
+
+          <SimulationTab />
+        </Tabs>
+      </GradientCard>
+      
+      {/* Features description cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+        <GradientCard variant="blue">
+          <div className="p-4 text-center">
+            <h3 className="text-xl font-bold mb-2">Διαχείριση Tokens</h3>
+            <p className="text-muted-foreground mb-4">
+              Διαχειριστείτε τα tokens σας στο Solana blockchain με ασφάλεια και ευκολία.
+            </p>
+          </div>
+        </GradientCard>
         
-        <EnhancedTradingBotTab />
-
-        <MakerBotTab 
-          isConnected={isConnected}
-        />
-
-        <ApiVaultTab />
-
-        <SimulationTab />
-      </Tabs>
+        <GradientCard variant="green">
+          <div className="p-4 text-center">
+            <h3 className="text-xl font-bold mb-2">Αυτοματοποιημένο Trading</h3>
+            <p className="text-muted-foreground mb-4">
+              Ρυθμίστε το Trading Bot για αυτόματες συναλλαγές βάσει των προτιμήσεών σας.
+            </p>
+          </div>
+        </GradientCard>
+        
+        <GradientCard variant="amber">
+          <div className="p-4 text-center">
+            <h3 className="text-xl font-bold mb-2">Price Boost Protection</h3>
+            <p className="text-muted-foreground mb-4">
+              Προστατέψτε τις επενδύσεις σας από απότομες πτώσεις στην αγορά.
+            </p>
+          </div>
+        </GradientCard>
+      </div>
     </div>
   );
 }
