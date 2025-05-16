@@ -1,4 +1,3 @@
-
 import React from "react";
 import { ApiKey } from "../types";
 import { UnlockDialog } from "../UnlockDialog";
@@ -112,8 +111,8 @@ export const ApiVaultDialogsContainer: React.FC<ApiVaultDialogsContainerProps> =
       <SettingsDialog
         open={showSettingsDialog}
         onOpenChange={setShowSettingsDialog}
-        masterPassword={savedMasterPassword}
-        setMasterPassword={setSavedMasterPassword}
+        savedMasterPassword={savedMasterPassword}
+        setSavedMasterPassword={setSavedMasterPassword}
         isEncryptionEnabled={isEncryptionEnabled}
         setIsEncryptionEnabled={setIsEncryptionEnabled}
         isAutoLockEnabled={isAutoLockEnabled}
