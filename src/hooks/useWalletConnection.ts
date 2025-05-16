@@ -4,13 +4,15 @@ import { toast } from 'sonner';
 import { useErrorReporting } from './useErrorReporting';
 import { useSolanaWallet } from './useSolanaWallet';
 import { Token } from '@/types/wallet';
+import { walletService } from '@/services/walletService';
+import { useAuth } from '@/providers/SupabaseAuthProvider';
+import { useWalletData } from './wallet/useWalletData';
 
 export function useWalletConnection() {
   const { address, connected, connecting, balance, refreshBalance, connectWallet: connectSolana, disconnectWallet } = useSolanaWallet();
-  const [tokens, setTokens] = useState<Token[]>([]);
-  const [isLoadingTokens, setIsLoadingTokens] = useState(false);
+  const { user } = useAuth();
+  const { tokens, tokenPrices, isLoadingTokens, loadWalletData, selectTokenForTrading } = useWalletData();
   const [error, setError] = useState<string | null>(null);
-  const [tokenPrices, setTokenPrices] = useState<Record<string, { price: number, priceChange24h: number }>>({});
   const { reportError } = useErrorReporting();
 
   // Check if Phantom is installed
@@ -55,56 +57,14 @@ export function useWalletConnection() {
   const refreshWalletData = useCallback(async () => {
     if (!address) return;
     
-    setIsLoadingTokens(true);
     try {
       // Refresh SOL balance
       await refreshBalance();
       
-      // Get token list (simplified for demo purposes)
-      const mockTokens: Token[] = [
-        {
-          address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          symbol: 'USDC',
-          name: 'USD Coin',
-          amount: Math.random() * 1000,
-          decimals: 6,
-          logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
-        },
-        {
-          address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
-          symbol: 'USDT',
-          name: 'USDT',
-          amount: Math.random() * 500,
-          decimals: 6,
-          logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.png',
-        },
-        {
-          address: 'So11111111111111111111111111111111111111112',
-          symbol: 'SOL',
-          name: 'Wrapped SOL',
-          amount: balance || Math.random() * 10,
-          decimals: 9,
-          logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png',
-        },
-      ];
+      // Load tokens and prices
+      await loadWalletData(address);
       
-      setTokens(mockTokens);
-      
-      // Mock prices for tokens
-      const prices: Record<string, { price: number, priceChange24h: number }> = {};
-      mockTokens.forEach(token => {
-        prices[token.address] = {
-          price: token.symbol === 'SOL' 
-            ? 20 + (Math.random() * 5)
-            : token.symbol === 'USDC' || token.symbol === 'USDT' 
-              ? 0.95 + (Math.random() * 0.1) 
-              : Math.random() * 100,
-          priceChange24h: (Math.random() * 10) - 5 // Between -5% and +5%
-        };
-      });
-      
-      setTokenPrices(prices);
-      
+      toast.success('Τα δεδομένα του πορτοφολιού ανανεώθηκαν');
     } catch (err) {
       console.error('Failed to refresh wallet data:', err);
       if (err instanceof Error) {
@@ -114,27 +74,40 @@ export function useWalletConnection() {
           details: { action: 'refreshWalletData' }
         });
       }
-    } finally {
-      setIsLoadingTokens(false);
     }
-  }, [address, balance, refreshBalance, reportError]);
+  }, [address, refreshBalance, loadWalletData, reportError]);
 
-  // Select token for trading
-  const selectTokenForTrading = useCallback((tokenAddress: string) => {
-    const selectedToken = tokens.find(token => token.address === tokenAddress);
-    if (selectedToken) {
-      console.log('Selected token for trading:', selectedToken);
-      return selectedToken;
-    }
-    return null;
-  }, [tokens]);
+  // Save wallet to database when connected
+  useEffect(() => {
+    const saveWalletData = async () => {
+      if (connected && address && user?.id && tokens.length > 0) {
+        try {
+          // Save to Supabase
+          await walletService.saveWalletToDatabase(user.id, address, tokens);
+          
+          // Create initial transaction record if needed
+          await walletService.createInitialTransaction(user.id, address);
+          
+          // Save to localStorage for quick reconnect
+          localStorage.setItem('phantom_wallet', JSON.stringify({
+            address,
+            timestamp: Date.now()
+          }));
+        } catch (err) {
+          console.error('Error saving wallet data:', err);
+        }
+      }
+    };
+    
+    saveWalletData();
+  }, [connected, address, user?.id, tokens]);
 
   // Load tokens when wallet is connected
   useEffect(() => {
     if (connected && address) {
-      refreshWalletData();
+      loadWalletData(address);
     }
-  }, [connected, address, refreshWalletData]);
+  }, [connected, address, loadWalletData]);
 
   return {
     isConnected: connected,

@@ -20,7 +20,7 @@ const chartData = [
 ];
 
 // Define a simple interface for bot data without any complex types
-interface SimpleBotData {
+interface BotData {
   id: string;
   active: boolean;
   user_id: string;
@@ -81,13 +81,41 @@ export default function Dashboard() {
     setBotLoading(true);
     try {
       const newStatus = !botActive;
-      const { error } = await supabase
-        .from('bots')
-        .update({ active: newStatus, updated_at: new Date().toISOString() })
-        .eq('user_id', user.id)
-        .eq('is_primary', true);
       
-      if (error) throw error;
+      // First, check if a bot exists for this user
+      const { data: existingBot } = await supabase
+        .from('bots')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_primary', true)
+        .maybeSingle();
+      
+      if (existingBot) {
+        // Update existing bot
+        const { error } = await supabase
+          .from('bots')
+          .update({ 
+            active: newStatus, 
+            updated_at: new Date().toISOString() 
+          })
+          .eq('id', existingBot.id);
+        
+        if (error) throw error;
+      } else {
+        // Create new bot
+        const { error } = await supabase
+          .from('bots')
+          .insert({ 
+            user_id: user.id, 
+            active: newStatus, 
+            name: 'Default Bot', 
+            strategy: 'basic',
+            is_primary: true 
+          });
+        
+        if (error) throw error;
+      }
+      
       setBotActive(newStatus);
     } catch (err) {
       console.error('Error updating bot status:', err);
