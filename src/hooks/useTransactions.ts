@@ -1,10 +1,12 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
 import { Transaction } from "@/types/transaction-types";
-import { heliusService } from "@/services/helius";
+import { heliusService } from "@/services/helius/HeliusService";
+import { mockTransactions } from "@/services/mocks/mockTransactions";
+import { errorCollector } from "@/utils/error-handling/collector";
 
 interface UseTransactionsProps {
   walletAddress?: string | null;
@@ -16,7 +18,7 @@ export const useTransactions = ({ walletAddress, limit = 10 }: UseTransactionsPr
   const [loading, setLoading] = useState(true);
   const { user } = useUser();
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     if (!walletAddress) {
       setTransactions([]);
       setLoading(false);
@@ -25,6 +27,8 @@ export const useTransactions = ({ walletAddress, limit = 10 }: UseTransactionsPr
 
     setLoading(true);
     try {
+      console.log('Fetching transactions for wallet:', walletAddress);
+      
       // First try to fetch from Supabase if user is authenticated
       if (user?.id) {
         console.log('Fetching transactions from Supabase for wallet:', walletAddress);
@@ -38,7 +42,10 @@ export const useTransactions = ({ walletAddress, limit = 10 }: UseTransactionsPr
           .order('created_at', { ascending: false })
           .limit(limit || 10);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase error:', error);
+          throw error;
+        }
 
         if (dbTransactions && dbTransactions.length > 0) {
           console.log('Found transactions in Supabase:', dbTransactions.length);
@@ -47,13 +54,13 @@ export const useTransactions = ({ walletAddress, limit = 10 }: UseTransactionsPr
           const mappedTransactions: Transaction[] = dbTransactions.map((tx) => ({
             id: tx.id,
             type: tx.type || 'unknown',
-            token: tx.type === 'SOL_TRANSFER' ? 'SOL' : 'SPL',
+            token: tx.token || 'SOL',
             amount: tx.amount || '0',
-            price: '$0.00', // This would come from a price service
-            value: '$0.00', // This would come from a price service
-            timestamp: tx.created_at,
+            price: tx.price || '$0.00',
+            value: tx.value || '$0.00',
+            timestamp: tx.created_at || new Date().toISOString(),
             status: tx.status || 'completed',
-            bot: 'Manual', // This would come from bot data
+            bot: tx.bot_id ? 'Trading Bot' : 'Manual',
             signature: tx.signature
           }));
           
@@ -65,14 +72,14 @@ export const useTransactions = ({ walletAddress, limit = 10 }: UseTransactionsPr
       
       // If no transactions found in DB or user not authenticated, try Helius
       console.log('Fetching transactions from Helius for wallet:', walletAddress);
-      const heliusTransactions = await heliusService.getTransactionHistory(walletAddress);
+      const heliusTransactions = await heliusService.getTransactionHistory(walletAddress, limit);
       
       if (heliusTransactions && heliusTransactions.length > 0) {
         console.log('Found transactions on Helius:', heliusTransactions.length);
         
         // Map Helius transactions to the Transaction interface
         const mappedTransactions: Transaction[] = heliusTransactions.map((tx, index) => {
-          // Parse the transaction data - in a real app this would be more sophisticated
+          // Parse the transaction data
           const txType = tx.type || 'UNKNOWN';
           let tokenSymbol = 'UNKNOWN';
           
@@ -106,23 +113,31 @@ export const useTransactions = ({ walletAddress, limit = 10 }: UseTransactionsPr
         
         setTransactions(mappedTransactions);
       } else {
-        console.log('No transactions found for wallet');
-        setTransactions([]);
+        console.log('No real transactions found, using mock data for testing');
+        setTransactions(mockTransactions.slice(0, limit));
       }
     } catch (error) {
       console.error('Error fetching transactions:', error);
-      toast.error('Σφάλμα φόρτωσης συναλλαγών', {
-        description: 'Δοκιμάστε να ανανεώσετε τη σελίδα'
+      errorCollector.collectError(error, {
+        component: 'useTransactions',
+        source: 'hook',
+        details: { walletAddress, limit }
       });
-      setTransactions([]);
+      
+      toast.error('Προσωρινό πρόβλημα φόρτωσης συναλλαγών', {
+        description: 'Χρησιμοποιούνται δοκιμαστικά δεδομένα'
+      });
+      
+      // Use mock data on error
+      setTransactions(mockTransactions.slice(0, limit));
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, walletAddress, limit]);
 
   useEffect(() => {
     fetchTransactions();
-  }, [user, walletAddress, limit]);
+  }, [fetchTransactions]);
 
   const refreshTransactions = () => {
     fetchTransactions();

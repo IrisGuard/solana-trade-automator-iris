@@ -14,16 +14,23 @@ import { Badge } from "@/components/ui/badge";
 
 interface TransactionItemProps {
   transaction: Transaction;
-  walletAddress: string | null;
-  getStatusBadgeClass: (status: string) => string;
-  getTypeIcon: (type: string) => string;
+  walletAddress?: string | null;
+  getStatusBadgeClass?: (status: string) => string;
+  getTypeIcon?: (type: string) => string;
 }
 
 export function TransactionItem({ 
   transaction, 
   walletAddress,
-  getStatusBadgeClass,
-  getTypeIcon
+  getStatusBadgeClass = (status) => status.toLowerCase().includes('success') 
+    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" 
+    : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  getTypeIcon = (type) => {
+    if (type.toLowerCase().includes('send')) return '↑';
+    if (type.toLowerCase().includes('receive')) return '↓';
+    if (type.toLowerCase().includes('swap')) return '↔';
+    return '•';
+  }
 }: TransactionItemProps) {
   const formatDate = (timestamp: number): string => {
     return new Date(timestamp).toLocaleDateString('el-GR', {
@@ -37,13 +44,18 @@ export function TransactionItem({
 
   // Handle display of transaction amount with direction
   const displayAmount = () => {
-    const amount = parseFloat(String(transaction.amount || 0));
-    
-    if (transaction.type.toLowerCase().includes('receive') || 
-        (transaction.from && transaction.to === walletAddress)) {
-      return <span className="text-green-600 dark:text-green-400">+{amount.toFixed(4)}</span>;
-    } else {
-      return <span className="text-red-600 dark:text-red-400">-{amount.toFixed(4)}</span>;
+    try {
+      const amount = parseFloat(String(transaction.amount || 0));
+      const token = transaction.token || 'SOL';
+      
+      if (transaction.type.toLowerCase().includes('receive') || 
+          (transaction.from && transaction.to === walletAddress)) {
+        return <span className="text-green-600 dark:text-green-400">+{amount.toFixed(4)} {token}</span>;
+      } else {
+        return <span className="text-red-600 dark:text-red-400">-{amount.toFixed(4)} {token}</span>;
+      }
+    } catch (e) {
+      return <span>{transaction.amount} {transaction.token || 'SOL'}</span>;
     }
   };
 
@@ -57,7 +69,7 @@ export function TransactionItem({
         </div>
       </TableCell>
       <TableCell>{displayAmount()}</TableCell>
-      <TableCell>{transaction.tokenAddress ? transaction.tokenAddress : 'SOL'}</TableCell>
+      <TableCell>{transaction.token || transaction.tokenAddress || 'SOL'}</TableCell>
       <TableCell className="hidden md:table-cell">
         <Badge variant="default" className={getStatusBadgeClass(transaction.status || 'Success')}>
           {transaction.status || 'Success'}

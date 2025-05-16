@@ -1,164 +1,111 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { errorCollector } from '@/utils/error-handling/collector';
+import { FALLBACK_HELIUS_KEY } from './HeliusConfig';
 
 class HeliusKeyManager {
-  private apiKeys: Map<string, string> = new Map();
+  private apiKeys: string[] = [];
   private currentKeyIndex = 0;
-  private apiKeysArray: string[] = [];
-  private initialized = false;
+  private isInitialized = false;
+  private lastRefreshTime = 0;
+  private refreshInterval = 60 * 1000; // 1 minute
 
   constructor() {
-    this.initialize();
-  }
-
-  public async initialize(): Promise<void> {
-    try {
-      console.log('Αρχικοποίηση HeliusKeyManager');
-      await this.loadApiKeysFromSupabase();
-      this.initialized = true;
-      console.log(`Το HeliusKeyManager αρχικοποιήθηκε με ${this.apiKeysArray.length} κλειδιά`);
-    } catch (error) {
-      console.error('Αποτυχία αρχικοποίησης HeliusKeyManager:', error);
-      this.reportError(new Error('Αποτυχία αρχικοποίησης HeliusKeyManager'));
-      
-      // Add fallback key for development - using the provided key
-      this.registerApiKey('ddb32813-1f4b-459d-8964-310b1b73a053', 'default-key');
-      this.initialized = true;
+    // Initialize with default fallback key
+    if (FALLBACK_HELIUS_KEY) {
+      this.apiKeys = [FALLBACK_HELIUS_KEY];
     }
   }
 
-  public async forceReload(): Promise<void> {
-    try {
-      console.log('Αναγκαστική επαναφόρτωση κλειδιών API Helius');
-      this.apiKeys.clear();
-      this.apiKeysArray = [];
-      await this.loadApiKeysFromSupabase();
-      console.log(`Το HeliusKeyManager επαναφορτώθηκε με ${this.apiKeysArray.length} κλειδιά`);
-    } catch (error) {
-      console.error('Αποτυχία επαναφόρτωσης κλειδιών API Helius:', error);
-      this.reportError(new Error('Αποτυχία επαναφόρτωσης κλειδιών API Helius'));
-      
-      // Make sure we have the default key
-      this.registerApiKey('ddb32813-1f4b-459d-8964-310b1b73a053', 'default-key');
-    }
-  }
-
-  private async loadApiKeysFromSupabase(): Promise<void> {
-    try {
-      console.log('Φόρτωση κλειδιών API Helius από Supabase...');
-      const { data, error } = await supabase
-        .from('api_keys_storage')
-        .select('id, key_value, name')
-        .eq('service', 'helius')
-        .eq('status', 'active');
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        console.log(`Βρέθηκαν ${data.length} κλειδιά API Helius`);
-        data.forEach(key => {
-          this.registerApiKey(key.key_value, key.name || key.id);
-        });
-        console.log(`Φορτώθηκαν ${data.length} κλειδιά API Helius από Supabase`);
-      } else {
-        console.log('Δεν βρέθηκαν κλειδιά API Helius στο Supabase, χρήση εφεδρικού');
-        // Use the provided key as fallback
-        this.registerApiKey('ddb32813-1f4b-459d-8964-310b1b73a053', 'default-fallback');
-      }
-    } catch (error) {
-      console.error('Αποτυχία φόρτωσης κλειδιών API Helius από Supabase:', error);
-      this.reportError(new Error('Αποτυχία φόρτωσης κλειδιών API Helius από Supabase'));
-      // Εφεδρικό κλειδί
-      this.registerApiKey('ddb32813-1f4b-459d-8964-310b1b73a053', 'default-error-fallback');
-    }
-  }
-
+  /**
+   * Get an API key from the pool
+   */
   public getApiKey(): string {
-    if (!this.initialized) {
-      console.warn('HeliusKeyManager δεν έχει αρχικοποιηθεί, επιστροφή προεπιλεγμένου κλειδιού');
-      return 'ddb32813-1f4b-459d-8964-310b1b73a053';
-    }
+    this.ensureInitialized();
     
-    if (this.apiKeysArray.length === 0) {
-      this.reportError(new Error('Δεν υπάρχουν διαθέσιμα κλειδιά API Helius'));
-      return 'ddb32813-1f4b-459d-8964-310b1b73a053';
+    if (this.apiKeys.length === 0) {
+      console.error('No Helius API keys available!');
+      throw new Error('Helius API not configured properly');
     }
 
-    const key = this.apiKeysArray[this.currentKeyIndex];
-    this.rotateKey();
+    // Round robin key selection
+    const key = this.apiKeys[this.currentKeyIndex];
+    this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeys.length;
+    
     return key;
   }
 
-  private rotateKey(): void {
-    if (this.apiKeysArray.length > 1) {
-      this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeysArray.length;
+  /**
+   * Force refresh of API keys from Supabase
+   */
+  public async refreshKeys(): Promise<boolean> {
+    const now = Date.now();
+    
+    // Don't refresh too frequently
+    if (now - this.lastRefreshTime < this.refreshInterval) {
+      return this.isInitialized;
     }
-  }
 
-  public registerApiKey(key: string, alias?: string): boolean {
     try {
-      if (!key) {
-        this.reportError(new Error('Μη έγκυρο κλειδί API'));
-        return false;
+      this.lastRefreshTime = now;
+      
+      // Get API keys from Supabase
+      const { data, error } = await supabase
+        .from('api_keys')
+        .select('key_value')
+        .eq('key_type', 'helius')
+        .eq('is_active', true);
+      
+      if (error) {
+        console.error('Error fetching Helius API keys:', error);
+        errorCollector.collectError(error, {
+          component: 'HeliusKeyManager',
+          method: 'refreshKeys',
+          additional: 'Fallback to existing keys'
+        });
+        
+        return this.apiKeys.length > 0;
       }
-
-      const keyAlias = alias || `helius-key-${this.apiKeys.size + 1}`;
-      this.apiKeys.set(keyAlias, key);
-      this.apiKeysArray = Array.from(this.apiKeys.values());
-      console.log(`Καταχωρήθηκε το κλειδί API Helius: ${key.substring(0, 8)}... ως ${keyAlias}`);
-      return true;
-    } catch (error) {
-      this.reportError(new Error('Αποτυχία καταχώρησης κλειδιού API'));
-      return false;
-    }
-  }
-
-  public removeApiKey(keyOrAlias: string): boolean {
-    try {
-      // Try to remove by alias
-      if (this.apiKeys.has(keyOrAlias)) {
-        this.apiKeys.delete(keyOrAlias);
-        this.apiKeysArray = Array.from(this.apiKeys.values());
-        return true;
-      }
-
-      // Try to remove by value
-      for (const [alias, key] of this.apiKeys.entries()) {
-        if (key === keyOrAlias) {
-          this.apiKeys.delete(alias);
-          this.apiKeysArray = Array.from(this.apiKeys.values());
+      
+      // Extract keys from result
+      if (data && data.length > 0) {
+        const keys = data.map(row => row.key_value).filter(Boolean);
+        
+        if (keys.length > 0) {
+          this.apiKeys = keys;
+          this.isInitialized = true;
           return true;
         }
       }
-
-      return false;
+      
+      // If no keys found, use fallback key
+      if (FALLBACK_HELIUS_KEY && this.apiKeys.length === 0) {
+        this.apiKeys = [FALLBACK_HELIUS_KEY];
+        return true;
+      }
+      
+      return this.apiKeys.length > 0;
     } catch (error) {
-      this.reportError(new Error('Αποτυχία αφαίρεσης κλειδιού API'));
-      return false;
+      console.error('Exception refreshing Helius API keys:', error);
+      errorCollector.collectError(error, {
+        component: 'HeliusKeyManager',
+        method: 'refreshKeys',
+        additional: 'Unexpected exception'
+      });
+      
+      return this.apiKeys.length > 0;
     }
   }
-
-  public getAllKeys(): string[] {
-    return this.apiKeysArray;
-  }
-
-  public getKeyCount(): number {
-    return this.apiKeysArray.length;
-  }
   
-  public isInitialized(): boolean {
-    return this.initialized;
-  }
-
-  private reportError(error: Error): void {
-    console.error('HeliusKeyManager error:', error);
-    errorCollector.captureError(error, {
-      component: 'HeliusKeyManager',
-      source: 'client',
-      severity: 'medium'
-    });
+  /**
+   * Make sure keys are loaded before use
+   */
+  private async ensureInitialized(): Promise<void> {
+    if (!this.isInitialized) {
+      await this.refreshKeys();
+    }
   }
 }
 
+// Export a singleton instance
 export const heliusKeyManager = new HeliusKeyManager();
