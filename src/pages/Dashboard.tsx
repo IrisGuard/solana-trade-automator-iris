@@ -51,14 +51,14 @@ export default function Dashboard() {
       if (!isConnected || !walletAddress || !user?.id) return;
       
       try {
-        // Use explicit typing to avoid deep type instantiation issues
-        // And use maybeSingle instead of single to avoid potential errors
+        // Use a simpler query structure to avoid TypeScript inference issues
         const { data, error } = await supabase
           .from('bots')
           .select('active')
           .eq('user_id', user.id)
           .eq('is_primary', true)
-          .maybeSingle();
+          .limit(1)
+          .single();
         
         if (error) throw error;
         if (data) setBotActive(data.active || false);
