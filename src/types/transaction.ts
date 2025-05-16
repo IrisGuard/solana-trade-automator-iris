@@ -9,4 +9,5 @@ export interface Transaction {
   timestamp?: number;
   blockTime: number;
   tokenAddress?: string;
+  token?: string;
 }
