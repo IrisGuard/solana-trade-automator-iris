@@ -8,6 +8,7 @@ import { HelpSearch } from "../HelpSearch";
 import { SolanaDocumentation } from "../SolanaDocumentation";
 import { SystemProtectionGuide } from "../SystemProtectionGuide";
 import { BotDocumentation } from "../BotDocumentation";
+import { WalletDocumentation } from "../WalletDocumentation";
 
 export function TabContent() {
   return (
@@ -18,6 +19,10 @@ export function TabContent() {
 
       <TabsContent value="guide" className="p-0">
         <PlatformGuide />
+      </TabsContent>
+      
+      <TabsContent value="wallet" className="p-0">
+        <WalletDocumentation />
       </TabsContent>
 
       <TabsContent value="documentation" className="p-0">

@@ -23,4 +23,9 @@ export const help = {
   noResourcesFound: "No resources found matching your criteria",
   commandExplorer: "Platform Commands & Resources",
   exploreAllCommands: "Explore all available commands and resources of the platform",
+  walletGuide: "Wallet Guide",
+  walletGuideDesc: "Complete guide for connecting and managing your Solana wallet",
+  walletTroubleshooting: "Wallet Troubleshooting",
+  walletSecurity: "Wallet Security",
+  walletTransactions: "Managing Transactions"
 };

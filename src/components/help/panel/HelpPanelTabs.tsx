@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ListChecks, BookOpen, FileText, Shield, Search, Plus, Bot } from "lucide-react";
+import { ListChecks, BookOpen, FileText, Shield, Search, Plus, Bot, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CommandList } from "../CommandList";
 import { PlatformGuide } from "../PlatformGuide";
@@ -38,6 +38,10 @@ export function HelpPanelTabs({
           <TabsTrigger value="guide" className="flex items-center gap-2">
             <BookOpen className="h-4 w-4" />
             Οδηγός Πλατφόρμας
+          </TabsTrigger>
+          <TabsTrigger value="wallet" className="flex items-center gap-2">
+            <Wallet className="h-4 w-4" />
+            Πορτοφόλι
           </TabsTrigger>
           <TabsTrigger value="bots" className="flex items-center gap-2">
             <Bot className="h-4 w-4" />

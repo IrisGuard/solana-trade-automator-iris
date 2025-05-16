@@ -23,4 +23,9 @@ export const help = {
   noResourcesFound: "Δεν βρέθηκαν πόροι που να ταιριάζουν με τα κριτήριά σας",
   commandExplorer: "Εντολές & Πόροι Πλατφόρμας",
   exploreAllCommands: "Εξερευνήστε όλες τις διαθέσιμες εντολές και πόρους της πλατφόρμας",
+  walletGuide: "Οδηγός Πορτοφολιού",
+  walletGuideDesc: "Πλήρης οδηγός για τη σύνδεση και διαχείριση του Solana πορτοφολιού σας",
+  walletTroubleshooting: "Αντιμετώπιση Προβλημάτων Πορτοφολιού",
+  walletSecurity: "Ασφάλεια Πορτοφολιού",
+  walletTransactions: "Διαχείριση Συναλλαγών"
 };
