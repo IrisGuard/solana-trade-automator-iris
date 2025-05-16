@@ -2,44 +2,68 @@
 import { errorCollector } from '@/utils/error-handling/collector';
 import { heliusKeyManager } from './HeliusKeyManager';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 class HeliusService {
   private baseUrl = 'https://api.helius.xyz/v0';
   private currentEndpoint = 0;
   private endpoints = ['mainnet-beta', 'devnet'];
+  private apiKeyStatus = false;
 
   constructor() {
     console.log('HeliusService initialized');
+    // Check API key when service initializes
+    this.checkApiKeyStatus();
+  }
+  
+  private async checkApiKeyStatus() {
+    const apiKey = this.getApiKey();
+    if (apiKey) {
+      this.apiKeyStatus = await this.checkApiKey(apiKey);
+      console.log('Helius API key status:', this.apiKeyStatus ? 'valid' : 'invalid');
+    }
   }
 
   public async getTokenBalances(address: string): Promise<any[]> {
     try {
       const apiKey = this.getApiKey();
       
-      if (!apiKey || !address) {
-        console.log('Missing API key or address for Helius call');
+      if (!apiKey) {
+        console.log('Missing API key for Helius call');
+        toast.error('Λείπει το κλειδί API Helius', {
+          description: 'Παρακαλούμε προσθέστε ένα κλειδί API Helius στο API Vault'
+        });
         return [];
       }
       
-      if (address === 'demo') {
-        console.log('Demo mode detected, returning sample data');
-        return [
-          { mint: 'So11111111111111111111111111111111111111112', amount: 1.5, decimals: 9 },
-          { mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', amount: 100, decimals: 6 }
-        ];
+      if (!address) {
+        console.log('Missing address for Helius call');
+        return [];
       }
+      
+      console.log(`Fetching token balances for address: ${address}`);
       
       const url = `${this.baseUrl}/token-balances?api-key=${apiKey}&address=${address}`;
       
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error(`Helius API error: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Helius API error: ${response.status} ${response.statusText} - ${errorText}`);
       }
       
       const data = await response.json();
+      console.log(`Received token data for ${address}:`, data);
+      
+      // Return empty array if no tokens property
+      if (!data.tokens) {
+        console.log('No tokens property in response');
+        return [];
+      }
+      
       return data.tokens || [];
     } catch (error) {
       this.reportError(new Error(`Failed to get token balances: ${error}`));
+      console.error('Error fetching token balances:', error);
       return [];
     }
   }
@@ -51,13 +75,6 @@ class HeliusService {
       if (!apiKey || !address) {
         console.log('Missing API key or address for Helius call');
         return [];
-      }
-      
-      if (address === 'demo') {
-        return [
-          { signature: '5mZ1vT1gZS', timestamp: Date.now() - 3600000, type: 'SOL_TRANSFER' },
-          { signature: '2xC3vRt9pL', timestamp: Date.now() - 7200000, type: 'TOKEN_TRANSFER' }
-        ];
       }
       
       const url = `${this.baseUrl}/addresses/${address}/transactions?api-key=${apiKey}&limit=10`;
@@ -77,23 +94,19 @@ class HeliusService {
 
   public async getTokenMetadata(mintAddresses: string[]): Promise<any[]> {
     try {
-      const apiKey = this.getApiKey();
-      
-      if (!apiKey || !mintAddresses.length) {
-        console.log('Missing API key or mint addresses for Helius call');
+      if (!mintAddresses || mintAddresses.length === 0) {
+        console.log('No mint addresses provided for token metadata');
         return [];
       }
       
-      // For specific mint addresses, use sample data for demo
-      if (mintAddresses.includes('So11111111111111111111111111111111111111112')) {
-        return [{
-          mint: 'So11111111111111111111111111111111111111112',
-          name: 'Wrapped SOL',
-          symbol: 'SOL',
-          decimals: 9,
-          logoURI: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png'
-        }];
+      const apiKey = this.getApiKey();
+      
+      if (!apiKey) {
+        console.log('Missing API key for Helius call');
+        return [];
       }
+      
+      console.log(`Fetching metadata for ${mintAddresses.length} tokens`);
       
       const url = `${this.baseUrl}/token-metadata?api-key=${apiKey}`;
       
@@ -106,13 +119,17 @@ class HeliusService {
       });
       
       if (!response.ok) {
-        throw new Error(`Helius API error: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Helius API error: ${response.status} ${response.statusText} - ${errorText}`);
       }
       
       const data = await response.json();
+      console.log(`Received metadata for ${mintAddresses.length} tokens:`, data);
+      
       return data || [];
     } catch (error) {
       this.reportError(new Error(`Failed to get token metadata: ${error}`));
+      console.error('Error fetching token metadata:', error);
       return [];
     }
   }
@@ -140,9 +157,14 @@ class HeliusService {
   // Helper method to check API key validity
   public async checkApiKey(apiKey: string): Promise<boolean> {
     try {
+      console.log('Checking Helius API key validity...');
       const url = `${this.baseUrl}/status?api-key=${apiKey}`;
+      
       const response = await fetch(url);
-      return response.ok;
+      const isValid = response.ok;
+      
+      console.log(`Helius API key check result: ${isValid ? 'valid' : 'invalid'}`);
+      return isValid;
     } catch (error) {
       console.error('Error checking Helius API key:', error);
       return false;

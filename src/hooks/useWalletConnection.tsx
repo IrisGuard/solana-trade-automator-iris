@@ -7,6 +7,7 @@ import { useUser } from '@/hooks/useUser';
 import { saveWalletToLocalStorage, saveWalletToSupabase, removeWalletFromStorage, getWalletFromLocalStorage } from '@/utils/walletStorage';
 import { heliusService } from '@/services/helius/HeliusService';
 import { Token, TokenPrices } from '@/types/wallet';
+import { solanaService } from '@/services/solana';
 
 export function useWalletConnection() {
   const [isConnected, setIsConnected] = useState(false);
@@ -32,6 +33,7 @@ export function useWalletConnection() {
       
       if (storedWallet && phantomInstalled) {
         try {
+          console.log('Attempting to reconnect wallet:', storedWallet.address);
           await connectToWallet(storedWallet.address);
         } catch (err) {
           console.error('Auto-reconnect failed:', err);
@@ -63,8 +65,12 @@ export function useWalletConnection() {
     setError(null);
     
     try {
-      // @ts-ignore
+      // @ts-ignore - Phantom global object
       const { solana } = window;
+      
+      if (!solana || !solana.isPhantom) {
+        throw new Error("Phantom wallet not detected");
+      }
       
       const response = await solana.connect();
       const address = response.publicKey.toString();
@@ -104,7 +110,7 @@ export function useWalletConnection() {
   // Disconnect wallet
   const disconnectWallet = useCallback(async () => {
     try {
-      // @ts-ignore
+      // @ts-ignore - Phantom global object
       const { solana } = window;
       
       if (solana && solana.disconnect) {
@@ -140,47 +146,71 @@ export function useWalletConnection() {
     setIsLoadingTokens(true);
     
     try {
-      // Fetch SOL balance
-      // @ts-ignore
-      const { solana } = window;
+      console.log('Refreshing wallet data for address:', walletToUse);
       
-      if (solana) {
-        try {
-          // This would normally use the Solana web3.js library
-          // For now, simulate with a random balance
-          setSolBalance(Math.random() * 10);
+      // Get SOL balance using solanaService instead of mock data
+      try {
+        const balance = await solanaService.fetchSOLBalance(walletToUse);
+        console.log('Fetched SOL balance:', balance);
+        setSolBalance(balance);
+      } catch (balanceError) {
+        console.error('Error fetching SOL balance:', balanceError);
+        reportError(balanceError);
+      }
+      
+      // Try to get token balances from Helius
+      try {
+        console.log('Fetching token balances from Helius...');
+        const tokenBalances = await heliusService.getTokenBalances(walletToUse);
+        
+        if (tokenBalances && tokenBalances.length) {
+          console.log('Received token balances:', tokenBalances);
           
-          // Try to get token balances from Helius
-          const tokenBalances = await heliusService.getTokenBalances(walletToUse);
+          // Get metadata for tokens
+          const tokenAddresses = tokenBalances.map(t => t.mint);
+          const tokenMetadataList = await heliusService.getTokenMetadata(tokenAddresses);
           
-          if (tokenBalances && tokenBalances.length) {
-            // Process token data
-            const processedTokens = tokenBalances.map(token => ({
+          // Create a map for easy lookup
+          const tokenMetadataMap = tokenMetadataList.reduce((acc, token) => {
+            acc[token.mint] = token;
+            return acc;
+          }, {} as Record<string, any>);
+          
+          // Process token data
+          const processedTokens = tokenBalances.map(token => {
+            const metadata = tokenMetadataMap[token.mint] || {};
+            return {
               address: token.mint,
-              symbol: token.symbol || 'Unknown',
-              name: token.name || 'Unknown Token',
+              symbol: metadata.symbol || 'Unknown',
+              name: metadata.name || 'Unknown Token',
               amount: token.amount || 0,
               decimals: token.decimals || 9,
-              logo: token.logoURI || ''
-            }));
-            
-            setTokens(processedTokens);
-            
-            // Set mock prices for now
-            const mockPrices: TokenPrices = {};
-            processedTokens.forEach(token => {
-              mockPrices[token.address] = {
-                price: Math.random() * 100,
-                priceChange24h: (Math.random() * 20) - 10,
-                lastUpdated: new Date()
-              };
-            });
-            
-            setTokenPrices(mockPrices);
-          }
-        } catch (err) {
-          console.error('Error fetching wallet data:', err);
+              logo: metadata.logoURI || ''
+            };
+          }).filter(token => token.amount > 0); // Filter out zero-balance tokens
+          
+          console.log('Processed tokens:', processedTokens);
+          setTokens(processedTokens);
+          
+          // Set mock prices for now - would be replaced with real price API
+          const prices: TokenPrices = {};
+          processedTokens.forEach(token => {
+            prices[token.address] = {
+              price: Math.random() * 100,
+              priceChange24h: (Math.random() * 20) - 10,
+              lastUpdated: new Date()
+            };
+          });
+          
+          setTokenPrices(prices);
+        } else {
+          console.log('No token balances received or empty array returned');
+          setTokens([]);
         }
+      } catch (tokenError) {
+        console.error('Error fetching token balances:', tokenError);
+        reportError(tokenError);
+        setTokens([]);
       }
     } catch (err: any) {
       console.error('Error refreshing wallet data:', err);
@@ -197,9 +227,7 @@ export function useWalletConnection() {
     if (selectedToken) {
       toast.success(`Επιλέχθηκε το ${selectedToken.symbol || selectedToken.name} για συναλλαγές`);
       
-      // Simulate navigation to trading page
-      // window.location.href = `/trading?token=${tokenAddress}`;
-      // For now, just return the selected token
+      // Here you would route to trading page or UI
       return selectedToken;
     }
     
