@@ -23,7 +23,7 @@ export default function BotControlPage() {
         title="Trading Bot"
         description="Αυτοματοποιημένη διαχείριση συναλλαγών στο Solana blockchain"
         breadcrumbs={[{ label: "Trading Bot" }]}
-        variant="emerald"
+        variant="green"
       />
       
       {/* Quick Navigation */}

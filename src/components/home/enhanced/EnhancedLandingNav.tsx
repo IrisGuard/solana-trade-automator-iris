@@ -37,12 +37,11 @@ export function EnhancedNavItem({ icon, title, description, href, gradient }: Na
             {
               "bg-purple-500/10": gradient === "purple",
               "bg-blue-500/10": gradient === "blue",
-              "bg-emerald-500/10": gradient === "green",
+              "bg-emerald-500/10": gradient === "green" || gradient === "emerald",
               "bg-amber-500/10": gradient === "amber",
               "bg-pink-500/10": gradient === "pink",
               "bg-indigo-500/10": gradient === "indigo",
               "bg-cyan-500/10": gradient === "cyan",
-              "bg-emerald-500/10": gradient === "emerald",
             }
           )}>
             {icon}

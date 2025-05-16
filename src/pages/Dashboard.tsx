@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { ConnectWalletCard } from "@/components/home/ConnectWalletCard";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
@@ -200,6 +199,12 @@ export default function Dashboard() {
     }
   };
 
+  // Fix the refreshWalletData handler for the button
+  const handleRefreshClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    refreshWalletData();
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader 
@@ -210,7 +215,7 @@ export default function Dashboard() {
         actions={
           <Button 
             variant="outline" 
-            onClick={refreshWalletData}
+            onClick={handleRefreshClick}
             disabled={!isConnected || isLoadingTokens}
           >
             <RefreshCw className="h-4 w-4 mr-2" />

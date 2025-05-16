@@ -42,7 +42,7 @@ export default function Bots() {
         title="Διαχείριση Bots"
         description="Δημιουργήστε και διαχειριστείτε τα trading bots σας"
         breadcrumbs={[{ label: "Bots" }]}
-        variant="emerald"
+        variant="green"
       />
       
       {/* Quick Navigation */}

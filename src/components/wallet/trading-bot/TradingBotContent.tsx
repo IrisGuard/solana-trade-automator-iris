@@ -27,7 +27,15 @@ export function TradingBotContent({
     selectedToken,
     tradingAmount,
     profitTarget,
-    stopLoss
+    stopLoss,
+    config,
+    updateConfig,
+    selectToken,
+    selectedTokenPrice,
+    selectedTokenDetails,
+    tokens,
+    activeOrders,
+    botStatus
   } = tradingBotState;
   
   return (
@@ -49,19 +57,34 @@ export function TradingBotContent({
         </TabsList>
         
         <TabsContent value="settings" className="space-y-4">
-          <SettingsTab />
+          <SettingsTab 
+            config={config} 
+            updateConfig={updateConfig} 
+            selectToken={selectToken} 
+            selectedTokenPrice={selectedTokenPrice}
+            selectedTokenDetails={selectedTokenDetails}
+            tokens={tokens}
+          />
         </TabsContent>
         
         <TabsContent value="strategy" className="space-y-4">
-          <StrategyTab />
+          <StrategyTab 
+            config={config}
+            updateConfig={updateConfig}
+          />
         </TabsContent>
         
         <TabsContent value="monitor" className="space-y-4">
-          <MonitorTab />
+          <MonitorTab 
+            botStatus={botStatus || 'idle'}
+            selectedTokenDetails={selectedTokenDetails}
+            selectedTokenPrice={selectedTokenPrice}
+            activeOrders={activeOrders || []}
+          />
         </TabsContent>
         
         <TabsContent value="orders" className="space-y-4">
-          <OrdersTab />
+          <OrdersTab activeOrders={activeOrders || []} />
         </TabsContent>
         
         <TabsContent value="history" className="space-y-4">
