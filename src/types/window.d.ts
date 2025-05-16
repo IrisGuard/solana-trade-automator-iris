@@ -1,33 +1,29 @@
 
 interface Window {
-  solflare?: any;
-  phantom?: any;
-  SolflareApp?: any;
-  lovableChat?: {
-    createErrorDialog?: (errorData: any) => void;
-    clearErrors?: () => void;
-    [key: string]: any;
-  };
-  _lastErrorDisplayTime?: number;
-  _lastErrorMessage?: string;
-  _lastErrorDisplayTimes?: {
-    [errorId: string]: number;
-  };
-  _errorQueue?: Array<{
-    message: string;
-    stack?: string;
-    timestamp: string;
-    type: string;
-  }>;
+  // React globals
+  React: typeof import('react');
+  ReactDOM: typeof import('react-dom');
   
-  // Add React type for JSX runtime
-  React?: typeof import('react') & {
-    jsx?: any;
-    jsxs?: any;
-    jsxDEV?: any;
-    Fragment?: typeof import('react').Fragment;
+  // Site backup utility
+  siteBackup: {
+    create: (options?: any) => boolean;
+    restore: (showNotification?: boolean) => boolean;
+    check: () => boolean;
+    countBackups: () => number;
+    maxBackups: () => number;
   };
   
-  // Property for router patch
-  patchedReactRouter?: boolean;
+  // Error collector utility
+  errorCollector?: any;
+  
+  // Buffer for crypto operations
+  Buffer: typeof Buffer;
+  
+  // Process shim for Node.js compatibility
+  process: {
+    env: Record<string, string>;
+    browser: boolean;
+    version: string;
+    nextTick: (fn: Function) => void;
+  };
 }

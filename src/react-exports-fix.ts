@@ -2,25 +2,33 @@
 /**
  * React Exports Fix
  * 
- * This file ensures React exports are consistent across the application
- * and fixes issues with JSX runtime in both development and production.
+ * This file helps fix React exports compatibility issues with different frameworks
+ * by ensuring proper exports are available under expected names.
  */
+
+// Import needed React modules
 import * as React from 'react';
-import { jsx, jsxs, Fragment, jsxDEV } from './utils/jsx-runtime-fix';
+import * as ReactDOM from 'react-dom';
+import * as JSXRuntime from 'react/jsx-runtime';
 
-// Re-export everything from React
-const ReactExports = {
-  ...React,
-  jsx,
-  jsxs,
-  jsxDEV,
-  Fragment
-};
-
-// Apply to window.React if in browser
+// Make React available globally if it's not already
 if (typeof window !== 'undefined') {
-  window.React = window.React || {} as any;
-  Object.assign(window.React, ReactExports);
+  // Ensure React is available on window
+  if (!window.React) {
+    window.React = React;
+  }
+  
+  // Ensure ReactDOM is available on window
+  if (!window.ReactDOM) {
+    window.ReactDOM = ReactDOM;
+  }
+  
+  // Add React.Fragment if missing
+  if (window.React && !window.React.Fragment) {
+    window.React.Fragment = React.Fragment;
+  }
 }
 
-export default ReactExports;
+// Export all React features for local imports
+export * from 'react';
+export default React;
