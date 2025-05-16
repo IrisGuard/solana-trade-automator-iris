@@ -1,10 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { heliusKeyManager } from "@/services/solana/HeliusKeyManager";
-
-// Σταθερό δοκιμαστικό κλειδί Helius για επίδειξη
-const DEMO_HELIUS_KEY = "ddb32813-1f4b-459d-8964-310b1b73a053";
 
 // Προσθέτει τα προκαθορισμένα endpoints του Helius στη βάση δεδομένων
 export const addHeliusEndpoints = async (): Promise<boolean> => {
@@ -23,25 +19,26 @@ export const addHeliusEndpoints = async (): Promise<boolean> => {
       return true;
     }
     
-    // Λίστα με τα endpoints του Helius που θέλουμε να προσθέσουμε
+    // Λίστα με τα template endpoints του Helius που θέλουμε να προσθέσουμε
+    // Σημείωση: Τα API_KEY θα πρέπει να συμπληρωθούν από τον χρήστη
     const heliusEndpoints = [
       {
         name: "Helius Enhanced Transactions",
-        url: `https://api.helius.xyz/v0/transactions?api-key=${DEMO_HELIUS_KEY}`,
+        url: `https://api.helius.xyz/v0/transactions?api-key={API_KEY}`,
         category: "helius",
         is_active: true,
         is_public: true
       },
       {
         name: "Helius Name Service",
-        url: `https://api.helius.xyz/v0/addresses/{address}/names?api-key=${DEMO_HELIUS_KEY}`,
+        url: `https://api.helius.xyz/v0/addresses/{address}/names?api-key={API_KEY}`,
         category: "helius",
         is_active: true,
         is_public: true
       },
       {
         name: "Helius Token Balances",
-        url: `https://api.helius.xyz/v0/addresses/{address}/balances?api-key=${DEMO_HELIUS_KEY}`,
+        url: `https://api.helius.xyz/v0/addresses/{address}/balances?api-key={API_KEY}`,
         category: "helius",
         is_active: true,
         is_public: true
@@ -65,29 +62,36 @@ export const addHeliusEndpoints = async (): Promise<boolean> => {
 };
 
 // Προσθέτει το κλειδί API Helius στην κλειδοθήκη του χρήστη
-export const addHeliusKey = async (userId: string): Promise<boolean> => {
+export const addHeliusKey = async (userId: string, apiKey: string): Promise<boolean> => {
+  if (!apiKey || !apiKey.trim()) {
+    toast.error("Παρακαλώ εισάγετε ένα έγκυρο κλειδί API");
+    return false;
+  }
+
   try {
     // Έλεγχος αν υπάρχει ήδη το κλειδί
     const { data: existingKeys, error: checkError } = await supabase
       .from('api_keys_storage')
       .select('*')
       .eq('service', 'helius')
+      .eq('key_value', apiKey)
       .eq('user_id', userId);
     
     if (checkError) throw checkError;
     
-    // Αν υπάρχουν ήδη κλειδιά Helius, επιστρέφουμε επιτυχία
+    // Αν υπάρχουν ήδη κλειδιά με την ίδια τιμή, επιστρέφουμε αποτυχία
     if (existingKeys && existingKeys.length > 0) {
-      console.log('Κλειδιά Helius ήδη υπάρχουν:', existingKeys.length);
-      return true;
+      console.log('Κλειδί Helius με την ίδια τιμή υπάρχει ήδη');
+      toast.error("Αυτό το κλειδί API υπάρχει ήδη");
+      return false;
     }
     
     // Δημιουργία νέου κλειδιού Helius
     const heliusKey = {
-      name: "Helius API Demo Key",
-      key_value: DEMO_HELIUS_KEY,
+      name: "Helius API Key",
+      key_value: apiKey,
       service: "helius",
-      description: "Demo key for accessing Helius API services",
+      description: "Key for accessing Helius API services",
       status: "active",
       user_id: userId,
       is_encrypted: false
@@ -101,14 +105,27 @@ export const addHeliusKey = async (userId: string): Promise<boolean> => {
     if (error) throw error;
     
     console.log('Επιτυχής προσθήκη κλειδιού Helius');
-    
-    // Ενημέρωση του key manager
-    await heliusKeyManager.initialize();
+    toast.success("Το κλειδί API προστέθηκε επιτυχώς");
     
     return true;
   } catch (error) {
     console.error('Σφάλμα κατά την προσθήκη του κλειδιού Helius:', error);
     toast.error('Σφάλμα κατά την προσθήκη κλειδιού Helius');
+    return false;
+  }
+};
+
+// Έλεγχος αν ένα κλειδί Helius είναι έγκυρο
+export const validateHeliusKey = async (apiKey: string): Promise<boolean> => {
+  try {
+    if (!apiKey || !apiKey.trim()) return false;
+
+    const url = `https://api.helius.xyz/v0/addresses/vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg/balances?api-key=${apiKey}`;
+    const response = await fetch(url);
+    
+    return response.status === 200;
+  } catch (error) {
+    console.error("Error validating Helius key:", error);
     return false;
   }
 };

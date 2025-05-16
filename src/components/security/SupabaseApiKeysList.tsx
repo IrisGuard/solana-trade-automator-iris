@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Loader2, Copy, RefreshCw, Eye, EyeOff } from "lucide-react";
+import { Loader2, Copy, RefreshCw, Eye, EyeOff, KeyRound, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
 
@@ -23,17 +24,8 @@ export function SupabaseApiKeysList() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Always show demo key if not logged in
-      const demoKey = {
-        id: 'demo',
-        name: 'Helius API Demo Key',
-        service: 'helius',
-        key_value: 'ddb32813-1f4b-459d-8964-310b1b73a053',
-        status: 'active'
-      };
-      
       if (user) {
-        // Fetch all API keys if user is logged in
+        // Fetch only user's API keys if logged in
         const { data: keysData, error: keysError } = await supabase
           .from('api_keys_storage')
           .select('*')
@@ -41,15 +33,11 @@ export function SupabaseApiKeysList() {
           
         if (keysError) throw keysError;
         
-        // If no keys found and user is logged in, show demo key
-        if (!keysData || keysData.length === 0) {
-          setKeys([demoKey]);
-        } else {
-          setKeys(keysData);
-        }
+        setKeys(keysData || []);
       } else {
-        // Not logged in - show demo key
-        setKeys([demoKey]);
+        // Not logged in - show empty state
+        setKeys([]);
+        toast.error("Πρέπει να συνδεθείτε για να δείτε τα κλειδιά API σας");
       }
       
       // Fetch all endpoints
@@ -107,24 +95,41 @@ export function SupabaseApiKeysList() {
     );
   }
 
+  const handleAddNewKey = () => {
+    // Placeholder for adding new keys functionality
+    // This would typically open a form modal
+    toast.info("Λειτουργία προσθήκης νέου κλειδιού API");
+  };
+
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>Κλειδιά API σ��ο Supabase</CardTitle>
+          <CardTitle>Κλειδιά API στο Supabase</CardTitle>
           <CardDescription>
             Προβολή των αποθηκευμένων κλειδιών API και endpoints
           </CardDescription>
         </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={fetchData}
-          className="gap-2"
-        >
-          <RefreshCw className="h-4 w-4" />
-          Ανανέωση
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={fetchData}
+            className="gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Ανανέωση
+          </Button>
+          <Button 
+            variant="default" 
+            size="sm" 
+            onClick={handleAddNewKey}
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Προσθήκη
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
@@ -185,8 +190,23 @@ export function SupabaseApiKeysList() {
                 </Table>
               </div>
             ) : (
-              <div className="text-center py-8 border rounded-md">
-                <p className="mt-2 text-muted-foreground">Δεν υπάρχουν αποθηκευμένα κλειδιά API</p>
+              <div className="text-center py-8 border rounded-md flex flex-col items-center justify-center">
+                <KeyRound className="h-10 w-10 text-muted-foreground mb-2" />
+                {user ? (
+                  <>
+                    <p className="mt-2 text-muted-foreground">Δεν υπάρχουν αποθηκευμένα κλειδιά API</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-4"
+                      onClick={handleAddNewKey}
+                    >
+                      Προσθήκη κλειδιού API
+                    </Button>
+                  </>
+                ) : (
+                  <p className="mt-2 text-muted-foreground">Συνδεθείτε για να δείτε τα κλειδιά API σας</p>
+                )}
               </div>
             )}
           </div>

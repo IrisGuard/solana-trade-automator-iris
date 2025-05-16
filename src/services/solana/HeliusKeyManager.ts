@@ -37,7 +37,6 @@ export class HeliusKeyManager {
     }
   }
   
-  // Added initialize method that was missing
   public async initialize(): Promise<void> {
     await this.forceReload();
     this.isInitialized = true;
@@ -51,7 +50,7 @@ export class HeliusKeyManager {
 
   public getKey(): string {
     if (!this.isInitialized || this.apiKeys.length === 0) {
-      return this.getFallbackKey();
+      return "";
     }
 
     // Rotate key if it's been more than 1 hour
@@ -73,11 +72,6 @@ export class HeliusKeyManager {
     this.lastRotation = Date.now();
     
     console.log(`Rotated to Helius API key #${this.currentKeyIndex + 1}/${this.apiKeys.length}`);
-  }
-
-  private getFallbackKey(): string {
-    // This is a public demo key with limited usage
-    return 'ddb32813-1f4b-459d-8964-310b1b73a053';
   }
 
   public async testKey(key: string): Promise<boolean> {
@@ -120,13 +114,13 @@ export class HeliusKeyManager {
       const isValid = await this.testKey(key);
       
       if (!isValid) {
-        toast.error("Invalid Helius API key");
+        toast.error("Μη έγκυρο κλειδί Helius API");
         return false;
       }
       
       // Check if key already exists
       if (this.apiKeys.includes(key)) {
-        toast.info("This Helius API key is already registered");
+        toast.info("Αυτό το κλειδί Helius API είναι ήδη καταχωρημένο");
         return false;
       }
       
@@ -149,7 +143,7 @@ export class HeliusKeyManager {
       
       // Add to local cache
       this.apiKeys.push(key);
-      toast.success("Helius API key registered successfully");
+      toast.success("Το κλειδί Helius API καταχωρήθηκε επιτυχώς");
       
       return true;
     } catch (error) {
@@ -185,7 +179,7 @@ export class HeliusKeyManager {
         }
       }
       
-      // If no keys in Supabase or loading failed, look in localStorage
+      // If no keys in Supabase, look in localStorage as backup
       const storedKeys = localStorage.getItem('helius_api_keys');
       if (storedKeys) {
         try {
@@ -200,16 +194,10 @@ export class HeliusKeyManager {
         }
       }
       
-      // If no keys found anywhere, use the fallback
-      if (this.apiKeys.length === 0) {
-        this.apiKeys = [this.getFallbackKey()];
-        console.log("Using fallback Helius API key");
-      }
-      
+      console.log("No Helius API keys found in storage");
     } catch (error) {
       console.error("Error loading Helius API keys:", error);
-      // Fallback to demo key in case of errors
-      this.apiKeys = [this.getFallbackKey()];
+      this.apiKeys = [];
     }
   }
   
