@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Drawer,
   DrawerContent,
@@ -12,12 +12,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Search, Plus, BookOpen, ListChecks, Info, FileText } from "lucide-react";
+import { X, Search, Plus, BookOpen, ListChecks, Info, FileText, Shield } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CommandList } from "./CommandList";
 import { PlatformGuide } from "./PlatformGuide";
 import { HelpSearch } from "./HelpSearch";
 import { SolanaDocumentation } from "./SolanaDocumentation";
+import { useErrorReporting } from "@/hooks/useErrorReporting";
 
 interface HelpPanelProps {
   isOpen: boolean;
@@ -29,14 +30,46 @@ export function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
   const [newCommand, setNewCommand] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [showAddCommand, setShowAddCommand] = useState(false);
+  const { reportError } = useErrorReporting();
   
   const handleAddCommand = () => {
-    // Εδώ θα μπορούσε να προστεθεί λογική για αποθήκευση των νέων εντολών σε μια βάση δεδομένων
-    console.log("Προσθήκη νέας εντολής:", { command: newCommand, description: newDescription });
-    setNewCommand("");
-    setNewDescription("");
-    setShowAddCommand(false);
+    if (!newCommand || !newDescription) return;
+    
+    try {
+      // Εδώ θα μπορούσε να προστεθεί λογική για αποθήκευση των νέων εντολών σε μια βάση δεδομένων
+      console.log("Προσθήκη νέας εντολής:", { command: newCommand, description: newDescription });
+      setNewCommand("");
+      setNewDescription("");
+      setShowAddCommand(false);
+    } catch (error) {
+      reportError(error as Error, {
+        component: "HelpPanel",
+        source: "handleAddCommand",
+        severity: "low",
+        showToast: true,
+        toastTitle: "Αποτυχία προσθήκης εντολής"
+      });
+    }
   };
+  
+  // Καταγραφή χρήσης της βοήθειας
+  useEffect(() => {
+    if (isOpen) {
+      console.log("Άνοιγμα πάνελ βοήθειας, ενεργή καρτέλα:", activeTab);
+    }
+  }, [isOpen, activeTab]);
+
+  // Κλείσιμο του πάνελ με Escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    };
+    
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
 
   return (
     <Drawer open={isOpen} onClose={onClose}>
@@ -70,6 +103,10 @@ export function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
                 <TabsTrigger value="documentation" className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   Τεκμηρίωση Solana
+                </TabsTrigger>
+                <TabsTrigger value="protection" className="flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Προστασία Συστήματος
                 </TabsTrigger>
                 <TabsTrigger value="search" className="flex items-center gap-2">
                   <Search className="h-4 w-4" />
@@ -141,6 +178,18 @@ export function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
               <TabsContent value="documentation" className="p-0">
                 <SolanaDocumentation />
               </TabsContent>
+              
+              <TabsContent value="protection" className="p-0">
+                <div className="p-4">
+                  <h3 className="text-lg font-medium mb-2">Προστασία & Ασφάλεια Συστήματος</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Πλήρης επισκόπηση των μηχανισμών προστασίας, αντιγράφων ασφαλείας και αυτόματης αποκατάστασης της εφαρμογής.
+                  </p>
+                  <div className="mt-4">
+                    <SystemProtectionGuide />
+                  </div>
+                </div>
+              </TabsContent>
 
               <TabsContent value="search" className="p-0">
                 <HelpSearch />
@@ -150,7 +199,11 @@ export function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
 
           <DrawerFooter className="border-t">
             <div className="text-center text-sm text-muted-foreground">
-              Για περισσότερες πληροφορίες, επικοινωνήστε με την ομάδα υποστήριξης.
+              <p>Για περισσότερες πληροφορίες, επικοινωνήστε με την ομάδα υποστήριξης.</p>
+              <p className="mt-1">
+                <kbd className="px-2 py-0.5 rounded bg-muted border mr-2">Alt+Shift+H</kbd> 
+                Άνοιγμα βοήθειας από οπουδήποτε στην εφαρμογή
+              </p>
             </div>
           </DrawerFooter>
         </div>

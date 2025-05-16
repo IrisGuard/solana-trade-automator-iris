@@ -16,6 +16,7 @@ import { ensureRouterCompatibility } from "@/utils/routerPatches";
 import { SupabaseAuthProvider } from "@/providers/SupabaseAuthProvider";
 import { EmergencyRecovery } from "@/components/emergency/EmergencyRecovery";
 import { initProtectionSystem } from "@/utils/errorTestUtils";
+import { HelpButton } from "@/components/help/HelpButton";
 
 // Εφαρμογή διορθώσεων συμβατότητας του React Router
 ensureRouterCompatibility();
@@ -49,7 +50,17 @@ function logError(error: Error, info: React.ErrorInfo) {
 export function AppContent() {
   // Initialize the site protection system
   useEffect(() => {
-    initProtectionSystem();
+    const protectionSystem = initProtectionSystem();
+    console.log("Site protection system initialized");
+    
+    // Schedule periodic health checks
+    const healthCheckInterval = setInterval(() => {
+      protectionSystem.checkHealth();
+    }, 5 * 60 * 1000); // Every 5 minutes
+    
+    return () => {
+      clearInterval(healthCheckInterval);
+    };
   }, []);
   
   return (
@@ -65,6 +76,21 @@ export function AppContent() {
               className="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
             >
               Επαναφόρτωση Σελίδας
+            </button>
+            <button 
+              onClick={() => {
+                // Try automatic recovery
+                try {
+                  const { SiteBackupService } = require("@/utils/site-protection/SiteBackupService");
+                  SiteBackupService.restoreFromBackup();
+                } catch (e) {
+                  console.error("Failed to restore from backup:", e);
+                  window.location.reload();
+                }
+              }}
+              className="mt-2 w-full py-2 bg-amber-600 hover:bg-amber-700 text-white rounded transition-colors"
+            >
+              Αυτόματη Αποκατάσταση
             </button>
           </div>
         </div>
