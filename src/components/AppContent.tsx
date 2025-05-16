@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { Routes } from "@/routes";
 import { Toaster } from "sonner";
@@ -14,6 +14,8 @@ import { ThemeProvider } from "@/providers/ThemeProvider";
 import { LanguageProvider } from "@/providers/LanguageProvider";
 import { ensureRouterCompatibility } from "@/utils/routerPatches";
 import { SupabaseAuthProvider } from "@/providers/SupabaseAuthProvider";
+import { EmergencyRecovery } from "@/components/emergency/EmergencyRecovery";
+import { initProtectionSystem } from "@/utils/errorTestUtils";
 
 // Εφαρμογή διορθώσεων συμβατότητας του React Router
 ensureRouterCompatibility();
@@ -45,6 +47,11 @@ function logError(error: Error, info: React.ErrorInfo) {
 }
 
 export function AppContent() {
+  // Initialize the site protection system
+  useEffect(() => {
+    initProtectionSystem();
+  }, []);
+  
   return (
     <ErrorBoundary
       FallbackComponent={({ error }) => (
@@ -73,6 +80,7 @@ export function AppContent() {
                   <SolanaWalletProvider>
                     <WalletProviderWrapper>
                       <Routes />
+                      <EmergencyRecovery />
                       <Toaster position="top-right" richColors />
                     </WalletProviderWrapper>
                   </SolanaWalletProvider>
