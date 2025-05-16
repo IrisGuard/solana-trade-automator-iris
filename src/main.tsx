@@ -4,6 +4,10 @@ import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 
+// Import our React fixes before anything else
+import './utils/reactPatches'
+import './react-exports-fix'
+
 // Polyfills for Solana web3.js
 import './polyfills'
 import { AppContent } from './components/AppContent.tsx'
@@ -24,9 +28,6 @@ if (!localStorage.getItem('site_structure_backup')) {
   }
 }
 
-// Note: Not initializing SiteHealthMonitor directly here, as it will be handled by MonitoringSystem
-// This avoids double initialization
-
 // Add keyboard shortcut for emergency recovery
 document.addEventListener('keydown', (e) => {
   if (e.altKey && e.shiftKey && e.key === 'R') {
@@ -42,10 +43,16 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault();
     console.log('Manual health check triggered via keyboard shortcut');
     // We can still use SiteHealthMonitor directly for manual checks
-    const healthStatus = window.siteHealth.check();
+    const healthStatus = window.siteHealth?.check();
     console.log('Health check results:', healthStatus);
   }
 });
+
+// Initialize React
+console.log('Initializing React application...');
+
+// Ensure we're using our patched React
+const React = window.React || React;
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

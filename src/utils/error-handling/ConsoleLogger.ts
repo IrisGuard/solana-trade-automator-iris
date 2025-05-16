@@ -1,104 +1,72 @@
 
-import { errorCollector } from './collector';
+/**
+ * Console logger utility
+ * Captures console errors and integrates with error reporting
+ */
 
-class ConsoleLogger {
-  private originalConsoleError: typeof console.error;
-  private originalConsoleWarn: typeof console.warn;
-  private originalConsoleInfo: typeof console.info;
-  private initialized: boolean = false;
+// Original console methods
+let originalConsoleError: typeof console.error;
+let originalConsoleWarn: typeof console.warn;
 
-  constructor() {
-    this.originalConsoleError = console.error;
-    this.originalConsoleWarn = console.warn;
-    this.originalConsoleInfo = console.info;
-  }
+export const consoleLogger = {
+  initialize: () => {
+    // Save original methods
+    originalConsoleError = console.error;
+    originalConsoleWarn = console.warn;
 
-  public initialize() {
-    // Prevent double initialization
-    if (this.initialized) {
-      return;
-    }
-    
-    this.initialized = true;
-    
     // Override console.error
-    console.error = (...args) => {
-      // Call original first
-      this.originalConsoleError.apply(console, args);
+    console.error = (...args: any[]) => {
+      // Call original method
+      originalConsoleError.apply(console, args);
       
-      try {
-        const message = args.map(arg => 
-          typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-        ).join(' ');
+      // Handle React error - don't double report these
+      const errorString = args.join(' ');
+      const isReactError = 
+        errorString.includes('React') || 
+        errorString.includes('Warning:') ||
+        errorString.includes('Error: Minified') ||
+        errorString.includes('Check the render');
         
-        // Skip logging for known monitoring messages to avoid cycles
-        if (message.includes('[ErrorCollector]') || 
-            message.includes('[ConsoleLogger]')) {
-          return;
+      if (!isReactError && typeof window !== 'undefined') {
+        try {
+          // Create an error to capture stack trace
+          const error = args[0] instanceof Error 
+            ? args[0] 
+            : new Error(args.map(arg => String(arg)).join(' '));
+            
+          // Add to error queue for UI processing if needed
+          if (window._errorQueue) {
+            window._errorQueue.push({
+              message: error.message,
+              stack: error.stack,
+              timestamp: new Date().toISOString(),
+              type: 'console.error'
+            });
+          }
+        } catch (e) {
+          // Don't crash if error handling fails
         }
-        
-        // Log to error collector if this is likely an application error
-        if (message.includes('Error:') || 
-            message.includes('TypeError:') ||
-            message.includes('ReferenceError:') ||
-            message.includes('Failed to') ||
-            message.includes('Uncaught')) {
-          
-          errorCollector.captureError(new Error(message), {
-            component: 'ConsoleError',
-            source: 'client',
-            severity: 'medium'
-          });
-        }
-      } catch (e) {
-        // Use original to avoid potential infinite loops
-        this.originalConsoleError('[ConsoleLogger] Error in console.error override:', e);
       }
     };
-    
+
     // Override console.warn
-    console.warn = (...args) => {
-      // Call original first
-      this.originalConsoleWarn.apply(console, args);
+    console.warn = (...args: any[]) => {
+      // Call original method
+      originalConsoleWarn.apply(console, args);
       
-      try {
-        const message = args.map(arg => 
-          typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-        ).join(' ');
-        
-        // Skip logging for known monitoring messages
-        if (message.includes('[ErrorCollector]') || 
-            message.includes('[ConsoleLogger]')) {
-          return;
-        }
-        
-        // Log critical warnings
-        if (message.includes('Critical') || 
-            message.includes('critical issue') || 
-            message.includes('security')) {
-          
-          errorCollector.captureError(new Error(`Warning: ${message}`), {
-            component: 'ConsoleWarn',
-            source: 'client',
-            severity: 'medium'
-          });
-        }
-      } catch (e) {
-        this.originalConsoleError('[ConsoleLogger] Error in console.warn override:', e);
-      }
+      // We could add warning tracking here if needed
     };
-  }
+  },
 
-  public restore() {
-    if (!this.initialized) {
-      return;
+  restore: () => {
+    // Restore original console methods
+    if (originalConsoleError) {
+      console.error = originalConsoleError;
     }
-    
-    console.error = this.originalConsoleError;
-    console.warn = this.originalConsoleWarn;
-    console.info = this.originalConsoleInfo;
-    this.initialized = false;
+    if (originalConsoleWarn) {
+      console.warn = originalConsoleWarn;
+    }
   }
-}
+};
 
-export const consoleLogger = new ConsoleLogger();
+export default consoleLogger;
