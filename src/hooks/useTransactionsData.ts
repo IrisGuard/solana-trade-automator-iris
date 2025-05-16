@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { dbClient } from "@/integrations/supabase/client";
 import { solanaService } from "@/services/solana";
@@ -11,11 +10,12 @@ export interface Transaction {
   status: string;
   amount: string;
   timestamp: Date;
-  token?: string;
+  token: string; // Αλλαγή από προαιρετικό σε υποχρεωτικό
   source?: string;
   destination?: string;
   block_time?: string;
   wallet_address: string;
+  value_usd: string; // Προσθήκη για συμβατότητα
 }
 
 export const useTransactionsData = (walletAddress: string) => {
@@ -58,11 +58,12 @@ export const useTransactionsData = (walletAddress: string) => {
         status: tx.status || 'confirmed',
         amount: tx.amount || '0',
         timestamp: new Date(tx.timestamp || tx.blockTime * 1000 || Date.now()),
-        token: tx.token || 'SOL',
+        token: tx.token || 'SOL', // Πάντα παρέχουμε ένα token
         source: tx.source || '',
         destination: tx.destination || '',
         block_time: tx.blockTime ? new Date(tx.blockTime * 1000).toISOString() : undefined,
-        wallet_address: address
+        wallet_address: address,
+        value_usd: tx.value || '$0' // Προσθήκη για συμβατότητα
       }));
 
       const processedDbTransactions = (dbTransactions || []).map((tx: any) => ({
@@ -72,10 +73,11 @@ export const useTransactionsData = (walletAddress: string) => {
         status: tx.status || 'confirmed',
         amount: tx.amount || '0',
         timestamp: new Date(tx.block_time || tx.created_at || Date.now()),
-        token: tx.token || 'SOL',
+        token: tx.token || 'SOL', // Πάντα παρέχουμε ένα token
         source: tx.source || '',
         destination: tx.destination || '',
-        wallet_address: tx.wallet_address
+        wallet_address: tx.wallet_address,
+        value_usd: '$0' // Προσθήκη για συμβατότητα
       }));
 
       // Merge and deduplicate transactions using signature as unique identifier
@@ -158,5 +160,5 @@ export const useTransactionsData = (walletAddress: string) => {
     }
   }, [walletAddress, fetchTransactions]);
 
-  return { transactions, isLoading, error, refresh };
+  return { transactions, isLoading, error, refresh: () => fetchTransactions(walletAddress) };
 };

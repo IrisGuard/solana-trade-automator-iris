@@ -1,3 +1,4 @@
+
 import { heliusKeyManager } from './HeliusKeyManager';
 import { HELIUS_BASE_URL, HELIUS_CONFIG } from './HeliusConfig';
 import { mockTransactions, generateMockTransactions } from '../mocks/mockTransactions';
@@ -73,9 +74,16 @@ class HeliusService {
   }
   
   /**
-   * Get token balances for a wallet
+   * Get token balances for a wallet - alias for fetchTokenBalances for backward compatibility
    */
   public async getTokenBalances(walletAddress: string) {
+    return this.fetchTokenBalances(walletAddress);
+  }
+
+  /**
+   * Fetch token balances for a wallet
+   */
+  public async fetchTokenBalances(walletAddress: string) {
     try {
       // Ensure we have a valid API key
       await heliusKeyManager.refreshKeys();
@@ -98,7 +106,7 @@ class HeliusService {
       console.error("Error fetching token balances:", error);
       errorCollector.captureError(error, {
         component: 'HeliusService',
-        method: 'getTokenBalances',
+        method: 'fetchTokenBalances',
         additional: `Wallet: ${walletAddress.substring(0, 8)}...`
       });
       

@@ -18,7 +18,7 @@ export function HeliusSyncButton() {
     setIsSyncing(true);
     try {
       await syncAllHeliusData(user.id);
-      // Using heliusService instead of HeliusService class
+      // Χρησιμοποιώντας getTokenBalances αντί για fetchTokenBalances
       await heliusService.getTokenBalances("demo"); // Simple operation to refresh configuration
     } catch (error) {
       console.error("Error syncing Helius data:", error);

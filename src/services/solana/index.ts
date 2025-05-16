@@ -29,9 +29,9 @@ export const solanaService = {
   jupiterService,
   swapTokens,
   
-  // Transactions
+  // Transactions - διορθωμένο για να χρησιμοποιεί την επιδιορθωμένη μέθοδο
   fetchTransactions: async (address: string, limit: number = 10) => {
-    const heliusService = (await import('@/services/helius/HeliusService')).heliusService;
+    const { heliusService } = await import('@/services/helius/HeliusService');
     return heliusService.getTransactionHistory(address, limit);
   }
 };

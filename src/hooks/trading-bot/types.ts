@@ -45,7 +45,7 @@ export interface TradingBotHook {
   isLoading: boolean;
   botStatus: BotStatus;
   activeOrders: TradingOrder[];
-  selectedTokenPrice: { price: number; priceChange24h: number } | null;
+  selectedTokenPrice: TokenPriceInfo | null;
   selectedTokenDetails: Token | undefined;
   tokens: Token[];
   connected: boolean;
@@ -65,18 +65,19 @@ export interface Bot {
 
 export interface ActiveOrder {
   id: string;
-  type: string;
+  type: OrderType;
   token: string;
   amount: number;
   price: number;
-  status: string;
+  status: OrderStatus;
   createdAt: string;
 }
 
 // Fixed TokenPriceInfo interface to ensure consistency across the application
 export interface TokenPriceInfo {
   price: number;           // Current token price
-  change24h: number;       // 24-hour price change percentage
+  priceChange24h: number;  // 24-hour price change percentage
+  change24h?: number;      // Alias for priceChange24h for backward compatibility
   highPrice24h?: number;   // 24-hour high price
   lowPrice24h?: number;    // 24-hour low price
   volume24h?: number;      // 24-hour trading volume

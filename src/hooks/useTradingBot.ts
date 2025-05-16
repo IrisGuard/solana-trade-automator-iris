@@ -1,9 +1,8 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useWalletConnection } from './useWalletConnection';
 import { useErrorReporting } from './useErrorReporting';
 import { Token } from '@/types/wallet';
-import { BotStatus, TradingBotConfig, TradingOrder, OrderStatus, OrderType } from './trading-bot/types';
+import { BotStatus, TradingBotConfig, TradingOrder, OrderStatus, OrderType, TokenPriceInfo } from './trading-bot/types';
 import { toast } from 'sonner';
 import { sendToken } from '@/services/solana/wallet/transfer';
 import { jupiterService } from '@/services/solana/jupiterService';
@@ -44,7 +43,18 @@ export function useTradingBot() {
   // Use price subscription hook for real-time price updates
   const tokenAddress = config.selectedToken || null;
   const priceSubscription = usePriceSubscription(tokenAddress);
-  const selectedTokenPrice = priceSubscription.priceInfo;
+  
+  // Μετατροπή του priceInfo από το usePriceSubscription στο σωστό format TokenPriceInfo
+  const selectedTokenPrice: TokenPriceInfo | null = priceSubscription.priceInfo ? {
+    price: priceSubscription.priceInfo.price || 0,
+    priceChange24h: priceSubscription.priceInfo.change24h || 0,
+    change24h: priceSubscription.priceInfo.change24h || 0,
+    highPrice24h: priceSubscription.priceInfo.highPrice24h,
+    lowPrice24h: priceSubscription.priceInfo.lowPrice24h,
+    volume24h: priceSubscription.priceInfo.volume24h,
+    marketCap: priceSubscription.priceInfo.marketCap,
+    lastUpdated: priceSubscription.priceInfo.lastUpdated
+  } : null;
 
   // Cleanup bot on unmount
   useEffect(() => {
