@@ -24,18 +24,19 @@ const chartData = [
   { name: 'Ιουλ', value: 2800, month: 'Ιούλιος' },
 ];
 
-// Define Bot types to resolve infinite instantiation
+// Define Bot status interface with simple structure
 interface BotStatus {
   active: boolean;
 }
 
-// Define data interface to resolve type instantiation issues
+// Define data interface without recursive types
 interface DashboardData {
   id: string;
-  [key: string]: any;
+  active?: boolean;
+  [key: string]: any;  // Use a simple index signature for other properties
 }
 
-// For the function causing the error, update to use a valid table name
+// Updated fetchData function with proper typing
 const fetchData = async (): Promise<{ data: DashboardData[] | null, error: any }> => {
   try {
     // Use one of the valid tables instead of "some_table"
@@ -99,7 +100,7 @@ export default function Dashboard() {
     ? `${walletAddress.substring(0, 4)}...${walletAddress.substring(walletAddress.length - 4)}`
     : '';
 
-  // Define the bot status toggle function with explicit return type and no complex inference
+  // Define the bot status toggle function with explicit return type
   const toggleBotStatus = async (): Promise<void> => {
     if (!user?.id) return;
     
