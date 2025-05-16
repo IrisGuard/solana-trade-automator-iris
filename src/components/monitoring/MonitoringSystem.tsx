@@ -6,8 +6,17 @@ import { toast } from 'sonner';
 import { GlobalErrorHandler } from '@/components/errors/GlobalErrorHandler';
 import { NetworkStatusMonitor } from './NetworkStatusMonitor';
 
+// Track initialization state
+let monitoringInitialized = false;
+
 export function MonitoringSystem() {
   useEffect(() => {
+    // Prevent double initialization
+    if (monitoringInitialized) {
+      console.log("Monitoring system already initialized");
+      return () => {};
+    }
+    
     // Initialize console logging
     consoleLogger.initialize();
     
@@ -15,10 +24,12 @@ export function MonitoringSystem() {
     SiteHealthMonitor.start();
     
     console.log("Monitoring system initialized");
+    monitoringInitialized = true;
     
     // Clean up when component unmounts
     return () => {
       consoleLogger.restore();
+      monitoringInitialized = false;
     };
   }, []);
   

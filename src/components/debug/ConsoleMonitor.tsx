@@ -26,77 +26,6 @@ export function ConsoleMonitor() {
   });
   
   useEffect(() => {
-    // Original console methods
-    const originalConsoleError = console.error;
-    const originalConsoleWarn = console.warn;
-    
-    // Override console.error to capture errors
-    console.error = (...args: any[]) => {
-      // Call original first to ensure it's displayed
-      originalConsoleError.apply(console, args);
-      
-      try {
-        const message = args.map(arg => 
-          typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-        ).join(' ');
-        
-        // Add to logs
-        setLogs(prev => [
-          { type: 'error', message, timestamp: new Date() },
-          ...prev.slice(0, 99) // Keep maximum 100 logs
-        ]);
-        
-        // Check for known error patterns and avoid duplicate notifications
-        const errorKey = message.slice(0, 100); // Use first 100 chars as key
-        const lastNotified = errorCache.get(errorKey) || 0;
-        const now = Date.now();
-        
-        if (now - lastNotified > ERROR_NOTIFICATION_COOLDOWN) {
-          errorCache.set(errorKey, now);
-          
-          // Only handle critical errors that match certain patterns
-          if (
-            message.includes('Failed to fetch') || 
-            message.includes('NetworkError') ||
-            message.includes('TypeError') ||
-            message.includes('Unhandled error')
-          ) {
-            // Create an error object to report
-            const error = new Error(message);
-            reportError(error, {
-              component: 'ConsoleMonitor',
-              source: 'client',
-              severity: 'medium'
-            });
-          }
-        }
-      } catch (e) {
-        // Do nothing, don't want to create infinite loops
-        originalConsoleError('Error in console.error override:', e);
-      }
-    };
-    
-    // Override console.warn to capture warnings
-    console.warn = (...args: any[]) => {
-      // Call original first
-      originalConsoleWarn.apply(console, args);
-      
-      try {
-        const message = args.map(arg => 
-          typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-        ).join(' ');
-        
-        // Add to logs
-        setLogs(prev => [
-          { type: 'warn', message, timestamp: new Date() },
-          ...prev.slice(0, 99)
-        ]);
-      } catch (e) {
-        // Handle quietly
-        originalConsoleError('Error in console.warn override:', e);
-      }
-    };
-    
     // Set up fetch interceptor to monitor API calls if not already active
     if (!fetchInterceptorActive.current) {
       fetchInterceptorActive.current = true;
@@ -140,13 +69,16 @@ export function ConsoleMonitor() {
           throw error;
         }
       };
+      
+      return () => {
+        if (typeof originalFetch === 'function') {
+          window.fetch = originalFetch;
+        }
+        fetchInterceptorActive.current = false;
+      };
     }
     
-    // Cleanup function
-    return () => {
-      console.error = originalConsoleError;
-      console.warn = originalConsoleWarn;
-    };
+    return () => {};
   }, [reportError]);
   
   return null; // This is a monitoring component, no UI

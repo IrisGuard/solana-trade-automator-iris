@@ -5,11 +5,9 @@ import { setupGlobalErrorHandling } from '@/utils/error-handling/setupGlobalErro
 export function useConsoleErrorMonitor() {
   useEffect(() => {
     // Εγκατάσταση του global error handling
-    setupGlobalErrorHandling();
+    const cleanup = setupGlobalErrorHandling();
     
-    // Καθαρισμός κατά την απομόντωση - nothing to clean up since setupGlobalErrorHandling doesn't return a cleanup function
-    return () => {
-      // Nothing to clean up as setupGlobalErrorHandling doesn't return a cleanup function
-    };
+    // Καθαρισμός κατά την απομόντωση
+    return cleanup;
   }, []);
 }

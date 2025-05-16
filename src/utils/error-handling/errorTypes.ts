@@ -1,34 +1,46 @@
 
-// Define common error types to be used throughout the application
+/**
+ * Defines the severity levels for errors in the application
+ */
+export type ErrorSeverity = 'critical' | 'high' | 'medium' | 'low';
 
-export interface BotError extends Error {
-  code?: string;
+/**
+ * Base interface for error objects in the system
+ */
+export interface SystemError {
+  id: string;
+  message: string;
+  timestamp: string;
+  level: 'CRITICAL' | 'WARNING' | 'INFO';
+  source: string;
+  stackTrace?: string;
+  autoResolved?: boolean;
+  resolved?: boolean;
+}
+
+/**
+ * Enhanced Error interface supporting custom properties commonly used in our application
+ */
+export interface EnhancedError extends Error {
+  // Common custom properties used in our error system
   status?: number;
-  source?: string;
-  component?: string;
-  metadata?: {
-    rpcEndpoint?: string;
-    timestamp?: number;
-    tokenAddress?: string;
-    walletAddress?: string;
-    [key: string]: any;
-  };
+  code?: string;
+  errors?: Record<string, string[]>;
+  details?: string;
+  table?: string;
+  constraint?: string;
+  // Any additional properties can be added via index signature
+  [key: string]: any;
 }
 
-export enum ErrorSource {
-  CLIENT = 'client',
-  SERVER = 'server',
-  BLOCKCHAIN = 'blockchain',
-  API = 'api'
+/**
+ * Creates an enhanced error with custom properties
+ */
+export function createEnhancedError(message: string, properties: Partial<EnhancedError> = {}): EnhancedError {
+  const error = new Error(message) as EnhancedError;
+  
+  // Add all provided properties to the error object
+  Object.assign(error, properties);
+  
+  return error;
 }
-
-export enum ErrorSeverity {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  CRITICAL = 'critical'
-}
-
-// Import RPC_ENDPOINTS from constants instead of defining here
-import { RPC_ENDPOINTS } from './constants';
-export { RPC_ENDPOINTS };

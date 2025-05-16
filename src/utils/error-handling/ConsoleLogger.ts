@@ -1,44 +1,59 @@
 
-/**
- * Utility to log console messages to localStorage for the error dashboard
- */
+import { errorCollector } from './collector';
 
-interface ConsoleLog {
-  type: 'error' | 'warn' | 'info';
-  message: string;
-  timestamp: string;
-}
-
-const MAX_LOGS = 100;
-
-export class ConsoleLogger {
-  private static instance: ConsoleLogger;
+class ConsoleLogger {
   private originalConsoleError: typeof console.error;
   private originalConsoleWarn: typeof console.warn;
   private originalConsoleInfo: typeof console.info;
-  
-  private constructor() {
-    // Store original console methods
+  private initialized: boolean = false;
+
+  constructor() {
     this.originalConsoleError = console.error;
     this.originalConsoleWarn = console.warn;
     this.originalConsoleInfo = console.info;
   }
-  
-  public static getInstance(): ConsoleLogger {
-    if (!ConsoleLogger.instance) {
-      ConsoleLogger.instance = new ConsoleLogger();
+
+  public initialize() {
+    // Prevent double initialization
+    if (this.initialized) {
+      return;
     }
-    return ConsoleLogger.instance;
-  }
-  
-  public initialize(): void {
+    
+    this.initialized = true;
+    
     // Override console.error
     console.error = (...args) => {
       // Call original first
       this.originalConsoleError.apply(console, args);
       
-      // Log to storage
-      this.logToStorage('error', args);
+      try {
+        const message = args.map(arg => 
+          typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+        ).join(' ');
+        
+        // Skip logging for known monitoring messages to avoid cycles
+        if (message.includes('[ErrorCollector]') || 
+            message.includes('[ConsoleLogger]')) {
+          return;
+        }
+        
+        // Log to error collector if this is likely an application error
+        if (message.includes('Error:') || 
+            message.includes('TypeError:') ||
+            message.includes('ReferenceError:') ||
+            message.includes('Failed to') ||
+            message.includes('Uncaught')) {
+          
+          errorCollector.captureError(new Error(message), {
+            component: 'ConsoleError',
+            source: 'client',
+            severity: 'medium'
+          });
+        }
+      } catch (e) {
+        // Use original to avoid potential infinite loops
+        this.originalConsoleError('[ConsoleLogger] Error in console.error override:', e);
+      }
     };
     
     // Override console.warn
@@ -46,70 +61,44 @@ export class ConsoleLogger {
       // Call original first
       this.originalConsoleWarn.apply(console, args);
       
-      // Log to storage
-      this.logToStorage('warn', args);
-    };
-    
-    // Override console.info
-    console.info = (...args) => {
-      // Call original first
-      this.originalConsoleInfo.apply(console, args);
-      
-      // Log to storage
-      this.logToStorage('info', args);
+      try {
+        const message = args.map(arg => 
+          typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+        ).join(' ');
+        
+        // Skip logging for known monitoring messages
+        if (message.includes('[ErrorCollector]') || 
+            message.includes('[ConsoleLogger]')) {
+          return;
+        }
+        
+        // Log critical warnings
+        if (message.includes('Critical') || 
+            message.includes('critical issue') || 
+            message.includes('security')) {
+          
+          errorCollector.captureError(new Error(`Warning: ${message}`), {
+            component: 'ConsoleWarn',
+            source: 'client',
+            severity: 'medium'
+          });
+        }
+      } catch (e) {
+        this.originalConsoleError('[ConsoleLogger] Error in console.warn override:', e);
+      }
     };
   }
-  
-  public restore(): void {
+
+  public restore() {
+    if (!this.initialized) {
+      return;
+    }
+    
     console.error = this.originalConsoleError;
     console.warn = this.originalConsoleWarn;
     console.info = this.originalConsoleInfo;
-  }
-  
-  private logToStorage(type: 'error' | 'warn' | 'info', args: any[]): void {
-    try {
-      // Convert args to string
-      const message = args.map(arg => 
-        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-      ).join(' ');
-      
-      // Create log entry
-      const logEntry: ConsoleLog = {
-        type,
-        message,
-        timestamp: new Date().toISOString()
-      };
-      
-      // Get existing logs
-      const logs: ConsoleLog[] = JSON.parse(localStorage.getItem('app_console_logs') || '[]');
-      
-      // Add new log at the beginning
-      logs.unshift(logEntry);
-      
-      // Limit number of logs
-      const limitedLogs = logs.slice(0, MAX_LOGS);
-      
-      // Save back to storage
-      localStorage.setItem('app_console_logs', JSON.stringify(limitedLogs));
-    } catch (error) {
-      // Use original console to avoid infinite loop
-      this.originalConsoleError('Error logging to storage:', error);
-    }
-  }
-  
-  public getLogs(): ConsoleLog[] {
-    try {
-      return JSON.parse(localStorage.getItem('app_console_logs') || '[]');
-    } catch (error) {
-      this.originalConsoleError('Error retrieving logs:', error);
-      return [];
-    }
-  }
-  
-  public clearLogs(): void {
-    localStorage.setItem('app_console_logs', '[]');
+    this.initialized = false;
   }
 }
 
-// Create and export a singleton instance
-export const consoleLogger = ConsoleLogger.getInstance();
+export const consoleLogger = new ConsoleLogger();

@@ -11,7 +11,8 @@ import { AppContent } from './components/AppContent.tsx'
 // Initialize early protection mechanism before rendering
 import { SiteBackupService } from './utils/site-protection/SiteBackupService'
 import { HelpButton } from './components/help/HelpButton.tsx'
-import { SiteHealthMonitor } from './utils/error-handling/SiteHealthMonitor'
+// Important: We'll use SiteHealthMonitor from the MonitoringSystem component to prevent double initialization
+import { MonitoringSystem } from './components/monitoring/MonitoringSystem'
 
 // Create initial backup if needed
 if (!localStorage.getItem('site_structure_backup')) {
@@ -23,13 +24,8 @@ if (!localStorage.getItem('site_structure_backup')) {
   }
 }
 
-// Start health monitoring
-try {
-  console.log('Starting site health monitoring...');
-  SiteHealthMonitor.start();
-} catch (e) {
-  console.error('Failed to start health monitoring:', e);
-}
+// Note: Not initializing SiteHealthMonitor directly here, as it will be handled by MonitoringSystem
+// This avoids double initialization
 
 // Add keyboard shortcut for emergency recovery
 document.addEventListener('keydown', (e) => {
@@ -45,7 +41,8 @@ document.addEventListener('keydown', (e) => {
   if (e.altKey && e.shiftKey && e.key === 'C') {
     e.preventDefault();
     console.log('Manual health check triggered via keyboard shortcut');
-    const healthStatus = SiteHealthMonitor.checkHealth();
+    // We can still use SiteHealthMonitor directly for manual checks
+    const healthStatus = window.siteHealth.check();
     console.log('Health check results:', healthStatus);
   }
 });

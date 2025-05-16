@@ -11,6 +11,7 @@ const CRITICAL_ERROR_THRESHOLD = 3;
 let consecutiveErrors = 0;
 let lastHealthCheck = Date.now();
 let monitoringActive = false;
+let healthCheckIntervalId: number | null = null;
 
 interface HealthCheckResult {
   healthy: boolean;
@@ -21,7 +22,10 @@ interface HealthCheckResult {
 export class SiteHealthMonitor {
   // Start the health monitor
   public static start() {
-    if (monitoringActive) return;
+    if (monitoringActive) {
+      console.log("Site health monitoring already active");
+      return;
+    }
     
     // Create initial backup if none exists
     if (!localStorage.getItem('site_structure_backup')) {
@@ -38,6 +42,17 @@ export class SiteHealthMonitor {
     monitoringActive = true;
     
     console.log("Site health monitoring active");
+  }
+  
+  // Stop the health monitor
+  public static stop() {
+    if (healthCheckIntervalId !== null) {
+      clearInterval(healthCheckIntervalId);
+      healthCheckIntervalId = null;
+    }
+    
+    monitoringActive = false;
+    console.log("Site health monitoring stopped");
   }
   
   // Perform a complete health check
@@ -60,9 +75,9 @@ export class SiteHealthMonitor {
     }
     
     // Check error count
-    const recentErrors = errorCollector.getRecentErrors?.() || [];
-    if (recentErrors.length > 10) {
-      issues.push(`High number of errors detected: ${recentErrors.length}`);
+    const recentErrorsCount = errorCollector.getRecentErrors(10).length;
+    if (recentErrorsCount > 5) {
+      issues.push(`High number of errors detected: ${recentErrorsCount}`);
       criticalIssuesFound = true;
     }
     
@@ -101,8 +116,13 @@ export class SiteHealthMonitor {
   
   // Private helper methods
   private static setupPeriodicChecks() {
+    // Clear any existing interval
+    if (healthCheckIntervalId !== null) {
+      clearInterval(healthCheckIntervalId);
+    }
+    
     // Run periodic health checks
-    setInterval(() => {
+    healthCheckIntervalId = window.setInterval(() => {
       const healthCheck = this.checkHealth();
       
       if (!healthCheck.healthy) {
