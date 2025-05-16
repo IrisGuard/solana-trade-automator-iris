@@ -12,6 +12,7 @@ export function HeliusSyncComponent({ onSync }: { onSync?: () => void }) {
   const [isSyncing, setIsSyncing] = useState(false);
   const [hasError, setHasError] = useState(false);
   const { user } = useAuth();
+  const [retryCount, setRetryCount] = useState(0);
 
   const handleSync = async () => {
     if (!user) {
@@ -22,25 +23,38 @@ export function HeliusSyncComponent({ onSync }: { onSync?: () => void }) {
     setIsSyncing(true);
     setHasError(false);
     try {
-      await syncAllHeliusData(user.id);
+      console.log("Έναρξη συγχρονισμού Helius για χρήστη:", user.id);
+      const result = await syncAllHeliusData(user.id);
+      if (result) {
+        setHasError(false);
+        setRetryCount(0);
+        console.log("Συγχρονισμός Helius ολοκληρώθηκε επιτυχώς");
+      } else {
+        setHasError(true);
+        setRetryCount(prev => prev + 1);
+        console.error("Συγχρονισμός Helius απέτυχε");
+      }
       if (onSync) {
         onSync();
       }
-      setHasError(false);
     } catch (error) {
-      console.error("Error syncing Helius data:", error);
+      console.error("Σφάλμα συγχρονισμού Helius:", error);
       setHasError(true);
+      setRetryCount(prev => prev + 1);
     } finally {
       setIsSyncing(false);
     }
   };
 
-  // Try to auto-sync when the component mounts
+  // Προσπάθεια αυτόματου συγχρονισμού κατά την εκκίνηση του component
   useEffect(() => {
-    if (user && hasError) {
-      // Auto-sync if there's an error
-      handleSync();
-    }
+    const autoSync = async () => {
+      if (user && (hasError || retryCount === 0)) {
+        console.log("Αυτόματος συγχρονισμός Helius...");
+        await handleSync();
+      }
+    };
+    autoSync();
   }, [user, hasError]);
 
   if (hasError) {

@@ -20,6 +20,7 @@ export function useWalletConnection(): WalletConnectionHook {
   const [error, setError] = useState<string | null>(null);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [solBalance, setSolBalance] = useState<number>(0);
+  const [isWalletInitialized, setIsWalletInitialized] = useState<boolean>(false);
   
   const { reportError } = useErrorReporting();
   const { user } = useUser();
@@ -31,25 +32,35 @@ export function useWalletConnection(): WalletConnectionHook {
   // Try to reconnect on component mount
   useEffect(() => {
     const attemptReconnect = async () => {
-      // Check for stored wallet
-      const storedWallet = getWalletFromLocalStorage();
+      if (isWalletInitialized) return;
       
-      if (storedWallet && phantomInstalled) {
-        try {
-          console.log('Attempting to reconnect wallet:', storedWallet.address);
-          await connectToWallet(storedWallet.address);
-        } catch (err) {
-          console.error('Auto-reconnect failed:', err);
-          // Clear stored wallet if reconnection fails
-          removeWalletFromStorage(storedWallet.address, user?.id);
+      // Check for stored wallet
+      try {
+        const storedWallet = getWalletFromLocalStorage();
+        
+        if (storedWallet && phantomInstalled) {
+          try {
+            console.log('Απόπειρα επανασύνδεσης πορτοφολιού:', storedWallet.address);
+            setIsWalletInitialized(true);
+            await connectToWallet(storedWallet.address);
+          } catch (err) {
+            console.error('Η αυτόματη επανασύνδεση απέτυχε:', err);
+            // Clear stored wallet if reconnection fails
+            removeWalletFromStorage(storedWallet.address, user?.id);
+          }
+        } else {
+          setIsWalletInitialized(true);
         }
+      } catch (err) {
+        console.error('Σφάλμα κατά την επανασύνδεση πορτοφολιού:', err);
+        setIsWalletInitialized(true);
       }
     };
     
-    if (!isConnected && !isConnecting) {
+    if (!isConnected && !isConnecting && !isWalletInitialized) {
       attemptReconnect();
     }
-  }, [phantomInstalled, user]);
+  }, [phantomInstalled, user, isConnected, isConnecting, isWalletInitialized]);
   
   // Connect to wallet
   const connectWallet = useCallback(async () => {
@@ -68,17 +79,18 @@ export function useWalletConnection(): WalletConnectionHook {
     setError(null);
     
     try {
+      console.log("Προσπάθεια σύνδεσης με Phantom wallet...");
       // @ts-ignore - Phantom global object
       const { solana } = window;
       
       if (!solana || !solana.isPhantom) {
-        throw new Error("Phantom wallet not detected");
+        throw new Error("Δεν εντοπίστηκε το Phantom wallet");
       }
       
       const response = await solana.connect();
       const address = response.publicKey.toString();
       
-      console.log('Connected to wallet:', address);
+      console.log('Συνδέθηκε σε πορτοφόλι:', address);
       
       await connectToWallet(address);
       
@@ -90,7 +102,7 @@ export function useWalletConnection(): WalletConnectionHook {
       
       toast.success("Το wallet συνδέθηκε επιτυχώς!");
     } catch (err: any) {
-      console.error('Wallet connection error:', err);
+      console.error('Σφάλμα σύνδεσης wallet:', err);
       setError(err.message || 'Σφάλμα σύνδεσης wallet');
       reportError(err);
       toast.error("Σφάλμα σύνδεσης με το wallet", {
@@ -103,6 +115,7 @@ export function useWalletConnection(): WalletConnectionHook {
   
   // Connect to a specific wallet address
   const connectToWallet = useCallback(async (address: string) => {
+    console.log("Σύνδεση με το πορτοφόλι:", address);
     setWalletAddress(address);
     setIsConnected(true);
     
@@ -113,6 +126,7 @@ export function useWalletConnection(): WalletConnectionHook {
   // Disconnect wallet
   const disconnectWallet = useCallback(async () => {
     try {
+      console.log("Αποσύνδεση πορτοφολιού...");
       // @ts-ignore - Phantom global object
       const { solana } = window;
       
@@ -132,7 +146,7 @@ export function useWalletConnection(): WalletConnectionHook {
       
       toast.info("Το wallet αποσυνδέθηκε");
     } catch (err: any) {
-      console.error('Wallet disconnection error:', err);
+      console.error('Σφάλμα αποσύνδεσης wallet:', err);
       reportError(err);
     }
   }, [walletAddress, user?.id, reportError]);
@@ -142,26 +156,30 @@ export function useWalletConnection(): WalletConnectionHook {
     const walletToUse = address || walletAddress;
     
     if (!walletToUse) {
+      console.log("Δεν υπάρχει διεύθυνση πορτοφολιού για ανανέωση δεδομένων");
       return;
     }
     
     try {
-      console.log('Refreshing wallet data for address:', walletToUse);
+      console.log('Ανανέωση δεδομένων πορτοφολιού για διεύθυνση:', walletToUse);
       
       // Get SOL balance using solanaService instead of mock data
       try {
+        console.log("Λήψη υπολοίπου SOL...");
         const balance = await solanaService.fetchSOLBalance(walletToUse);
-        console.log('Fetched SOL balance:', balance);
+        console.log('Ελήφθη υπόλοιπο SOL:', balance);
         setSolBalance(balance);
       } catch (balanceError) {
-        console.error('Error fetching SOL balance:', balanceError);
+        console.error('Σφάλμα λήψης υπολοίπου SOL:', balanceError);
         reportError(balanceError);
       }
       
       // Load token data
+      console.log("Λήψη δεδομένων token...");
       await loadWalletData(walletToUse);
+      console.log("Η ανανέωση δεδομένων πορτοφολιού ολοκληρώθηκε");
     } catch (err: any) {
-      console.error('Error refreshing wallet data:', err);
+      console.error('Σφάλμα ανανέωσης δεδομένων πορτοφολιού:', err);
       reportError(err);
     }
   }, [walletAddress, reportError, loadWalletData]);

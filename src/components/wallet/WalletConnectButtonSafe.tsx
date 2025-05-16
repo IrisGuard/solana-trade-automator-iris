@@ -8,6 +8,8 @@ import { isPhantomInstalled } from "@/utils/phantomWallet";
 import { useLanguage } from "@/hooks/use-language";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useErrorReporting } from "@/hooks/useErrorReporting";
+import { syncAllHeliusData } from "@/utils/syncHeliusKeys";
+import { useUser } from "@/hooks/useUser";
 
 export function WalletConnectButtonSafe({
   children,
@@ -20,7 +22,9 @@ export function WalletConnectButtonSafe({
   const [isAttemptingConnect, setIsAttemptingConnect] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [lastAttempt, setLastAttempt] = useState(0);
+  const [showHeliusStatus, setShowHeliusStatus] = useState(false);
   
+  const { user } = useUser();
   const { reportError } = useErrorReporting();
   
   const { 
@@ -46,15 +50,34 @@ export function WalletConnectButtonSafe({
       // Refresh wallet data when connected
       const refreshData = async () => {
         try {
+          console.log("Ανανέωση δεδομένων πορτοφολιού μετά τη σύνδεση");
           await refreshWalletData();
+          
+          // Συγχρονισμός με Helius για να διασφαλίσουμε ότι τα κλειδιά είναι ενημερωμένα
+          if (user && user.id) {
+            setShowHeliusStatus(true);
+            setTimeout(async () => {
+              try {
+                await syncAllHeliusData(user.id);
+                setShowHeliusStatus(false);
+              } catch (error) {
+                console.error("Σφάλμα κατά τον συγχρονισμό Helius:", error);
+                setShowHeliusStatus(false);
+              }
+            }, 1000);
+          }
         } catch (err) {
           console.error("Error refreshing wallet data:", err);
+          reportError(err, {
+            component: 'WalletConnectButtonSafe',
+            source: 'refreshDataEffect'
+          });
         }
       };
       
       refreshData();
     }
-  }, [isConnected, refreshWalletData]);
+  }, [isConnected, refreshWalletData, user]);
   
   // Prevent rapid clicking
   const isThrottled = () => {
@@ -126,6 +149,15 @@ export function WalletConnectButtonSafe({
       );
     }
     
+    if (showHeliusStatus) {
+      return (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          <span>Συγχρονισμός Helius...</span>
+        </>
+      );
+    }
+    
     if (isConnected) {
       return (
         <>
@@ -178,7 +210,7 @@ export function WalletConnectButtonSafe({
       variant={variant}
       size={size}
       onClick={handleClick}
-      disabled={isConnecting}
+      disabled={isConnecting || showHeliusStatus}
       {...props}
     >
       {getButtonContent()}

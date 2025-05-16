@@ -2,52 +2,56 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { addHeliusEndpoints, addHeliusKey } from "./addHeliusEndpoints";
-// Fix the import path to use the correct HeliusKeyManager instance
+// Διόρθωση του μονοπατιού εισαγωγής για να χρησιμοποιήσει τον σωστό HeliusKeyManager
 import { heliusKeyManager } from "@/services/helius/HeliusKeyManager";
 import { heliusEndpointMonitor } from "@/services/helius/HeliusEndpointMonitor";
 import { heliusService } from "@/services/helius/HeliusService";
 
 /**
  * Συγχρονισμός όλων των δεδομένων που σχετίζονται με το Helius API
- * (κλειδιά και endpoints) - χωρίς χρήση demo κλειδιών
+ * (κλειδιά και endpoints)
  */
 export async function syncAllHeliusData(userId: string): Promise<boolean> {
   try {
     toast.loading('Συγχρονισμός δεδομένων Helius...');
     
     // Συγχρονισμός των κλειδιών Helius
-    // Use the provided API key instead of empty string
+    console.log("Συγχρονισμός κλειδιού Helius:", userId);
     const apiKey = "ddb32813-1f4b-459d-8964-310b1b73a053";
     const keyResult = await addHeliusKey(userId, apiKey);
     
-    // Συγχρονισμός των endpoints - χωρίς hardcoded κλειδιά
+    // Συγχρονισμός των endpoints
+    console.log("Συγχρονισμός endpoints Helius");
     const endpointResult = await addHeliusEndpoints();
     
-    // Ανανέωση των διαχειριστών - use the methods we added
+    // Ανανέωση των διαχειριστών - χρησιμοποιώντας τις μεθόδους που προσθέσαμε
     try {
-      console.log("Forcing reload of HeliusKeyManager");
-      // Try the forceReload method first
-      if (heliusKeyManager) {
+      console.log("Επανεκκίνηση HeliusKeyManager");
+      if (heliusKeyManager && typeof heliusKeyManager.forceReload === 'function') {
         await heliusKeyManager.forceReload();
+      } else if (heliusKeyManager && typeof heliusKeyManager.initialize === 'function') {
+        await heliusKeyManager.initialize();
+      } else {
+        console.error("Δεν βρέθηκε μέθοδος forceReload ή initialize στο heliusKeyManager");
       }
     } catch (error) {
-      // Fall back to initialize if forceReload fails
-      console.log("Falling back to initialize method", error);
-      if (heliusKeyManager) {
-        await heliusKeyManager.initialize();
-      }
+      console.error("Σφάλμα κατά την επανεκκίνηση του HeliusKeyManager:", error);
     }
     
     if (heliusEndpointMonitor && typeof heliusEndpointMonitor.forceReload === 'function') {
       await heliusEndpointMonitor.forceReload();
     }
     
-    // Reinitialize HeliusService after key update
+    // Επανεκκίνηση του HeliusService μετά την ενημέρωση του κλειδιού
     try {
-      console.log("Reinitializing HeliusService");
-      await heliusService.reinitialize();
+      console.log("Επανεκκίνηση HeliusService");
+      if (heliusService && typeof heliusService.reinitialize === 'function') {
+        await heliusService.reinitialize();
+      } else {
+        console.error("Δεν βρέθηκε μέθοδος reinitialize στο heliusService");
+      }
     } catch (error) {
-      console.error("Error reinitializing HeliusService:", error);
+      console.error("Σφάλμα κατά την επανεκκίνηση του HeliusService:", error);
     }
     
     if (keyResult && endpointResult) {
