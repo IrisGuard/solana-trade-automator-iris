@@ -51,20 +51,21 @@ export default function Dashboard() {
       if (!isConnected || !walletAddress || !user?.id) return;
       
       try {
-        // Use a simpler approach with specific column selection and no complex type inference
+        // Use simple explicit type and avoid complex queries
+        type BotQueryResult = { id: string; active: boolean; user_id: string; }
+        
         const { data, error } = await supabase
           .from('bots')
           .select('id,active,user_id')
           .eq('user_id', user.id)
-          .eq('is_primary', true);
+          .eq('is_primary', true) as { data: BotQueryResult[] | null, error: any };
           
         // Handle potential errors directly
         if (error) throw error;
         
         // Set bot status if data exists
         if (data && data.length > 0) {
-          const isActive = typeof data[0].active === 'boolean' ? data[0].active : false;
-          setBotActive(isActive);
+          setBotActive(!!data[0].active);
         }
       } catch (err) {
         console.error('Error fetching bot status:', err);
@@ -88,16 +89,19 @@ export default function Dashboard() {
     try {
       const newStatus = !botActive;
       
+      // Use explicit type definitions to avoid deep instantiation
+      type BotIdResult = { id: string }[];
+      
       // First, check if a bot exists for this user
-      const { data: existingBots, error: fetchError } = await supabase
+      const { data, error } = await supabase
         .from('bots')
         .select('id')
         .eq('user_id', user.id)
-        .eq('is_primary', true);
+        .eq('is_primary', true) as { data: BotIdResult | null, error: any };
       
-      if (fetchError) throw fetchError;
+      if (error) throw error;
       
-      if (existingBots && existingBots.length > 0) {
+      if (data && data.length > 0) {
         // Update existing bot
         const { error: updateError } = await supabase
           .from('bots')
@@ -105,7 +109,7 @@ export default function Dashboard() {
             active: newStatus, 
             updated_at: new Date().toISOString() 
           })
-          .eq('id', existingBots[0].id);
+          .eq('id', data[0].id);
         
         if (updateError) throw updateError;
       } else {
