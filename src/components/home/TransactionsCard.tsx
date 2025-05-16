@@ -1,8 +1,8 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDate, useTransactions } from "@/components/transactions/TransactionsData";
+import { formatDate } from "@/components/transactions/TransactionsData";
+import { useTransactionsData } from "@/hooks/useTransactionsData";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -14,7 +14,7 @@ interface TransactionsCardProps {
 
 export function TransactionsCard({ walletAddress, displayAddress }: TransactionsCardProps) {
   const [showAll, setShowAll] = useState(false);
-  const { transactions, isLoading } = useTransactions(walletAddress);
+  const { transactions, isLoading } = useTransactionsData(walletAddress);
   
   const displayedTransactions = showAll 
     ? transactions 

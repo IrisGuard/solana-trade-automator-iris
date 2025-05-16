@@ -1,79 +1,90 @@
+import React, { useState, useEffect } from "react";
+// Update import path for useTransactionsData
+import { useTransactionsData } from "@/hooks/useTransactionsData";
+import { getUniqueTokens, formatDate } from "@/utils/transactionUtils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Transaction } from "@/types/transaction-types";
 
-import React from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { useTransactions, getUniqueTokens } from "./TransactionsData";
-
-export interface TokenActivityProps {
-  walletAddress?: string;
+interface TokenActivityProps {
+  walletAddress: string;
+  transactions?: Transaction[];
   isRefreshing?: boolean;
-  transactions?: any[];
-  uniqueTokens?: string[];
 }
 
-export function TokenActivity({ walletAddress, isRefreshing, transactions: propTransactions, uniqueTokens: propUniqueTokens }: TokenActivityProps) {
-  // Use props if provided, otherwise fetch from hook
-  const { transactions: hookTransactions } = useTransactions(walletAddress);
-  const transactions = propTransactions || hookTransactions || [];
-  const uniqueTokens = propUniqueTokens || getUniqueTokens(transactions);
+export function TokenActivity({ walletAddress, transactions, isRefreshing }: TokenActivityProps) {
+  const { transactions: fetchedTransactions, isLoading } = useTransactionsData(walletAddress);
+  const [uniqueTokens, setUniqueTokens] = useState<string[]>([]);
+  const [tokenBalances, setTokenBalances] = useState<{ [token: string]: number }>({});
   
-  if (!transactions || transactions.length === 0) {
-    return (
-      <div className="text-center p-4 text-muted-foreground">
-        No token activity found.
-      </div>
-    );
-  }
-
+  useEffect(() => {
+    // Use fetched transactions if available, otherwise fallback to transactions prop
+    const allTransactions = fetchedTransactions || transactions || [];
+    
+    // Calculate unique tokens
+    const tokens = getUniqueTokens(allTransactions);
+    setUniqueTokens(tokens);
+    
+    // Calculate token balances
+    const balances: { [token: string]: number } = {};
+    allTransactions.forEach(tx => {
+      const amount = parseFloat(tx.amount);
+      if (isNaN(amount)) return;
+      
+      if (balances[tx.token]) {
+        balances[tx.token] += amount;
+      } else {
+        balances[tx.token] = amount;
+      }
+    });
+    setTokenBalances(balances);
+  }, [transactions, fetchedTransactions, isRefreshing]);
+  
   return (
-    <div className="space-y-4">
-      {uniqueTokens.map(token => {
-        const tokenTxs = transactions.filter(tx => tx.token === token);
-        const buyTxs = tokenTxs.filter(tx => tx.type === "buy" || tx.type.includes("received") || tx.type.includes("in"));
-        const sellTxs = tokenTxs.filter(tx => tx.type === "sell" || tx.type.includes("sent") || tx.type.includes("out"));
-        
-        return (
-          <div key={token} className="rounded-lg border p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center">
-                  {token[0]}
+    <Card>
+      <CardHeader>
+        <CardTitle>Δραστηριότητα Token</CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        <ScrollArea className="h-[400px] w-full">
+          <div className="p-4">
+            {isLoading ? (
+              <>
+                <Skeleton className="mb-2 h-10 w-full" />
+                <Skeleton className="mb-2 h-10 w-full" />
+                <Skeleton className="mb-2 h-10 w-full" />
+              </>
+            ) : uniqueTokens.length > 0 ? (
+              uniqueTokens.map((token) => (
+                <div key={token} className="flex items-center justify-between py-3 border-b last:border-b-0">
+                  <div className="flex items-center space-x-3">
+                    <Badge variant="secondary">{token}</Badge>
+                    <div>
+                      <div className="text-sm font-medium">{token}</div>
+                      <div className="text-xs text-muted-foreground">
+                        Τελευταία δραστηριότητα: {formatDate(new Date().toISOString())}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-medium">{tokenBalances[token]?.toFixed(2) || '0'}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {/* Add value calculation logic here if available */}
+                      Αξία: N/A
+                    </div>
+                  </div>
                 </div>
-                <span className="font-medium">{token}</span>
+              ))
+            ) : (
+              <div className="text-center p-4 text-muted-foreground">
+                Δεν βρέθηκαν tokens
               </div>
-              <span className="text-sm text-muted-foreground">
-                {tokenTxs.length} transactions
-              </span>
-            </div>
-            
-            <div className="mt-4 space-y-2">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <div className="h-2 w-2 rounded-full bg-green-400" />
-                  Buy ({buyTxs.length})
-                </span>
-                <span className="flex items-center gap-1">
-                  <div className="h-2 w-2 rounded-full bg-red-400" />
-                  Sell ({sellTxs.length})
-                </span>
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-secondary flex">
-                <div
-                  className="h-full bg-green-400"
-                  style={{
-                    width: tokenTxs.length ? `${(buyTxs.length / tokenTxs.length) * 100}%` : '0%',
-                  }}
-                />
-                <div
-                  className="h-full bg-red-400"
-                  style={{
-                    width: tokenTxs.length ? `${(sellTxs.length / tokenTxs.length) * 100}%` : '0%',
-                  }}
-                />
-              </div>
-            </div>
+            )}
           </div>
-        );
-      })}
-    </div>
+        </ScrollArea>
+      </CardContent>
+    </Card>
   );
 }
