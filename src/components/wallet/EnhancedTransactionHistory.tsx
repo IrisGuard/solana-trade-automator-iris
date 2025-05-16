@@ -45,6 +45,7 @@ export function EnhancedTransactionHistory({
   };
 
   // Convert transactions to the format expected by TransactionList and TransactionFooter
+  // Ensure timestamp is properly converted from string to number
   const adaptedTransactions: TransactionListType[] = transactions.map(tx => ({
     signature: tx.signature || tx.id || '',
     type: tx.type,
@@ -52,6 +53,7 @@ export function EnhancedTransactionHistory({
     amount: tx.amount,
     from: undefined,
     to: undefined,
+    // Convert string timestamp to number or use current time as fallback
     timestamp: tx.timestamp ? new Date(tx.timestamp).getTime() : Date.now(),
     blockTime: tx.timestamp ? new Date(tx.timestamp).getTime() / 1000 : Math.floor(Date.now() / 1000),
     tokenAddress: undefined
