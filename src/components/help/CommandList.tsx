@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useLanguage } from "@/hooks/use-language";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -191,7 +190,7 @@ function CommandItem({ command, t }: CommandItemProps) {
         <code className="font-mono text-sm bg-muted px-2 py-1 rounded">
           {command.command}
         </code>
-        <span className="text-xs text-muted-foreground">{t("general.command", "Εντολή")}</span>
+        <span className="text-xs text-muted-foreground">{t("general.command")}</span>
       </div>
       <p className="text-sm mt-1">
         {command.descriptionKey.includes('.') ? t(command.descriptionKey) : command.descriptionKey}
