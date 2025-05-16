@@ -17,10 +17,18 @@ interface BackupOptions {
 // Main service class for managing site backups
 export class SiteBackupService {
   private static readonly PRIMARY_KEY = 'site_structure_backup';
+  // Increase the number of backup slots from 3 to 10
   private static readonly BACKUP_KEYS = [
     'site_structure_backup_1',
     'site_structure_backup_2',
-    'site_structure_backup_3'
+    'site_structure_backup_3',
+    'site_structure_backup_4',
+    'site_structure_backup_5',
+    'site_structure_backup_6',
+    'site_structure_backup_7',
+    'site_structure_backup_8',
+    'site_structure_backup_9',
+    'site_structure_backup_10'
   ];
   private static readonly VERSION = '1.0.0';
   
@@ -128,6 +136,31 @@ export class SiteBackupService {
     } catch {
       return false;
     }
+  }
+  
+  // Count available backups
+  public static countAvailableBackups(): number {
+    let count = 0;
+    
+    // Check primary backup
+    if (localStorage.getItem(this.PRIMARY_KEY)) {
+      count++;
+    }
+    
+    // Check all backup slots
+    for (const key of this.BACKUP_KEYS) {
+      if (localStorage.getItem(key)) {
+        count++;
+      }
+    }
+    
+    return count;
+  }
+  
+  // Get max backup count
+  public static getMaxBackups(): number {
+    // Primary backup + all backup slots
+    return 1 + this.BACKUP_KEYS.length;
   }
   
   // Private helper methods
@@ -255,6 +288,8 @@ declare global {
       create: (options?: BackupOptions) => boolean;
       restore: (showNotification?: boolean) => boolean;
       check: () => boolean;
+      countBackups: () => number;
+      maxBackups: () => number;
     };
     errorCollector: any;
   }
@@ -264,5 +299,7 @@ declare global {
 window.siteBackup = {
   create: SiteBackupService.createBackup.bind(SiteBackupService),
   restore: SiteBackupService.restoreFromBackup.bind(SiteBackupService),
-  check: SiteBackupService.checkSiteHealth.bind(SiteBackupService)
+  check: SiteBackupService.checkSiteHealth.bind(SiteBackupService),
+  countBackups: SiteBackupService.countAvailableBackups.bind(SiteBackupService),
+  maxBackups: SiteBackupService.getMaxBackups.bind(SiteBackupService)
 };

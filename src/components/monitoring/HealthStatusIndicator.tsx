@@ -17,6 +17,7 @@ interface HealthState {
   lastChecked: Date;
   issues: string[];
   backupCount: number;
+  maxBackups: number;
   lastBackupTime?: Date | null;
 }
 
@@ -27,6 +28,7 @@ export function HealthStatusIndicator() {
     lastChecked: new Date(),
     issues: [],
     backupCount: 0,
+    maxBackups: 11, // Default value
   });
   const [isCreatingBackup, setIsCreatingBackup] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
@@ -64,9 +66,9 @@ export function HealthStatusIndicator() {
 
   const getBackupInfo = () => {
     try {
-      // Get backup count from localStorage
-      const backupKeys = ['site_structure_backup', 'site_structure_backup_1', 'site_structure_backup_2', 'site_structure_backup_3'];
-      const backupCount = backupKeys.filter(key => localStorage.getItem(key)).length;
+      // Get backup count using SiteBackupService methods
+      const backupCount = SiteBackupService.countAvailableBackups();
+      const maxBackups = SiteBackupService.getMaxBackups();
       
       // Get last backup time
       const primaryBackup = localStorage.getItem('site_structure_backup');
@@ -86,6 +88,7 @@ export function HealthStatusIndicator() {
       setHealth(prev => ({
         ...prev,
         backupCount,
+        maxBackups,
         lastBackupTime
       }));
       
@@ -113,6 +116,9 @@ export function HealthStatusIndicator() {
         lastChecked: new Date(),
         issues: healthCheck.issues
       }));
+      
+      // Refresh backup info after health check
+      getBackupInfo();
       
       if (!silent) {
         toast.success("Ο έλεγχος υγείας ολοκληρώθηκε", {
@@ -142,6 +148,7 @@ export function HealthStatusIndicator() {
       const success = SiteBackupService.createBackup();
       
       if (success) {
+        // Update backup information after creating a new backup
         getBackupInfo();
       }
     } catch (e) {
@@ -225,7 +232,7 @@ export function HealthStatusIndicator() {
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-2">
                     <Database className="h-4 w-4 text-muted-foreground" />
-                    <span>Διαθέσιμα: {health.backupCount}/5</span>
+                    <span>Διαθέσιμα: {health.backupCount}/{health.maxBackups}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <RefreshCw className="h-4 w-4 text-muted-foreground" />
