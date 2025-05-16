@@ -1,18 +1,17 @@
 
-export enum TransactionFilterType {
-  ALL = 'all',
-  SEND = 'send',
-  RECEIVE = 'receive',
-  SWAP = 'swap'
+// Define the Transaction interface
+export interface Transaction {
+  id: string;
+  type: string;
+  token: string;
+  amount: string;
+  price: string;
+  value: string;
+  timestamp: string;
+  status: string;
+  bot: string;
+  signature?: string;
 }
 
-export interface Transaction {
-  id?: string;
-  signature?: string;
-  type: string;
-  status: string;
-  amount?: number | string;
-  timestamp?: number;
-  from?: string;
-  to?: string;
-}
+// Define the Transaction filter types
+export type TransactionFilterType = 'all' | 'sent' | 'received';

@@ -100,7 +100,7 @@ export function usePhantomConnection() {
   }, [reportError]);
 
   // Refresh wallet data
-  const refreshWalletData = useCallback(async (address?: string) => {
+  const refreshWalletData = useCallback(async (address: string) => {
     if (!address) return;
     
     setIsLoadingTokens(true);

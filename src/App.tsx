@@ -1,16 +1,9 @@
 
 import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
-import { Routes } from './routes';
-import { Toaster } from './components/ui/toaster';
+import { AppContent } from './components/AppContent';
 
 function App() {
-  return (
-    <BrowserRouter>
-      <Routes />
-      <Toaster />
-    </BrowserRouter>
-  );
+  return <AppContent />;
 }
 
 export default App;

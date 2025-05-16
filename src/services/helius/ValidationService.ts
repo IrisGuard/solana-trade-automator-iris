@@ -1,28 +1,27 @@
 
-import { HELIUS_BASE_URL } from './HeliusConfig';
+import { HELIUS_BASE_URL } from "./HeliusConfig";
 
-class ValidationService {
+/**
+ * Service for validation and utility operations
+ */
+export class ValidationService {
+  /**
+   * Check if an API key is valid
+   */
   public async checkApiKey(apiKey: string): Promise<boolean> {
     try {
-      console.log(`Validating Helius API key: ${apiKey.substring(0, 5)}...`);
+      // Δοκιμάζουμε να κάνουμε ένα απλό αίτημα για να ελέγξουμε αν το κλειδί API είναι έγκυρο
+      const url = new URL(`${HELIUS_BASE_URL}/health-check`);
+      url.searchParams.append('api-key', apiKey);
       
-      // For demo purposes, consider most keys valid
-      const isValid = apiKey.length > 10;
-      
-      // Log result
-      if (isValid) {
-        console.log('API key is valid');
-      } else {
-        console.warn('API key is invalid');
-      }
-      
-      return isValid;
+      const response = await fetch(url.toString());
+      return response.ok;
     } catch (error) {
-      console.error('Error validating API key:', error);
+      console.error("Σφάλμα κατά τον έλεγχο του κλειδιού API:", error);
       return false;
     }
   }
 }
 
+// Export a singleton instance
 export const validationService = new ValidationService();
-export type { ValidationService };

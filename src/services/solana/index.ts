@@ -1,23 +1,30 @@
-import { PublicKey } from '@solana/web3.js';
-import { connection } from './config';
-import { tokenService } from './token';
 
-// Main Solana service object for the application
+// Re-export key Solana services in a centralized file
+import { fetchSOLBalance, getSolBalance } from './wallet/balance';
+import { sendToken } from './wallet/transfer';
+import { fetchAllTokenBalances, fetchTokenBalance, tokenService } from './token';
+import { priceService } from './price';
+import { RPC_ENDPOINTS, API_ENDPOINTS } from './config';
+
+// Create a centralized solanaService object for compatibility with existing code
 export const solanaService = {
-  // Fetch SOL balance for an address
-  fetchSOLBalance: async (address: string): Promise<number> => {
-    try {
-      const publicKey = new PublicKey(address);
-      const lamports = await connection.getBalance(publicKey);
-      return lamports / 10**9; // Convert lamports to SOL
-    } catch (error) {
-      console.error('Error fetching SOL balance:', error);
-      throw error;
-    }
-  },
-  
-  // Re-export token service
+  fetchSOLBalance,
+  getSolBalance,
+  fetchAllTokenBalances,
+  fetchTokenBalance,
   tokenService,
-  
-  // Other Solana services can be added here
+  fetchTokenPrices: async (tokenAddress: string) => {
+    return { 
+      price: 0, 
+      priceChange24h: 0 
+    };
+  },
+  fetchTransactions: async (address: string, limit: number = 10) => {
+    console.log(`Would fetch ${limit} transactions for ${address}`);
+    return [];
+  }
 };
+
+// Re-export other modules
+export { RPC_ENDPOINTS, API_ENDPOINTS };
+export { tokenService, fetchAllTokenBalances, fetchTokenBalance, priceService };

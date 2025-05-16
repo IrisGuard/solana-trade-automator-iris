@@ -1,77 +1,76 @@
 
-import { HELIUS_BASE_URL } from './HeliusConfig';
-import { heliusKeyManager } from './HeliusKeyManager';
+import { heliusKeyManager } from "./HeliusKeyManager";
+import { TokenBalance, TokenMetadata } from "./types";
+import { HELIUS_BASE_URL } from "./HeliusConfig";
 
-class TokenService {
-  private apiKey: string | null = null;
-  
-  private getApiKey(): string {
-    this.apiKey = heliusKeyManager.getApiKey();
-    if (!this.apiKey) {
-      throw new Error('Helius API key is not available');
-    }
-    return this.apiKey;
-  }
-  
-  public async getTokenBalances(walletAddress: string) {
+/**
+ * Service for token-related Helius API operations
+ */
+export class TokenService {
+  /**
+   * Get token balances for a wallet address
+   */
+  public async getTokenBalances(walletAddress: string): Promise<TokenBalance[]> {
     try {
-      console.log(`Fetching token balances for wallet: ${walletAddress}`);
+      console.log(`Λήψη υπολοίπων token για το πορτοφόλι: ${walletAddress}`);
+      // Δημιουργούμε το URL για το API του Helius
+      const url = new URL(`${HELIUS_BASE_URL}/addresses/${walletAddress}/balances`);
       
-      // For demo purposes, return mock data
-      return [
-        {
-          mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          amount: 500.0,
-          decimals: 6
-        },
-        {
-          mint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
-          amount: 250.5,
-          decimals: 6
-        },
-        {
-          mint: 'So11111111111111111111111111111111111111112',
-          amount: 12.5,
-          decimals: 9
-        }
-      ];
+      // Προσθέτουμε το API key
+      const apiKey = heliusKeyManager.getApiKey();
+      console.log(`Χρήση API key: ${apiKey.substring(0, 8)}... για τη λήψη υπολοίπων token`);
+      url.searchParams.append('api-key', apiKey);
+      
+      // Κάνουμε το αίτημα
+      const response = await fetch(url.toString());
+      if (!response.ok) {
+        throw new Error(`Σφάλμα API Helius: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log(`Ελήφθησαν ${data.tokens?.length || 0} token από το Helius API`);
+      return data.tokens || [];
     } catch (error) {
-      console.error('Error fetching token balances:', error);
+      console.error("Σφάλμα κατά τη λήψη υπολοίπων token:", error);
       return [];
     }
   }
-  
-  public async getTokenMetadata(tokenAddresses: string[]) {
+
+  /**
+   * Get token metadata for specified token addresses
+   */
+  public async getTokenMetadata(tokenAddresses: string[]): Promise<TokenMetadata[]> {
     try {
-      console.log(`Fetching token metadata for: ${tokenAddresses.join(', ')}`);
+      if (!tokenAddresses || tokenAddresses.length === 0) {
+        return [];
+      }
       
-      // For demo purposes, return mock data
-      return [
-        {
-          mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          name: 'USD Coin',
-          symbol: 'USDC',
-          logoURI: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png'
-        },
-        {
-          mint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
-          name: 'USDT',
-          symbol: 'USDT',
-          logoURI: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.png'
-        },
-        {
-          mint: 'So11111111111111111111111111111111111111112',
-          name: 'Wrapped SOL',
-          symbol: 'SOL',
-          logoURI: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png'
-        }
-      ];
+      console.log(`Λήψη μεταδεδομένων για ${tokenAddresses.length} token`);
+      // Δημιουργούμε το URL για το API του Helius
+      const url = new URL(`${HELIUS_BASE_URL}/tokens`);
+      
+      // Προσθέτουμε το API key
+      const apiKey = heliusKeyManager.getApiKey();
+      url.searchParams.append('api-key', apiKey);
+      
+      // Προσθέτουμε τις διευθύνσεις των token
+      url.searchParams.append('mints', tokenAddresses.join(','));
+      
+      // Κάνουμε το αίτημα
+      const response = await fetch(url.toString());
+      if (!response.ok) {
+        throw new Error(`Σφάλμα API Helius: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log(`Ελήφθησαν μεταδεδομένα για ${data.length || 0} token`);
+      return data || [];
     } catch (error) {
-      console.error('Error fetching token metadata:', error);
+      console.error("Σφάλμα κατά τη λήψη μεταδεδομένων token:", error);
       return [];
     }
   }
 }
 
+// Export a singleton instance
 export const tokenService = new TokenService();
-export type { TokenService };

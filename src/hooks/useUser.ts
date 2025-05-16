@@ -1,51 +1,81 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 
-interface User {
+interface UserProfile {
   id: string;
-  email?: string;
-  name?: string;
+  email: string;
+  username: string;
+  role: string;
+  avatar?: string;
+  isVerified: boolean;
 }
 
+const mockProfile: UserProfile = {
+  id: 'user123',
+  email: 'demo@example.com',
+  username: 'traderuser',
+  role: 'premium',
+  avatar: 'https://github.com/shadcn.png',
+  isVerified: true
+};
+
 export function useUser() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   
-  useEffect(() => {
-    // This is a placeholder to simulate loading a user
-    // In a real implementation, this would check for a logged-in user
-    const checkForUser = async () => {
-      try {
-        // Check localStorage for user data
-        const storedUser = localStorage.getItem('user');
-        
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        }
-      } catch (error) {
-        console.error('Error checking for user:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchUserProfile = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     
-    checkForUser();
+    try {
+      // Simulate API call
+      await new Promise(r => setTimeout(r, 800));
+      
+      // For demo, use mock data
+      setUser(mockProfile);
+    } catch (err: any) {
+      console.error('Error fetching user profile:', err);
+      setError(err.message || 'Failed to load user profile');
+      toast.error('Failed to load user profile');
+    } finally {
+      setLoading(false);
+    }
   }, []);
   
-  const login = async (userData: User) => {
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
-  };
+  const updateUserProfile = useCallback(async (updates: Partial<UserProfile>) => {
+    setLoading(true);
+    
+    try {
+      // Simulate API call
+      await new Promise(r => setTimeout(r, 800));
+      
+      setUser(prev => {
+        if (!prev) return null;
+        return { ...prev, ...updates };
+      });
+      
+      toast.success('Profile updated successfully');
+      return true;
+    } catch (err: any) {
+      console.error('Error updating profile:', err);
+      toast.error('Failed to update profile');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
   
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-  };
+  useEffect(() => {
+    fetchUserProfile();
+  }, [fetchUserProfile]);
   
   return {
     user,
-    isLoading,
-    login,
-    logout
+    loading,
+    error,
+    fetchUserProfile,
+    updateUserProfile
   };
 }
