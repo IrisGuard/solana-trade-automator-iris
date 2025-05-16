@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from "react";
-// Update import path for useTransactionsData
 import { useTransactionsData } from "@/hooks/useTransactionsData";
+import { useTransactions } from "@/hooks/useTransactions";
 import { getUniqueTokens, formatDate } from "@/utils/transactionUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

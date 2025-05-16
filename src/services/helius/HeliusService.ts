@@ -3,7 +3,6 @@ import { heliusKeyManager } from "./HeliusKeyManager";
 import { tokenService, TokenService } from "./TokenService";
 import { transactionService, TransactionService } from "./TransactionService";
 import { validationService, ValidationService } from "./ValidationService";
-import { Transaction, TokenBalance, TokenMetadata } from "./types";
 import { HELIUS_BASE_URL } from "./HeliusConfig";
 
 /**
@@ -41,16 +40,16 @@ class HeliusService {
   }
 
   // Token-related methods (delegated to TokenService)
-  public async getTokenBalances(walletAddress: string): Promise<TokenBalance[]> {
+  public async getTokenBalances(walletAddress: string) {
     return this.tokenService.getTokenBalances(walletAddress);
   }
 
-  public async getTokenMetadata(tokenAddresses: string[]): Promise<TokenMetadata[]> {
+  public async getTokenMetadata(tokenAddresses: string[]) {
     return this.tokenService.getTokenMetadata(tokenAddresses);
   }
 
   // Transaction-related methods (delegated to TransactionService)
-  public async getTransactionHistory(walletAddress: string, limit: number = 10): Promise<Transaction[]> {
+  public async getTransactionHistory(walletAddress: string, limit: number = 10) {
     return this.transactionService.getTransactionHistory(walletAddress, limit);
   }
 
@@ -66,5 +65,5 @@ export const heliusService = new HeliusService();
 // Εξάγουμε την κλάση για χρήση σε άλλα αρχεία
 export default HeliusService;
 
-// Re-export types for backward compatibility
-export { Transaction, TokenBalance, TokenMetadata } from "./types";
+// Re-export types for backward compatibility using 'export type'
+export type { Transaction, TokenBalance, TokenMetadata } from "./types";

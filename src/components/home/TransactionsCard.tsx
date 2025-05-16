@@ -1,8 +1,9 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/components/transactions/TransactionsData";
-import { useTransactionsData } from "@/hooks/useTransactionsData";
+import { useTransactions } from "@/hooks/useTransactions";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -14,7 +15,7 @@ interface TransactionsCardProps {
 
 export function TransactionsCard({ walletAddress, displayAddress }: TransactionsCardProps) {
   const [showAll, setShowAll] = useState(false);
-  const { transactions, isLoading } = useTransactionsData(walletAddress);
+  const { transactions, loading } = useTransactions({ walletAddress });
   
   const displayedTransactions = showAll 
     ? transactions 
@@ -38,7 +39,7 @@ export function TransactionsCard({ walletAddress, displayAddress }: Transactions
         )}
       </CardHeader>
       <CardContent>
-        {isLoading ? (
+        {loading ? (
           <div className="flex justify-center items-center p-4">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>

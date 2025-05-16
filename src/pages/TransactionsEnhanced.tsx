@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EnhancedTransactionFilters } from "@/components/transactions/EnhancedTransactionFilters";
@@ -6,7 +7,7 @@ import { TransactionPagination } from "@/components/transactions/Pagination";
 import { TransactionSummary } from "@/components/transactions/TransactionSummary";
 import { TokenActivity } from "@/components/transactions/TokenActivity";
 import { getUniqueTokens, formatDate } from "@/utils/transactionUtils";
-import { useTransactionsData } from "@/hooks/useTransactionsData";
+import { useTransactions } from "@/hooks/useTransactions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, HelpCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -22,7 +23,7 @@ export default function TransactionsEnhanced() {
   const transactionsPerPage = 10;
   
   // Get transactions data using the hook
-  const { transactions = [] } = useTransactionsData();
+  const { transactions = [] } = useTransactions({});
 
   // Get unique tokens for filter dropdown
   const uniqueTokens = getUniqueTokens(transactions);
@@ -146,16 +147,16 @@ export default function TransactionsEnhanced() {
         {/* Transaction Summary component */}
         <TransactionSummary transactions={filteredTransactions.length > 0 ? filteredTransactions : transactions} />
         
-        {/* Token Activity component - pass the correct props */}
+        {/* Token Activity component - pass walletAddress prop */}
         <TokenActivity 
-          transactions={filteredTransactions.length > 0 ? filteredTransactions : transactions}
-          uniqueTokens={uniqueTokens} 
+          walletAddress=""
+          transactions={filteredTransactions.length > 0 ? filteredTransactions : transactions} 
         />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Οδηγίες Χρήσης Προηγμένων ��ίλτρων</CardTitle>
+          <CardTitle>Οδηγίες Χρήσης Προηγμένων Φίλτρων</CardTitle>
           <CardDescription>
             Μάθετε πώς να αξιοποιήσετε στο μέγιστο τα εργαλεία ανάλυσης συναλλαγών
           </CardDescription>

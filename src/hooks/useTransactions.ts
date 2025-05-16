@@ -1,101 +1,136 @@
 
-import { useState, useEffect, useCallback } from "react";
-import { Transaction } from "@/types/transaction";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useErrorReporting } from "./useErrorReporting";
+import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
+import { Transaction } from "@/types/transaction-types";
+import { heliusService } from "@/services/helius";
 
 interface UseTransactionsProps {
-  walletAddress: string | null;
+  walletAddress?: string | null;
   limit?: number;
 }
 
-export function useTransactions({ walletAddress, limit = 5 }: UseTransactionsProps) {
+export const useTransactions = ({ walletAddress, limit = 10 }: UseTransactionsProps) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(false);
-  const { reportError } = useErrorReporting();
+  const [loading, setLoading] = useState(true);
+  const { user } = useUser();
 
-  const fetchTransactions = useCallback(async () => {
+  const fetchTransactions = async () => {
     if (!walletAddress) {
       setTransactions([]);
+      setLoading(false);
       return;
     }
 
     setLoading(true);
     try {
-      // Fetch transactions from Supabase
-      const { data, error } = await supabase
-        .from("transactions")
-        .select("*")
-        .eq("wallet_address", walletAddress)
-        .order("created_at", { ascending: false })
-        .limit(limit);
+      // First try to fetch from Supabase if user is authenticated
+      if (user?.id) {
+        console.log('Fetching transactions from Supabase for wallet:', walletAddress);
+        
+        // Fetch transactions from Supabase
+        const { data: dbTransactions, error } = await supabase
+          .from('transactions')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('wallet_address', walletAddress)
+          .order('created_at', { ascending: false })
+          .limit(limit || 10);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      // Transform the data to match our Transaction type
-      const formattedTransactions: Transaction[] = data?.map(tx => ({
-        signature: tx.signature,
-        type: tx.type,
-        status: tx.status,
-        amount: tx.amount,
-        from: tx.source || undefined,
-        to: tx.destination || undefined,
-        timestamp: tx.block_time ? new Date(tx.block_time).getTime() : new Date(tx.created_at).getTime(),
-        blockTime: tx.block_time ? new Date(tx.block_time).getTime() : new Date(tx.created_at).getTime()
-      })) || [];
-
-      setTransactions(formattedTransactions);
-    } catch (err) {
-      console.error("Error fetching transactions:", err);
-      reportError(err instanceof Error ? err : new Error("Failed to fetch transactions"));
-      toast.error("Αποτυχία φόρτωσης συναλλαγών");
-      
-      // Fallback to mock data in case of error
-      setTransactions([
-        {
-          signature: "mock-sig-1",
-          type: "Αποστολή",
-          status: "Success",
-          amount: "0.5",
-          from: walletAddress,
-          to: "receiver1",
-          timestamp: Date.now() - 1000 * 60 * 60 * 2, // 2 hours ago
-          blockTime: Date.now() - 1000 * 60 * 60 * 2 // 2 hours ago
-        },
-        {
-          signature: "mock-sig-2",
-          type: "Λήψη",
-          status: "Success",
-          amount: "1.2",
-          from: "sender1",
-          to: walletAddress,
-          timestamp: Date.now() - 1000 * 60 * 60 * 24, // 1 day ago
-          blockTime: Date.now() - 1000 * 60 * 60 * 24 // 1 day ago
-        },
-        {
-          signature: "mock-sig-3",
-          type: "Αποστολή",
-          status: "Failed",
-          amount: "0.1",
-          from: walletAddress,
-          to: "receiver2",
-          timestamp: Date.now() - 1000 * 60 * 60 * 48, // 2 days ago
-          blockTime: Date.now() - 1000 * 60 * 60 * 48 // 2 days ago
+        if (dbTransactions && dbTransactions.length > 0) {
+          console.log('Found transactions in Supabase:', dbTransactions.length);
+          
+          // Map database transactions to the Transaction interface
+          const mappedTransactions: Transaction[] = dbTransactions.map((tx) => ({
+            id: tx.id,
+            type: tx.type || 'unknown',
+            token: tx.type === 'SOL_TRANSFER' ? 'SOL' : 'SPL',
+            amount: tx.amount || '0',
+            price: '$0.00', // This would come from a price service
+            value: '$0.00', // This would come from a price service
+            timestamp: tx.created_at,
+            status: tx.status || 'completed',
+            bot: 'Manual', // This would come from bot data
+            signature: tx.signature
+          }));
+          
+          setTransactions(mappedTransactions);
+          setLoading(false);
+          return;
         }
-      ]);
+      }
+      
+      // If no transactions found in DB or user not authenticated, try Helius
+      console.log('Fetching transactions from Helius for wallet:', walletAddress);
+      const heliusTransactions = await heliusService.getTransactionHistory(walletAddress);
+      
+      if (heliusTransactions && heliusTransactions.length > 0) {
+        console.log('Found transactions on Helius:', heliusTransactions.length);
+        
+        // Map Helius transactions to the Transaction interface
+        const mappedTransactions: Transaction[] = heliusTransactions.map((tx, index) => {
+          // Parse the transaction data - in a real app this would be more sophisticated
+          const txType = tx.type || 'UNKNOWN';
+          let tokenSymbol = 'UNKNOWN';
+          
+          if (tx.tokenTransfers && tx.tokenTransfers.length > 0) {
+            tokenSymbol = tx.tokenTransfers[0]?.tokenName || 'SPL';
+          } else {
+            tokenSymbol = 'SOL';
+          }
+          
+          // Extract amount
+          let amount = '0';
+          if (tx.tokenTransfers && tx.tokenTransfers.length > 0) {
+            amount = tx.tokenTransfers[0]?.amount?.toString() || '0';
+          } else if (tx.nativeTransfers && tx.nativeTransfers.length > 0) {
+            amount = (tx.nativeTransfers[0]?.amount / 1000000000).toString() || '0';
+          }
+          
+          return {
+            id: tx.signature || `tx-${index}`,
+            type: txType.toLowerCase(),
+            token: tokenSymbol,
+            amount: amount,
+            price: '$0.00',
+            value: '$0.00',
+            timestamp: tx.timestamp || new Date().toISOString(),
+            status: 'completed',
+            bot: 'Manual',
+            signature: tx.signature
+          };
+        });
+        
+        setTransactions(mappedTransactions);
+      } else {
+        console.log('No transactions found for wallet');
+        setTransactions([]);
+      }
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      toast.error('Σφάλμα φόρτωσης συναλλαγών', {
+        description: 'Δοκιμάστε να ανανεώσετε τη σελίδα'
+      });
+      setTransactions([]);
     } finally {
       setLoading(false);
     }
-  }, [walletAddress, limit, reportError]);
+  };
 
   useEffect(() => {
     fetchTransactions();
-  }, [fetchTransactions]);
+  }, [user, walletAddress, limit]);
+
+  const refreshTransactions = () => {
+    fetchTransactions();
+  };
 
   return {
     transactions,
     loading,
-    refreshTransactions: fetchTransactions
+    refreshTransactions
   };
-}
+};
