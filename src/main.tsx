@@ -6,7 +6,7 @@ import './index.css'
 
 // Polyfills for Solana web3.js
 import './polyfills'
-import { LanguageProvider } from '@/hooks/use-language.tsx'
+import { LanguageProvider } from '@/providers/LanguageProvider'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
