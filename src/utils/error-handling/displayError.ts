@@ -11,7 +11,11 @@ interface DisplayErrorOptions {
   source?: string;
   details?: any;
   errorType?: string;
-  title?: string; // Added missing 'title' property
+  title?: string;
+  logToConsole?: boolean;
+  sendToChat?: boolean;
+  useCollector?: boolean;
+  notifyUser?: boolean;
 }
 
 /**
@@ -24,14 +28,22 @@ export const displayError = (
   const errorObj = typeof error === 'string' ? new Error(error) : error;
   const message = errorObj.message || 'An unknown error occurred';
 
-  // Collect the error
-  const errorId = errorCollector.captureError(errorObj, {
-    component: options.component || 'unknown',
-    source: options.source || 'client',
-    method: options.errorType,
-    severity: options.severity || 'medium',
-    details: options.details
-  });
+  // Log to console if requested
+  if (options.logToConsole) {
+    console.error('[ERROR]', message, errorObj);
+  }
+
+  // Collect the error if requested
+  let errorId = '';
+  if (options.useCollector !== false) {
+    errorId = errorCollector.captureError(errorObj, {
+      component: options.component || 'unknown',
+      source: options.source || 'client',
+      method: options.errorType,
+      severity: options.severity || 'medium',
+      details: options.details
+    });
+  }
   
   // Display toast if requested
   if (options.showToast) {
@@ -39,6 +51,16 @@ export const displayError = (
       description: message,
       id: errorId
     });
+  }
+  
+  // Send to chat implementation would go here
+  if (options.sendToChat) {
+    try {
+      // This would typically connect to a chat service or error reporting system
+      console.log('[CHAT] Error sent:', message);
+    } catch (e) {
+      console.error('Failed to send error to chat:', e);
+    }
   }
   
   return errorId;
