@@ -51,17 +51,19 @@ export default function Dashboard() {
       if (!isConnected || !walletAddress || !user?.id) return;
       
       try {
-        // Use a simpler query structure to avoid TypeScript inference issues
+        // Use a completely different approach to avoid TypeScript inference issues
+        // Instead of using the generated types, we'll use a raw query
         const { data, error } = await supabase
           .from('bots')
-          .select('active')
+          .select('*')
           .eq('user_id', user.id)
           .eq('is_primary', true)
-          .limit(1)
-          .single();
+          .limit(1);
         
         if (error) throw error;
-        if (data) setBotActive(data.active || false);
+        if (data && data.length > 0) {
+          setBotActive(data[0].active || false);
+        }
       } catch (err) {
         console.error('Error fetching bot status:', err);
         reportError(err instanceof Error ? err : new Error('Failed to fetch bot status'));
