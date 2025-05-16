@@ -9,8 +9,8 @@ import * as React from 'react';
 import * as jsxRuntime from 'react/jsx-runtime';
 
 // Explicitly re-export the jsx and jsxs functions from React
-export const jsx = jsxRuntime.jsx || React.createElement;
-export const jsxs = jsxRuntime.jsxs || React.createElement;
+export const jsx = jsxRuntime.jsx;
+export const jsxs = jsxRuntime.jsxs;
 export const Fragment = React.Fragment;
 
 // Create a compatibility layer for older code that might import directly

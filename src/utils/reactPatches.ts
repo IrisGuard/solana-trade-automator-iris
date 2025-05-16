@@ -3,36 +3,28 @@ import * as React from 'react';
 import * as jsxRuntime from 'react/jsx-runtime';
 import { jsx, jsxs, Fragment } from './jsx-runtime-fix';
 
-// Βεβαιώνουμε ότι το React είναι διαθέσιμο στο window για προβλήματα συμβατότητας
-
-// Προσθήκη τύπων για το window object
-declare global {
-  interface Window {
-    React: typeof React & {
-      jsx?: typeof jsx;
-      jsxs?: typeof jsxs;
-    };
-  }
-}
+// In the window.d.ts file we've added the type definition for React
 
 // Εξαγωγή της συνάρτησης για εφαρμογή συμβατότητας με το React
 export function ensureReactCompatibility(): void {
   if (typeof window !== 'undefined') {
     try {
       // Δημιουργία πλήρους αντιγράφου του React στο window
-      window.React = { ...React };
+      window.React = { ...React } as typeof window.React;
       
       // Ensure JSX functions are available
-      window.React.jsx = jsx;
-      window.React.jsxs = jsxs;
-      
-      // Patch the Fragment property if needed
-      if (!window.React.Fragment) {
-        Object.defineProperty(window.React, 'Fragment', {
-          value: Fragment,
-          writable: false,
-          configurable: true
-        });
+      if (window.React) {
+        window.React.jsx = jsx;
+        window.React.jsxs = jsxs;
+        
+        // Patch the Fragment property if needed
+        if (!window.React.Fragment) {
+          Object.defineProperty(window.React, 'Fragment', {
+            value: Fragment,
+            writable: false,
+            configurable: true
+          });
+        }
       }
       
       // Καταγραφή επιτυχίας

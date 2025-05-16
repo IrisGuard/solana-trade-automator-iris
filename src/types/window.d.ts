@@ -19,4 +19,11 @@ interface Window {
     timestamp: string;
     type: string;
   }>;
+  
+  // Add React type for JSX runtime
+  React?: typeof import('react') & {
+    jsx?: any;
+    jsxs?: any;
+    Fragment?: typeof import('react').Fragment;
+  };
 }
