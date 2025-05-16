@@ -44,6 +44,8 @@ export function useApiKeysDashboard(limit = 4) {
           validStatus = key.status as 'active' | 'expired' | 'revoked' | 'failing';
         }
         
+        // Fix: Change from visibleKeyIds(key.id) to visibleKeyIds[key.id]
+        // or use visibleKeyIds.includes(key.id) if it's an array
         const isVisible = visibleKeyIds.includes(key.id);
         const isWorking = validStatus === 'active';
         
