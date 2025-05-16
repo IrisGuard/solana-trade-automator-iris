@@ -14,7 +14,7 @@ class HeliusEndpointMonitor {
   private endpoints: { id: string; name: string; url: string; }[] = [];
   private endpointStatus: Map<string, EndpointStatus> = new Map();
   private checkInterval: number = 5 * 60 * 1000; // 5 minutes
-  private intervalId?: NodeJS.Timeout;
+  private intervalId?: NodeJS.Timer;
   private isInitialized = false;
 
   constructor() {
@@ -119,7 +119,7 @@ class HeliusEndpointMonitor {
     // Start new monitoring interval
     this.intervalId = setInterval(() => {
       this.checkAllEndpoints();
-    }, this.checkInterval) as unknown as NodeJS.Timeout;
+    }, this.checkInterval);
     
     // Run initial check
     this.checkAllEndpoints();

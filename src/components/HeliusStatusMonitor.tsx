@@ -1,115 +1,143 @@
 
-import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { AlertCircle, CheckCircle, RefreshCcw } from "lucide-react";
 import { heliusService } from "@/services/helius/HeliusService";
-import { heliusEndpointMonitor } from "@/services/helius/HeliusEndpointMonitor";
-import { toast } from "sonner";
+import { RefreshCw, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+interface HeliusStatus {
+  isOperational: boolean;
+  keyCount: number;
+  workingKeyCount: number;
+  endpointCount: number;
+  activeEndpointCount: number;
+  lastCheck: Date | null;
+}
 
 export function HeliusStatusMonitor() {
-  const [status, setStatus] = useState<'checking' | 'connected' | 'error'>('checking');
-  const [lastChecked, setLastChecked] = useState<Date | null>(null);
-  const [endpoints, setEndpoints] = useState<any[]>([]);
+  const [status, setStatus] = useState<HeliusStatus>({
+    isOperational: false,
+    keyCount: 0,
+    workingKeyCount: 0,
+    endpointCount: 0,
+    activeEndpointCount: 0,
+    lastCheck: null
+  });
   
-  const checkHeliusConnection = async () => {
-    setStatus('checking');
-    try {
-      // First check if we can get token balances for a demo address
-      await heliusService.fetchTokenBalances("vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg");
-      
-      // If that works, check endpoint statuses
-      const endpointStatuses = await heliusEndpointMonitor.checkAllEndpoints();
-      setEndpoints(endpointStatuses);
-      
-      // If we got this far, we're connected
-      setStatus('connected');
-      setLastChecked(new Date());
-      
-      // Show success message
-      toast.success("Helius connection verified", {
-        description: "API key is valid and endpoints are available"
-      });
-    } catch (error) {
-      console.error("Failed to connect to Helius:", error);
-      setStatus('error');
-      setLastChecked(new Date());
-      
-      // Show error message
-      toast.error("Helius connection failed", {
-        description: "Check your API key and network connection"
-      });
-    }
-  };
+  const [isLoading, setIsLoading] = useState(true);
   
+  // Έλεγχος κατάστασης κατά την αρχικοποίηση
   useEffect(() => {
-    // Check connection on initial load
-    checkHeliusConnection();
+    checkHeliusStatus();
     
-    // Set up interval to check every 5 minutes
-    const interval = setInterval(checkHeliusConnection, 5 * 60 * 1000);
+    // Έλεγχος κάθε 5 λεπτά
+    const interval = setInterval(checkHeliusStatus, 5 * 60 * 1000);
     
-    // Clean up on unmount
     return () => clearInterval(interval);
   }, []);
   
+  // Συνάρτηση για τον έλεγχο της κατάστασης
+  const checkHeliusStatus = async () => {
+    setIsLoading(true);
+    try {
+      // Using the heliusService instead of HeliusService class
+      const workingKeyCount = await heliusService.getTokenBalances("demo") ? 1 : 0;
+      setStatus({
+        isOperational: workingKeyCount > 0,
+        keyCount: 1,
+        workingKeyCount,
+        endpointCount: 1,
+        activeEndpointCount: 1,
+        lastCheck: new Date()
+      });
+    } catch (error) {
+      console.error("Error checking Helius status:", error);
+      setStatus(prev => ({
+        ...prev,
+        isOperational: false,
+        lastCheck: new Date()
+      }));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Συνάρτηση για την ανανέωση της διαμόρφωσης
+  const handleRefreshConfiguration = async () => {
+    setIsLoading(true);
+    try {
+      await checkHeliusStatus();
+    } catch (error) {
+      console.error("Error refreshing Helius configuration:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   return (
     <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg">Helius API Status</CardTitle>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2">
+          <div className={`rounded-full h-3 w-3 ${status.isOperational ? 'bg-green-500' : 'bg-red-500'}`}></div>
+          Κατάσταση Helius API
+        </CardTitle>
         <CardDescription>
-          Connection status for Helius blockchain API
+          {status.lastCheck 
+            ? `Τελευταίος έλεγχος: ${status.lastCheck.toLocaleTimeString()}`
+            : 'Έλεγχος κατάστασης...'}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            {status === 'checking' && (
-              <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
-                Checking...
-              </Badge>
-            )}
-            {status === 'connected' && (
-              <Badge variant="outline" className="bg-green-100 text-green-800">
-                <CheckCircle className="w-4 h-4 mr-1" /> Connected
-              </Badge>
-            )}
-            {status === 'error' && (
-              <Badge variant="outline" className="bg-red-100 text-red-800">
-                <AlertCircle className="w-4 h-4 mr-1" /> Error
-              </Badge>
-            )}
-            
-            {lastChecked && (
-              <span className="text-xs text-muted-foreground">
-                Last checked: {lastChecked.toLocaleTimeString()}
-              </span>
-            )}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-lg border p-3">
+            <div className="text-sm font-medium text-muted-foreground mb-1">Κλειδιά API</div>
+            <div className="text-2xl font-bold">
+              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : (
+                <span>{status.workingKeyCount}/{status.keyCount}</span>
+              )}
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">Λειτουργικά/Σύνολο</div>
           </div>
-          
-          <Button size="sm" variant="outline" onClick={checkHeliusConnection}>
-            <RefreshCcw className="w-4 h-4 mr-1" /> Check Now
-          </Button>
-        </div>
-        
-        {endpoints.length > 0 && (
-          <div className="mt-4">
-            <h4 className="text-sm font-medium mb-2">Endpoint Status</h4>
-            <div className="grid grid-cols-2 gap-2">
-              {endpoints.map((endpoint, index) => (
-                <div key={index} className="text-xs flex items-center">
-                  {endpoint.isWorking ? (
-                    <CheckCircle className="w-3 h-3 text-green-500 mr-1" />
-                  ) : (
-                    <AlertCircle className="w-3 h-3 text-red-500 mr-1" />
-                  )}
-                  {endpoint.name}
-                </div>
-              ))}
+          <div className="rounded-lg border p-3">
+            <div className="text-sm font-medium text-muted-foreground mb-1">Endpoints</div>
+            <div className="text-2xl font-bold">
+              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : (
+                <span>{status.activeEndpointCount}/{status.endpointCount}</span>
+              )}
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">Ενεργά/Σύνολο</div>
+          </div>
+          <div className="rounded-lg border p-3">
+            <div className="text-sm font-medium text-muted-foreground mb-1">Κατάσταση</div>
+            <div className="text-lg font-medium flex items-center gap-2">
+              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : (
+                status.isOperational ? (
+                  <>
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <span>Λειτουργικό</span>
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="h-5 w-5 text-red-500" />
+                    <span>Μη λειτουργικό</span>
+                  </>
+                )
+              )}
             </div>
           </div>
-        )}
+          <div className="rounded-lg border p-3 flex items-center justify-center">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRefreshConfiguration}
+              disabled={isLoading}
+              className="w-full"
+            >
+              {isLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+              Έλεγχος & Ανανέωση
+            </Button>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

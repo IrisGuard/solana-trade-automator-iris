@@ -19,7 +19,7 @@ export function HeliusSyncButton() {
     try {
       await syncAllHeliusData(user.id);
       // Using heliusService instead of HeliusService class
-      await heliusService.fetchTokenBalances("demo"); // Simple operation to refresh configuration
+      await heliusService.getTokenBalances("demo"); // Simple operation to refresh configuration
     } catch (error) {
       console.error("Error syncing Helius data:", error);
     } finally {

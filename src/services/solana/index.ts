@@ -32,7 +32,7 @@ export const solanaService = {
   // Transactions
   fetchTransactions: async (address: string, limit: number = 10) => {
     const heliusService = (await import('@/services/helius/HeliusService')).heliusService;
-    return heliusService.fetchTransactions(address, limit);
+    return heliusService.getTransactionHistory(address, limit);
   }
 };
 
