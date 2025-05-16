@@ -11,7 +11,10 @@ interface DisplayErrorOptions {
   source?: string;
   details?: any;
   errorType?: string;
-  title?: string; // Added missing 'title' property
+  title?: string;
+  logToConsole?: boolean;
+  sendToChat?: boolean;
+  useCollector?: boolean;
 }
 
 /**
@@ -23,6 +26,11 @@ export const displayError = (
 ): string => {
   const errorObj = typeof error === 'string' ? new Error(error) : error;
   const message = errorObj.message || 'An unknown error occurred';
+
+  // Log to console if requested
+  if (options.logToConsole) {
+    console.error("[Error]:", message, errorObj.stack, options);
+  }
 
   // Collect the error
   const errorId = errorCollector.captureError(errorObj, {
