@@ -6,7 +6,7 @@ import { useErrorReporting } from '@/hooks/useErrorReporting';
 import { 
   saveWalletToLocalStorage, 
   removeWalletFromStorage 
-} from '@/utils/walletStorage';
+} from '@/utils/wallet'; // Updated import path
 import { useUser } from '@/hooks/useUser';
 
 /**

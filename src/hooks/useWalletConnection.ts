@@ -2,7 +2,7 @@
 import { useCallback } from 'react';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 import { useUser } from '@/hooks/useUser';
-import { saveWalletToSupabase } from '@/utils/walletStorage';
+import { saveWalletToSupabase } from '@/utils/wallet'; // Updated import path
 import { useWalletConnectionCore } from './wallet/useWalletConnectionCore';
 import { useWalletData } from './wallet/useWalletData';
 import { useWalletPersistence } from './wallet/useWalletPersistence';

@@ -7,7 +7,7 @@ import {
   saveWalletToSupabase,
   loadWalletFromSupabase,
   updateWalletLastConnected
-} from '@/utils/walletStorage';
+} from '@/utils/wallet'; // Updated import path
 import {
   isPhantomInstalled,
   connectTrustedPhantomWallet,

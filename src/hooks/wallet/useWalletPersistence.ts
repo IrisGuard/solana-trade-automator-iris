@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { isPhantomInstalled } from '@/utils/phantomWallet';
-import { getWalletFromLocalStorage } from '@/utils/walletStorage';
+import { getWalletFromLocalStorage } from '@/utils/wallet'; // Updated import path
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 
 /**
