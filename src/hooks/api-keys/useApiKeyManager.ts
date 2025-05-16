@@ -89,14 +89,19 @@ export function useApiKeyManager({ userId, onSuccess }: UseApiKeyManagerProps = 
     setIsUpdating(true);
     
     try {
-      // Make sure the status is one of the allowed values if it's being updated
+      // Define valid status values as a type
+      const validStatuses = ['active', 'expired', 'revoked', 'failing'] as const;
+      type ValidStatus = typeof validStatuses[number];
+      
+      // Ensure status is one of the allowed values if it's being updated
       if (updates.status !== undefined) {
-        // Ensure status is one of the allowed values from the union type
-        const validStatuses = ['active', 'expired', 'revoked', 'failing'] as const;
-        type ValidStatus = typeof validStatuses[number];
+        // Check if the status is valid, if not default to 'active'
+        const isValidStatus = (status: string): status is ValidStatus => {
+          return validStatuses.includes(status as ValidStatus);
+        };
         
-        if (!validStatuses.includes(updates.status as ValidStatus)) {
-          updates.status = 'active'; // Default to 'active' if an invalid status is provided
+        if (!isValidStatus(updates.status)) {
+          updates.status = 'active';
         }
       }
       
