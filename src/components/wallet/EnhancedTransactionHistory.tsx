@@ -6,7 +6,7 @@ import { RefreshCw } from "lucide-react";
 import { useTransactions } from "@/hooks/useTransactions";
 import { TransactionFooter } from "./transaction/TransactionFooter";
 import { TransactionList } from "./transaction/TransactionList";
-import { Transaction as TransactionType } from "@/types/transaction-types";
+import { Transaction } from "@/types/transaction-types";
 
 interface EnhancedTransactionHistoryProps {
   walletAddress: string | null;
@@ -63,7 +63,7 @@ export function EnhancedTransactionHistory({
       </CardHeader>
       <CardContent>
         <TransactionList 
-          transactions={transactions as any}
+          transactions={transactions as Transaction[]}
           isLoading={loading}
           walletAddress={walletAddress}
           limit={limit}
@@ -74,7 +74,7 @@ export function EnhancedTransactionHistory({
         <TransactionFooter 
           walletAddress={walletAddress} 
           showViewAll={showViewAll} 
-          transactions={transactions as any} 
+          transactions={transactions as Transaction[]} 
         />
       </CardContent>
     </Card>

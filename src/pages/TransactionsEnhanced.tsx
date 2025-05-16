@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EnhancedTransactionFilters } from "@/components/transactions/EnhancedTransactionFilters";
@@ -109,7 +108,6 @@ export default function TransactionsEnhanced() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {/* Enhanced Filters component */}
             <EnhancedTransactionFilters 
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
@@ -124,13 +122,11 @@ export default function TransactionsEnhanced() {
               uniqueTokens={uniqueTokens}
             />
 
-            {/* Transaction Table component */}
             <TransactionTable 
               transactions={currentTransactions}
               formatDate={formatDate}
             />
 
-            {/* Pagination component */}
             <TransactionPagination 
               currentPage={currentPage}
               setCurrentPage={setCurrentPage}
@@ -144,12 +140,10 @@ export default function TransactionsEnhanced() {
       </Card>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {/* Transaction Summary component */}
         <TransactionSummary 
           transactions={filteredTransactions.length > 0 ? filteredTransactions : transactions} 
         />
         
-        {/* TokenActivity component - pass walletAddress and transactions props */}
         <TokenActivity 
           walletAddress=""
           transactions={filteredTransactions.length > 0 ? filteredTransactions : transactions}

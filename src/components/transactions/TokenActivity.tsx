@@ -12,7 +12,7 @@ interface TokenActivityProps {
   walletAddress: string;
   transactions?: Transaction[];
   isRefreshing?: boolean;
-  uniqueTokens?: string[]; // Add this prop to fix the error
+  uniqueTokens?: string[];
 }
 
 export function TokenActivity({ 
