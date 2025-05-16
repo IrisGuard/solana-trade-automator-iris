@@ -9,8 +9,8 @@ import { jsx, jsxs, Fragment } from './jsx-runtime-fix';
 declare global {
   interface Window {
     React: typeof React & {
-      jsx?: typeof jsxRuntime.jsx;
-      jsxs?: typeof jsxRuntime.jsxs;
+      jsx?: typeof jsx;
+      jsxs?: typeof jsxs;
     };
   }
 }
