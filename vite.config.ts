@@ -5,7 +5,6 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
 import rollupNodePolyFill from 'rollup-plugin-node-polyfills';
-import { createRequire } from 'module';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }: ConfigEnv) => {
@@ -19,7 +18,10 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       react({
         // Use options that are actually supported by the SWC React plugin
         tsDecorators: true,
-        // Removed jsxRuntime as it's not a valid option in this version
+        // Fix jsx runtime
+        jsxImportSource: '@/utils/jsx-runtime-fix',
+        // Always use dev mode for consistent JSX runtime
+        development: true
       }),
       mode === 'development' && componentTagger(),
     ].filter(Boolean) as PluginOption[],
