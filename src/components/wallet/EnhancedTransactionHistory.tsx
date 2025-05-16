@@ -7,6 +7,7 @@ import { useTransactions } from "@/hooks/useTransactions";
 import { TransactionFooter } from "./transaction/TransactionFooter";
 import { TransactionList } from "./transaction/TransactionList";
 import { Transaction } from "@/types/transaction-types";
+import type { Transaction as TransactionListType } from "@/types/transaction";
 
 interface EnhancedTransactionHistoryProps {
   walletAddress: string | null;
@@ -43,6 +44,19 @@ export function EnhancedTransactionHistory({
     return '•';
   };
 
+  // Convert transactions to the format expected by TransactionList and TransactionFooter
+  const adaptedTransactions: TransactionListType[] = transactions.map(tx => ({
+    signature: tx.signature || tx.id || '',
+    type: tx.type,
+    status: tx.status,
+    amount: tx.amount,
+    from: undefined,
+    to: undefined,
+    timestamp: tx.timestamp,
+    blockTime: new Date(tx.timestamp).getTime(),
+    tokenAddress: undefined
+  }));
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -63,7 +77,7 @@ export function EnhancedTransactionHistory({
       </CardHeader>
       <CardContent>
         <TransactionList 
-          transactions={transactions as Transaction[]}
+          transactions={adaptedTransactions}
           isLoading={loading}
           walletAddress={walletAddress}
           limit={limit}
@@ -74,7 +88,7 @@ export function EnhancedTransactionHistory({
         <TransactionFooter 
           walletAddress={walletAddress} 
           showViewAll={showViewAll} 
-          transactions={transactions as Transaction[]} 
+          transactions={adaptedTransactions} 
         />
       </CardContent>
     </Card>
