@@ -37,11 +37,24 @@ export function ApiKeysSection() {
       
       if (error) throw error;
       
-      const mappedKeys = data?.map(key => ({
-        ...key,
-        isVisible: false,
-        isWorking: key.status === 'active',
-      })) || [];
+      // Ensure proper status type by mapping any string status to one of the valid statuses
+      const mappedKeys: ApiKeyWithState[] = data?.map(key => {
+        // Default to 'active' if status is not one of the valid options
+        let validStatus: 'active' | 'expired' | 'revoked' | 'failing' = 'active';
+        
+        // Check if the status is one of the allowed values
+        if (key.status === 'active' || key.status === 'expired' || 
+            key.status === 'revoked' || key.status === 'failing') {
+          validStatus = key.status as 'active' | 'expired' | 'revoked' | 'failing';
+        }
+        
+        return {
+          ...key,
+          isVisible: false,
+          isWorking: validStatus === 'active',
+          status: validStatus
+        };
+      }) || [];
       
       setApiKeys(mappedKeys);
     } catch (err) {
