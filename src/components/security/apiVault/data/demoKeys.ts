@@ -1,27 +1,21 @@
 
 import { ApiKey } from "../types";
 
-// Demo API keys to help users get started with the API Vault feature
-// All demo keys have been replaced with placeholder values
-export const demoKeys: ApiKey[] = [
-  {
-    id: "demo-helius-1",
-    name: "Helius API (Placeholder)",
-    key: "[Your Helius API Key]",
-    service: "helius",
-    createdAt: new Date().toISOString(),
-    description: "Add your Helius API key here",
-    status: "active",
-    isWorking: false
-  },
-  {
-    id: "demo-solana-1", 
-    name: "Solana RPC Endpoint",
-    key: "https://api.mainnet-beta.solana.com",
-    service: "solana",
-    createdAt: new Date().toISOString(),
-    description: "Public Solana RPC endpoint",
-    status: "active",
-    isWorking: true
-  }
-];
+// Empty array - don't use demo keys anymore
+export const demoKeys: ApiKey[] = [];
+
+// This function provides guidance but doesn't inject demo keys
+export const getApiKeyHelp = () => {
+  return {
+    helius: {
+      name: "Helius API Guide",
+      description: "Get your key at https://dev.helius.xyz/dashboard/app",
+      placeholder: "Your Helius API Key"
+    },
+    solana: {
+      name: "Solana RPC Info",
+      description: "Public endpoints available, or get your own at Quicknode/Alchemy",
+      placeholder: "https://your-node-url.com"
+    }
+  };
+};

@@ -1,10 +1,11 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ApiKeyWithState } from "@/services/api-keys/types";
 import { useUser } from "@/hooks/useUser";
 import { useApiKeyVisibility } from "@/hooks/api-keys/useApiKeyVisibility";
+import { heliusService } from '@/services/helius/HeliusService';
 
 export function useApiKeysDashboard(limit = 4) {
   const [apiKeys, setApiKeys] = useState<ApiKeyWithState[]>([]);
@@ -19,7 +20,7 @@ export function useApiKeysDashboard(limit = 4) {
     }
   }, [user]);
 
-  const fetchApiKeys = async () => {
+  const fetchApiKeys = useCallback(async () => {
     if (!user) return;
     
     setLoading(true);
@@ -45,7 +46,7 @@ export function useApiKeysDashboard(limit = 4) {
         
         return {
           ...key,
-          isVisible: false,
+          isVisible: visibleKeyIds.includes(key.id),
           isWorking: validStatus === 'active',
           status: validStatus
         };
@@ -58,9 +59,36 @@ export function useApiKeysDashboard(limit = 4) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, limit, visibleKeyIds]);
 
-  const handleCopy = (keyValue: string, id: string) => {
+  // Test API key functionality
+  const testApiKey = useCallback(async (key: ApiKeyWithState) => {
+    if (key.service === 'helius') {
+      const isWorking = await heliusService.checkApiKey(key.key_value);
+      
+      // Update key status in database
+      if (user && key.id) {
+        const { error } = await supabase
+          .from('api_keys_storage')
+          .update({ 
+            status: isWorking ? 'active' : 'failing',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', key.id);
+          
+        if (error) {
+          console.error('Error updating API key status:', error);
+        }
+      }
+      
+      return isWorking;
+    }
+    
+    // Default to true for other services for now
+    return true;
+  }, [user]);
+
+  const handleCopy = useCallback((keyValue: string, id: string) => {
     navigator.clipboard.writeText(keyValue);
     setCopiedKeyId(id);
     toast.success('Το κλειδί αντιγράφηκε στο πρόχειρο!');
@@ -68,12 +96,30 @@ export function useApiKeysDashboard(limit = 4) {
     setTimeout(() => {
       setCopiedKeyId(null);
     }, 2000);
-  };
+  }, []);
 
-  const handleAddNewKey = () => {
-    // Navigate to API vault page or open a dialog
+  const handleAddNewKey = useCallback(() => {
     window.location.href = '/api-vault';
-  };
+  }, []);
+
+  // Test all keys functionality
+  const testAllKeys = useCallback(async () => {
+    setLoading(true);
+    
+    const updatedKeys = [...apiKeys];
+    const results = await Promise.all(updatedKeys.map(async (key) => {
+      const isWorking = await testApiKey(key);
+      return { ...key, isWorking };
+    }));
+    
+    setApiKeys(results);
+    setLoading(false);
+    
+    const workingCount = results.filter(key => key.isWorking).length;
+    toast.success(`Έλεγχος ολοκληρώθηκε: ${workingCount}/${results.length} κλειδιά λειτουργούν`);
+    
+    return results;
+  }, [apiKeys, testApiKey]);
 
   return {
     apiKeys,
@@ -83,6 +129,7 @@ export function useApiKeysDashboard(limit = 4) {
     fetchApiKeys,
     handleCopy,
     handleAddNewKey,
-    toggleKeyVisibility
+    toggleKeyVisibility,
+    testAllKeys
   };
 }

@@ -1,25 +1,64 @@
 
+import { supabase } from '@/integrations/supabase/client';
 import { errorCollector } from '@/utils/error-handling/collector';
 
-// Mock implementation of HeliusKeyManager class
 class HeliusKeyManager {
   private apiKeys: Map<string, string> = new Map();
   private currentKeyIndex = 0;
   private apiKeysArray: string[] = [];
+  private initialized = false;
 
   constructor() {
-    this.loadApiKeys();
+    this.initialize();
   }
 
-  private loadApiKeys(): void {
+  public async initialize(): Promise<void> {
     try {
-      // Mock loading API keys
-      this.apiKeys.set('default', 'mock-helius-api-key-1');
-      this.apiKeys.set('backup', 'mock-helius-api-key-2');
-      this.apiKeysArray = Array.from(this.apiKeys.values());
+      console.log('Initializing HeliusKeyManager');
+      await this.loadApiKeysFromSupabase();
+      this.initialized = true;
     } catch (error) {
-      console.error('Failed to load Helius API keys:', error);
-      this.reportError(new Error('Failed to load Helius API keys'));
+      console.error('Failed to initialize HeliusKeyManager:', error);
+      this.reportError(new Error('Failed to initialize HeliusKeyManager'));
+      // Add fallback key for development
+      this.registerApiKey('fallback-key', 'development-key');
+    }
+  }
+
+  public async forceReload(): Promise<void> {
+    try {
+      console.log('Force reloading Helius API keys');
+      this.apiKeys.clear();
+      this.apiKeysArray = [];
+      await this.loadApiKeysFromSupabase();
+    } catch (error) {
+      console.error('Failed to reload Helius API keys:', error);
+      this.reportError(new Error('Failed to reload Helius API keys'));
+    }
+  }
+
+  private async loadApiKeysFromSupabase(): Promise<void> {
+    try {
+      const { data, error } = await supabase
+        .from('api_keys_storage')
+        .select('id, key_value, name')
+        .eq('service', 'helius')
+        .eq('status', 'active');
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        data.forEach(key => {
+          this.registerApiKey(key.key_value, key.name || key.id);
+        });
+        console.log(`Loaded ${data.length} Helius API keys from Supabase`);
+      } else {
+        console.log('No Helius API keys found in Supabase, using fallback');
+        this.registerApiKey('development-fallback-key', 'fallback');
+      }
+    } catch (error) {
+      console.error('Failed to load Helius API keys from Supabase:', error);
+      this.reportError(new Error('Failed to load Helius API keys from Supabase'));
     }
   }
 

@@ -15,16 +15,11 @@ interface BotData {
   user_id: string;
 }
 
-// Sample chart data (we'll update this to use real data later)
-const chartData = [
-  { name: 'Ιαν', value: 1200, month: 'Ιανουάριος' },
-  { name: 'Φεβ', value: 1900, month: 'Φεβρουάριος' },
-  { name: 'Μαρ', value: 1500, month: 'Μάρτιος' },
-  { name: 'Απρ', value: 2400, month: 'Απρίλιος' },
-  { name: 'Μάι', value: 2200, month: 'Μάιος' },
-  { name: 'Ιουν', value: 3000, month: 'Ιούνιος' },
-  { name: 'Ιουλ', value: 2800, month: 'Ιούλιος' },
-];
+interface ChartDataPoint {
+  name: string;
+  value: number;
+  month: string;
+}
 
 export default function Dashboard() {
   const {
@@ -44,6 +39,7 @@ export default function Dashboard() {
   const { reportError } = useErrorReporting();
   const [botActive, setBotActive] = useState(false);
   const [botLoading, setBotLoading] = useState(false);
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   
   // Fetch bot status on component mount
   useEffect(() => {
@@ -72,7 +68,75 @@ export default function Dashboard() {
     };
     
     fetchBotStatus();
+    fetchPerformanceData();
   }, [isConnected, walletAddress, user?.id, reportError]);
+
+  // Fetch performance data for the chart
+  const fetchPerformanceData = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('bot_performance')
+        .select('timestamp, profit_percentage')
+        .eq('bot_id', (await getBotId()) || '')
+        .order('timestamp', { ascending: true })
+        .limit(7);
+        
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        // Transform data for chart
+        const chartPoints = data.map((point, index) => {
+          const date = new Date(point.timestamp);
+          const months = ['Ιαν', 'Φεβ', 'Μαρ', 'Απρ', 'Μάι', 'Ιουν', 'Ιουλ', 'Αυγ', 'Σεπ', 'Οκτ', 'Νοε', 'Δεκ'];
+          const fullMonths = ['Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος', 'Μάιος', 'Ιούνιος', 
+                             'Ιούλιος', 'Αύγουστος', 'Σεπτέμβριος', 'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος'];
+          return {
+            name: months[date.getMonth()],
+            value: Math.round(point.profit_percentage * 100) / 100 * 1000, // Convert to reasonable chart value
+            month: fullMonths[date.getMonth()]
+          };
+        });
+        
+        setChartData(chartPoints);
+      } else {
+        // Fallback chart data if no real data exists
+        setChartData([
+          { name: 'Ιαν', value: 1200, month: 'Ιανουάριος' },
+          { name: 'Φεβ', value: 1900, month: 'Φεβρουάριος' },
+          { name: 'Μαρ', value: 1500, month: 'Μάρτιος' },
+          { name: 'Απρ', value: 2400, month: 'Απρίλιος' },
+          { name: 'Μάι', value: 2200, month: 'Μάιος' },
+          { name: 'Ιουν', value: 3000, month: 'Ιούνιος' },
+          { name: 'Ιουλ', value: 2800, month: 'Ιούλιος' },
+        ]);
+      }
+    } catch (err) {
+      console.error('Error fetching performance data:', err);
+      reportError(err instanceof Error ? err : new Error('Failed to fetch performance data'));
+    }
+  };
+
+  // Helper function to get the bot ID
+  const getBotId = async (): Promise<string | null> => {
+    if (!user?.id) return null;
+    
+    try {
+      const { data, error } = await supabase
+        .from('bots')
+        .select('id')
+        .eq('user_id', user.id)
+        .limit(1);
+        
+      if (error) throw error;
+      
+      return data && data.length > 0 ? data[0].id : null;
+    } catch (err) {
+      console.error('Error getting bot ID:', err);
+      return null;
+    }
+  };
 
   // Format wallet address for display
   const displayAddress = walletAddress 
@@ -115,14 +179,15 @@ export default function Dashboard() {
             user_id: user.id, 
             active: newStatus, 
             name: 'Default Bot', 
-            strategy: 'basic',
-            is_primary: true 
+            strategy: 'basic'
           });
         
         if (insertError) throw insertError;
       }
       
       setBotActive(newStatus);
+      // Update performance after toggling
+      setTimeout(() => fetchPerformanceData(), 1000);
     } catch (err) {
       console.error('Error updating bot status:', err);
       reportError(err instanceof Error ? err : new Error('Failed to update bot status'));

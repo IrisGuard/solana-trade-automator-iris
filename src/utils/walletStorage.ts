@@ -13,6 +13,21 @@ export const saveWalletToLocalStorage = (address: string): void => {
 };
 
 /**
+ * Get wallet from localStorage
+ */
+export const getWalletFromLocalStorage = (): { address: string, timestamp: number } | null => {
+  const storedWallet = localStorage.getItem('phantom_wallet');
+  if (!storedWallet) return null;
+  
+  try {
+    return JSON.parse(storedWallet);
+  } catch (e) {
+    console.error('Error parsing stored wallet data:', e);
+    return null;
+  }
+};
+
+/**
  * Save wallet to Supabase if user is logged in
  */
 export const saveWalletToSupabase = async (
@@ -46,77 +61,103 @@ export const saveWalletToSupabase = async (
       // Set all other wallets as non-primary
       const { error: updateOthersError } = await supabase
         .from('wallets')
-        .update({ is_primary: false })
+        .update({
+          is_primary: false
+        })
         .eq('user_id', userId)
-        .neq('id', existingWallets[0].id);
-      
+        .neq('address', address);
+        
       if (updateOthersError) throw updateOthersError;
       
       return true;
     } else {
-      // Set all existing wallets as non-primary
-      const { error: resetError } = await supabase
-        .from('wallets')
-        .update({ is_primary: false })
-        .eq('user_id', userId);
-        
-      if (resetError) throw resetError;
-      
-      // Create new wallet record
+      // Create new wallet
       const { error: insertError } = await supabase
         .from('wallets')
         .insert({
-          address,
           user_id: userId,
+          address,
           blockchain: 'solana',
           is_primary: true,
+          created_at: new Date().toISOString(),
           last_connected: new Date().toISOString()
         });
-      
+        
       if (insertError) throw insertError;
+      
+      // Set all other wallets as non-primary
+      const { error: updateOthersError } = await supabase
+        .from('wallets')
+        .update({
+          is_primary: false
+        })
+        .eq('user_id', userId)
+        .neq('address', address);
+        
+      if (updateOthersError) throw updateOthersError;
       
       return true;
     }
-  } catch (err) {
-    console.error('Error saving wallet to database:', err);
+  } catch (error) {
+    console.error('Error saving wallet to Supabase:', error);
     return false;
   }
 };
 
 /**
- * Load saved wallet from Supabase
+ * Remove wallet from localStorage and potentially from Supabase
  */
-export const loadWalletFromSupabase = async (userId: string): Promise<{address: string, id: string} | null> => {
-  try {
-    const { data: wallets, error } = await supabase
-      .from('wallets')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('is_primary', true);
-      
-    if (!error && wallets && wallets.length > 0) {
-      return {
-        address: wallets[0].address,
-        id: wallets[0].id
-      };
+export const removeWalletFromStorage = async (
+  address: string,
+  userId?: string
+): Promise<void> => {
+  // Remove from localStorage
+  localStorage.removeItem('phantom_wallet');
+  
+  // Remove from Supabase if user is logged in and address is provided
+  if (userId && address) {
+    try {
+      const { error } = await supabase
+        .from('wallets')
+        .update({
+          is_primary: false,
+          last_connected: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+        .eq('address', address);
+        
+      if (error) console.error('Error updating wallet in Supabase:', error);
+    } catch (error) {
+      console.error('Error handling wallet disconnection in Supabase:', error);
     }
-    return null;
-  } catch (err) {
-    console.error('Error loading wallet from database:', err);
-    return null;
   }
 };
 
 /**
- * Update wallet last connected timestamp in Supabase
+ * Get the primary wallet for a user from Supabase
  */
-export const updateWalletLastConnected = async (walletId: string): Promise<void> => {
+export const getPrimaryWalletFromSupabase = async (
+  userId: string
+): Promise<string | null> => {
+  if (!userId) return null;
+  
   try {
-    await supabase
+    const { data, error } = await supabase
       .from('wallets')
-      .update({ last_connected: new Date().toISOString() })
-      .eq('id', walletId);
-  } catch (err) {
-    console.error('Error updating wallet last connected:', err);
+      .select('address')
+      .eq('user_id', userId)
+      .eq('is_primary', true)
+      .limit(1);
+      
+    if (error) throw error;
+    
+    if (data && data.length > 0) {
+      return data[0].address;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error fetching primary wallet from Supabase:', error);
+    return null;
   }
 };

@@ -1,7 +1,9 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useUser } from "@/hooks/useUser";
 
-// This file contains the sample transaction data that can be replaced with real API calls later
+// Define the Transaction interface
 export interface Transaction {
   id: string;
   type: string;
@@ -12,9 +14,71 @@ export interface Transaction {
   timestamp: string;
   status: string;
   bot: string;
+  signature?: string;
 }
 
-export const transactions: Transaction[] = [
+// Hook to fetch real transactions or return demo data
+export const useTransactions = (walletAddress?: string) => {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useUser();
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if (!user?.id || !walletAddress) {
+        setTransactions(demoTransactions);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        // Fetch transactions from Supabase
+        const { data, error } = await supabase
+          .from('transactions')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('wallet_address', walletAddress)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          // Map database transactions to the Transaction interface
+          const mappedTransactions: Transaction[] = data.map((tx) => ({
+            id: tx.id,
+            type: tx.type,
+            token: tx.type === 'SOL_TRANSFER' ? 'SOL' : 'Unknown',
+            amount: tx.amount,
+            price: '$0.00', // This would come from a price service
+            value: '$0.00', // This would come from a price service
+            timestamp: tx.created_at,
+            status: tx.status,
+            bot: 'Manual', // This would come from bot data
+            signature: tx.signature
+          }));
+          setTransactions(mappedTransactions);
+        } else {
+          // Fall back to demo data if no transactions found
+          setTransactions(demoTransactions);
+        }
+      } catch (error) {
+        console.error('Error fetching transactions:', error);
+        setTransactions(demoTransactions);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTransactions();
+  }, [user, walletAddress]);
+
+  return { transactions, isLoading };
+};
+
+// Demo transactions data for fallback
+export const demoTransactions: Transaction[] = [
   {
     id: "TX123456",
     type: "buy",
@@ -69,61 +133,6 @@ export const transactions: Transaction[] = [
     timestamp: "2023-05-08T12:10:05Z",
     status: "completed",
     bot: "Manual",
-  },
-  {
-    id: "TX123461",
-    type: "sell",
-    token: "BTC",
-    amount: "0.002",
-    price: "$42,100.50",
-    value: "$84.20",
-    timestamp: "2023-05-07T22:05:33Z",
-    status: "completed",
-    bot: "BTC/USDC Bot",
-  },
-  {
-    id: "TX123462",
-    type: "buy",
-    token: "ETH",
-    amount: "0.05",
-    price: "$2,340.20",
-    value: "$117.01",
-    timestamp: "2023-05-07T16:28:19Z",
-    status: "completed",
-    bot: "ETH/USDC Bot",
-  },
-  {
-    id: "TX123463",
-    type: "buy",
-    token: "SOL",
-    amount: "2.0",
-    price: "$78.50",
-    value: "$157.00",
-    timestamp: "2023-05-07T09:14:02Z",
-    status: "completed",
-    bot: "SOL/USDC Bot",
-  },
-  {
-    id: "TX123464",
-    type: "sell",
-    token: "RAY",
-    amount: "15",
-    price: "$1.30",
-    value: "$19.50",
-    timestamp: "2023-05-06T20:45:37Z",
-    status: "completed",
-    bot: "Manual",
-  },
-  {
-    id: "TX123465",
-    type: "buy",
-    token: "ETH",
-    amount: "0.08",
-    price: "$2,320.75",
-    value: "$185.66",
-    timestamp: "2023-05-06T14:32:11Z",
-    status: "completed",
-    bot: "ETH/USDC Bot",
   },
 ];
 
