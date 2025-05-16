@@ -1,71 +1,77 @@
 
-import { ApiKey } from "./types";
 import { supabase } from "@/integrations/supabase/client";
+import { ApiKey } from "./types";
 import { toast } from "sonner";
 
 export class ApiIntegrationService {
   // Sync API keys with Supabase
   static async syncKeysWithSupabase(apiKeys: ApiKey[], userId: string): Promise<number> {
+    let syncCount = 0;
+    
     try {
-      if (!apiKeys || apiKeys.length === 0) return 0;
+      // Get existing keys from Supabase
+      const { data: existingKeys } = await supabase
+        .from('api_keys')
+        .select('id')
+        .eq('user_id', userId);
       
-      let syncCount = 0;
+      const existingIds = existingKeys?.map(k => k.id) || [];
+      
+      // Filter out keys that shouldn't be synced
+      const keysToSync = apiKeys.filter(key => {
+        // Skip keys marked as do not sync (if property exists)
+        if ('doNotSync' in key && key.doNotSync) {
+          return false;
+        }
+        return true;
+      });
       
       // Process each key
-      for (const key of apiKeys) {
-        // Skip keys that shouldn't be synced
-        if (key.doNotSync) continue;
-        
-        // Try to find existing key in Supabase
-        const { data: existingKey, error: fetchError } = await supabase
-          .from('api_keys_storage')
-          .select('*')
-          .eq('user_id', userId)
-          .eq('name', key.name)
-          .eq('service', key.service)
-          .maybeSingle();
-          
-        if (fetchError) {
-          console.error('Error checking for existing key:', fetchError);
-          continue;
-        }
-        
-        if (existingKey) {
+      for (const key of keysToSync) {
+        // Check if key already exists
+        if (existingIds.includes(key.id)) {
           // Update existing key
-          const { error: updateError } = await supabase
-            .from('api_keys_storage')
+          const { error } = await supabase
+            .from('api_keys')
             .update({
-              key_value: key.value,
+              name: key.name,
+              service: key.service,
+              value: 'key' in key ? key.key : '', // Use key property if it exists
               description: key.description || '',
-              status: key.status || 'active',
-              is_encrypted: key.isEncrypted || false,
+              status: key.status,
+              is_encrypted: 'isEncrypted' in key ? key.isEncrypted : false,
               updated_at: new Date().toISOString()
             })
-            .eq('id', existingKey.id);
+            .eq('id', key.id)
+            .eq('user_id', userId);
           
-          if (!updateError) syncCount++;
+          if (error) throw error;
         } else {
           // Insert new key
-          const { error: insertError } = await supabase
-            .from('api_keys_storage')
+          const { error } = await supabase
+            .from('api_keys')
             .insert({
+              id: key.id,
               user_id: userId,
               name: key.name,
               service: key.service,
-              key_value: key.value,
+              value: 'key' in key ? key.key : '', // Use key property if it exists
               description: key.description || '',
-              status: key.status || 'active',
-              is_encrypted: key.isEncrypted || false
+              status: key.status,
+              is_encrypted: 'isEncrypted' in key ? key.isEncrypted : false,
+              created_at: key.createdAt || new Date().toISOString(),
+              updated_at: new Date().toISOString()
             });
           
-          if (!insertError) syncCount++;
+          if (error) throw error;
+          syncCount++;
         }
       }
       
       return syncCount;
-    } catch (error) {
-      console.error('Error syncing with Supabase:', error);
-      throw error;
+    } catch (err) {
+      console.error('Error syncing with Supabase:', err);
+      throw err;
     }
   }
   
@@ -73,104 +79,118 @@ export class ApiIntegrationService {
   static async fetchKeysFromSupabase(userId: string): Promise<ApiKey[]> {
     try {
       const { data, error } = await supabase
-        .from('api_keys_storage')
+        .from('api_keys')
         .select('*')
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       
-      if (!data || data.length === 0) {
-        return [];
-      }
-      
-      // Map Supabase data to ApiKey format
-      return data.map(item => ({
+      // Convert to ApiKey format
+      return (data || []).map(item => ({
         id: item.id,
         name: item.name,
         service: item.service,
-        value: item.key_value,
-        description: item.description || '',
-        status: item.status || 'active',
-        isEncrypted: item.is_encrypted || false,
-        created: new Date(item.created_at).toISOString()
+        key: item.value,
+        description: item.description,
+        status: item.status,
+        isEncrypted: item.is_encrypted,
+        createdAt: item.created_at,
       }));
-    } catch (error) {
-      console.error('Error fetching from Supabase:', error);
-      throw error;
+    } catch (err) {
+      console.error('Error fetching from Supabase:', err);
+      throw err;
     }
   }
   
-  // Test API key validity
+  // Test an API key
   static async testApiKey(key: ApiKey): Promise<boolean> {
     try {
-      // Simple validation
-      if (!key || !key.value || key.value.length < 5) {
-        return false;
-      }
+      // Simplified: Just check if key exists
+      const keyValue = 'key' in key ? key.key : '';
+      if (!keyValue) return false;
       
-      // Here we could add actual API validation based on service
-      // For now, just return true for all valid-looking keys
-      return true;
-    } catch (error) {
-      console.error('Error testing API key:', error);
+      // In a real app, this would do an actual API test
+      return keyValue.length > 10;
+    } catch (err) {
+      console.error('Error testing API key:', err);
       return false;
     }
   }
   
-  // Delete API key
+  // Delete an API key
   static async deleteApiKey(keyId: string, userId: string): Promise<boolean> {
     try {
       const { error } = await supabase
-        .from('api_keys_storage')
+        .from('api_keys')
         .delete()
         .eq('id', keyId)
         .eq('user_id', userId);
       
       if (error) throw error;
-      
       return true;
-    } catch (error) {
-      console.error('Error deleting API key:', error);
-      toast.error('Σφάλμα κατά τη διαγραφή του κλειδιού API');
+    } catch (err) {
+      console.error('Error deleting API key:', err);
       return false;
     }
   }
   
-  // Add new API key
-  static async addApiKey(key: ApiKey, userId: string): Promise<string | null> {
+  // Create or update an API key
+  static async saveApiKey(key: ApiKey, userId: string): Promise<ApiKey | null> {
     try {
-      // Validate key
-      if (!key.name || !key.service || !key.value) {
-        toast.error('Λείπουν απαραίτητα πεδία');
-        return null;
-      }
+      const keyValue = 'key' in key ? key.key : '';
       
       const { data, error } = await supabase
-        .from('api_keys_storage')
-        .insert({
+        .from('api_keys')
+        .upsert({
+          id: key.id,
           user_id: userId,
           name: key.name,
           service: key.service,
-          key_value: key.value,
+          value: keyValue,
           description: key.description || '',
-          status: key.status || 'active',
-          is_encrypted: key.isEncrypted || false
+          status: key.status,
+          is_encrypted: 'isEncrypted' in key ? key.isEncrypted : false,
+          created_at: key.createdAt || new Date().toISOString(),
+          updated_at: new Date().toISOString()
         })
-        .select('id')
+        .select()
         .single();
       
       if (error) throw error;
       
-      if (data && data.id) {
-        toast.success('Το κλειδί API προστέθηκε επιτυχώς');
-        return data.id;
-      }
-      
-      return null;
-    } catch (error) {
-      console.error('Error adding API key:', error);
-      toast.error('Σφάλμα κατά την προσθήκη του κλειδιού API');
+      return data ? {
+        id: data.id,
+        name: data.name,
+        service: data.service,
+        key: data.value,
+        description: data.description,
+        status: data.status,
+        isEncrypted: data.is_encrypted,
+        createdAt: data.created_at,
+      } : null;
+    } catch (err) {
+      console.error('Error saving API key:', err);
       return null;
     }
+  }
+  
+  // Detect service from key (utility method)
+  static detectServiceFromKey(keyValue: string): string {
+    if (!keyValue) return 'unknown';
+    
+    if (keyValue.startsWith('sk_live_') || keyValue.startsWith('sk_test_')) {
+      return 'stripe';
+    } else if (keyValue.startsWith('SG.')) {
+      return 'sendgrid';
+    } else if (keyValue.startsWith('pk_live_') || keyValue.startsWith('pk_test_')) {
+      return 'stripe_public';
+    } else if (keyValue.startsWith('sk-')) {
+      return 'openai';
+    } else if (keyValue.length > 40) {
+      return 'helius';
+    }
+    
+    return 'generic';
   }
 }

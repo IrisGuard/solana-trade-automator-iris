@@ -8,6 +8,13 @@ import { useUser } from "@/hooks/useUser";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
 
+// Define simple interfaces for bot data
+interface SimpleBotData {
+  id: string;
+  active: boolean;
+  user_id: string;
+}
+
 // Sample chart data (we'll update this to use real data later)
 const chartData = [
   { name: 'Ιαν', value: 1200, month: 'Ιανουάριος' },
@@ -18,13 +25,6 @@ const chartData = [
   { name: 'Ιουν', value: 3000, month: 'Ιούνιος' },
   { name: 'Ιουλ', value: 2800, month: 'Ιούλιος' },
 ];
-
-// Define a simple interface for bot data without any complex types
-interface BotData {
-  id: string;
-  active: boolean;
-  user_id: string;
-}
 
 export default function Dashboard() {
   const {

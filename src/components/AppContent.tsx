@@ -13,6 +13,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { LanguageProvider } from "@/providers/LanguageProvider";
 import { ensureRouterCompatibility } from "@/utils/routerPatches";
+import { SupabaseAuthProvider } from "@/providers/SupabaseAuthProvider";
 
 // Εφαρμογή διορθώσεων συμβατότητας του React Router
 ensureRouterCompatibility();
@@ -67,14 +68,16 @@ export function AppContent() {
         <ThemeProvider>
           <LanguageProvider defaultLanguage="el">
             <QueryClientProvider client={queryClient}>
-              <TooltipProvider>
-                <SolanaWalletProvider>
-                  <WalletProviderWrapper>
-                    <Routes />
-                    <Toaster position="top-right" richColors />
-                  </WalletProviderWrapper>
-                </SolanaWalletProvider>
-              </TooltipProvider>
+              <SupabaseAuthProvider>
+                <TooltipProvider>
+                  <SolanaWalletProvider>
+                    <WalletProviderWrapper>
+                      <Routes />
+                      <Toaster position="top-right" richColors />
+                    </WalletProviderWrapper>
+                  </SolanaWalletProvider>
+                </TooltipProvider>
+              </SupabaseAuthProvider>
             </QueryClientProvider>
           </LanguageProvider>
         </ThemeProvider>
