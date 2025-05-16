@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useState } from "react";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
-import { useApiKeyCheck } from "@/hooks/useApiKeyCheck";
 import { Check, AlertCircle, RefreshCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { heliusService } from "@/services/helius/HeliusService";
@@ -15,9 +14,18 @@ interface CheckResultsStats {
   notWorking: number;
 }
 
+// Define a type for the service results
+interface ServiceResults {
+  [key: string]: {
+    total: number;
+    working: number;
+    notWorking: number;
+  }
+}
+
 export function ApiKeyCheckButton() {
   const [isChecking, setIsChecking] = useState(false);
-  const [checkResults, setCheckResults] = useState<any>(null);
+  const [checkResults, setCheckResults] = useState<ServiceResults | null>(null);
   const { user } = useAuth();
 
   const checkAllApiKeys = async () => {
@@ -38,6 +46,7 @@ export function ApiKeyCheckButton() {
 
       if (!data || data.length === 0) {
         toast.info("Δεν βρέθηκαν κλειδιά API για έλεγχο");
+        setIsChecking(false);
         return;
       }
 
@@ -51,7 +60,7 @@ export function ApiKeyCheckButton() {
       });
 
       // Check each service's keys
-      const results: Record<string, {total: number, working: number, notWorking: number}> = {};
+      const results: ServiceResults = {};
       
       for (const [service, keys] of Object.entries(keysByService)) {
         results[service] = { total: keys.length, working: 0, notWorking: 0 };
@@ -106,7 +115,7 @@ export function ApiKeyCheckButton() {
 
   // Υπολογισμός στατιστικών αν υπάρχουν αποτελέσματα
   const stats = checkResults ? Object.values(checkResults).reduce(
-    (acc: CheckResultsStats, service: any) => {
+    (acc: CheckResultsStats, service) => {
       acc.total += service.total;
       acc.working += service.working;
       acc.notWorking += service.notWorking;

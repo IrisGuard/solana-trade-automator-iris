@@ -28,6 +28,57 @@ export const getWalletFromLocalStorage = (): { address: string, timestamp: numbe
 };
 
 /**
+ * Load wallet from Supabase by user ID
+ */
+export const loadWalletFromSupabase = async (userId: string): Promise<{ id: string, address: string } | null> => {
+  if (!userId) return null;
+  
+  try {
+    const { data, error } = await supabase
+      .from('wallets')
+      .select('id, address')
+      .eq('user_id', userId)
+      .eq('is_primary', true)
+      .limit(1)
+      .single();
+      
+    if (error || !data) {
+      console.error('Error loading wallet from Supabase:', error);
+      return null;
+    }
+    
+    return data;
+  } catch (err) {
+    console.error('Error in loadWalletFromSupabase:', err);
+    return null;
+  }
+};
+
+/**
+ * Update wallet last_connected timestamp in Supabase
+ */
+export const updateWalletLastConnected = async (walletId: string): Promise<boolean> => {
+  if (!walletId) return false;
+  
+  try {
+    const { error } = await supabase
+      .from('wallets')
+      .update({ last_connected: new Date().toISOString() })
+      .eq('id', walletId);
+      
+    if (error) {
+      console.error('Error updating wallet last_connected:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (err) {
+    console.error('Error in updateWalletLastConnected:', err);
+    return false;
+  }
+};
+
+/**
  * Save wallet to Supabase if user is logged in
  */
 export const saveWalletToSupabase = async (

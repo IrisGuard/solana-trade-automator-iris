@@ -44,10 +44,13 @@ export function useApiKeysDashboard(limit = 4) {
           validStatus = key.status as 'active' | 'expired' | 'revoked' | 'failing';
         }
         
+        const isVisible = visibleKeyIds.includes(key.id);
+        const isWorking = validStatus === 'active';
+        
         return {
           ...key,
-          isVisible: visibleKeyIds.includes(key.id),
-          isWorking: validStatus === 'active',
+          isVisible,
+          isWorking,
           status: validStatus
         };
       }) || [];

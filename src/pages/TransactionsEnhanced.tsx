@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EnhancedTransactionFilters } from "@/components/transactions/EnhancedTransactionFilters";
@@ -6,7 +5,7 @@ import { TransactionTable } from "@/components/transactions/TransactionTable";
 import { TransactionPagination } from "@/components/transactions/Pagination";
 import { TransactionSummary } from "@/components/transactions/TransactionSummary";
 import { TokenActivity } from "@/components/transactions/TokenActivity";
-import { transactions, getUniqueTokens, formatDate } from "@/components/transactions/TransactionsData";
+import { useTransactions, getUniqueTokens, formatDate } from "@/components/transactions/TransactionsData";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, HelpCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -20,6 +19,9 @@ export default function TransactionsEnhanced() {
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
   const transactionsPerPage = 10;
+  
+  // Get transactions data using the hook
+  const { transactions = [] } = useTransactions();
 
   // Get unique tokens for filter dropdown
   const uniqueTokens = getUniqueTokens(transactions);

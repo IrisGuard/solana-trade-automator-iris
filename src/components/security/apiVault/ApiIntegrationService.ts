@@ -1,9 +1,65 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ApiKey } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
 export class ApiIntegrationService {
+  // Detect service based on key format/pattern
+  static detectServiceFromKey(key: string): string {
+    if (!key || key.trim() === '') return 'generic';
+    
+    // Check for Helius key format (UUID)
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key)) {
+      return 'helius';
+    }
+    
+    // Check for OpenAI key format
+    if (/^sk-/.test(key)) {
+      return 'openai';
+    }
+    
+    // Check for other potential services
+    if (key.includes('solana')) {
+      return 'solana';
+    }
+    
+    return 'generic';
+  }
+
+  // Test API key functionality
+  static async testApiKey(key: ApiKey): Promise<boolean> {
+    try {
+      // For now just implement basic testing based on the service
+      switch (key.service.toLowerCase()) {
+        case 'helius':
+          // Use heliusService to test the key
+          const response = await fetch('https://api.helius.xyz/v0/addresses/vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg/balances?api-key=' + key.key);
+          return response.status === 200;
+        default:
+          // Default to true for other services for now
+          return true;
+      }
+    } catch (error) {
+      console.error('Error testing API key:', error);
+      return false;
+    }
+  }
+
+  // Delete API key
+  static async deleteApiKey(keyId: string, userId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('api_keys_storage')
+        .delete()
+        .eq('id', keyId)
+        .eq('user_id', userId);
+        
+      return !error;
+    } catch (error) {
+      console.error('Error deleting API key:', error);
+      return false;
+    }
+  }
+
   // Sync keys with Supabase
   static async syncKeysWithSupabase(apiKeys: ApiKey[], userId: string): Promise<number> {
     if (!userId) {
