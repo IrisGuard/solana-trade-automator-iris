@@ -1,10 +1,11 @@
+
 // Define interfaces for error data
 export interface ErrorData {
   component?: string;
   method?: string;
   additional?: string;
   source?: string;
-  severity?: 'low' | 'medium' | 'high';
+  severity?: 'low' | 'medium' | 'high' | 'critical';
   details?: Record<string, unknown>;
 }
 
@@ -65,6 +66,36 @@ class ErrorCollector {
   }
   
   /**
+   * Get all errors - adding this method to fix the compatibility issue
+   */
+  public getErrors() {
+    return this.errors.map(e => ({
+      id: `err_${e.timestamp}`,
+      error: e.error,
+      timestamp: new Date(e.timestamp).toISOString(),
+      message: e.error.message,
+      stack: e.error.stack,
+      component: e.data.component || null,
+      source: e.data.source || 'client',
+      url: typeof window !== 'undefined' ? window.location.href : null,
+      browserInfo: typeof navigator !== 'undefined' ? { 
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        platform: navigator.platform
+      } : null,
+      errorCode: null,
+      context: null,
+      metadata: null,
+      status: null,
+      errorId: null,
+      errorType: e.data.method,
+      details: e.data.details,
+      severity: e.data.severity || 'medium',
+      options: e.data
+    }));
+  }
+  
+  /**
    * Clear error buffer
    */
   public clearErrors() {
@@ -102,6 +133,13 @@ class ErrorCollector {
       // Silent fail if server logging fails
       console.warn('Failed to log error to server:', e);
     }
+  }
+  
+  /**
+   * Get error count
+   */
+  public getErrorCount(): number {
+    return this.errors.length;
   }
 }
 

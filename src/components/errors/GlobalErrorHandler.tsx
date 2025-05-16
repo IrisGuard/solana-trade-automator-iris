@@ -16,7 +16,32 @@ export function GlobalErrorHandler() {
   // Λήψη των σφαλμάτων από τον collector
   useEffect(() => {
     const checkForErrors = () => {
-      const allErrors = errorCollector.getErrors();
+      // Use getRecentErrors instead of getErrors to match implementation
+      const allErrors = errorCollector.getRecentErrors().map(e => ({
+        id: `err_${e.timestamp}`,
+        error: e.error,
+        timestamp: new Date(e.timestamp).toISOString(),
+        message: e.error.message,
+        stack: e.error.stack,
+        component: e.data.component || null,
+        source: e.data.source || 'client',
+        url: window.location.href,
+        browserInfo: { 
+          userAgent: navigator.userAgent,
+          language: navigator.language,
+          platform: navigator.platform
+        },
+        errorCode: null,
+        context: null,
+        metadata: null,
+        status: null,
+        errorId: null,
+        errorType: e.data.method,
+        details: e.data.details,
+        severity: e.data.severity || 'medium',
+        options: e.data
+      }));
+      
       setErrors(allErrors);
       
       // Εάν υπάρχει νέο σφάλμα, το αποθηκεύουμε ως το τελευταίο
