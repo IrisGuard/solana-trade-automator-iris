@@ -95,7 +95,7 @@ export const useTransactions = (walletAddress?: string) => {
             // Extract amount
             let amount = '0';
             if (tx.tokenTransfers && tx.tokenTransfers.length > 0) {
-              amount = tx.tokenTransfers[0]?.amount.toString() || '0';
+              amount = tx.tokenTransfers[0]?.amount?.toString() || '0';
             } else if (tx.nativeTransfers && tx.nativeTransfers.length > 0) {
               amount = (tx.nativeTransfers[0]?.amount / LAMPORTS_PER_SOL).toString() || '0';
             }

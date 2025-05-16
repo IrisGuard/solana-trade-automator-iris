@@ -16,6 +16,22 @@ interface TokenMetadata {
   decimals: number;
 }
 
+interface Transaction {
+  signature: string;
+  type?: string;
+  timestamp: string;
+  tokenTransfers?: Array<{
+    tokenName?: string;
+    amount?: number;
+    decimals?: number;
+  }>;
+  nativeTransfers?: Array<{
+    amount: number;
+    fromUserAccount: string;
+    toUserAccount: string;
+  }>;
+}
+
 class HeliusService {
   private initialized = false;
   private baseUrl = "https://api.helius.xyz/v0";
@@ -93,6 +109,36 @@ class HeliusService {
       return data || [];
     } catch (error) {
       console.error("Σφάλμα κατά τη λήψη μεταδεδομένων token:", error);
+      return [];
+    }
+  }
+
+  public async getTransactionHistory(walletAddress: string, limit: number = 10): Promise<Transaction[]> {
+    try {
+      console.log(`Λήψη ιστορικού συναλλαγών για το πορτοφόλι: ${walletAddress}`);
+      // Δημιουργούμε το URL για το API του Helius
+      const url = new URL(`${this.baseUrl}/addresses/${walletAddress}/transactions`);
+      
+      // Προσθέτουμε το API key
+      const apiKey = heliusKeyManager.getApiKey();
+      console.log(`Χρήση API key: ${apiKey.substring(0, 8)}... για τη λήψη συναλλαγών`);
+      url.searchParams.append('api-key', apiKey);
+      
+      // Προσθέτουμε παραμέτρους
+      url.searchParams.append('limit', limit.toString());
+      url.searchParams.append('type', 'ALL');
+      
+      // Κάνουμε το αίτημα
+      const response = await fetch(url.toString());
+      if (!response.ok) {
+        throw new Error(`Σφάλμα API Helius: ${response.status} - ${await response.text()}`);
+      }
+      
+      const data = await response.json();
+      console.log(`Ελήφθησαν ${data.length || 0} συναλλαγές από το Helius API`);
+      return data || [];
+    } catch (error) {
+      console.error("Σφάλμα κατά τη λήψη ιστορικού συναλλαγών:", error);
       return [];
     }
   }
