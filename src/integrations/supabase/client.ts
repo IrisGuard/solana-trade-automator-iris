@@ -1,11 +1,11 @@
 
 import { supabaseConfig } from '@/utils/supabaseConfig';
-// Import the Supabase package correctly - using the full namespace import
-import * as supabaseJs from '@supabase/supabase-js';
+// Import the create client function correctly from Supabase v2
+import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/integrations/supabase/types';
 
 // Create a single supabase client for interacting with your database
-export const dbClient = supabaseJs.createClient<Database>(
+export const dbClient = createClient<Database>(
   supabaseConfig.url,
   supabaseConfig.anonKey
 );
