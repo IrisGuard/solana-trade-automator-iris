@@ -19,7 +19,7 @@ const chartData = [
   { name: 'Ιουλ', value: 2800, month: 'Ιούλιος' },
 ];
 
-// Define a simplified interface for bot data - avoiding recursive/complex types
+// Define a simple interface for bot data without any complex types
 interface SimpleBotData {
   id: string;
   active: boolean;
