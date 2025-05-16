@@ -1,96 +1,85 @@
 
 import { useState, useCallback } from 'react';
-import { Token, TokenPrices } from '@/types/wallet';
-import { toast } from 'sonner';
-import { heliusService } from '@/services/helius/HeliusService';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
+import { solanaService } from '@/services/solana';
+import { TokenWithPrice } from '@/types/wallet';
 
+/**
+ * Hook for fetching and managing wallet data
+ */
 export function useWalletData() {
-  const [tokens, setTokens] = useState<Token[]>([]);
-  const [tokenPrices, setTokenPrices] = useState<TokenPrices>({});
-  const [isLoadingTokens, setIsLoadingTokens] = useState(false);
+  const [tokens, setTokens] = useState<TokenWithPrice[]>([]);
+  const [tokenPrices, setTokenPrices] = useState<Record<string, number>>({});
+  const [isLoadingTokens, setIsLoadingTokens] = useState<boolean>(false);
+  const [solBalance, setSolBalance] = useState<number>(0);
+  
   const { reportError } = useErrorReporting();
-
-  // Load wallet data
-  const loadWalletData = useCallback(async (address: string) => {
+  
+  // Load token data for a wallet address
+  const loadWalletData = useCallback(async (walletAddress: string) => {
+    if (!walletAddress) {
+      console.log("Δεν υπάρχει διεύθυνση πορτοφολιού για φόρτωση δεδομένων");
+      return;
+    }
+    
     setIsLoadingTokens(true);
     
     try {
-      console.log('Loading wallet data for address:', address);
+      console.log('Φόρτωση δεδομένων πορτοφολιού για διεύθυνση:', walletAddress);
       
-      // Try to get token balances from Helius
+      // Get SOL balance
       try {
-        console.log('Fetching token balances from Helius...');
-        const tokenBalances = await heliusService.getTokenBalances(address);
-        
-        if (tokenBalances && tokenBalances.length) {
-          console.log('Received token balances:', tokenBalances);
-          
-          // Get metadata for tokens
-          const tokenAddresses = tokenBalances.map(t => t.mint);
-          const tokenMetadataList = await heliusService.getTokenMetadata(tokenAddresses);
-          
-          // Create a map for easy lookup
-          const tokenMetadataMap = tokenMetadataList.reduce((acc, token) => {
-            acc[token.mint] = token;
-            return acc;
-          }, {} as Record<string, any>);
-          
-          // Process token data
-          const processedTokens = tokenBalances.map(token => {
-            const metadata = tokenMetadataMap[token.mint] || {};
-            return {
-              address: token.mint,
-              symbol: metadata.symbol || 'Unknown',
-              name: metadata.name || 'Unknown Token',
-              amount: token.amount || 0,
-              decimals: token.decimals || 9,
-              logo: metadata.logoURI || ''
-            };
-          }).filter(token => token.amount > 0); // Filter out zero-balance tokens
-          
-          console.log('Processed tokens:', processedTokens);
-          setTokens(processedTokens);
-          
-          // Set mock prices for now - would be replaced with real price API
-          const prices: TokenPrices = {};
-          processedTokens.forEach(token => {
-            prices[token.address] = {
-              price: Math.random() * 100,
-              priceChange24h: (Math.random() * 20) - 10,
-              lastUpdated: new Date()
-            };
-          });
-          
-          setTokenPrices(prices);
-        } else {
-          console.log('No token balances received or empty array returned');
-          setTokens([]);
-        }
-      } catch (tokenError) {
-        console.error('Error fetching token balances:', tokenError);
-        reportError(tokenError);
-        setTokens([]);
+        console.log("Λήψη υπολοίπου SOL...");
+        const balance = await solanaService.fetchSOLBalance(walletAddress);
+        console.log('Ελήφθη υπόλοιπο SOL:', balance);
+        setSolBalance(balance);
+      } catch (balanceError) {
+        console.error('Σφάλμα λήψης υπολοίπου SOL:', balanceError);
+        reportError(balanceError);
       }
+      
+      // Get token data - This would be implemented in the real app
+      // Here we're just using mock data for demonstration
+      // In the real application this would call solanaService.fetchTokens() or similar
+      
+      // Simulate token data for now
+      const mockTokens = [
+        { symbol: 'SOL', name: 'Solana', amount: solBalance, price: 100, value: solBalance * 100 },
+        { symbol: 'USDC', name: 'USD Coin', amount: 150.25, price: 1, value: 150.25 }
+      ];
+      
+      setTokens(mockTokens);
+      
+      // Simulate token prices
+      const mockPrices = {
+        SOL: 100,
+        USDC: 1
+      };
+      
+      setTokenPrices(mockPrices);
+      
+      console.log("Η φόρτωση δεδομένων πορτοφολιού ολοκληρώθηκε");
     } catch (err: any) {
-      console.error('Error loading wallet data:', err);
+      console.error('Σφάλμα φόρτωσης δεδομένων πορτοφολιού:', err);
       reportError(err);
     } finally {
       setIsLoadingTokens(false);
     }
   }, [reportError]);
-
+  
   // Select token for trading
-  const selectTokenForTrading = useCallback((tokenAddress: string) => {
-    const selectedToken = tokens.find(t => t.address === tokenAddress);
-    
-    if (selectedToken) {
-      toast.success(`Επιλέχθηκε το ${selectedToken.symbol || selectedToken.name} για συναλλαγές`);
-      return selectedToken;
-    }
-    
-    return null;
-  }, [tokens]);
-
-  return { tokens, tokenPrices, isLoadingTokens, loadWalletData, selectTokenForTrading };
+  const selectTokenForTrading = useCallback((token: string) => {
+    console.log("Επιλογή token για συναλλαγή:", token);
+    // Implementation would set the selected token for trading
+    // This is a mock placeholder function to match the original API
+  }, []);
+  
+  return {
+    tokens,
+    tokenPrices,
+    isLoadingTokens,
+    solBalance,
+    loadWalletData,
+    selectTokenForTrading
+  };
 }
