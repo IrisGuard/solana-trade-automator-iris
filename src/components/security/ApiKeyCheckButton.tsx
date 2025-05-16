@@ -19,14 +19,14 @@ export function ApiKeyCheckButton() {
 
   const handleCheckKeys = async () => {
     if (!user) {
-      toast("Πρέπει να συνδεθείτε για να ελέγξετε τα κλειδιά API");
+      toast("You must be logged in to check API keys");
       return;
     }
 
     await checkAllApiKeys();
   };
 
-  // Υπολογισμός στατιστικών αν υπάρχουν αποτελέσματα
+  // Calculate statistics if results exist
   const stats = checkResults ? Object.values(checkResults).reduce(
     (acc: CheckResultsStats, service: any) => {
       acc.total += service.total;

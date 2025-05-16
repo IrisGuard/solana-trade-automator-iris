@@ -5,13 +5,13 @@ import { toast } from 'sonner';
 export function useAuth() {
   const auth = useSupabaseAuth();
 
-  // Εδώ μπορούμε να προσθέσουμε επιπλέον λογική ή να αναδιαμορφώσουμε τα δεδομένα
-  // από την αυθεντικοποίηση του Supabase αν χρειάζεται
+  // Here we can add additional logic or reshape data
+  // from Supabase authentication if needed
   
-  // Καταγραφή σφαλμάτων αυθεντικοποίησης
+  // Log authentication errors
   if (auth.error) {
-    console.error("Σφάλμα αυθεντικοποίησης:", auth.error);
-    toast.error("Πρόβλημα σύνδεσης", {
+    console.error("Authentication error:", auth.error);
+    toast.error("Connection problem", {
       description: auth.error.message
     });
   }

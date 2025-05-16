@@ -36,7 +36,8 @@ export function SupabaseApiKeysList() {
         // Fetch all API keys if user is logged in
         const { data: keysData, error: keysError } = await supabase
           .from('api_keys_storage')
-          .select('*');
+          .select('*')
+          .eq('user_id', user.id);
           
         if (keysError) throw keysError;
         
@@ -110,7 +111,7 @@ export function SupabaseApiKeysList() {
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>Κλειδιά API στο Supabase</CardTitle>
+          <CardTitle>Κλειδιά API σ��ο Supabase</CardTitle>
           <CardDescription>
             Προβολή των αποθηκευμένων κλειδιών API και endpoints
           </CardDescription>
