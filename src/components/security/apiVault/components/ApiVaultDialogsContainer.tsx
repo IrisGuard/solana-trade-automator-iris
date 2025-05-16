@@ -1,11 +1,11 @@
 
 import React from "react";
 import { ApiKey } from "../types";
-import { UnlockDialog } from "./UnlockDialog";
+import { UnlockDialog } from "../UnlockDialog";
 import { ImportDialog } from "../ImportDialog";
 import { ExportSheet } from "../ExportSheet";
 import { RecoveryDialog } from "../RecoveryDialog";
-import { SettingsDialog } from "./SettingsDialog";
+import { SecuritySettingsDialog as SettingsDialog } from "../SecuritySettingsDialog";
 import { NewApiKeyDialog } from "./NewApiKeyDialog";
 
 interface ApiVaultDialogsContainerProps {

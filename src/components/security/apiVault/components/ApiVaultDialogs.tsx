@@ -4,7 +4,7 @@ import { ApiKey } from "../types";
 import { ImportDialog } from "../ImportDialog";
 import { ExportSheet } from "../ExportSheet";
 import { SecuritySettingsDialog } from "../SecuritySettingsDialog";
-import { NewApiKeyDialog } from "../NewApiKeyDialog";
+import { NewApiKeyDialog } from "./NewApiKeyDialog";
 import { RecoveryDialog } from "../RecoveryDialog";
 import { UnlockDialog } from "../UnlockDialog";
 
@@ -120,8 +120,8 @@ export const ApiVaultDialogs: React.FC<ApiVaultDialogsProps> = (props) => {
       <NewApiKeyDialog
         open={showDialogApiKey}
         onOpenChange={setShowDialogApiKey}
-        addKey={addNewKey}
-        updateKey={updateKey}
+        onAddKey={addNewKey}
+        onUpdateKey={updateKey}
         testKeyFunctionality={testKeyFunctionality}
       />
 

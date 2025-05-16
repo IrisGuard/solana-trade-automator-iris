@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { 
   Dialog, 
@@ -62,7 +63,12 @@ export const NewApiKeyDialog: React.FC<NewApiKeyDialogProps> = ({
       service,
       description,
       status,
-      createdAt: editingKey?.createdAt || new Date().toISOString()
+      createdAt: editingKey?.createdAt || new Date().toISOString(),
+      isWorking: undefined,
+      expires: undefined,
+      source: undefined,
+      connected: undefined,
+      permissions: []
     };
     
     if (editingKey) {
@@ -83,7 +89,12 @@ export const NewApiKeyDialog: React.FC<NewApiKeyDialogProps> = ({
         service,
         description,
         status,
-        createdAt: editingKey?.createdAt || new Date().toISOString()
+        createdAt: editingKey?.createdAt || new Date().toISOString(),
+        isWorking: undefined,
+        expires: undefined,
+        source: undefined,
+        connected: undefined,
+        permissions: []
       };
       
       await testKeyFunctionality(testKey);
