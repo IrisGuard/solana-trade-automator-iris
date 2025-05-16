@@ -107,7 +107,7 @@ export class ApiIntegrationService {
   static async testApiKey(key: ApiKey): Promise<boolean> {
     try {
       // Simplified: Just check if key exists
-      const keyValue = 'key' in key ? key.key : '';
+      const keyValue = key.key || '';
       if (!keyValue) return false;
       
       // In a real app, this would do an actual API test
@@ -138,7 +138,7 @@ export class ApiIntegrationService {
   // Create or update an API key
   static async saveApiKey(key: ApiKey, userId: string): Promise<ApiKey | null> {
     try {
-      const keyValue = 'key' in key ? key.key : '';
+      const keyValue = key.key || '';
       
       const { data, error } = await supabase
         .from('api_keys_storage')
@@ -150,7 +150,7 @@ export class ApiIntegrationService {
           key_value: keyValue,
           description: key.description || '',
           status: key.status,
-          is_encrypted: 'isEncrypted' in key ? key.isEncrypted : false,
+          is_encrypted: key.isEncrypted || false,
           created_at: key.createdAt || new Date().toISOString(),
           updated_at: new Date().toISOString()
         })

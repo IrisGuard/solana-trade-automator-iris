@@ -51,6 +51,7 @@ export default function Dashboard() {
       if (!isConnected || !walletAddress || !user?.id) return;
       
       try {
+        // Use maybeSingle instead of single to avoid potential errors
         const { data, error } = await supabase
           .from('bots')
           .select('active')
