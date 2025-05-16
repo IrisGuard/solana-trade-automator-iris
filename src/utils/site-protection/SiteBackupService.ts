@@ -130,7 +130,7 @@ export class SiteBackupService {
 declare global {
   interface Window {
     siteBackup: {
-      create: (options?: BackupOptions) => boolean;
+      create: (options?: any) => boolean;
       restore: (showNotification?: boolean) => boolean;
       check: () => boolean;
       countBackups: () => number;
