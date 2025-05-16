@@ -4,12 +4,12 @@ import { MonitorTab } from "../MonitorTab";
 import { OrdersTab } from "../OrdersTab";
 import { HistoryTab } from "../HistoryTab";
 import { TradingBotSettingsForm } from "./TradingBotSettingsForm";
-import { TradingBotConfig, TradingOrder } from "@/hooks/trading-bot/types";
+import { TradingBotConfig, BotStatus, TradingOrder } from "@/hooks/trading-bot/types";
 import { Token } from "@/types/wallet";
 
 interface TradingBotTabContentProps {
   activeTab: string;
-  botStatus: 'idle' | 'running' | 'paused' | 'error';
+  botStatus: BotStatus;
   config: TradingBotConfig;
   updateConfig: (config: Partial<TradingBotConfig>) => void;
   selectToken: (tokenAddress: string | null) => void;
