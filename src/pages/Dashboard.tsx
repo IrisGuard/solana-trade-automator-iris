@@ -9,7 +9,7 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
 
 // Define simple interfaces for bot data
-interface SimpleBotData {
+interface BotData {
   id: string;
   active: boolean;
   user_id: string;
@@ -51,14 +51,12 @@ export default function Dashboard() {
       if (!isConnected || !walletAddress || !user?.id) return;
       
       try {
-        // Use simple explicit type and avoid complex queries
-        type BotQueryResult = { id: string; active: boolean; user_id: string; }
-        
+        // Simplified query without the problematic is_primary condition
         const { data, error } = await supabase
           .from('bots')
           .select('id,active,user_id')
           .eq('user_id', user.id)
-          .eq('is_primary', true) as { data: BotQueryResult[] | null, error: any };
+          .limit(1);
           
         // Handle potential errors directly
         if (error) throw error;
@@ -89,15 +87,12 @@ export default function Dashboard() {
     try {
       const newStatus = !botActive;
       
-      // Use explicit type definitions to avoid deep instantiation
-      type BotIdResult = { id: string }[];
-      
-      // First, check if a bot exists for this user
+      // First, check if a bot exists for this user - without using is_primary
       const { data, error } = await supabase
         .from('bots')
         .select('id')
         .eq('user_id', user.id)
-        .eq('is_primary', true) as { data: BotIdResult | null, error: any };
+        .limit(1);
       
       if (error) throw error;
       
