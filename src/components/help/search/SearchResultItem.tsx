@@ -1,8 +1,6 @@
 
 import React from "react";
 import { ExternalLink } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 interface SearchResultItemProps {
   result: {
@@ -17,7 +15,7 @@ interface SearchResultItemProps {
 
 export function SearchResultItem({ result }: SearchResultItemProps) {
   return (
-    <div className="border rounded-md p-3 hover:bg-accent">
+    <div className="border rounded-md p-3 hover:bg-accent transition-colors duration-200 shadow-sm hover:shadow-md">
       <a 
         href={result.url} 
         target={result.url.startsWith("http") ? "_blank" : "_self"}
@@ -30,7 +28,7 @@ export function SearchResultItem({ result }: SearchResultItemProps) {
         </div>
         <p className="text-sm text-muted-foreground mt-1">{result.description}</p>
         <div className="mt-2 flex items-center justify-between">
-          <div className="text-xs bg-muted inline-block px-2 py-0.5 rounded">
+          <div className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
             {result.category}
           </div>
           {result.url.startsWith("http") && (
