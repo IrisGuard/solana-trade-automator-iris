@@ -136,7 +136,6 @@ declare global {
       countBackups: () => number;
       maxBackups: () => number;
     };
-    errorCollector: any;
   }
 }
 

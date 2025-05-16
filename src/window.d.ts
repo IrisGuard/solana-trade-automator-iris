@@ -21,18 +21,18 @@ interface Window {
   }>;
   
   // Add React type for JSX runtime
-  React?: typeof import('react') & {
+  React: typeof import('react') & {
     jsx?: any;
     jsxs?: any;
     jsxDEV?: any;
-    Fragment?: any;
+    Fragment?: typeof import('react').Fragment;
   };
   
   // Property for router patch
   patchedReactRouter?: boolean;
   
-  // Add errorCollector property
-  errorCollector?: any;
+  // Add errorCollector property with correct type
+  errorCollector: any;
   
   // Add siteHealth property
   siteHealth?: {
@@ -40,5 +40,14 @@ interface Window {
     lastCheck?: any;
     repair: () => any;
     getLastCheck?: () => any;
+  };
+  
+  // Add siteBackup property
+  siteBackup: {
+    create: (options?: any) => boolean;
+    restore: (showNotification?: boolean) => boolean;
+    check: () => boolean;
+    countBackups: () => number;
+    maxBackups: () => number;
   };
 }
