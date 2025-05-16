@@ -373,11 +373,13 @@ export function SystemProtectionGuide() {
                   <p className="text-sm font-medium">Για προβολή όλων των καταγεγραμμένων σφαλμάτων:</p>
                   <code className="text-xs bg-muted/50 p-1 rounded block mt-1">window.errorCollector.getErrors()</code>
                   <p className="text-sm font-medium mt-3">Για προχωρημένη φιλτραρισμένη προβολή σφαλμάτων:</p>
-                  <code className="text-xs bg-muted/50 p-1 rounded block mt-1 whitespace-pre-wrap">window.errorCollector.getErrors({
+                  <code className="text-xs bg-muted/50 p-1 rounded block mt-1 whitespace-pre-wrap">
+                    {`window.errorCollector.getErrors({
   severity: 'high',  // 'low', 'medium', 'high', 'critical'
   source: 'network', // 'ui', 'network', 'data', 'bots', 'system'
   timeFrame: '24h'   // '1h', '24h', '7d', 'all'
-})</code>
+})`}
+                  </code>
                 </div>
               </div>
               
@@ -435,164 +437,20 @@ export function SystemProtectionGuide() {
                   </CardHeader>
                   <CardContent className="text-xs space-y-2">
                     <p>
-                      Έλεγχοι ασφαλείας για κάθε συναλλαγή στο blockchain με επαλήθευση και πολλαπλούς ελέγχους.
+                      Έλεγχοι ασφαλείας για κάθε συναλλαγή στο blockchain με επαλήθευση και προστασία από κακόβουλες ενέργειες.
                     </p>
                     <ul className="list-disc list-inside space-y-0.5">
-                      <li>Επαλήθευση παραλήπτη και ποσού</li>
-                      <li>Έλεγχος ύποπτων προορισμών</li>
-                      <li>Περιορισμοί βάσει ορίων συναλλαγών</li>
+                      <li>Επαλήθευση διεύθυνσης παραλήπτη</li>
+                      <li>Προστασία από διπλές συναλλαγές</li>
+                      <li>Έλεγχος μέγιστου ποσού συναλλαγής</li>
                     </ul>
                   </CardContent>
                 </Card>
-                
-                <Card className="bg-muted/30 border">
-                  <CardHeader className="pb-2 pt-3">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <KeyRound className="h-4 w-4 text-primary" />
-                      Αυθεντικοποίηση Multifactor
-                    </CardTitle>
-                    <CardDescription className="text-xs">Επιπλέον επίπεδα προστασίας</CardDescription>
-                  </CardHeader>
-                  <CardContent className="text-xs space-y-2">
-                    <p>
-                      Επιπλέον επίπεδα ασφαλείας για την πρόσβαση στις κρίσιμες λειτουργίες της εφαρμογής.
-                    </p>
-                    <ul className="list-disc list-inside space-y-0.5">
-                      <li>Επαλήθευση για σημαντικές ενέργειες</li>
-                      <li>Προαιρετική επαλήθευση μέσω email</li>
-                      <li>Υποστήριξη hardware keys (προσεχώς)</li>
-                    </ul>
-                  </CardContent>
-                </Card>
-                
-                <Card className="bg-muted/30 border">
-                  <CardHeader className="pb-2 pt-3">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <Activity className="h-4 w-4 text-primary" />
-                      Παρακολούθηση Συνεδριών
-                    </CardTitle>
-                    <CardDescription className="text-xs">Προστασία από ύποπτη δραστηριότητα</CardDescription>
-                  </CardHeader>
-                  <CardContent className="text-xs space-y-2">
-                    <p>
-                      Ανίχνευση ύποπτης δραστηριότητας και αυτόματος τερματισμός επικίνδυνων συνεδριών.
-                    </p>
-                    <ul className="list-disc list-inside space-y-0.5">
-                      <li>Παρακολούθηση μοτίβων χρήσης</li>
-                      <li>Γεωγραφική ανίχνευση αλλαγών</li>
-                      <li>Προειδοποιήσεις για ασυνήθιστη συμπεριφορά</li>
-                    </ul>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <Alert className="bg-primary/10 border-primary/20">
-                <Shield className="h-4 w-4 text-primary" />
-                <AlertTitle className="text-sm">Συνεχώς Ενημερωμένη Ασφάλεια</AlertTitle>
-                <AlertDescription className="text-xs mt-1">
-                  Τα συστήματα ασφαλείας ενημερώνονται τακτικά για την αντιμετώπιση νέων απειλών και την εφαρμογή βελτιωμένων πρακτικών κρυπτογράφησης και προστασίας δεδομένων.
-                </AlertDescription>
-              </Alert>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-        
-        <AccordionItem value="documentation">
-          <AccordionTrigger className="flex gap-2 items-center font-medium">
-            <FileText className="h-4 w-4 text-primary" />
-            <span>Τεχνική Τεκμηρίωση</span>
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="space-y-4 pl-6">
-              <p className="text-sm text-muted-foreground">
-                Πλήρης τεχνική τεκμηρίωση των συστημάτων προστασίας και ασφαλείας. Αυτή η ενότητα παρέχει αναλυτικές πληροφορίες 
-                για τα συστήματα και τα APIs που διασφαλίζουν την ομαλή λειτουργία της εφαρμογής.
-              </p>
-              
-              <table className="w-full text-sm border-collapse">
-                <thead>
-                  <tr className="bg-muted/50 text-xs">
-                    <th className="border p-2 text-left">Στοιχείο</th>
-                    <th className="border p-2 text-left">Περιγραφή</th>
-                    <th className="border p-2 text-left">API</th>
-                  </tr>
-                </thead>
-                <tbody className="text-xs">
-                  <tr>
-                    <td className="border p-2">SiteBackupService</td>
-                    <td className="border p-2">Διαχείριση αντιγράφων ασφαλείας της δομής του ιστότοπου</td>
-                    <td className="border p-2"><code>window.siteBackup</code></td>
-                  </tr>
-                  <tr>
-                    <td className="border p-2">SiteHealthMonitor</td>
-                    <td className="border p-2">Παρακολούθηση της υγείας της εφαρμογής</td>
-                    <td className="border p-2"><code>SiteHealthMonitor.checkHealth()</code></td>
-                  </tr>
-                  <tr>
-                    <td className="border p-2">AutoRecovery</td>
-                    <td className="border p-2">Αυτόματη αποκατάσταση κρίσιμων σφαλμάτων</td>
-                    <td className="border p-2"><code>AutoRecovery.attemptRecovery()</code></td>
-                  </tr>
-                  <tr>
-                    <td className="border p-2">ErrorCollector</td>
-                    <td className="border p-2">Συλλογή και ανάλυση σφαλμάτων</td>
-                    <td className="border p-2"><code>errorCollector.captureError()</code></td>
-                  </tr>
-                  <tr>
-                    <td className="border p-2">ApiVaultService</td>
-                    <td className="border p-2">Διαχείριση κρυπτογραφημένων κλειδιών API</td>
-                    <td className="border p-2"><code>ApiVaultService.storeKey()</code></td>
-                  </tr>
-                  <tr>
-                    <td className="border p-2">TransactionGuardian</td>
-                    <td className="border p-2">Προστασία και επαλήθευση συναλλαγών</td>
-                    <td className="border p-2"><code>TransactionGuardian.verify()</code></td>
-                  </tr>
-                  <tr>
-                    <td className="border p-2">SessionMonitor</td>
-                    <td className="border p-2">Παρακολούθηση συνεδριών για ύποπτη δραστηριότητα</td>
-                    <td className="border p-2"><code>SessionMonitor.trackActivity()</code></td>
-                  </tr>
-                </tbody>
-              </table>
-              
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium">Διαγράμματα Αρχιτεκτονικής:</h4>
-                <div className="border p-3 rounded bg-muted/30 text-center">
-                  <p className="text-xs text-muted-foreground">
-                    Τα διαγράμματα αρχιτεκτονικής των συστημάτων προστασίας είναι διαθέσιμα στην πλήρη τεχνική τεκμηρίωση.
-                  </p>
-                </div>
-              </div>
-              
-              <p className="text-sm mt-2">
-                Για πλήρη πρόσβαση στην τεκμηρίωση, επισκεφθείτε τη σελίδα "Ρυθμίσεις &gt; Τεχνική Τεκμηρίωση" ή συμβουλευτείτε τα σχόλια στον πηγαίο κώδικα.
-                Για προηγμένη τεκμηρίωση API και παραδείγματα, είναι διαθέσιμο το πλήρες developer portal.
-              </p>
-              
-              <div className="bg-muted p-3 rounded">
-                <p className="text-xs font-medium">Παράδειγμα χρήσης του SiteBackup API:</p>
-                <pre className="text-xs mt-1 overflow-x-auto whitespace-pre-wrap">
-                  <code>{`// Δημιουργία αντιγράφου ασφαλείας με προσαρμοσμένη περιγραφή
-window.siteBackup.create({
-  description: "Manual backup before bot configuration",
-  includeSettings: true,
-  includeApiKeys: true,
-  includeTransactionHistory: false
-});
-
-// Επαναφορά συγκεκριμένου σημείου αποκατάστασης
-window.siteBackup.restore("backup-20230615-132045", {
-  restoreSettings: true,
-  notifyOnComplete: true
-});`}</code>
-                </pre>
               </div>
             </div>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
-      
     </div>
   );
 }
