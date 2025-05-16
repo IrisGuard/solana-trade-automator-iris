@@ -5,8 +5,8 @@ import { toast } from 'sonner';
 import { 
   saveWalletToLocalStorage,
   saveWalletToSupabase,
-  loadWalletFromSupabase,
-  updateWalletLastConnected
+  removeWalletFromStorage,
+  getWalletFromLocalStorage
 } from '@/utils/walletStorage';
 import {
   isPhantomInstalled,
@@ -22,58 +22,31 @@ export function usePersistentWallet() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useSupabaseAuth();
   
-  // Load saved wallet connection from localStorage or Supabase
+  // Load saved wallet connection from localStorage
   useEffect(() => {
     const loadSavedWalletConnection = async () => {
       try {
         // First check localStorage for quick reconnect
-        const savedWallet = localStorage.getItem('phantom_wallet');
-        if (savedWallet) {
-          const wallet = JSON.parse(savedWallet);
-          if (wallet && wallet.address && wallet.timestamp) {
-            // Check if wallet connection is not too old (24 hours)
-            const now = Date.now();
-            if (now - wallet.timestamp < 24 * 60 * 60 * 1000) {
-              // Try to reconnect if Phantom is installed
-              const address = await connectTrustedPhantomWallet();
-              
-              if (address && address === wallet.address) {
-                setWalletAddress(address);
-                setIsConnected(true);
-                console.log('Auto-reconnected to wallet:', address);
-                
-                // Update connection timestamp
-                saveWalletToLocalStorage(address);
-                
-                // If user is logged in, update Supabase record
-                if (user) {
-                  await saveWalletToSupabase(address, user.id);
-                }
-                return;
-              }
-            }
-          }
-        }
-        
-        // If we have a logged in user, check for wallets in Supabase
-        if (user) {
-          const primaryWallet = await loadWalletFromSupabase(user.id);
-          
-          if (primaryWallet) {
+        const savedWallet = getWalletFromLocalStorage();
+        if (savedWallet && savedWallet.address && savedWallet.timestamp) {
+          // Check if wallet connection is not too old (24 hours)
+          const now = Date.now();
+          if (now - savedWallet.timestamp < 24 * 60 * 60 * 1000) {
             // Try to reconnect if Phantom is installed
             const address = await connectTrustedPhantomWallet();
             
-            if (address && address === primaryWallet.address) {
+            if (address && address === savedWallet.address) {
               setWalletAddress(address);
               setIsConnected(true);
-              console.log('Auto-reconnected to wallet from database:', address);
+              console.log('Auto-reconnected to wallet:', address);
               
               // Update connection timestamp
               saveWalletToLocalStorage(address);
               
-              // Update last_connected in Supabase
-              await updateWalletLastConnected(primaryWallet.id);
-              
+              // If user is logged in, update Supabase record
+              if (user) {
+                await saveWalletToSupabase(address, user.id);
+              }
               return;
             }
           }
@@ -132,7 +105,9 @@ export function usePersistentWallet() {
         setWalletAddress('');
         
         // Remove from localStorage
-        localStorage.removeItem('phantom_wallet');
+        if (walletAddress) {
+          await removeWalletFromStorage(walletAddress, user?.id);
+        }
       }
     } catch (err) {
       console.error('Error disconnecting wallet:', err);
@@ -140,7 +115,7 @@ export function usePersistentWallet() {
       setError(errorMsg);
       toast.error(errorMsg);
     }
-  }, []);
+  }, [walletAddress, user?.id]);
 
   return {
     walletAddress,

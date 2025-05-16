@@ -18,7 +18,7 @@ export function useTokens() {
       toast.loading('Φόρτωση tokens...');
       
       // Use solanaService to load real tokens
-      const userTokens = await solanaService.fetchAllTokenBalances(address);
+      const userTokens = await solanaService.tokenService.fetchTokens(address);
       setTokens(userTokens);
       
       toast.success('Τα tokens φορτώθηκαν επιτυχώς');
@@ -50,16 +50,10 @@ export function useTokens() {
     try {
       if (tokens.length === 0) return {};
       
-      // Fix: Convert array of addresses to a comma-separated string or handle individually
-      const pricesData: Record<string, { price: number, priceChange24h: number }> = {};
+      // Convert array of addresses to array for API
+      const tokenAddresses = tokens.map(token => token.address);
       
-      for (const token of tokens) {
-        const priceData = await solanaService.fetchTokenPrices(token.address);
-        if (priceData) {
-          pricesData[token.address] = priceData;
-        }
-      }
-      
+      const pricesData = await solanaService.tokenService.fetchTokenPrices(tokenAddresses);
       setTokenPrices(pricesData);
       return pricesData;
     } catch (error) {
