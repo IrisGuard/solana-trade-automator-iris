@@ -2,14 +2,15 @@
 import { useState, useCallback } from 'react';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 import { solanaService } from '@/services/solana';
-import { TokenWithPrice } from '@/types/wallet';
+import { Token } from '@/types/wallet';
+import { TokenPrice } from '@/services/solana/token/types';
 
 /**
  * Hook for fetching and managing wallet data
  */
 export function useWalletData() {
-  const [tokens, setTokens] = useState<TokenWithPrice[]>([]);
-  const [tokenPrices, setTokenPrices] = useState<Record<string, number>>({});
+  const [tokens, setTokens] = useState<Token[]>([]);
+  const [tokenPrices, setTokenPrices] = useState<Record<string, TokenPrice>>({});
   const [isLoadingTokens, setIsLoadingTokens] = useState<boolean>(false);
   const [solBalance, setSolBalance] = useState<number>(0);
   
@@ -44,16 +45,36 @@ export function useWalletData() {
       
       // Simulate token data for now
       const mockTokens = [
-        { symbol: 'SOL', name: 'Solana', amount: solBalance, price: 100, value: solBalance * 100 },
-        { symbol: 'USDC', name: 'USD Coin', amount: 150.25, price: 1, value: 150.25 }
+        { 
+          address: 'So11111111111111111111111111111111111111112', 
+          symbol: 'SOL', 
+          name: 'Solana', 
+          amount: solBalance, 
+          decimals: 9,
+          logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png'
+        },
+        { 
+          address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 
+          symbol: 'USDC', 
+          name: 'USD Coin', 
+          amount: 150.25, 
+          decimals: 6,
+          logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png'
+        }
       ];
       
       setTokens(mockTokens);
       
       // Simulate token prices
-      const mockPrices = {
-        SOL: 100,
-        USDC: 1
+      const mockPrices: Record<string, TokenPrice> = {
+        'So11111111111111111111111111111111111111112': { 
+          price: 100, 
+          priceChange24h: 2.5 
+        },
+        'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v': { 
+          price: 1, 
+          priceChange24h: 0 
+        }
       };
       
       setTokenPrices(mockPrices);
@@ -68,11 +89,12 @@ export function useWalletData() {
   }, [reportError]);
   
   // Select token for trading
-  const selectTokenForTrading = useCallback((token: string) => {
-    console.log("Επιλογή token για συναλλαγή:", token);
-    // Implementation would set the selected token for trading
-    // This is a mock placeholder function to match the original API
-  }, []);
+  const selectTokenForTrading = useCallback((tokenAddress: string): Token | null => {
+    console.log("Επιλογή token για συναλλαγή:", tokenAddress);
+    const selectedToken = tokens.find(token => token.address === tokenAddress);
+    return selectedToken || null;
+    // This now returns a Token or null, matching the expected return type
+  }, [tokens]);
   
   return {
     tokens,

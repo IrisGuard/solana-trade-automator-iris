@@ -1,5 +1,8 @@
 
-import { Token, TokenPrices } from "@/types/wallet";
+import { Token } from "@/types/wallet";
+import { TokenPrice } from "@/services/solana/token/types";
+
+export type TokenPrices = Record<string, TokenPrice>;
 
 export interface WalletConnectionHook {
   isConnected: boolean;
@@ -11,7 +14,7 @@ export interface WalletConnectionHook {
   tokenPrices: TokenPrices;
   isLoadingTokens: boolean;
   isPhantomInstalled: boolean;
-  connectWallet: () => Promise<void>;
+  connectWallet: () => Promise<string | null>;
   disconnectWallet: () => Promise<void>;
   refreshWalletData: (address?: string) => Promise<void>;
   selectTokenForTrading: (tokenAddress: string) => Token | null;

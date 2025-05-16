@@ -78,8 +78,8 @@ export function useWalletConnect() {
     return false;
   };
 
-  // Update the handler to accept the event parameter
-  const handleConnectClick = async (event?: React.MouseEvent<HTMLButtonElement>) => {
+  // Update the handler to accept the event parameter - match the expected MouseEventHandler type
+  const handleConnectClick = useCallback(async (event?: React.MouseEvent<HTMLButtonElement>) => {
     if (isConnecting || isThrottled()) return;
     
     try {
@@ -127,7 +127,7 @@ export function useWalletConnect() {
     } finally {
       setIsAttemptingConnect(false);
     }
-  };
+  }, [isConnecting, phantomInstalled, isConnected, disconnectWallet, connectWallet, retryCount, reportError]);
 
   return {
     isConnected,

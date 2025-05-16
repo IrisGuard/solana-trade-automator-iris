@@ -6,7 +6,7 @@ import { saveWalletToSupabase } from '@/utils/walletStorage';
 import { useWalletConnectionCore } from './wallet/useWalletConnectionCore';
 import { useWalletData } from './wallet/useWalletData';
 import { useWalletPersistence } from './wallet/useWalletPersistence';
-import { WalletConnectionHook } from './wallet/types';
+import { WalletConnectionHook, TokenPrices } from './wallet/types';
 
 export function useWalletConnection(): WalletConnectionHook {
   const {
@@ -61,7 +61,7 @@ export function useWalletConnection(): WalletConnectionHook {
     }
     
     return address;
-  }, [coreConnectWallet, user?.id, reportError]);
+  }, [coreConnectWallet, user?.id, loadWalletData]);
   
   // Refresh wallet data
   const refreshWalletData = useCallback(async (address?: string) => {
