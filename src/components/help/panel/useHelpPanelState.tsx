@@ -30,6 +30,13 @@ export function useHelpPanelState(isOpen: boolean, onClose: () => void) {
     }
   };
 
+  // Reset command form when changing tabs
+  useEffect(() => {
+    if (activeTab !== "commands" && showAddCommand) {
+      setShowAddCommand(false);
+    }
+  }, [activeTab]);
+
   // Log help usage
   useEffect(() => {
     if (isOpen) {

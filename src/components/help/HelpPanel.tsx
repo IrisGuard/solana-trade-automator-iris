@@ -9,6 +9,7 @@ import { Plus } from "lucide-react";
 
 import { HelpPanelHeader } from "./panel/HelpPanelHeader";
 import { HelpPanelFooter } from "./panel/HelpPanelFooter";
+import { HelpPanelTabs } from "./panel/HelpPanelTabs";
 import { TabContent } from "./panel/TabContent";
 import { AddCommandForm } from "./panel/AddCommandForm";
 import { useHelpPanelState } from "./panel/useHelpPanelState";
@@ -38,67 +39,12 @@ export function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
           <HelpPanelHeader onClose={onClose} />
 
           <div className="w-full">
-            <div className="flex justify-between items-center px-4 py-2 border-b">
-              <div className="flex space-x-2">
-                <Button 
-                  variant={activeTab === "commands" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setActiveTab("commands")}
-                  className="flex items-center gap-2"
-                >
-                  <span className="h-4 w-4" />
-                  Εντολές
-                </Button>
-                <Button 
-                  variant={activeTab === "guide" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setActiveTab("guide")}
-                  className="flex items-center gap-2"
-                >
-                  <span className="h-4 w-4" />
-                  Οδηγός Πλατφόρμας
-                </Button>
-                <Button 
-                  variant={activeTab === "documentation" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setActiveTab("documentation")}
-                  className="flex items-center gap-2"
-                >
-                  <span className="h-4 w-4" />
-                  Τεκμηρίωση Solana
-                </Button>
-                <Button 
-                  variant={activeTab === "protection" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setActiveTab("protection")}
-                  className="flex items-center gap-2"
-                >
-                  <span className="h-4 w-4" />
-                  Προστασία Συστήματος
-                </Button>
-                <Button 
-                  variant={activeTab === "search" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setActiveTab("search")}
-                  className="flex items-center gap-2"
-                >
-                  <span className="h-4 w-4" />
-                  Αναζήτηση
-                </Button>
-              </div>
-
-              {activeTab === "commands" && !showAddCommand && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex items-center gap-1"
-                  onClick={() => setShowAddCommand(true)}
-                >
-                  <Plus className="h-4 w-4" />
-                  Προσθήκη εντολής
-                </Button>
-              )}
-            </div>
+            <HelpPanelTabs
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              showAddCommand={showAddCommand}
+              setShowAddCommand={setShowAddCommand}
+            />
 
             {showAddCommand && (
               <AddCommandForm 

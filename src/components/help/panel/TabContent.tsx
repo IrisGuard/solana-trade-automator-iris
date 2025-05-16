@@ -7,6 +7,7 @@ import { PlatformGuide } from "../PlatformGuide";
 import { HelpSearch } from "../HelpSearch";
 import { SolanaDocumentation } from "../SolanaDocumentation";
 import { SystemProtectionGuide } from "../SystemProtectionGuide";
+import { BotDocumentation } from "../BotDocumentation";
 
 export function TabContent() {
   return (
@@ -35,6 +36,10 @@ export function TabContent() {
         </div>
       </TabsContent>
 
+      <TabsContent value="bots" className="p-0">
+        <BotDocumentation />
+      </TabsContent>
+      
       <TabsContent value="search" className="p-0">
         <HelpSearch />
       </TabsContent>

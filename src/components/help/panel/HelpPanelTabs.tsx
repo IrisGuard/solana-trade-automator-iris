@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ListChecks, BookOpen, FileText, Shield, Search, Plus } from "lucide-react";
+import { ListChecks, BookOpen, FileText, Shield, Search, Plus, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CommandList } from "../CommandList";
 import { PlatformGuide } from "../PlatformGuide";
@@ -29,7 +29,7 @@ export function HelpPanelTabs({
       onValueChange={setActiveTab}
       className="w-full"
     >
-      <div className="flex justify-between items-center px-4 py-2 border-b">
+      <div className="flex justify-between items-center px-4 py-2 border-b overflow-x-auto">
         <TabsList>
           <TabsTrigger value="commands" className="flex items-center gap-2">
             <ListChecks className="h-4 w-4" />
@@ -38,6 +38,10 @@ export function HelpPanelTabs({
           <TabsTrigger value="guide" className="flex items-center gap-2">
             <BookOpen className="h-4 w-4" />
             Οδηγός Πλατφόρμας
+          </TabsTrigger>
+          <TabsTrigger value="bots" className="flex items-center gap-2">
+            <Bot className="h-4 w-4" />
+            Οδηγός Bot
           </TabsTrigger>
           <TabsTrigger value="documentation" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
@@ -57,7 +61,7 @@ export function HelpPanelTabs({
           <Button 
             variant="outline" 
             size="sm" 
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 whitespace-nowrap"
             onClick={() => setShowAddCommand(true)}
           >
             <Plus className="h-4 w-4" />
