@@ -8,10 +8,17 @@
 import * as React from 'react';
 import * as jsxRuntime from 'react/jsx-runtime';
 
-// Explicitly re-export the jsx and jsxs functions from React's JSX runtime
-export const jsx = jsxRuntime.jsx;
-export const jsxs = jsxRuntime.jsxs;
+// First define our basic functions that don't depend on anything else
 export const Fragment = React.Fragment;
+
+// Then create our JSX functions
+export const jsx = function(type, props, key) {
+  return jsxRuntime.jsx(type, props, key);
+};
+
+export const jsxs = function(type, props, key) {
+  return jsxRuntime.jsxs(type, props, key);
+};
 
 // For development runtime compatibility
 export const jsxDEV = function(type, props, key, isStaticChildren, source, self) {

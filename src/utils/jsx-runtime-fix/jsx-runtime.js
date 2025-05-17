@@ -1,8 +1,20 @@
 
-// Re-export JSX runtime from the main fix file
-// Import directly from the main file to avoid circular imports
-import { jsx, jsxs, Fragment, jsxDEV } from '../jsx-runtime-fix';
+// Re-export JSX runtime from React
+import React from 'react';
+import jsxRuntime from 'react/jsx-runtime';
 
-// Re-export the imports
+// Use actual React JSX runtime functions directly
+const jsx = jsxRuntime.jsx;
+const jsxs = jsxRuntime.jsxs;
+const Fragment = React.Fragment;
+
+// Define jsxDEV for compatibility
+const jsxDEV = function(type, props, key) {
+  return jsx(type, props, key);
+};
+
+// Export individually to avoid initialization issues
 export { jsx, jsxs, Fragment, jsxDEV };
+
+// Default export
 export default { jsx, jsxs, Fragment, jsxDEV };
