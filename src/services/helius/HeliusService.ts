@@ -82,7 +82,7 @@ class HeliusService {
       await heliusKeyManager.refreshKeys();
       
       // Create the URL for the Helius API
-      const url = new URL(`${HELIUS_BASE_URL}/addresses/${walletAddress}/balances`);
+      const url = new URL(`${HELIUS_API_BASE_URL}/addresses/${walletAddress}/balances`);
       
       // Add the API key
       const apiKey = heliusKeyManager.getApiKey();
@@ -120,7 +120,7 @@ class HeliusService {
       await heliusKeyManager.refreshKeys();
       
       // Create the URL for the Helius API
-      const url = new URL(`${HELIUS_BASE_URL}/token-metadata`);
+      const url = new URL(`${HELIUS_API_BASE_URL}/token-metadata`);
       
       // Add the API key
       const apiKey = heliusKeyManager.getApiKey();
