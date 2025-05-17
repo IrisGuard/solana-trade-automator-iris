@@ -1,5 +1,5 @@
 
-// Re-export JSX runtime from React
+// Simple and direct JSX runtime implementation from React
 import React from 'react';
 
 // Explicitly define JSX functions with function declarations for better hoisting

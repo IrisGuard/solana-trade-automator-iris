@@ -1,30 +1,28 @@
 
-// Import polyfills before anything else
-import './polyfills'
+// Import polyfills and patches first
+import './polyfills';
 
 // Apply DOM patches early
-import './utils/domPatches'
+import './utils/domPatches';
 
 // Initialize React global object early 
-import { initializeReactRuntime } from './utils/reactInitializer'
+import { initializeReactRuntime } from './utils/reactInitializer';
 initializeReactRuntime();
 
-// Import our React fixes before React components
-import './utils/reactPatches'
-import './react-exports-fix'
+// Import React fixes before React components
+import './utils/reactPatches';
+import './react-exports-fix';
 
-import ReactDOM from 'react-dom/client'
-import * as ReactModule from 'react'
-import App from './App.tsx'
-import './index.css'
+// Important: Import React directly to ensure it's available
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
 
-// Initialize early protection mechanism before rendering
-import { SiteBackupService } from './utils/site-protection/SiteBackupService'
-import { HelpButton } from './components/help/HelpButton.tsx'
-// Important: We'll use SiteHealthMonitor from the MonitoringSystem component to prevent double initialization
-import { MonitoringSystem } from './components/monitoring/MonitoringSystem'
-import { SiteHealthMonitor } from './utils/error-handling/SiteHealthMonitor'
-import { AppContent } from './components/AppContent.tsx'
+// Initialize site protection components
+import { SiteBackupService } from './utils/site-protection/SiteBackupService';
+import { HelpButton } from './components/help/HelpButton.tsx';
+import { MonitoringSystem } from './components/monitoring/MonitoringSystem';
 
 // Create initial backup if needed
 if (!localStorage.getItem('site_structure_backup')) {
@@ -50,20 +48,23 @@ document.addEventListener('keydown', (e) => {
   if (e.altKey && e.shiftKey && e.key === 'C') {
     e.preventDefault();
     console.log('Manual health check triggered via keyboard shortcut');
-    // We can still use SiteHealthMonitor directly for manual checks
+    const { SiteHealthMonitor } = require('./utils/error-handling/SiteHealthMonitor');
     const healthStatus = SiteHealthMonitor.checkHealth();
     console.log('Health check results:', healthStatus);
   }
 });
 
-// Initialize React
-console.log('Initializing React application...');
+// Console log to debug React availability
+console.log('React version available:', React.version);
+console.log('ReactDOM available:', !!ReactDOM);
+console.log('React.Fragment available:', !!React.Fragment);
+console.log('React.jsx available:', !!React.jsx);
 
-// Get React from window (after patches are applied) or fallback to imported module
-const React = window.React || ReactModule;
+// Initialize React application
+console.log('Initializing React application...');
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
-)
+);

@@ -1,6 +1,6 @@
 
 /**
- * React Exports Fix
+ * React Exports Fix - Simplified
  * 
  * This file helps fix React exports compatibility issues with different frameworks
  * by ensuring proper exports are available under expected names.
@@ -10,76 +10,56 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
-// Define JSX functions explicitly using function declarations
-function jsxFunction(type, props, key) {
-  return React.createElement(type, props, key);
-}
-
-function jsxsFunction(type, props, key) {
-  return React.createElement(type, props, key);
-}
-
-function jsxDEVFunction(type, props, key) {
-  return React.createElement(type, props, key);
-}
-
 // Make React available globally if it's not already
 if (typeof window !== 'undefined') {
-  // Ensure React is available on window
+  // Set React on window only if not already defined
   if (!window.React) {
     window.React = React;
+    console.log('React successfully attached to window');
   }
   
-  // Ensure ReactDOM is available on window
+  // Set ReactDOM on window only if not already defined
   if (!window.ReactDOM) {
     window.ReactDOM = ReactDOM;
+    console.log('ReactDOM successfully attached to window');
   }
   
-  // Add React.Fragment if missing
-  if (window.React && !window.React.Fragment) {
-    window.React.Fragment = React.Fragment;
-  }
-  
-  // Add JSX functions if missing
-  if (window.React && !window.React.jsx) {
-    window.React.jsx = jsxFunction;
-  }
-  
-  if (window.React && !window.React.jsxs) {
-    window.React.jsxs = jsxsFunction;
-  }
-  
-  if (window.React && !window.React.jsxDEV) {
-    window.React.jsxDEV = jsxDEVFunction;
+  // Make sure JSX runtime functions are available
+  if (window.React) {
+    // Add React.Fragment if missing
+    if (!window.React.Fragment) {
+      window.React.Fragment = React.Fragment;
+    }
+    
+    // Add JSX functions if missing
+    if (!window.React.jsx) {
+      window.React.jsx = (type, props, key) => React.createElement(type, props, key);
+    }
+    
+    if (!window.React.jsxs) {
+      window.React.jsxs = (type, props, key) => React.createElement(type, props, key);
+    }
+    
+    if (!window.React.jsxDEV) {
+      window.React.jsxDEV = (type, props, key) => React.createElement(type, props, key);
+    }
+    
+    console.log('JSX runtime functions setup complete');
   }
 }
 
-// Instead of using "export *", we explicitly re-export the React elements we need
-export const useState = React.useState;
-export const useEffect = React.useEffect;
-export const useContext = React.useContext;
-export const useReducer = React.useReducer;
-export const useCallback = React.useCallback;
-export const useMemo = React.useMemo;
-export const useRef = React.useRef;
-export const useImperativeHandle = React.useImperativeHandle;
-export const useLayoutEffect = React.useLayoutEffect;
-export const useDebugValue = React.useDebugValue;
-export const Fragment = React.Fragment;
-export const createElement = React.createElement;
-export const createContext = React.createContext;
-export const forwardRef = React.forwardRef;
-export const memo = React.memo;
-export const Children = React.Children;
-export const Component = React.Component;
-export const PureComponent = React.PureComponent;
-export const cloneElement = React.cloneElement;
-export const isValidElement = React.isValidElement;
+// Export React hooks and components for direct import
+export const {
+  useState, useEffect, useContext, useReducer, useCallback,
+  useMemo, useRef, useImperativeHandle, useLayoutEffect, useDebugValue,
+  Fragment, createElement, createContext, forwardRef, memo,
+  Children, Component, PureComponent, cloneElement, isValidElement
+} = React;
 
 // Add JSX runtime functions
-export const jsx = jsxFunction;
-export const jsxs = jsxsFunction;
-export const jsxDEV = jsxDEVFunction;
+export const jsx = (type, props, key) => React.createElement(type, props, key);
+export const jsxs = (type, props, key) => React.createElement(type, props, key);
+export const jsxDEV = (type, props, key) => React.createElement(type, props, key);
 
 // Export the default React object
 export default React;

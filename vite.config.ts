@@ -18,7 +18,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       react({
         // Use options that are actually supported by the SWC React plugin
         tsDecorators: true,
-        // Use full path to JSX runtime
+        // Use custom JSX runtime implementation
         jsxImportSource: 'react',
       }),
       mode === 'development' && componentTagger(),
@@ -26,12 +26,11 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
-        // Fix JSX runtime issue by pointing to the correct files directly
-        'react/jsx-runtime': path.resolve(__dirname, 'src/utils/jsx-runtime-fix/jsx-runtime.js'),
-        'react/jsx-dev-runtime': path.resolve(__dirname, 'src/utils/jsx-runtime-fix/jsx-dev-runtime.js'),
-        // Fix polyfill path issues - explicitly map each required polyfill
+        // Use our custom JSX runtime implementation
+        'react/jsx-runtime': path.resolve(__dirname, 'src/utils/jsx-runtime-fix.ts'),
+        'react/jsx-dev-runtime': path.resolve(__dirname, 'src/utils/jsx-runtime-fix.ts'),
+        // Fix polyfill path issues
         buffer: 'buffer/',
-        // Fix the process polyfill path - important change
         process: 'process', 
         stream: 'stream-browserify',
         util: 'util/',
@@ -40,7 +39,6 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         // Add React alias to ensure consistent version
         "react": path.resolve(__dirname, "node_modules/react"),
         "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
-        "react-router-dom": path.resolve(__dirname, "node_modules/react-router-dom"),
       },
       mainFields: ['browser', 'module', 'main'],
     },
@@ -75,7 +73,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         '@solana/spl-token',
         '@solana/wallet-adapter-base',
         '@solana/wallet-adapter-react',
-        // Add React and React Router DOM to the optimization
+        // Add React and React DOM to the optimization
         'react',
         'react-dom',
         'react-router-dom',
@@ -99,8 +97,6 @@ export default defineConfig(({ mode }: ConfigEnv) => {
           // Enable rollup polyfills plugin
           rollupNodePolyFill() as any,
         ],
-        // External to prevent Rollup from trying to bundle process
-        external: ['process/browser', 'react'], 
         onwarn(warning, warn) {
           if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
             return;
@@ -116,8 +112,6 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       sourcemap: true,
       // Increase build performance
       minify: 'esbuild',
-      // Improve chunk size
-      chunkSizeWarningLimit: 1000,
     }
   };
 });

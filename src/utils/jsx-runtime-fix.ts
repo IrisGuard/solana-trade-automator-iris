@@ -1,9 +1,9 @@
 
 /**
- * JSX Runtime Proxy
+ * JSX Runtime Fix
  * 
- * This file fixes compatibility issues between Radix UI components and React's JSX runtime.
- * It creates proxy exports that match what Radix UI expects for both production and development environments.
+ * A simplified implementation that fixes compatibility issues between 
+ * React components and JSX runtime.
  */
 import * as React from 'react';
 
@@ -16,14 +16,13 @@ export function jsxs(type: any, props: any, key?: any) {
   return React.createElement(type, props, key);
 }
 
-export function jsxDEV(type: any, props: any, key?: any, isStaticChildren?: boolean, source?: any, self?: any) {
+export function jsxDEV(type: any, props: any, key?: any) {
   return React.createElement(type, props, key);
 }
 
-// First define our basic functions that don't depend on anything else
 export const Fragment = React.Fragment;
 
-// Create a compatibility layer for older code that might import directly
+// Create a compatibility object for direct imports
 const jsxRuntime = {
   jsx,
   jsxs,
@@ -33,19 +32,25 @@ const jsxRuntime = {
 
 export default jsxRuntime;
 
-// Apply patches to global React if in browser environment
-if (typeof window !== 'undefined' && window.React) {
-  // Make sure React.jsx and React.jsxs are defined
-  if (!window.React.jsx) {
-    window.React.jsx = jsx;
+// Apply global patches if in browser environment
+if (typeof window !== 'undefined') {
+  // Make sure React global object exists
+  if (!window.React) {
+    window.React = { ...React };
   }
   
-  if (!window.React.jsxs) {
-    window.React.jsxs = jsxs;
-  }
-  
-  // Add jsxDEV for development mode
-  if (!window.React.jsxDEV) {
-    window.React.jsxDEV = jsxDEV;
+  // Add JSX functions to global React
+  if (window.React) {
+    if (!window.React.jsx) {
+      window.React.jsx = jsx;
+    }
+    
+    if (!window.React.jsxs) {
+      window.React.jsxs = jsxs;
+    }
+    
+    if (!window.React.jsxDEV) {
+      window.React.jsxDEV = jsxDEV;
+    }
   }
 }

@@ -1,8 +1,8 @@
 
-// Main export file for JSX runtime fixes
+// Main export file for JSX runtime fixes - simplified
 import React from 'react';
 
-// Explicitly define JSX functions with function declarations
+// Explicitly define JSX functions
 export function jsx(type, props, key) {
   return React.createElement(type, props, key);
 }
@@ -13,14 +13,10 @@ export function jsxs(type, props, key) {
 
 export const Fragment = React.Fragment;
 
-// Define jsxDEV for compatibility
 export function jsxDEV(type, props, key) {
   return React.createElement(type, props, key);
 }
 
-// Export individually to avoid initialization issues
+// Export individually and as default
 export { jsx, jsxs, Fragment, jsxDEV };
-
-// Default export
-const runtime = { jsx, jsxs, Fragment, jsxDEV };
-export default runtime;
+export default { jsx, jsxs, Fragment, jsxDEV };

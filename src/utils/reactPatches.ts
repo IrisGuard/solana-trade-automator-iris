@@ -3,49 +3,66 @@ import * as React from 'react';
 
 // Export the function for applying React compatibility
 export function ensureReactCompatibility(): void {
-  if (typeof window !== 'undefined') {
-    try {
-      // Create a full copy of React on window
-      if (!window.React) {
-        window.React = { ...React } as typeof window.React;
+  if (typeof window === 'undefined') return;
+
+  try {
+    // Create a React on window if it doesn't exist
+    if (!window.React) {
+      window.React = Object.create(React);
+      console.log('React object created on window');
+    }
+    
+    // Ensure JSX functions are available
+    if (window.React) {
+      // Define JSX functions properly using Object.defineProperty
+      if (!window.React.jsx) {
+        Object.defineProperty(window.React, 'jsx', {
+          value: function(type, props, key) {
+            return React.createElement(type, props, key);
+          },
+          writable: true,
+          configurable: true
+        });
+        console.log('jsx function patched');
       }
       
-      // Ensure JSX functions are available
-      if (window.React) {
-        // Define JSX functions directly without relying on problematic imports
-        if (!window.React.jsx) {
-          window.React.jsx = function(type, props, key) {
+      if (!window.React.jsxs) {
+        Object.defineProperty(window.React, 'jsxs', {
+          value: function(type, props, key) {
             return React.createElement(type, props, key);
-          };
-        }
-        
-        if (!window.React.jsxs) {
-          window.React.jsxs = function(type, props, key) {
+          }, 
+          writable: true,
+          configurable: true
+        });
+        console.log('jsxs function patched');
+      }
+      
+      if (!window.React.jsxDEV) {
+        Object.defineProperty(window.React, 'jsxDEV', {
+          value: function(type, props, key) {
             return React.createElement(type, props, key);
-          };
-        }
-        
-        if (!window.React.jsxDEV) {
-          window.React.jsxDEV = function(type, props, key) {
-            return React.createElement(type, props, key);
-          };
-        }
-        
-        // Patch the Fragment property if needed
-        if (!window.React.Fragment) {
-          Object.defineProperty(window.React, 'Fragment', {
-            value: React.Fragment,
-            writable: false,
-            configurable: true
-          });
-        }
+          },
+          writable: true,
+          configurable: true
+        });
+        console.log('jsxDEV function patched');
+      }
+      
+      // Patch Fragment if needed
+      if (!window.React.Fragment) {
+        Object.defineProperty(window.React, 'Fragment', {
+          value: React.Fragment,
+          writable: false,
+          configurable: true
+        });
+        console.log('Fragment patched');
       }
       
       // Log success
-      console.log('React patches applied successfully');
-    } catch (error) {
-      console.error('Error applying React patches:', error);
+      console.log('All React patches applied successfully');
     }
+  } catch (error) {
+    console.error('Error applying React patches:', error);
   }
 }
 
