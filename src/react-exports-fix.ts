@@ -9,7 +9,6 @@
 // Import needed React modules
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import * as JSXRuntime from 'react/jsx-runtime';
 
 // Make React available globally if it's not already
 if (typeof window !== 'undefined') {
@@ -26,6 +25,25 @@ if (typeof window !== 'undefined') {
   // Add React.Fragment if missing
   if (window.React && !window.React.Fragment) {
     window.React.Fragment = React.Fragment;
+  }
+  
+  // Add JSX functions if missing
+  if (window.React && !window.React.jsx) {
+    window.React.jsx = function(type, props, key) {
+      return React.createElement(type, props, key);
+    };
+  }
+  
+  if (window.React && !window.React.jsxs) {
+    window.React.jsxs = function(type, props, key) {
+      return React.createElement(type, props, key);
+    };
+  }
+  
+  if (window.React && !window.React.jsxDEV) {
+    window.React.jsxDEV = function(type, props, key) {
+      return React.createElement(type, props, key);
+    };
   }
 }
 
@@ -50,6 +68,19 @@ export const Component = React.Component;
 export const PureComponent = React.PureComponent;
 export const cloneElement = React.cloneElement;
 export const isValidElement = React.isValidElement;
+
+// Add JSX runtime functions
+export const jsx = function(type, props, key) {
+  return React.createElement(type, props, key);
+};
+
+export const jsxs = function(type, props, key) {
+  return React.createElement(type, props, key);
+};
+
+export const jsxDEV = function(type, props, key) {
+  return React.createElement(type, props, key);
+};
 
 // Export the default React object
 export default React;

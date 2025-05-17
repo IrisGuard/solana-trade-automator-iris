@@ -11,54 +11,44 @@ import * as React from 'react';
 export const Fragment = React.Fragment;
 
 // Define JSX functions directly without relying on imports that might not be initialized
-export const jsx = function(type, props, key) {
+export const jsx = function(type: any, props: any, key?: any) {
   return React.createElement(type, props, key);
 };
 
-export const jsxs = function(type, props, key) {
+export const jsxs = function(type: any, props: any, key?: any) {
   // jsxs is for handling multiple children
   return React.createElement(type, props, key);
 };
 
 // For development runtime compatibility
-export const jsxDEV = function(type, props, key, isStaticChildren, source, self) {
+export const jsxDEV = function(type: any, props: any, key?: any, isStaticChildren?: boolean, source?: any, self?: any) {
   // Development version uses the same function as production but with more parameters
   return jsx(type, props, key);
 };
 
 // Create a compatibility layer for older code that might import directly
-export default {
+const jsxRuntime = {
   jsx,
   jsxs,
   Fragment,
   jsxDEV
 };
 
+export default jsxRuntime;
+
 // Apply patches to global React if in browser environment
 if (typeof window !== 'undefined' && window.React) {
   // Make sure React.jsx and React.jsxs are defined
   if (!window.React.jsx) {
-    Object.defineProperty(window.React, 'jsx', {
-      value: jsx,
-      configurable: true,
-      writable: false
-    });
+    window.React.jsx = jsx;
   }
   
   if (!window.React.jsxs) {
-    Object.defineProperty(window.React, 'jsxs', {
-      value: jsxs,
-      configurable: true,
-      writable: false
-    });
+    window.React.jsxs = jsxs;
   }
   
   // Add jsxDEV for development mode
   if (!window.React.jsxDEV) {
-    Object.defineProperty(window.React, 'jsxDEV', {
-      value: jsxDEV,
-      configurable: true,
-      writable: false
-    });
+    window.React.jsxDEV = jsxDEV;
   }
 }
