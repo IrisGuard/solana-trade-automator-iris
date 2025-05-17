@@ -6,18 +6,18 @@
  * It creates proxy exports that match what Radix UI expects for both production and development environments.
  */
 import * as React from 'react';
-import * as jsxRuntime from 'react/jsx-runtime';
 
 // First define our basic functions that don't depend on anything else
 export const Fragment = React.Fragment;
 
-// Then create our JSX functions
+// Define JSX functions directly without relying on imports that might not be initialized
 export const jsx = function(type, props, key) {
-  return jsxRuntime.jsx(type, props, key);
+  return React.createElement(type, props, key);
 };
 
 export const jsxs = function(type, props, key) {
-  return jsxRuntime.jsxs(type, props, key);
+  // jsxs is for handling multiple children
+  return React.createElement(type, props, key);
 };
 
 // For development runtime compatibility

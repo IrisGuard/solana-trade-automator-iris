@@ -1,12 +1,17 @@
 
 // Main export file for JSX runtime fixes
-// Import directly from React to avoid circular references
 import React from 'react';
-import jsxRuntime from 'react/jsx-runtime';
 
-// Use actual React JSX runtime functions directly
-const jsx = jsxRuntime.jsx;
-const jsxs = jsxRuntime.jsxs;
+// Define JSX functions directly without relying on imports that might not be initialized
+const jsx = function(type, props, key) {
+  return React.createElement(type, props, key);
+};
+
+const jsxs = function(type, props, key) {
+  // jsxs is for handling multiple children
+  return React.createElement(type, props, key);
+};
+
 const Fragment = React.Fragment;
 
 // Define jsxDEV for compatibility
