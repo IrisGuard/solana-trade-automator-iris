@@ -1,16 +1,15 @@
 
+// Import polyfills before anything else
+import './polyfills'
+
+// Import our React fixes before React components
+import './utils/reactPatches'
+import './react-exports-fix'
+
 import ReactDOM from 'react-dom/client'
 import * as ReactModule from 'react'
 import App from './App.tsx'
 import './index.css'
-
-// Import our React fixes before anything else
-import './utils/reactPatches'
-import './react-exports-fix'
-
-// Polyfills for Solana web3.js
-import './polyfills'
-import { AppContent } from './components/AppContent.tsx'
 
 // Initialize early protection mechanism before rendering
 import { SiteBackupService } from './utils/site-protection/SiteBackupService'
@@ -18,6 +17,7 @@ import { HelpButton } from './components/help/HelpButton.tsx'
 // Important: We'll use SiteHealthMonitor from the MonitoringSystem component to prevent double initialization
 import { MonitoringSystem } from './components/monitoring/MonitoringSystem'
 import { SiteHealthMonitor } from './utils/error-handling/SiteHealthMonitor'
+import { AppContent } from './components/AppContent.tsx'
 
 // Create initial backup if needed
 if (!localStorage.getItem('site_structure_backup')) {

@@ -179,7 +179,9 @@ export function applyReactJsxPatches() {
       
       if (!(reactModule as any).jsx) {
         Object.defineProperty(reactModule, 'jsx', {
-          value: reactModule.createElement,
+          value: function(type, props, key) {
+            return reactModule.createElement(type, props, key);
+          },
           writable: false,
           configurable: true
         });
@@ -187,7 +189,9 @@ export function applyReactJsxPatches() {
       
       if (!(reactModule as any).jsxs) {
         Object.defineProperty(reactModule, 'jsxs', {
-          value: reactModule.createElement,
+          value: function(type, props, key) {
+            return reactModule.createElement(type, props, key);
+          },
           writable: false,
           configurable: true
         });

@@ -1,7 +1,5 @@
 
 import * as React from 'react';
-import * as jsxRuntime from 'react/jsx-runtime';
-import { jsx, jsxs, Fragment, jsxDEV } from './jsx-runtime-fix';
 
 // In the window.d.ts file we've added the type definition for React
 
@@ -14,14 +12,23 @@ export function ensureReactCompatibility(): void {
       
       // Ensure JSX functions are available
       if (window.React) {
-        window.React.jsx = jsx;
-        window.React.jsxs = jsxs;
-        window.React.jsxDEV = jsxDEV;
+        // Define JSX functions directly without relying on problematic imports
+        window.React.jsx = function(type, props, key) {
+          return React.createElement(type, props, key);
+        };
+        
+        window.React.jsxs = function(type, props, key) {
+          return React.createElement(type, props, key);
+        };
+        
+        window.React.jsxDEV = function(type, props, key) {
+          return React.createElement(type, props, key);
+        };
         
         // Patch the Fragment property if needed
         if (!window.React.Fragment) {
           Object.defineProperty(window.React, 'Fragment', {
-            value: Fragment,
+            value: React.Fragment,
             writable: false,
             configurable: true
           });
