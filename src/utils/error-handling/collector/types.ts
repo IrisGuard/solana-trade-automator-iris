@@ -1,43 +1,51 @@
 
+/** Error options for capturing errors */
 export interface ErrorOptions {
   component?: string;
   source?: string;
-  severity?: 'low' | 'medium' | 'high' | 'critical';
-  errorType?: string;
-  message?: string;
-  details?: any;
   errorCode?: string;
-  context?: any;
+  context?: string;
   metadata?: any;
-  status?: string;
+  status?: number;
   errorId?: string;
-  onError?: (errorData: ErrorData) => void;
+  errorType?: string;
+  details?: Record<string, unknown>;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+  onError?: (error: ErrorData) => void;
 }
 
+/** Error data structure */
 export interface ErrorData {
   id: string;
   error: Error;
-  timestamp: string;
   message: string;
-  stack?: string | null;
-  component?: string | null;
-  source?: string;
-  url?: string;
-  browserInfo?: any;
-  errorCode?: string | null;
-  context?: any | null;
-  metadata?: any | null;
-  status?: string | null;
-  errorId?: string | null;
+  stack: string | null;
+  timestamp: string;
+  component: string | null;
+  source: string;
+  url: string;
+  browserInfo: {
+    userAgent: string;
+    language: string;
+    platform: string;
+    screenSize?: string;
+    timestamp?: string;
+  };
+  errorCode: string | null;
+  context: string | null;
+  metadata: any | null;
+  status: number | null;
+  errorId: string | null;
   errorType?: string;
-  details?: any;
-  severity?: 'low' | 'medium' | 'high' | 'critical';
+  details?: Record<string, unknown>;
+  severity: 'low' | 'medium' | 'high' | 'critical';
   options: ErrorOptions;
 }
 
+/** Error Collector Interface */
 export interface ErrorCollector {
-  captureError(error: Error | string, options?: ErrorOptions): string;
-  getErrors(): ErrorData[];
-  clearErrors(): void;
-  getErrorCount(): number;
+  captureError: (error: Error | string, options?: ErrorOptions) => string;
+  getErrors: () => ErrorData[];
+  clearErrors: () => void;
+  getErrorCount: () => number;
 }

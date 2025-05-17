@@ -1,67 +1,52 @@
 
 import { toast } from 'sonner';
 import { errorCollector } from './collector';
-import type { ErrorData } from './collector';
 
 interface DisplayErrorOptions {
   showToast?: boolean;
   toastTitle?: string;
-  severity?: 'low' | 'medium' | 'high' | 'critical';
+  toastDescription?: string;
   component?: string;
   source?: string;
-  details?: any;
-  errorType?: string;
-  title?: string;
-  logToConsole?: boolean;
-  sendToChat?: boolean;
-  useCollector?: boolean;
-  notifyUser?: boolean;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+  details?: Record<string, unknown>;
 }
 
 /**
- * Utility to display errors to the user and log them to the collector
+ * Display an error to the user and log it to the error collector
  */
-export const displayError = (
-  error: Error | string,
-  options: DisplayErrorOptions = {}
-): string => {
+export function displayError(error: Error | string, options: DisplayErrorOptions = {}) {
   const errorObj = typeof error === 'string' ? new Error(error) : error;
-  const message = errorObj.message || 'An unknown error occurred';
-
-  // Log to console if requested
-  if (options.logToConsole) {
-    console.error('[ERROR]', message, errorObj);
-  }
-
-  // Collect the error if requested
-  let errorId = '';
-  if (options.useCollector !== false) {
-    errorId = errorCollector.captureError(errorObj, {
-      component: options.component || 'unknown',
-      source: options.source || 'client',
-      method: options.errorType,
-      severity: options.severity || 'medium',
-      details: options.details
-    });
-  }
+  const errorMessage = errorObj.message || 'An unknown error occurred';
   
-  // Display toast if requested
-  if (options.showToast) {
-    toast.error(options.toastTitle || options.title || 'Error', {
-      description: message,
-      id: errorId
-    });
-  }
+  // Collect error with the error collector
+  const errorId = errorCollector.captureError(errorObj, {
+    component: options.component || 'unknown',
+    source: options.source || 'client',
+    severity: options.severity || 'medium',
+    details: options.details
+  });
   
-  // Send to chat implementation would go here
-  if (options.sendToChat) {
-    try {
-      // This would typically connect to a chat service or error reporting system
-      console.log('[CHAT] Error sent:', message);
-    } catch (e) {
-      console.error('Failed to send error to chat:', e);
+  // Prevent showing too many toasts for similar errors
+  if (options.showToast !== false) {
+    // Rate limit similar errors
+    const now = Date.now();
+    const lastErrorTime = window._lastErrorDisplayTimes?.[errorMessage] || 0;
+    
+    if (!window._lastErrorDisplayTimes) {
+      window._lastErrorDisplayTimes = {};
+    }
+    
+    // Only show toast if same error hasn't been shown in the last 5 seconds
+    if (now - lastErrorTime > 5000) {
+      window._lastErrorDisplayTimes[errorMessage] = now;
+      
+      toast.error(options.toastTitle || 'Error', {
+        id: `error-${errorId}`,
+        description: options.toastDescription || errorMessage
+      });
     }
   }
   
   return errorId;
-};
+}

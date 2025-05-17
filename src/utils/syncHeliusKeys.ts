@@ -1,72 +1,59 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { addHeliusEndpoints, addHeliusKey } from "./addHeliusEndpoints";
-// Διόρθωση του μονοπατιού εισαγωγής για να χρησιμοποιήσει τον σωστό HeliusKeyManager
-import { heliusKeyManager } from "@/services/helius/HeliusKeyManager";
-import { heliusEndpointMonitor } from "@/services/helius/HeliusEndpointMonitor";
-import { heliusService } from "@/services/helius/HeliusService";
+import { heliusKeyManager } from '@/services/helius/HeliusKeyManager';
+import { supabase } from '@/integrations/supabase/client';
+import { errorCollector } from '@/utils/error-handling/collector';
+import { toast } from 'sonner';
 
 /**
- * Συγχρονισμός όλων των δεδομένων που σχετίζονται με το Helius API
- * (κλειδιά και endpoints)
+ * Synchronize all Helius API keys for a specific user
  */
 export async function syncAllHeliusData(userId: string): Promise<boolean> {
+  if (!userId) {
+    console.error('Cannot sync Helius keys: No userId provided');
+    return false;
+  }
+
   try {
-    toast.loading('Συγχρονισμός δεδομένων Helius...');
+    console.log(`Synchronizing Helius data for user ${userId}...`);
     
-    // Συγχρονισμός των κλειδιών Helius
-    console.log("Συγχρονισμός κλειδιού Helius:", userId);
-    const apiKey = "ddb32813-1f4b-459d-8964-310b1b73a053";
-    const keyResult = await addHeliusKey(userId, apiKey);
+    // Force a fresh reload of the Helius API keys
+    const success = await heliusKeyManager.refreshKeys();
     
-    // Συγχρονισμός των endpoints
-    console.log("Συγχρονισμός endpoints Helius");
-    const endpointResult = await addHeliusEndpoints();
-    
-    // Ανανέωση των διαχειριστών - χρησιμοποιώντας τις μεθόδους που προσθέσαμε
-    try {
-      console.log("Επανεκκίνηση HeliusKeyManager");
-      if (heliusKeyManager) {
-        await heliusKeyManager.forceReload();
-      } else {
-        console.error("Δεν βρέθηκε το heliusKeyManager");
-      }
-    } catch (error) {
-      console.error("Σφάλμα κατά την επανεκκίνηση του HeliusKeyManager:", error);
-    }
-    
-    if (heliusEndpointMonitor && typeof heliusEndpointMonitor.forceReload === 'function') {
-      await heliusEndpointMonitor.forceReload();
-    }
-    
-    // Επανεκκίνηση του HeliusService μετά την ενημέρωση του κλειδιού
-    try {
-      console.log("Επανεκκίνηση HeliusService");
-      if (heliusService) {
-        await heliusService.reinitialize();
-      } else {
-        console.error("Δεν βρέθηκε το heliusService");
-      }
-    } catch (error) {
-      console.error("Σφάλμα κατά την επανεκκίνηση του HeliusService:", error);
-    }
-    
-    if (keyResult && endpointResult) {
-      toast.success('Τα δεδομένα Helius συγχρονίστηκαν επιτυχώς');
-      toast.info(`Το κλειδί API Helius προστέθηκε: ${apiKey.substring(0, 8)}...`, {
-        duration: 5000
+    if (!success || heliusKeyManager.getKeyCount() === 0) {
+      console.warn('No Helius API keys available after refresh');
+      
+      // Only show toast if this is not a background refresh
+      toast.warning('Limited functionality available', {
+        description: 'Helius API keys not configured properly'
       });
-      return true;
-    } else {
-      toast.error('Υπήρξαν κάποια σφάλματα κατά τον συγχρονισμό των δεδομένων Helius');
+      
       return false;
     }
+    
+    console.log(`Successfully synchronized Helius data with ${heliusKeyManager.getKeyCount()} keys available`);
+    return true;
   } catch (error) {
-    console.error('Σφάλμα κατά τον συγχρονισμό των δεδομένων Helius:', error);
-    toast.error('Σφάλμα κατά τον συγχρονισμό των δεδομένων Helius');
+    console.error('Error synchronizing Helius data:', error);
+    errorCollector.captureError(error, {
+      component: 'syncHeliusKeys', 
+      method: 'syncAllHeliusData',
+      details: { userId }
+    });
+    
     return false;
-  } finally {
-    toast.dismiss();
   }
+}
+
+/**
+ * Check if Helius is properly configured
+ */
+export function isHeliusConfigured(): boolean {
+  return heliusKeyManager.hasKeys();
+}
+
+/**
+ * Get the number of available API keys
+ */
+export function getHeliusKeyCount(): number {
+  return heliusKeyManager.getKeyCount();
 }

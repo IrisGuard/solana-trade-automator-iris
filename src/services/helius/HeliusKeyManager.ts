@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { errorCollector } from '@/utils/error-handling/collector';
 import { FALLBACK_HELIUS_KEY } from './HeliusConfig';
+import { toast } from 'sonner';
 
 class HeliusKeyManager {
   private apiKeys: string[] = [];
@@ -9,6 +10,9 @@ class HeliusKeyManager {
   private isInitialized = false;
   private lastRefreshTime = 0;
   private refreshInterval = 60 * 1000; // 1 minute
+  private isRefreshing = false;
+  private retryCount = 0;
+  private maxRetries = 3;
 
   constructor() {
     // Initialize with default fallback key
@@ -21,7 +25,12 @@ class HeliusKeyManager {
    * Get an API key from the pool
    */
   public getApiKey(): string {
-    this.ensureInitialized();
+    // If not initialized, try to get a key asynchronously
+    if (!this.isInitialized) {
+      this.refreshKeys().catch(err => {
+        console.error('Failed to refresh Helius API keys:', err);
+      });
+    }
     
     if (this.apiKeys.length === 0) {
       console.error('No Helius API keys available!');
@@ -39,13 +48,21 @@ class HeliusKeyManager {
    * Force refresh of API keys from Supabase
    */
   public async refreshKeys(): Promise<boolean> {
+    // Prevent concurrent refreshes
+    if (this.isRefreshing) {
+      console.log('Already refreshing Helius API keys, skipping duplicate request');
+      return this.isInitialized;
+    }
+    
     const now = Date.now();
     
-    // Don't refresh too frequently
-    if (now - this.lastRefreshTime < this.refreshInterval) {
+    // Don't refresh too frequently unless forced
+    if (now - this.lastRefreshTime < this.refreshInterval && this.isInitialized && this.apiKeys.length > 0) {
       return this.isInitialized;
     }
 
+    this.isRefreshing = true;
+    
     try {
       this.lastRefreshTime = now;
       
@@ -64,6 +81,16 @@ class HeliusKeyManager {
           additional: 'Fallback to existing keys'
         });
         
+        // Increment retry count
+        this.retryCount++;
+        
+        if (this.retryCount >= this.maxRetries && this.apiKeys.length === 0) {
+          // After max retries, show a toast only if we have no keys
+          toast.error('Failed to load API keys', {
+            description: 'Unable to connect to API key service'
+          });
+        }
+        
         return this.apiKeys.length > 0;
       }
       
@@ -74,6 +101,7 @@ class HeliusKeyManager {
         if (keys.length > 0) {
           this.apiKeys = keys;
           this.isInitialized = true;
+          this.retryCount = 0; // Reset retry count on success
           return true;
         }
       }
@@ -81,6 +109,7 @@ class HeliusKeyManager {
       // If no keys found, use fallback key
       if (FALLBACK_HELIUS_KEY && this.apiKeys.length === 0) {
         this.apiKeys = [FALLBACK_HELIUS_KEY];
+        console.log('Using fallback Helius API key');
         return true;
       }
       
@@ -94,6 +123,8 @@ class HeliusKeyManager {
       });
       
       return this.apiKeys.length > 0;
+    } finally {
+      this.isRefreshing = false;
     }
   }
   
@@ -101,7 +132,7 @@ class HeliusKeyManager {
    * Make sure keys are loaded before use
    */
   private async ensureInitialized(): Promise<void> {
-    if (!this.isInitialized) {
+    if (!this.isInitialized || this.apiKeys.length === 0) {
       await this.refreshKeys();
     }
   }
@@ -121,8 +152,23 @@ class HeliusKeyManager {
    */
   public async initialize(): Promise<void> {
     this.isInitialized = false;
+    this.retryCount = 0;
     await this.refreshKeys();
     console.log("HeliusKeyManager initialized");
+  }
+  
+  /**
+   * Get the number of available API keys
+   */
+  public getKeyCount(): number {
+    return this.apiKeys.length;
+  }
+  
+  /**
+   * Check if at least one API key is available
+   */
+  public hasKeys(): boolean {
+    return this.apiKeys.length > 0;
   }
 }
 

@@ -2,66 +2,61 @@
 import { errorCollector } from './collector';
 
 /**
- * Set up global error handling for the application
- * This captures unhandled errors and logs them to the error collector
+ * Sets up global error handlers for uncaught exceptions and unhandled rejections
+ * @returns cleanup function
  */
 export function setupGlobalErrorHandling() {
-  // Previous error handler (if any)
-  const previousErrorHandler = window.onerror;
+  console.log('Setting up global error handling...');
   
-  // Set up window.onerror handler
-  window.onerror = (message, source, lineno, colno, error) => {
-    // Call previous handler if it exists
-    if (previousErrorHandler) {
-      previousErrorHandler(message, source, lineno, colno, error);
-    }
+  // Handler for uncaught exceptions
+  const handleError = (event: ErrorEvent) => {
+    console.error('Global error caught:', event.error);
     
-    // Log error to collector
-    errorCollector.captureError(error || new Error(String(message)), {
+    errorCollector.captureError(event.error || new Error(event.message), {
       component: 'GlobalErrorHandler',
-      source: 'client',
-      details: { source, lineno, colno }
+      source: 'window',
+      details: {
+        message: event.message,
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+      }
     });
     
-    // Return false to allow the error to propagate
-    return false;
+    // Don't prevent default error handling
+    // event.preventDefault();
   };
   
-  // Handle unhandled promise rejections
-  window.addEventListener('unhandledrejection', (event) => {
-    const error = event.reason instanceof Error 
-      ? event.reason 
-      : new Error(String(event.reason));
+  // Handler for unhandled promise rejections
+  const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+    console.error('Unhandled promise rejection:', event.reason);
     
-    // Log to error collector
-    errorCollector.captureError(error, {
-      component: 'UnhandledPromiseRejection',
-      source: 'client'
-    });
-  });
-  
-  // Handle React errors via error boundaries
-  // This is just for logging purposes, actual handling will be done by ErrorBoundary components
-  const originalConsoleError = console.error;
-  console.error = (...args) => {
-    // Call original console.error
-    originalConsoleError.apply(console, args);
+    errorCollector.captureError(
+      event.reason instanceof Error ? event.reason : new Error(String(event.reason)), 
+      {
+        component: 'GlobalErrorHandler',
+        source: 'promise',
+        details: {
+          type: 'unhandled_rejection',
+        }
+      }
+    );
     
-    // Check if this is a React error (usually starts with "Error:" or "Warning:")
-    const errorMessage = args[0];
-    if (typeof errorMessage === 'string' && 
-        (errorMessage.startsWith('Error:') || errorMessage.includes('React'))) {
-      // Log to error collector
-      errorCollector.captureError(new Error(args.join(' ')), {
-        component: 'ReactError',
-        source: 'client'
-      });
-    }
+    // Don't prevent default error handling
+    // event.preventDefault();
   };
   
+  // Add error handlers
+  window.addEventListener('error', handleError);
+  window.addEventListener('unhandledrejection', handleUnhandledRejection);
+  
+  // Log successful setup
+  console.log('Global error handlers installed');
+  
+  // Return cleanup function
   return () => {
-    // Cleanup function to remove handlers if needed
-    window.onerror = previousErrorHandler;
-    console.error = originalConsoleError;
+    window.removeEventListener('error', handleError);
+    window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    console.log('Global error handlers removed');
   };
 }
