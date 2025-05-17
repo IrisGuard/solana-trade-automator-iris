@@ -19,4 +19,4 @@ export const {
   getHeliusApiKey
 } = heliusServices;
 
-export const HELIUS_BASE_URL = heliusServices.HELIUS_BASE_URL;
+export const HELIUS_API_BASE_URL = heliusServices.HELIUS_API_BASE_URL;

@@ -14,6 +14,7 @@ interface DisplayErrorOptions {
   useCollector?: boolean;
   details?: Record<string, unknown>;
   severity?: 'low' | 'medium' | 'high' | 'critical';
+  source?: string; // Added the source property
 }
 
 /**
@@ -29,6 +30,7 @@ export function displayError(error: Error, options: DisplayErrorOptions = {}): v
     useCollector = true,
     details = {},
     severity = 'medium',
+    source = 'unknown',
   } = options;
 
   // Always log to console
@@ -40,6 +42,7 @@ export function displayError(error: Error, options: DisplayErrorOptions = {}): v
       component,
       details,
       severity,
+      source,
     });
   }
 

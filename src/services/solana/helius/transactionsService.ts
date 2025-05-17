@@ -1,5 +1,5 @@
 
-import { HELIUS_BASE_URL, getHeliusApiKey } from './config';
+import { HELIUS_API_BASE_URL, getHeliusApiKey } from './config';
 import { handleHeliusError } from './errorHandler';
 
 /**
@@ -7,7 +7,7 @@ import { handleHeliusError } from './errorHandler';
  */
 export const sendRpcRequest = async (method: string, params: any[]): Promise<any> => {
   const apiKey = getHeliusApiKey();
-  const url = `${HELIUS_BASE_URL}/rpc?api-key=${apiKey}`;
+  const url = `${HELIUS_API_BASE_URL}/rpc?api-key=${apiKey}`;
   
   try {
     const response = await fetch(url, {
@@ -45,7 +45,7 @@ export const sendRpcRequest = async (method: string, params: any[]): Promise<any
 export const getEnhancedTransaction = async (signature: string): Promise<any> => {
   try {
     const apiKey = getHeliusApiKey();
-    const url = `${HELIUS_BASE_URL}/transactions?api-key=${apiKey}&commitment=confirmed`;
+    const url = `${HELIUS_API_BASE_URL}/transactions?api-key=${apiKey}&commitment=confirmed`;
     
     const response = await fetch(url, {
       method: 'POST',
@@ -72,7 +72,7 @@ export const getEnhancedTransaction = async (signature: string): Promise<any> =>
 export const getEnhancedTransactions = async (signatures: string[]): Promise<any[]> => {
   try {
     const apiKey = getHeliusApiKey();
-    const url = `${HELIUS_BASE_URL}/transactions?api-key=${apiKey}&commitment=confirmed`;
+    const url = `${HELIUS_API_BASE_URL}/transactions?api-key=${apiKey}&commitment=confirmed`;
     
     // Process signatures in batches of 100 (Helius API limit)
     const batchSize = 100;
@@ -110,7 +110,7 @@ export const getEnhancedTransactionHistory = async (address: string, options?: {
   try {
     const apiKey = getHeliusApiKey();
     const limit = options?.limit || 100;
-    const url = `${HELIUS_BASE_URL}/addresses/${address}/transactions?api-key=${apiKey}&type=ALL&limit=${limit}`;
+    const url = `${HELIUS_API_BASE_URL}/addresses/${address}/transactions?api-key=${apiKey}&type=ALL&limit=${limit}`;
     
     const response = await fetch(url);
     
@@ -130,7 +130,7 @@ export const getEnhancedTransactionHistory = async (address: string, options?: {
 export const parseTransactionData = async (transactionData: string): Promise<any> => {
   try {
     const apiKey = getHeliusApiKey();
-    const url = `${HELIUS_BASE_URL}/transactions/parse?api-key=${apiKey}`;
+    const url = `${HELIUS_API_BASE_URL}/transactions/parse?api-key=${apiKey}`;
     
     const response = await fetch(url, {
       method: 'POST',

@@ -1,5 +1,5 @@
 
-import { HELIUS_BASE_URL, getHeliusApiKey } from './config';
+import { HELIUS_API_BASE_URL, getHeliusApiKey } from './config';
 import { handleHeliusError } from './errorHandler';
 
 /**
@@ -8,7 +8,7 @@ import { handleHeliusError } from './errorHandler';
 export const getAddressAssets = async (address: string): Promise<any> => {
   try {
     const apiKey = getHeliusApiKey();
-    const url = `${HELIUS_BASE_URL}/addresses/${address}/balances?api-key=${apiKey}`;
+    const url = `${HELIUS_API_BASE_URL}/addresses/${address}/balances?api-key=${apiKey}`;
     
     const response = await fetch(url);
     
@@ -29,7 +29,7 @@ export const getNftEvents = async (address: string, options?: { limit?: number }
   try {
     const apiKey = getHeliusApiKey();
     const limit = options?.limit || 100;
-    const url = `${HELIUS_BASE_URL}/nft-events?api-key=${apiKey}&sourceAddress=${address}&limit=${limit}`;
+    const url = `${HELIUS_API_BASE_URL}/nft-events?api-key=${apiKey}&sourceAddress=${address}&limit=${limit}`;
     
     const response = await fetch(url);
     
