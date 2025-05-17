@@ -3,24 +3,25 @@
 import React from 'react';
 
 // Define JSX functions directly without relying on imports that might not be initialized
-const jsx = function(type, props, key) {
+export function jsx(type, props, key) {
   return React.createElement(type, props, key);
-};
+}
 
-const jsxs = function(type, props, key) {
+export function jsxs(type, props, key) {
   // jsxs is for handling multiple children
   return React.createElement(type, props, key);
-};
+}
 
-const Fragment = React.Fragment;
+export const Fragment = React.Fragment;
 
 // Define jsxDEV for compatibility (in dev mode, jsxDEV is used as jsx)
-const jsxDEV = function(type, props, key) {
+export function jsxDEV(type, props, key) {
   return jsx(type, props, key);
-};
+}
 
 // Export with jsxDEV as jsx for dev mode
 export { jsxDEV as jsx, jsxs, Fragment };
 
-// Default export
-export default { jsx: jsxDEV, jsxs, Fragment };
+// Default export for compatibility
+const runtime = { jsx: jsxDEV, jsxs, Fragment };
+export default runtime;

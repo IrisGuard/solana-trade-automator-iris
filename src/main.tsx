@@ -2,6 +2,9 @@
 // Import polyfills before anything else
 import './polyfills'
 
+// Apply DOM patches early
+import './utils/domPatches'
+
 // Import our React fixes before React components
 import './utils/reactPatches'
 import './react-exports-fix'
