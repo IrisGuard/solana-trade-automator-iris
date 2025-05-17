@@ -1,6 +1,5 @@
 
 import React, { useEffect } from "react";
-import { BrowserRouter } from "react-router-dom";
 import { Routes } from "@/routes";
 import { Toaster } from "sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -102,33 +101,32 @@ export function AppContent() {
       onError={logError}
     >
       <DOMErrorHandler />
-      <BrowserRouter>
-        <ThemeProvider>
-          <LanguageProvider defaultLanguage="el">
-            <QueryClientProvider client={queryClient}>
-              <SupabaseAuthProvider>
-                <TooltipProvider>
-                  <SolanaWalletProvider>
-                    <WalletProviderWrapper>
-                      <div id="app-container" className="app-root">
-                        <div id="main-content" className="app-content">
-                          <Routes />
-                          <EmergencyRecovery />
-                          <HealthStatusIndicator />
-                          <HelpButton />
-                          <PermanentRestoreButton />
-                          <Toaster position="top-right" richColors />
-                          <MonitoringSystem />
-                        </div>
+      {/* Removed BrowserRouter from here */}
+      <ThemeProvider>
+        <LanguageProvider defaultLanguage="el">
+          <QueryClientProvider client={queryClient}>
+            <SupabaseAuthProvider>
+              <TooltipProvider>
+                <SolanaWalletProvider>
+                  <WalletProviderWrapper>
+                    <div id="app-container" className="app-root">
+                      <div id="main-content" className="app-content">
+                        <Routes />
+                        <EmergencyRecovery />
+                        <HealthStatusIndicator />
+                        <HelpButton />
+                        <PermanentRestoreButton />
+                        <Toaster position="top-right" richColors />
+                        <MonitoringSystem />
                       </div>
-                    </WalletProviderWrapper>
-                  </SolanaWalletProvider>
-                </TooltipProvider>
-              </SupabaseAuthProvider>
-            </QueryClientProvider>
-          </LanguageProvider>
-        </ThemeProvider>
-      </BrowserRouter>
+                    </div>
+                  </WalletProviderWrapper>
+                </SolanaWalletProvider>
+              </TooltipProvider>
+            </SupabaseAuthProvider>
+          </QueryClientProvider>
+        </LanguageProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }
