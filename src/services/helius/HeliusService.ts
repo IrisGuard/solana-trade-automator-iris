@@ -154,6 +154,38 @@ class HeliusService {
       return [];
     }
   }
+  
+  /**
+   * Get transaction history for a wallet address
+   */
+  public async getTransactionHistory(walletAddress: string, limit: number = 10): Promise<any[]> {
+    try {
+      console.log(`Λήψη ιστορικού συναλλαγών για το πορτοφόλι: ${walletAddress}`);
+      
+      const apiKey = this.getApiKey();
+      const url = `${HELIUS_API_BASE_URL}/addresses/${walletAddress}/transactions?api-key=${apiKey}&type=ALL&limit=${limit}`;
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`Σφάλμα API Helius: ${response.status} - ${await response.text()}`);
+      }
+      
+      const data = await response.json();
+      console.log(`Ελήφθησαν ${data.length || 0} συναλλαγές από το Helius API`);
+      return data || [];
+    } catch (error) {
+      console.error("Σφάλμα κατά τη λήψη ιστορικού συναλλαγών:", error);
+      displayError(error as Error, {
+        component: 'HeliusService',
+        toastTitle: 'Σφάλμα λήψης συναλλαγών',
+        details: { walletAddress, limit },
+        severity: 'medium',
+        source: 'HeliusService'
+      });
+      return [];
+    }
+  }
 }
 
 // Export a singleton instance
