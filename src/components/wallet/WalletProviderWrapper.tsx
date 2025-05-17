@@ -1,6 +1,6 @@
 
 import React, { ReactNode, Suspense } from 'react';
-import { toast } from 'sonner';
+import { toast, Toaster } from 'sonner';
 import { ErrorBoundary } from 'react-error-boundary';
 
 interface WalletProviderWrapperProps {
@@ -27,6 +27,8 @@ export function WalletProviderWrapper({ children }: WalletProviderWrapperProps) 
   return (
     <ErrorBoundary FallbackComponent={WalletErrorFallback} onError={handleError}>
       <Suspense fallback={<div>Φόρτωση wallet provider...</div>}>
+        {/* Προσθήκη Toaster component για την εμφάνιση των toast notifications */}
+        <Toaster position="top-right" richColors />
         {children}
       </Suspense>
     </ErrorBoundary>

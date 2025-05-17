@@ -5,6 +5,7 @@ import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl } from '@solana/web3.js';
+import { toast } from 'sonner';
 
 // Import the default styles
 import '@solana/wallet-adapter-react-ui/styles.css';
@@ -38,14 +39,27 @@ export function SolanaWalletProvider({ children }: SolanaWalletProviderProps) {
       ];
     } catch (error) {
       console.error("Error initializing wallet adapters:", error);
+      toast.error("Σφάλμα αρχικοποίησης των wallet adapters");
       return [];
     }
   }, []);
 
+  // Ορισμός πρόσθετων παραμέτρων για το WalletProvider
+  const walletProviderConfig = {
+    wallets,
+    autoConnect: false,
+    onError: (error: Error) => {
+      console.error("Wallet provider error:", error);
+      toast.error("Σφάλμα παρόχου wallet", {
+        description: error.message
+      });
+    }
+  };
+
   // Return the wallet provider with connection
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect={false}>
+      <WalletProvider {...walletProviderConfig}>
         <WalletModalProvider>
           {children}
         </WalletModalProvider>
