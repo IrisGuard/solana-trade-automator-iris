@@ -1,5 +1,6 @@
 
 import { errorCollector } from '@/utils/error-handling/collector';
+import { toast } from 'sonner';
 
 /**
  * Error handler specifically for Helius API errors
@@ -22,6 +23,12 @@ export const handleHeliusError = (error: unknown, source: string) => {
     source,
     details,
     severity: 'high'
+  });
+  
+  // Show toast notification for critical errors
+  toast.error('Helius API Error', {
+    description: errorMessage.substring(0, 100), // Limit the length
+    duration: 5000
   });
   
   throw error;

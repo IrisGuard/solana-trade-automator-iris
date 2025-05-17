@@ -2,7 +2,7 @@
 import { apiKeys } from '../apiConfig';
 
 // Define the base URL for Helius API
-export const HELIUS_BASE_URL = 'https://api.helius.xyz/v0';
+export const HELIUS_API_BASE_URL = 'https://api.helius.xyz/v0';
 
 /**
  * Get a valid Helius API key from the configured keys

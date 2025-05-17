@@ -18,7 +18,6 @@ function App() {
             <WalletProviderWrapper>
               <SolanaWalletProvider>
                 <AppContent />
-                {/* Προσθήκη Toaster component στο κεντρικό App για εφαρμογή σε όλο το application */}
                 <Toaster position="top-right" richColors />
               </SolanaWalletProvider>
             </WalletProviderWrapper>

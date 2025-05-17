@@ -1,62 +1,58 @@
 
+/**
+ * Utility for displaying errors to users
+ */
 import { toast } from 'sonner';
 import { errorCollector } from './collector';
+import { sendErrorToChat } from './sendErrorToChat';
 
 interface DisplayErrorOptions {
   showToast?: boolean;
   toastTitle?: string;
-  toastDescription?: string;
   component?: string;
-  source?: string;
-  severity?: 'low' | 'medium' | 'high' | 'critical';
-  details?: Record<string, unknown>;
-  logToConsole?: boolean;
   sendToChat?: boolean;
   useCollector?: boolean;
+  details?: Record<string, unknown>;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
 }
 
 /**
- * Display an error to the user and log it to the error collector
+ * Display an error to the user and optionally collect it
  */
-export function displayError(error: Error | string, options: DisplayErrorOptions = {}) {
-  const errorObj = typeof error === 'string' ? new Error(error) : error;
-  const errorMessage = errorObj.message || 'An unknown error occurred';
-  
-  // Log to console if requested
-  if (options.logToConsole !== false) {
-    console.error('[Error]', errorMessage, errorObj);
+export function displayError(error: Error, options: DisplayErrorOptions = {}): void {
+  // Default options
+  const {
+    showToast = true,
+    toastTitle = 'Σφάλμα',
+    component = 'Unknown',
+    sendToChat = false,
+    useCollector = true,
+    details = {},
+    severity = 'medium',
+  } = options;
+
+  // Always log to console
+  console.error(`[displayError] ${component}:`, error);
+
+  // Collect the error if requested
+  if (useCollector) {
+    errorCollector.captureError(error, {
+      component,
+      details,
+      severity,
+    });
   }
-  
-  // Collect error with the error collector
-  const errorId = options.useCollector !== false ? 
-    errorCollector.captureError(errorObj, {
-      component: options.component || 'unknown',
-      source: options.source || 'client',
-      severity: options.severity || 'medium',
-      details: options.details
-    }) : 
-    `local_${Date.now()}`;
-  
-  // Prevent showing too many toasts for similar errors
-  if (options.showToast !== false) {
-    // Rate limit similar errors
-    const now = Date.now();
-    const lastErrorTime = window._lastErrorDisplayTimes?.[errorMessage] || 0;
-    
-    if (!window._lastErrorDisplayTimes) {
-      window._lastErrorDisplayTimes = {};
-    }
-    
-    // Only show toast if same error hasn't been shown in the last 5 seconds
-    if (now - lastErrorTime > 5000) {
-      window._lastErrorDisplayTimes[errorMessage] = now;
-      
-      toast.error(options.toastTitle || 'Error', {
-        id: `error-${errorId}`,
-        description: options.toastDescription || errorMessage
-      });
-    }
+
+  // Show toast if requested
+  if (showToast) {
+    toast.error(toastTitle, {
+      description: error.message || 'Παρουσιάστηκε ένα σφάλμα',
+      duration: 5000,
+    });
   }
-  
-  return errorId;
+
+  // Send to chat if requested
+  if (sendToChat) {
+    sendErrorToChat(error, { component, details });
+  }
 }

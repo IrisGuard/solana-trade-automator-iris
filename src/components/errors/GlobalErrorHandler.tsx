@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { Toast, ToastAction } from '@/components/ui/toast';
 import { errorCollector } from '@/utils/error-handling/collector';
 import { ErrorData } from '@/utils/error-handling/collector/types';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, X } from 'lucide-react';
 import { displayError } from '@/utils/error-handling/displayError';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
+import { toast } from 'sonner';
 
 export function GlobalErrorHandler() {
   const [errors, setErrors] = useState<ErrorData[]>([]);
@@ -89,19 +89,19 @@ export function GlobalErrorHandler() {
   if (!lastError) return null;
 
   return (
-    <Toast className="bg-destructive text-white">
-      <div className="flex items-start gap-2">
-        <AlertCircle className="h-5 w-5 mt-0.5" />
-        <div className="flex-1">
-          <div className="font-semibold">Σφάλμα Εφαρμογής</div>
-          <div className="text-sm opacity-90">{lastError.message || 'Unknown error'}</div>
-          <div className="text-xs opacity-75 mt-1">
-            Στο: {lastError.component || 'Unknown'} | {new Date(lastError.timestamp).toLocaleTimeString()}
+    <div className="fixed bottom-4 right-4 max-w-md z-50 animate-in fade-in slide-in-from-right">
+      <div className="bg-destructive text-white p-4 rounded-md shadow-lg flex flex-col">
+        <div className="flex items-start gap-2">
+          <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <div className="font-semibold">Σφάλμα Εφαρμογής</div>
+            <div className="text-sm opacity-90">{lastError.message || 'Unknown error'}</div>
+            <div className="text-xs opacity-75 mt-1">
+              Στο: {lastError.component || 'Unknown'} | {new Date(lastError.timestamp).toLocaleTimeString()}
+            </div>
           </div>
         </div>
-      </div>
-      <ToastAction className="flex gap-2" asChild altText="Αποστολή στην υποστήριξη">
-        <div>
+        <div className="flex gap-2 mt-3 justify-end">
           <Button 
             variant="outline" 
             size="sm" 
@@ -119,7 +119,7 @@ export function GlobalErrorHandler() {
             <X className="h-4 w-4" />
           </Button>
         </div>
-      </ToastAction>
-    </Toast>
+      </div>
+    </div>
   );
 }
