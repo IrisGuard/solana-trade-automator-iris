@@ -29,6 +29,27 @@ if (typeof window !== 'undefined') {
   }
 }
 
-// Export all React features for local imports
-export * from 'react';
+// Instead of using "export *", we explicitly re-export the React elements we need
+export const useState = React.useState;
+export const useEffect = React.useEffect;
+export const useContext = React.useContext;
+export const useReducer = React.useReducer;
+export const useCallback = React.useCallback;
+export const useMemo = React.useMemo;
+export const useRef = React.useRef;
+export const useImperativeHandle = React.useImperativeHandle;
+export const useLayoutEffect = React.useLayoutEffect;
+export const useDebugValue = React.useDebugValue;
+export const Fragment = React.Fragment;
+export const createElement = React.createElement;
+export const createContext = React.createContext;
+export const forwardRef = React.forwardRef;
+export const memo = React.memo;
+export const Children = React.Children;
+export const Component = React.Component;
+export const PureComponent = React.PureComponent;
+export const cloneElement = React.cloneElement;
+export const isValidElement = React.isValidElement;
+
+// Export the default React object
 export default React;
