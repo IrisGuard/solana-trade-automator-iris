@@ -1,17 +1,24 @@
 
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
+// Import polyfills and patches first
+import './polyfills';
 
-// Polyfills for Solana web3.js
-import './polyfills'
-import { AppContent } from './components/AppContent.tsx'
+// Apply DOM patches early
+import { applyAllDOMPatches } from './utils/domPatches';
+applyAllDOMPatches();
 
-// Initialize early protection mechanism before rendering
-import { SiteBackupService } from './utils/site-protection/SiteBackupService'
-import { HelpButton } from './components/help/HelpButton.tsx'
-import { SiteHealthMonitor } from './utils/error-handling/SiteHealthMonitor'
+// Import React fixes before React components
+import './utils/reactPatches';
+import './react-exports-fix';
+
+// Important: Import React directly to ensure it's available
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
+
+// Import site protection components
+import { SiteBackupService } from './utils/site-protection/SiteBackupService';
+import { SiteHealthMonitor } from './utils/error-handling/SiteHealthMonitor';
 
 // Create initial backup if needed
 if (!localStorage.getItem('site_structure_backup')) {
@@ -50,8 +57,17 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// Console log to debug React availability
+console.log('React version available:', React.version);
+console.log('ReactDOM available:', !!ReactDOM);
+console.log('React.Fragment available:', !!React.Fragment);
+// Removed the problematic line checking for React.jsx
+
+// Initialize React application
+console.log('Initializing React application...');
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
-)
+);
