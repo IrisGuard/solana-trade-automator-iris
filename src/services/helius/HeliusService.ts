@@ -1,6 +1,6 @@
 
 import { heliusKeyManager } from './HeliusKeyManager';
-import { HELIUS_BASE_URL, HELIUS_CONFIG } from './HeliusConfig';
+import { HELIUS_API_BASE_URL, HELIUS_CONFIG } from './HeliusConfig';
 import { mockTransactions, generateMockTransactions } from '../mocks/mockTransactions';
 import { errorCollector } from '@/utils/error-handling/collector';
 import { validationService } from './ValidationService';
@@ -17,7 +17,7 @@ class HeliusService {
       await heliusKeyManager.refreshKeys();
       
       // Create the URL for the Helius API
-      const url = new URL(`${HELIUS_BASE_URL}/addresses/${walletAddress}/transactions`);
+      const url = new URL(`${HELIUS_API_BASE_URL}/addresses/${walletAddress}/transactions`);
       
       // Add the API key
       const apiKey = heliusKeyManager.getApiKey();
@@ -65,7 +65,7 @@ class HeliusService {
       errorCollector.captureError(error, {
         component: 'HeliusService',
         method: 'getTransactionHistory',
-        additional: `Wallet: ${walletAddress.substring(0, 8)}...`
+        details: { walletAddress: walletAddress.substring(0, 8) + '...' }
       });
       
       // Return mock data on error

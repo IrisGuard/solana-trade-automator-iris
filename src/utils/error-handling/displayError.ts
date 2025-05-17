@@ -10,6 +10,9 @@ interface DisplayErrorOptions {
   source?: string;
   severity?: 'low' | 'medium' | 'high' | 'critical';
   details?: Record<string, unknown>;
+  logToConsole?: boolean;
+  sendToChat?: boolean;
+  useCollector?: boolean;
 }
 
 /**
@@ -19,13 +22,20 @@ export function displayError(error: Error | string, options: DisplayErrorOptions
   const errorObj = typeof error === 'string' ? new Error(error) : error;
   const errorMessage = errorObj.message || 'An unknown error occurred';
   
+  // Log to console if requested
+  if (options.logToConsole !== false) {
+    console.error('[Error]', errorMessage, errorObj);
+  }
+  
   // Collect error with the error collector
-  const errorId = errorCollector.captureError(errorObj, {
-    component: options.component || 'unknown',
-    source: options.source || 'client',
-    severity: options.severity || 'medium',
-    details: options.details
-  });
+  const errorId = options.useCollector !== false ? 
+    errorCollector.captureError(errorObj, {
+      component: options.component || 'unknown',
+      source: options.source || 'client',
+      severity: options.severity || 'medium',
+      details: options.details
+    }) : 
+    `local_${Date.now()}`;
   
   // Prevent showing too many toasts for similar errors
   if (options.showToast !== false) {

@@ -15,9 +15,12 @@ export function AppErrorBoundary({ children, fallbackComponent }: AppErrorBounda
     displayError(error, {
       toastTitle: "Σφάλμα εφαρμογής",
       showToast: true,
-      logToConsole: true,
+      component: 'AppErrorBoundary',
       sendToChat: true,
-      useCollector: true
+      useCollector: true,
+      details: {
+        componentStack: info.componentStack
+      }
     });
     
     // Αποθήκευση λεπτομερειών σφάλματος

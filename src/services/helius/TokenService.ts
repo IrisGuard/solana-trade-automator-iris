@@ -1,7 +1,7 @@
 
 import { heliusKeyManager } from "./HeliusKeyManager";
 import { TokenBalance, TokenMetadata } from "./types";
-import { HELIUS_BASE_URL } from "./HeliusConfig";
+import { HELIUS_API_BASE_URL } from "./HeliusConfig";
 
 /**
  * Service for token-related Helius API operations
@@ -14,7 +14,7 @@ export class TokenService {
     try {
       console.log(`Λήψη υπολοίπων token για το πορτοφόλι: ${walletAddress}`);
       // Δημιουργούμε το URL για το API του Helius
-      const url = new URL(`${HELIUS_BASE_URL}/addresses/${walletAddress}/balances`);
+      const url = new URL(`${HELIUS_API_BASE_URL}/addresses/${walletAddress}/balances`);
       
       // Προσθέτουμε το API key
       const apiKey = heliusKeyManager.getApiKey();
@@ -47,7 +47,7 @@ export class TokenService {
       
       console.log(`Λήψη μεταδεδομένων για ${tokenAddresses.length} token`);
       // Δημιουργούμε το URL για το API του Helius
-      const url = new URL(`${HELIUS_BASE_URL}/tokens`);
+      const url = new URL(`${HELIUS_API_BASE_URL}/tokens`);
       
       // Προσθέτουμε το API key
       const apiKey = heliusKeyManager.getApiKey();

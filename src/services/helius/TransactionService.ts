@@ -1,7 +1,7 @@
 
 import { heliusKeyManager } from "./HeliusKeyManager";
 import { Transaction } from "./types";
-import { HELIUS_BASE_URL } from "./HeliusConfig";
+import { HELIUS_API_BASE_URL } from "./HeliusConfig";
 
 /**
  * Service for transaction-related Helius API operations
@@ -14,7 +14,7 @@ export class TransactionService {
     try {
       console.log(`Λήψη ιστορικού συναλλαγών για το πορτοφόλι: ${walletAddress}`);
       // Δημιουργούμε το URL για το API του Helius
-      const url = new URL(`${HELIUS_BASE_URL}/addresses/${walletAddress}/transactions`);
+      const url = new URL(`${HELIUS_API_BASE_URL}/addresses/${walletAddress}/transactions`);
       
       // Προσθέτουμε το API key
       const apiKey = heliusKeyManager.getApiKey();

@@ -70,9 +70,12 @@ export function PublishErrorMonitor() {
               displayError(error, {
                 toastTitle: "Σφάλμα κατά τη δημοσίευση",
                 showToast: true,
-                logToConsole: true,
+                component: 'PublishErrorMonitor',
                 sendToChat: true,
-                useCollector: true
+                useCollector: true,
+                details: {
+                  origin: 'supabase-check'
+                }
               });
             });
             
