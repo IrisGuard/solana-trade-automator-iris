@@ -5,6 +5,10 @@ import './polyfills'
 // Apply DOM patches early
 import './utils/domPatches'
 
+// Initialize React global object early 
+import { initializeReactRuntime } from './utils/reactInitializer'
+initializeReactRuntime();
+
 // Import our React fixes before React components
 import './utils/reactPatches'
 import './react-exports-fix'

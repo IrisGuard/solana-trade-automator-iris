@@ -7,24 +7,21 @@
  */
 import * as React from 'react';
 
+// Define these as function declarations for better hoisting
+export function jsx(type: any, props: any, key?: any) {
+  return React.createElement(type, props, key);
+}
+
+export function jsxs(type: any, props: any, key?: any) {
+  return React.createElement(type, props, key);
+}
+
+export function jsxDEV(type: any, props: any, key?: any, isStaticChildren?: boolean, source?: any, self?: any) {
+  return React.createElement(type, props, key);
+}
+
 // First define our basic functions that don't depend on anything else
 export const Fragment = React.Fragment;
-
-// Define JSX functions directly without relying on imports that might not be initialized
-export const jsx = function(type: any, props: any, key?: any) {
-  return React.createElement(type, props, key);
-};
-
-export const jsxs = function(type: any, props: any, key?: any) {
-  // jsxs is for handling multiple children
-  return React.createElement(type, props, key);
-};
-
-// For development runtime compatibility
-export const jsxDEV = function(type: any, props: any, key?: any, isStaticChildren?: boolean, source?: any, self?: any) {
-  // Development version uses the same function as production but with more parameters
-  return jsx(type, props, key);
-};
 
 // Create a compatibility layer for older code that might import directly
 const jsxRuntime = {

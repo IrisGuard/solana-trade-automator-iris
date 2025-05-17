@@ -10,6 +10,19 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
+// Define JSX functions explicitly using function declarations
+function jsxFunction(type, props, key) {
+  return React.createElement(type, props, key);
+}
+
+function jsxsFunction(type, props, key) {
+  return React.createElement(type, props, key);
+}
+
+function jsxDEVFunction(type, props, key) {
+  return React.createElement(type, props, key);
+}
+
 // Make React available globally if it's not already
 if (typeof window !== 'undefined') {
   // Ensure React is available on window
@@ -29,21 +42,15 @@ if (typeof window !== 'undefined') {
   
   // Add JSX functions if missing
   if (window.React && !window.React.jsx) {
-    window.React.jsx = function(type, props, key) {
-      return React.createElement(type, props, key);
-    };
+    window.React.jsx = jsxFunction;
   }
   
   if (window.React && !window.React.jsxs) {
-    window.React.jsxs = function(type, props, key) {
-      return React.createElement(type, props, key);
-    };
+    window.React.jsxs = jsxsFunction;
   }
   
   if (window.React && !window.React.jsxDEV) {
-    window.React.jsxDEV = function(type, props, key) {
-      return React.createElement(type, props, key);
-    };
+    window.React.jsxDEV = jsxDEVFunction;
   }
 }
 
@@ -70,17 +77,9 @@ export const cloneElement = React.cloneElement;
 export const isValidElement = React.isValidElement;
 
 // Add JSX runtime functions
-export const jsx = function(type, props, key) {
-  return React.createElement(type, props, key);
-};
-
-export const jsxs = function(type, props, key) {
-  return React.createElement(type, props, key);
-};
-
-export const jsxDEV = function(type, props, key) {
-  return React.createElement(type, props, key);
-};
+export const jsx = jsxFunction;
+export const jsxs = jsxsFunction;
+export const jsxDEV = jsxDEVFunction;
 
 // Export the default React object
 export default React;
