@@ -1,6 +1,6 @@
 
 // Fallback API key for development
-export const FALLBACK_HELIUS_KEY = "";
+export const FALLBACK_HELIUS_KEY = "ddb32813-1f4b-459d-8964-310b1b73a053";
 
 // API Base URL
 export const HELIUS_API_BASE_URL = "https://api.helius.xyz/v0";

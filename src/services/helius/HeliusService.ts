@@ -1,187 +1,157 @@
 
+import { FALLBACK_HELIUS_KEY, HELIUS_API_BASE_URL, HELIUS_CONFIG } from './HeliusConfig';
 import { heliusKeyManager } from './HeliusKeyManager';
-import { HELIUS_API_BASE_URL, HELIUS_CONFIG } from './HeliusConfig';
-import { mockTransactions, generateMockTransactions } from '../mocks/mockTransactions';
-import { errorCollector } from '@/utils/error-handling/collector';
-import { validationService } from './ValidationService';
+import { toast } from 'sonner';
+import { displayError } from '@/utils/error-handling/displayError';
 
 class HeliusService {
+  private isInitialized = false;
+  private apiKey: string | null = null;
+  
+  constructor() {
+    this.initialize();
+  }
+  
   /**
-   * Get transaction history for a wallet address
+   * Initialize the HeliusService
    */
-  public async getTransactionHistory(walletAddress: string, limit: number = 10) {
+  public async initialize(): Promise<void> {
     try {
-      console.log(`Fetching transaction history for wallet: ${walletAddress}`);
+      await heliusKeyManager.initialize();
+      this.isInitialized = true;
       
-      // Ensure we have a valid API key
-      await heliusKeyManager.refreshKeys();
-      
-      // Create the URL for the Helius API
-      const url = new URL(`${HELIUS_API_BASE_URL}/addresses/${walletAddress}/transactions`);
-      
-      // Add the API key
-      const apiKey = heliusKeyManager.getApiKey();
-      console.log(`Using API key: ${apiKey.substring(0, 8)}... for fetching transactions`);
-      url.searchParams.append('api-key', apiKey);
-      
-      // Add parameters
-      url.searchParams.append('limit', limit.toString());
-      url.searchParams.append('type', 'ALL');
-      
-      // Make the request with timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), HELIUS_CONFIG.timeout);
-      
-      try {
-        const response = await fetch(url.toString(), { 
-          signal: controller.signal 
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-          throw new Error(`Helius API error: ${response.status} - ${await response.text()}`);
-        }
-        
-        const data = await response.json();
-        console.log(`Received ${data.length || 0} transactions from Helius API`);
-        
-        if (data && data.length > 0) {
-          return data;
-        }
-        
-        // If no data, return mock data
-        console.log('No real transactions found, returning mock data for testing');
-        return mockTransactions;
-      } catch (fetchError) {
-        console.error('Fetch error in getTransactionHistory:', fetchError);
-        
-        // Return mock data on error
-        console.log('API error, returning mock data for testing');
-        return mockTransactions;
-      }
+      // Pre-fetch API key to have it ready
+      this.getApiKey();
     } catch (error) {
-      console.error("Error fetching transaction history:", error);
-      errorCollector.captureError(error, {
-        component: 'HeliusService',
-        method: 'getTransactionHistory',
-        details: { walletAddress: walletAddress.substring(0, 8) + '...' }
-      });
-      
-      // Return mock data on error
-      return mockTransactions;
+      console.error('Error initializing HeliusService:', error);
+      this.isInitialized = false;
     }
   }
   
   /**
-   * Get token balances for a wallet
+   * Force reinitialization of the service
    */
-  public async getTokenBalances(walletAddress: string) {
+  public async reinitialize(): Promise<void> {
+    this.isInitialized = false;
+    this.apiKey = null;
+    await this.initialize();
+  }
+  
+  /**
+   * Get a valid API key
+   */
+  private getApiKey(): string {
     try {
-      // Ensure we have a valid API key
-      await heliusKeyManager.refreshKeys();
+      if (!this.isInitialized) {
+        console.warn('HeliusService not initialized, using fallback key');
+      }
       
-      // Create the URL for the Helius API
-      const url = new URL(`${HELIUS_API_BASE_URL}/addresses/${walletAddress}/balances`);
+      // Try to get a key from the key manager
+      if (heliusKeyManager.hasKeys()) {
+        this.apiKey = heliusKeyManager.getApiKey();
+        return this.apiKey;
+      }
       
-      // Add the API key
-      const apiKey = heliusKeyManager.getApiKey();
-      url.searchParams.append('api-key', apiKey);
+      // Fallback to default key if available
+      if (FALLBACK_HELIUS_KEY) {
+        this.apiKey = FALLBACK_HELIUS_KEY;
+        return FALLBACK_HELIUS_KEY;
+      }
       
-      const response = await fetch(url.toString());
+      // Last resort: throw an error
+      throw new Error('No Helius API keys available');
+    } catch (error) {
+      if (!this.apiKey && !FALLBACK_HELIUS_KEY) {
+        displayError(error as Error, {
+          component: 'HeliusService',
+          toastTitle: 'Σφάλμα Helius API',
+          details: { method: 'getApiKey' },
+          severity: 'high',
+          source: 'HeliusService'
+        });
+        throw new Error('Helius API not configured properly');
+      }
+      
+      // Return whatever key we have, even if it's null
+      return this.apiKey || FALLBACK_HELIUS_KEY;
+    }
+  }
+  
+  /**
+   * Check if an API key is valid
+   */
+  public async checkApiKey(apiKey: string): Promise<boolean> {
+    try {
+      const url = `${HELIUS_API_BASE_URL}/addresses/vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg/balances?api-key=${apiKey}`;
+      const response = await fetch(url);
+      return response.status === 200;
+    } catch (error) {
+      console.error('Error checking Helius API key:', error);
+      return false;
+    }
+  }
+  
+  /**
+   * Get token balances for an address
+   */
+  public async getTokenBalances(address: string): Promise<any[]> {
+    try {
+      const apiKey = this.getApiKey();
+      const url = `${HELIUS_API_BASE_URL}/addresses/${address}/balances?api-key=${apiKey}`;
+      
+      const response = await fetch(url);
+      
       if (!response.ok) {
-        throw new Error(`Helius API error: ${response.status} - ${await response.text()}`);
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
       
       const data = await response.json();
       return data.tokens || [];
     } catch (error) {
-      console.error("Error fetching token balances:", error);
-      errorCollector.captureError(error, {
+      displayError(error as Error, {
         component: 'HeliusService',
-        method: 'getTokenBalances',
-        additional: `Wallet: ${walletAddress.substring(0, 8)}...`
+        toastTitle: 'Σφάλμα λήψης νομισμάτων',
+        details: { address },
+        severity: 'medium',
+        source: 'HeliusService'
       });
-      
       return [];
     }
   }
   
   /**
-   * Get token metadata for a list of token addresses
+   * Get token metadata
    */
-  public async getTokenMetadata(tokenAddresses: string[]) {
-    if (!tokenAddresses || tokenAddresses.length === 0) {
-      return [];
-    }
-    
+  public async getTokenMetadata(addresses: string[]): Promise<any[]> {
     try {
-      // Ensure we have a valid API key
-      await heliusKeyManager.refreshKeys();
+      if (!addresses.length) return [];
       
-      // Create the URL for the Helius API
-      const url = new URL(`${HELIUS_API_BASE_URL}/token-metadata`);
+      const apiKey = this.getApiKey();
+      const url = `${HELIUS_API_BASE_URL}/tokens?api-key=${apiKey}`;
       
-      // Add the API key
-      const apiKey = heliusKeyManager.getApiKey();
-      url.searchParams.append('api-key', apiKey);
-      
-      const response = await fetch(url.toString(), {
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ mintAccounts: tokenAddresses })
+        body: JSON.stringify({ mintAccounts: addresses }),
       });
       
       if (!response.ok) {
-        throw new Error(`Helius API error: ${response.status} - ${await response.text()}`);
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
       
       const data = await response.json();
-      return data || [];
+      return data.tokens || [];
     } catch (error) {
-      console.error("Error fetching token metadata:", error);
-      errorCollector.captureError(error, {
+      displayError(error as Error, {
         component: 'HeliusService',
-        method: 'getTokenMetadata',
-        additional: `Token count: ${tokenAddresses.length}`
+        toastTitle: 'Σφάλμα λήψης μεταδεδομένων',
+        details: { addressCount: addresses.length },
+        severity: 'medium',
+        source: 'HeliusService'
       });
-      
       return [];
-    }
-  }
-
-  /**
-   * Check if an API key is valid by using validation service
-   */
-  public async checkApiKey(apiKey: string): Promise<boolean> {
-    try {
-      return await validationService.checkApiKey(apiKey);
-    } catch (error) {
-      console.error("Error checking API key:", error);
-      errorCollector.captureError(error, {
-        component: 'HeliusService',
-        method: 'checkApiKey'
-      });
-      return false;
-    }
-  }
-
-  /**
-   * Reinitialize service (for use after API key changes)
-   */
-  public async reinitialize(): Promise<void> {
-    try {
-      // Refresh keys from storage
-      await heliusKeyManager.refreshKeys();
-      console.log("HeliusService reinitialized successfully");
-    } catch (error) {
-      console.error("Error reinitializing HeliusService:", error);
-      errorCollector.captureError(error, {
-        component: 'HeliusService',
-        method: 'reinitialize'
-      });
     }
   }
 }
