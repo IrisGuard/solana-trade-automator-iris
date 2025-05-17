@@ -1,72 +1,115 @@
 
 /**
- * Console logger utility
- * Captures console errors and integrates with error reporting
+ * Utility to log console messages to localStorage for the error dashboard
  */
 
-// Original console methods
-let originalConsoleError: typeof console.error;
-let originalConsoleWarn: typeof console.warn;
+interface ConsoleLog {
+  type: 'error' | 'warn' | 'info';
+  message: string;
+  timestamp: string;
+}
 
-export const consoleLogger = {
-  initialize: () => {
-    // Save original methods
-    originalConsoleError = console.error;
-    originalConsoleWarn = console.warn;
+const MAX_LOGS = 100;
 
-    // Override console.error
-    console.error = (...args: any[]) => {
-      // Call original method
-      originalConsoleError.apply(console, args);
-      
-      // Handle React error - don't double report these
-      const errorString = args.join(' ');
-      const isReactError = 
-        errorString.includes('React') || 
-        errorString.includes('Warning:') ||
-        errorString.includes('Error: Minified') ||
-        errorString.includes('Check the render');
-        
-      if (!isReactError && typeof window !== 'undefined') {
-        try {
-          // Create an error to capture stack trace
-          const error = args[0] instanceof Error 
-            ? args[0] 
-            : new Error(args.map(arg => String(arg)).join(' '));
-            
-          // Add to error queue for UI processing if needed
-          if (window._errorQueue) {
-            window._errorQueue.push({
-              message: error.message,
-              stack: error.stack,
-              timestamp: new Date().toISOString(),
-              type: 'console.error'
-            });
-          }
-        } catch (e) {
-          // Don't crash if error handling fails
-        }
-      }
-    };
-
-    // Override console.warn
-    console.warn = (...args: any[]) => {
-      // Call original method
-      originalConsoleWarn.apply(console, args);
-      
-      // We could add warning tracking here if needed
-    };
-  },
-
-  restore: () => {
-    // Restore original console methods
-    if (originalConsoleError) {
-      console.error = originalConsoleError;
+export class ConsoleLogger {
+  private static instance: ConsoleLogger;
+  private originalConsoleError: typeof console.error;
+  private originalConsoleWarn: typeof console.warn;
+  private originalConsoleInfo: typeof console.info;
+  
+  private constructor() {
+    // Store original console methods
+    this.originalConsoleError = console.error;
+    this.originalConsoleWarn = console.warn;
+    this.originalConsoleInfo = console.info;
+  }
+  
+  public static getInstance(): ConsoleLogger {
+    if (!ConsoleLogger.instance) {
+      ConsoleLogger.instance = new ConsoleLogger();
     }
-    if (originalConsoleWarn) {
-      console.warn = originalConsoleWarn;
+    return ConsoleLogger.instance;
+  }
+  
+  public initialize(): void {
+    // Override console.error
+    console.error = (...args) => {
+      // Call original first
+      this.originalConsoleError.apply(console, args);
+      
+      // Log to storage
+      this.logToStorage('error', args);
+    };
+    
+    // Override console.warn
+    console.warn = (...args) => {
+      // Call original first
+      this.originalConsoleWarn.apply(console, args);
+      
+      // Log to storage
+      this.logToStorage('warn', args);
+    };
+    
+    // Override console.info
+    console.info = (...args) => {
+      // Call original first
+      this.originalConsoleInfo.apply(console, args);
+      
+      // Log to storage
+      this.logToStorage('info', args);
+    };
+  }
+  
+  public restore(): void {
+    console.error = this.originalConsoleError;
+    console.warn = this.originalConsoleWarn;
+    console.info = this.originalConsoleInfo;
+  }
+  
+  private logToStorage(type: 'error' | 'warn' | 'info', args: any[]): void {
+    try {
+      // Convert args to string
+      const message = args.map(arg => 
+        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+      ).join(' ');
+      
+      // Create log entry
+      const logEntry: ConsoleLog = {
+        type,
+        message,
+        timestamp: new Date().toISOString()
+      };
+      
+      // Get existing logs
+      const logs: ConsoleLog[] = JSON.parse(localStorage.getItem('app_console_logs') || '[]');
+      
+      // Add new log at the beginning
+      logs.unshift(logEntry);
+      
+      // Limit number of logs
+      const limitedLogs = logs.slice(0, MAX_LOGS);
+      
+      // Save back to storage
+      localStorage.setItem('app_console_logs', JSON.stringify(limitedLogs));
+    } catch (error) {
+      // Use original console to avoid infinite loop
+      this.originalConsoleError('Error logging to storage:', error);
     }
   }
-};
+  
+  public getLogs(): ConsoleLog[] {
+    try {
+      return JSON.parse(localStorage.getItem('app_console_logs') || '[]');
+    } catch (error) {
+      this.originalConsoleError('Error retrieving logs:', error);
+      return [];
+    }
+  }
+  
+  public clearLogs(): void {
+    localStorage.setItem('app_console_logs', '[]');
+  }
+}
 
-export default consoleLogger;
+// Create and export a singleton instance
+export const consoleLogger = ConsoleLogger.getInstance();

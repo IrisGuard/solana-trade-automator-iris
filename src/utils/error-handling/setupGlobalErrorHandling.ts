@@ -1,22 +1,11 @@
 
 import { errorCollector } from './collector';
-import { consoleLogger } from './ConsoleLogger';
-
-let isSetup = false;
 
 /**
  * Set up global error handling for the application
  * This captures unhandled errors and logs them to the error collector
  */
 export function setupGlobalErrorHandling() {
-  // Prevent double initialization
-  if (isSetup) {
-    console.log('Global error handling already set up');
-    return () => {}; // Return empty cleanup function
-  }
-  
-  isSetup = true;
-  
   // Previous error handler (if any)
   const previousErrorHandler = window.onerror;
   
@@ -51,13 +40,28 @@ export function setupGlobalErrorHandling() {
     });
   });
   
-  // Let consoleLogger handle console errors to avoid conflicts
-  consoleLogger.initialize();
+  // Handle React errors via error boundaries
+  // This is just for logging purposes, actual handling will be done by ErrorBoundary components
+  const originalConsoleError = console.error;
+  console.error = (...args) => {
+    // Call original console.error
+    originalConsoleError.apply(console, args);
+    
+    // Check if this is a React error (usually starts with "Error:" or "Warning:")
+    const errorMessage = args[0];
+    if (typeof errorMessage === 'string' && 
+        (errorMessage.startsWith('Error:') || errorMessage.includes('React'))) {
+      // Log to error collector
+      errorCollector.captureError(new Error(args.join(' ')), {
+        component: 'ReactError',
+        source: 'client'
+      });
+    }
+  };
   
   return () => {
     // Cleanup function to remove handlers if needed
     window.onerror = previousErrorHandler;
-    consoleLogger.restore();
-    isSetup = false;
+    console.error = originalConsoleError;
   };
 }

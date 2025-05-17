@@ -1,75 +1,67 @@
 
-import { toast } from "sonner";
-import { errorCollector } from "./collector";
+import { toast } from 'sonner';
+import { errorCollector } from './collector';
+import type { ErrorData } from './collector';
 
-export interface DisplayErrorOptions {
-  component?: string;
-  toastTitle?: string;
+interface DisplayErrorOptions {
   showToast?: boolean;
+  toastTitle?: string;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+  component?: string;
+  source?: string;
+  details?: any;
+  errorType?: string;
+  title?: string;
   logToConsole?: boolean;
   sendToChat?: boolean;
   useCollector?: boolean;
-  silent?: boolean;
-  source?: string; // Προσθέτουμε την ιδιότητα source
-  severity?: string;
-  details?: any;
+  notifyUser?: boolean;
 }
 
 /**
- * Display an error with various options
+ * Utility to display errors to the user and log them to the collector
  */
-export function displayError(error: Error, options: DisplayErrorOptions = {}) {
-  const {
-    component = "unknown",
-    toastTitle = "Σφάλμα",
-    showToast = true,
-    logToConsole = true,
-    sendToChat = false,
-    useCollector = true,
-    silent = false,
-    source = "client", // Προσθέτουμε προεπιλεγμένη τιμή
-    severity = "medium"
-  } = options;
+export const displayError = (
+  error: Error | string,
+  options: DisplayErrorOptions = {}
+): string => {
+  const errorObj = typeof error === 'string' ? new Error(error) : error;
+  const message = errorObj.message || 'An unknown error occurred';
 
-  // Log to console
-  if (logToConsole && !silent) {
-    console.error(`[${component}] Error:`, error);
+  // Log to console if requested
+  if (options.logToConsole) {
+    console.error('[ERROR]', message, errorObj);
   }
-  
-  // Use error collector
-  if (useCollector) {
-    errorCollector.captureError(error, {
-      component,
-      source,
-      severity: severity as any
-    });
-  }
-  
-  // Show toast
-  if (showToast && !silent) {
-    toast.error(toastTitle, {
-      description: error.message,
-      duration: 5000
-    });
-  }
-  
-  // Send to chat helper
-  if (sendToChat && window.lovableChat?.createErrorDialog && !silent) {
-    window.lovableChat.createErrorDialog({
-      title: toastTitle,
-      message: error.message,
-      stack: error.stack,
-      component
-    });
-  }
-}
 
-/**
- * Display a success message
- */
-export function displaySuccess(message: string, title: string = "Επιτυχία") {
-  toast.success(title, {
-    description: message,
-    duration: 3000
-  });
-}
+  // Collect the error if requested
+  let errorId = '';
+  if (options.useCollector !== false) {
+    errorId = errorCollector.captureError(errorObj, {
+      component: options.component || 'unknown',
+      source: options.source || 'client',
+      method: options.errorType,
+      severity: options.severity || 'medium',
+      details: options.details
+    });
+  }
+  
+  // Display toast if requested
+  if (options.showToast) {
+    toast.error(options.toastTitle || options.title || 'Error', {
+      description: message,
+      id: errorId
+    });
+  }
+  
+  // Send to chat implementation would go here
+  if (options.sendToChat) {
+    try {
+      // This would typically connect to a chat service or error reporting system
+      console.log('[CHAT] Error sent:', message);
+    } catch (e) {
+      console.error('Failed to send error to chat:', e);
+    }
+  }
+  
+  return errorId;
+};

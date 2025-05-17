@@ -1,29 +1,22 @@
 
 interface Window {
-  // React globals
-  React: typeof import('react');
-  ReactDOM: typeof import('react-dom');
-  
-  // Site backup utility
-  siteBackup: {
-    create: (options?: any) => boolean;
-    restore: (showNotification?: boolean) => boolean;
-    check: () => boolean;
-    countBackups: () => number;
-    maxBackups: () => number;
+  solflare?: any;
+  phantom?: any;
+  SolflareApp?: any;
+  lovableChat?: {
+    createErrorDialog?: (errorData: any) => void;
+    clearErrors?: () => void;
+    [key: string]: any;
   };
-  
-  // Error collector utility
-  errorCollector?: any;
-  
-  // Buffer for crypto operations
-  Buffer: typeof Buffer;
-  
-  // Process shim for Node.js compatibility
-  process: {
-    env: Record<string, string>;
-    browser: boolean;
-    version: string;
-    nextTick: (fn: Function) => void;
+  _lastErrorDisplayTime?: number;
+  _lastErrorMessage?: string;
+  _lastErrorDisplayTimes?: {
+    [errorId: string]: number;
   };
+  _errorQueue?: Array<{
+    message: string;
+    stack?: string;
+    timestamp: string;
+    type: string;
+  }>;
 }

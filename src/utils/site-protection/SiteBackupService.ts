@@ -1,22 +1,45 @@
 
 import { toast } from "sonner";
-import { SiteBackup, BackupOptions } from './types';
-import { generateDataHash } from './backup-utils';
-import { BackupStorageManager } from './BackupStorageManager';
-import { SiteDataCollector } from './SiteDataCollector';
+
+// Define interfaces for our backup system
+interface SiteBackup {
+  timestamp: number;
+  version: string;
+  data: Record<string, any>;
+  hash: string;
+}
+
+interface BackupOptions {
+  name?: string;
+  silent?: boolean;
+}
 
 // Main service class for managing site backups
 export class SiteBackupService {
+  private static readonly PRIMARY_KEY = 'site_structure_backup';
+  // Increase the number of backup slots from 3 to 10
+  private static readonly BACKUP_KEYS = [
+    'site_structure_backup_1',
+    'site_structure_backup_2',
+    'site_structure_backup_3',
+    'site_structure_backup_4',
+    'site_structure_backup_5',
+    'site_structure_backup_6',
+    'site_structure_backup_7',
+    'site_structure_backup_8',
+    'site_structure_backup_9',
+    'site_structure_backup_10'
+  ];
   private static readonly VERSION = '1.0.0';
   
   // Create a backup of critical site data
   public static createBackup(options: BackupOptions = {}): boolean {
     try {
       // Collect critical site data
-      const siteData = SiteDataCollector.collectSiteData();
+      const siteData = this.collectSiteData();
       
       // Generate a simple hash for integrity checks
-      const hash = generateDataHash(siteData);
+      const hash = this.generateDataHash(siteData);
       
       // Create a backup object
       const backup: SiteBackup = {
@@ -27,10 +50,10 @@ export class SiteBackupService {
       };
       
       // Store the primary backup
-      BackupStorageManager.savePrimaryBackup(backup);
+      localStorage.setItem(this.PRIMARY_KEY, JSON.stringify(backup));
       
       // Create redundant backups in rotation
-      BackupStorageManager.rotateBackups(backup);
+      this.rotateBackups(backup);
       
       // Show success notification if not silent
       if (!options.silent) {
@@ -57,12 +80,12 @@ export class SiteBackupService {
   public static restoreFromBackup(showNotification = true): boolean {
     try {
       // First try the primary backup
-      let backup = BackupStorageManager.loadBackup(BackupStorageManager.PRIMARY_KEY);
+      let backup = this.loadBackup(this.PRIMARY_KEY);
       
       // If primary backup fails, try the redundant backups
       if (!backup) {
-        for (const key of BackupStorageManager.BACKUP_KEYS) {
-          backup = BackupStorageManager.loadBackup(key);
+        for (const key of this.BACKUP_KEYS) {
+          backup = this.loadBackup(key);
           if (backup) break;
         }
       }
@@ -72,7 +95,7 @@ export class SiteBackupService {
       }
       
       // Apply the backup data to restore site structure
-      SiteDataCollector.applySiteData(backup.data);
+      this.applySiteData(backup.data);
       
       if (showNotification) {
         toast.success("Επαναφορά επιτυχής", {
@@ -98,7 +121,7 @@ export class SiteBackupService {
   public static checkSiteHealth(): boolean {
     try {
       // Load primary backup
-      const backup = BackupStorageManager.loadBackup(BackupStorageManager.PRIMARY_KEY);
+      const backup = this.loadBackup(this.PRIMARY_KEY);
       if (!backup) return false;
       
       // Check if critical elements exist in the DOM
@@ -117,12 +140,144 @@ export class SiteBackupService {
   
   // Count available backups
   public static countAvailableBackups(): number {
-    return BackupStorageManager.countAvailableBackups();
+    let count = 0;
+    
+    // Check primary backup
+    if (localStorage.getItem(this.PRIMARY_KEY)) {
+      count++;
+    }
+    
+    // Check all backup slots
+    for (const key of this.BACKUP_KEYS) {
+      if (localStorage.getItem(key)) {
+        count++;
+      }
+    }
+    
+    return count;
   }
   
   // Get max backup count
   public static getMaxBackups(): number {
-    return BackupStorageManager.getMaxBackups();
+    // Primary backup + all backup slots
+    return 1 + this.BACKUP_KEYS.length;
+  }
+  
+  // Private helper methods
+  private static loadBackup(key: string): SiteBackup | null {
+    try {
+      const data = localStorage.getItem(key);
+      if (!data) return null;
+      
+      const backup = JSON.parse(data) as SiteBackup;
+      
+      // Verify hash for integrity
+      if (this.generateDataHash(backup.data) !== backup.hash) {
+        console.warn(`Backup integrity check failed for ${key}`);
+        return null;
+      }
+      
+      return backup;
+    } catch {
+      return null;
+    }
+  }
+  
+  private static collectSiteData(): Record<string, any> {
+    // Collect critical site data
+    return {
+      localStorageKeys: this.getLocalStorageSnapshot(),
+      errorCollectorState: this.getErrorCollectorState(),
+      apiKeys: this.getApiKeysSnapshot(),
+      uiState: this.getUIStateSnapshot()
+    };
+  }
+  
+  private static applySiteData(data: Record<string, any>): void {
+    // Restore local storage items
+    if (data.localStorageKeys) {
+      Object.entries(data.localStorageKeys).forEach(([key, value]) => {
+        if (typeof value === 'string' && !key.includes(this.PRIMARY_KEY)) {
+          localStorage.setItem(key, value);
+        }
+      });
+    }
+    
+    // Force reload to apply changes
+    window.location.reload();
+  }
+  
+  private static rotateBackups(backup: SiteBackup): void {
+    // Move each backup one position
+    for (let i = this.BACKUP_KEYS.length - 1; i > 0; i--) {
+      const prevBackup = localStorage.getItem(this.BACKUP_KEYS[i - 1]);
+      if (prevBackup) {
+        localStorage.setItem(this.BACKUP_KEYS[i], prevBackup);
+      }
+    }
+    
+    // Store new backup in first position
+    localStorage.setItem(this.BACKUP_KEYS[0], JSON.stringify(backup));
+  }
+  
+  private static generateDataHash(data: any): string {
+    // Simple hash function for integrity checks
+    const str = JSON.stringify(data);
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return hash.toString(16);
+  }
+  
+  private static getLocalStorageSnapshot(): Record<string, string> {
+    const snapshot: Record<string, string> = {};
+    
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && !key.includes(this.PRIMARY_KEY)) {
+        snapshot[key] = localStorage.getItem(key) || '';
+      }
+    }
+    
+    return snapshot;
+  }
+  
+  private static getErrorCollectorState(): any {
+    try {
+      // Get error collector state if available
+      const errorCollector = window.errorCollector || {};
+      return errorCollector;
+    } catch {
+      return {};
+    }
+  }
+  
+  private static getApiKeysSnapshot(): any {
+    try {
+      // Safely get API keys (without actual key values for security)
+      const apiKeysData = localStorage.getItem('api_keys_metadata');
+      if (apiKeysData) {
+        return JSON.parse(apiKeysData);
+      }
+      return {};
+    } catch {
+      return {};
+    }
+  }
+  
+  private static getUIStateSnapshot(): any {
+    try {
+      // Capture UI state
+      return {
+        theme: localStorage.getItem('theme') || 'dark',
+        language: localStorage.getItem('language') || 'el',
+        layout: localStorage.getItem('layout') || 'default'
+      };
+    } catch {
+      return {};
+    }
   }
 }
 
@@ -130,12 +285,13 @@ export class SiteBackupService {
 declare global {
   interface Window {
     siteBackup: {
-      create: (options?: any) => boolean;
+      create: (options?: BackupOptions) => boolean;
       restore: (showNotification?: boolean) => boolean;
       check: () => boolean;
       countBackups: () => number;
       maxBackups: () => number;
     };
+    errorCollector: any;
   }
 }
 

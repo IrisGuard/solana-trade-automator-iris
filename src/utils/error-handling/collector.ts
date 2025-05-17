@@ -18,7 +18,6 @@ class ErrorCollector {
     error: Error;
     data: ErrorData;
     timestamp: number;
-    id: string;
   }> = [];
   
   private maxBufferSize = 10;
@@ -35,8 +34,7 @@ class ErrorCollector {
     this.errors.push({
       error: errorObject,
       data,
-      timestamp,
-      id: errorId
+      timestamp
     });
     
     // Keep buffer size in check
@@ -61,10 +59,10 @@ class ErrorCollector {
   }
   
   /**
-   * Get recent errors - modified to return ErrorData compatible with the collector/types.ts interface
+   * Get recent errors
    */
-  public getRecentErrors(limit: number = 10) {
-    return this.getErrors().slice(0, limit);
+  public getRecentErrors() {
+    return this.errors;
   }
   
   /**
@@ -72,7 +70,7 @@ class ErrorCollector {
    */
   public getErrors() {
     return this.errors.map(e => ({
-      id: e.id,
+      id: `err_${e.timestamp}`,
       error: e.error,
       timestamp: new Date(e.timestamp).toISOString(),
       message: e.error.message,

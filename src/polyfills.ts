@@ -1,31 +1,53 @@
 
-/**
- * Polyfills for browser compatibility
- * 
- * This file imports and initializes all necessary polyfills for proper application functionality,
- * especially for Solana web3.js which requires Node.js built-ins.
- */
+// Import the core polyfills
+import 'buffer/';
+import 'process/browser';
+import 'stream-browserify';
+import 'util/';
 
-// Import Buffer polyfill for browser environment
-import { Buffer } from 'buffer';
+// Import React compatibility patches
+import { ensureReactCompatibility } from './utils/reactPatches';
 
-// Make Buffer available globally
+// Basic buffer polyfill for early access
+if (typeof window !== 'undefined' && !window.Buffer) {
+  // Use type assertion to work around TypeScript errors with Buffer types
+  window.Buffer = {
+    from: function(data: any, encoding?: BufferEncoding) {
+      if (typeof data === 'string') {
+        return new Uint8Array([...data].map(c => c.charCodeAt(0)));
+      }
+      return new Uint8Array(data);
+    },
+    alloc: function(size: number, fill?: any) {
+      const buffer = new Uint8Array(size);
+      if (fill !== undefined) {
+        buffer.fill(fill);
+      }
+      return buffer;
+    }
+  } as unknown as typeof Buffer;
+
+  console.log('Early Buffer polyfill loaded in polyfills.ts');
+}
+
+// Set global for potential CommonJS interoperability
 if (typeof window !== 'undefined') {
-  window.Buffer = Buffer;
+  window.global = window;
+  
+  // Create kB alias for Buffer (used by some libraries)
+  if (!('kB' in window)) {
+    (window as any).kB = {
+      from: function(data: any, encoding?: BufferEncoding) {
+        return (window.Buffer as any).from(data, encoding);
+      },
+      alloc: function(size: number, fill?: any) {
+        return (window.Buffer as any).alloc(size, fill);
+      }
+    };
+  }
 }
 
-// Add process shim if needed
-if (typeof window !== 'undefined' && !window.process) {
-  window.process = {
-    env: {},
-    browser: true,
-    version: '',
-    nextTick: (fn: Function) => setTimeout(fn, 0)
-  } as any;
-}
+// Call React compatibility function if it exists
+ensureReactCompatibility();
 
-// Console message to confirm polyfills loaded
-console.log('Polyfills initialized for browser environment');
-
-// Export for type checking
-export default {};
+console.log('Polyfills loaded successfully');

@@ -3,8 +3,7 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 import { useConsoleErrorMonitor } from "@/hooks/useConsoleErrorMonitor";
 import { useErrorDialogInChat } from "@/components/debug/ErrorDialogInChat";
-import { displayError } from "@/utils/error-handling/displayError";
-import { errorCollector } from "@/utils/error-handling/collector";
+import { displayError } from "@/utils/errorUtils";
 
 // Component που παρακολουθεί για σφάλματα κονσόλας
 export function ErrorMonitor() {
@@ -81,10 +80,6 @@ export function PublishErrorMonitor() {
         }
       } catch (e) {
         console.error("Σφάλμα κατά τον έλεγχο σφαλμάτων δημοσίευσης:", e);
-        errorCollector.captureError(e instanceof Error ? e : new Error(String(e)), {
-          component: 'PublishErrorMonitor',
-          source: 'client'
-        });
       }
     };
     

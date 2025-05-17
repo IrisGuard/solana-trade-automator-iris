@@ -5,6 +5,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
 import rollupNodePolyFill from 'rollup-plugin-node-polyfills';
+import { createRequire } from 'module';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }: ConfigEnv) => {
@@ -18,19 +19,19 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       react({
         // Use options that are actually supported by the SWC React plugin
         tsDecorators: true,
-        // Use custom JSX runtime implementation
-        jsxImportSource: 'react',
+        // Removed jsxRuntime as it's not a valid option in this version
       }),
       mode === 'development' && componentTagger(),
     ].filter(Boolean) as PluginOption[],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
-        // Use our custom JSX runtime implementation
-        'react/jsx-runtime': path.resolve(__dirname, 'src/utils/jsx-runtime-fix.ts'),
-        'react/jsx-dev-runtime': path.resolve(__dirname, 'src/utils/jsx-runtime-fix.ts'),
-        // Fix polyfill path issues
+        // Fix JSX runtime issue with correct paths
+        'react/jsx-runtime': 'react/jsx-runtime',
+        'react/jsx-dev-runtime': 'react/jsx-dev-runtime',
+        // Fix polyfill path issues - explicitly map each required polyfill
         buffer: 'buffer/',
+        // Fix the process polyfill path - important change
         process: 'process', 
         stream: 'stream-browserify',
         util: 'util/',
@@ -39,6 +40,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         // Add React alias to ensure consistent version
         "react": path.resolve(__dirname, "node_modules/react"),
         "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
+        "react-router-dom": path.resolve(__dirname, "node_modules/react-router-dom"),
       },
       mainFields: ['browser', 'module', 'main'],
     },
@@ -73,13 +75,10 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         '@solana/spl-token',
         '@solana/wallet-adapter-base',
         '@solana/wallet-adapter-react',
-        // Add React and React DOM to the optimization
+        // Add React and React Router DOM to the optimization
         'react',
         'react-dom',
-        'react-router-dom',
-        // Add all Radix UI components to the optimization
-        '@radix-ui/react-slot',
-        '@radix-ui/react-compose-refs'
+        'react-router-dom'
       ],
       // Force optimization of problematic dependencies
       force: true,
@@ -90,19 +89,17 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         // Improve CommonJS handling for React
         requireReturnsDefault: 'auto',
         // Add explicit includes for process module
-        include: [/node_modules\/process/, /node_modules\/buffer/, /node_modules\/react-router-dom/, /node_modules\/@radix-ui/],
+        include: [/node_modules\/process/, /node_modules\/buffer/, /node_modules\/react-router-dom/],
       },
       rollupOptions: {
         plugins: [
           // Enable rollup polyfills plugin
           rollupNodePolyFill() as any,
         ],
+        // External to prevent Rollup from trying to bundle process
+        external: ['process/browser', 'react'], 
         onwarn(warning, warn) {
           if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
-            return;
-          }
-          // Suppress warnings about JSX annotations
-          if (warning.code === 'SOURCEMAP_ERROR' && warning.message.includes('/*#__PURE__*/')) {
             return;
           }
           warn(warning);
@@ -112,6 +109,8 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       sourcemap: true,
       // Increase build performance
       minify: 'esbuild',
+      // Improve chunk size
+      chunkSizeWarningLimit: 1000,
     }
   };
 });

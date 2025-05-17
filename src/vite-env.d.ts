@@ -3,12 +3,7 @@
 
 // Global buffer definition
 interface Window {
-  React: typeof import('react') & {
-    jsx?: (type: any, props: any, key?: any) => any;
-    jsxs?: (type: any, props: any, key?: any) => any;
-    jsxDEV?: (type: any, props: any, key?: any, isStaticChildren?: boolean, source?: any, self?: any) => any;
-    Fragment?: typeof import('react').Fragment;
-  };
+  React: typeof import('react');
   require: NodeRequire;
   Buffer: typeof Buffer;
   kB: {

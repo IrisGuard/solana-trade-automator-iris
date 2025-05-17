@@ -1,57 +1,43 @@
 
-import { ErrorSeverity } from '../errorTypes';
-
-/**
- * Interface for error data stored in the collector
- */
-export interface ErrorData {
-  id: string;
-  error: Error;
-  message: string | null;
-  stack: string | null;
-  timestamp: string;
-  component: string | null;
-  source: string;
-  url: string;
-  browserInfo: any;
-  errorCode: string | null;
-  context: any;
-  metadata: any;
-  status: number | null;
-  errorId: string | null;
-  errorType?: string;
-  details?: any;
-  severity: ErrorSeverity;
-  options?: any;
-  resolved?: boolean;
-}
-
-/**
- * Options for error collection
- */
 export interface ErrorOptions {
   component?: string;
   source?: string;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+  errorType?: string;
+  message?: string;
+  details?: any;
   errorCode?: string;
   context?: any;
   metadata?: any;
-  status?: number;
+  status?: string;
   errorId?: string;
-  errorType?: string;
-  method?: string;
-  onError?: (error: ErrorData) => void;
-  details?: Record<string, unknown>;
-  severity?: ErrorSeverity;
-  data?: Record<string, any>;
+  onError?: (errorData: ErrorData) => void;
 }
 
-/**
- * Interface for the ErrorCollector class
- */
+export interface ErrorData {
+  id: string;
+  error: Error;
+  timestamp: string;
+  message: string;
+  stack?: string | null;
+  component?: string | null;
+  source?: string;
+  url?: string;
+  browserInfo?: any;
+  errorCode?: string | null;
+  context?: any | null;
+  metadata?: any | null;
+  status?: string | null;
+  errorId?: string | null;
+  errorType?: string;
+  details?: any;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+  options: ErrorOptions;
+}
+
 export interface ErrorCollector {
   captureError(error: Error | string, options?: ErrorOptions): string;
   getErrors(): ErrorData[];
-  getRecentErrors(limit?: number): ErrorData[];
   clearErrors(): void;
   getErrorCount(): number;
 }

@@ -1,227 +1,183 @@
 
-/**
- * Site Health Monitor
- * Monitors the health of key application components
- */
+import { errorCollector } from './collector';
+import { SiteBackupService } from '../site-protection/SiteBackupService';
+import { toast } from 'sonner';
 
-interface HealthStatus {
-  status: 'healthy' | 'degraded' | 'critical';
-  components: {
-    [key: string]: {
-      status: 'ok' | 'warning' | 'error';
-      details?: string;
-    }
-  };
-  timestamp: string;
-}
+// Health check intervals
+const HEALTH_CHECK_INTERVAL = 60000; // 1 minute
+const CRITICAL_ERROR_THRESHOLD = 3;
 
-// For health check results exposed to components
+// Track consecutive errors
+let consecutiveErrors = 0;
+let lastHealthCheck = Date.now();
+let monitoringActive = false;
+
 interface HealthCheckResult {
   healthy: boolean;
-  criticalIssuesFound: boolean;
   issues: string[];
+  criticalIssuesFound: boolean;
 }
 
-// Track initialization
-let isMonitoring = false;
-
-export const SiteHealthMonitor = {
-  // Add checkHealth method for direct access
-  checkHealth: (): HealthCheckResult => {
-    console.log('SiteHealthMonitor: Direct health check called');
+export class SiteHealthMonitor {
+  // Start the health monitor
+  public static start() {
+    if (monitoringActive) return;
     
-    // Component checks
-    const reactStatus = checkReactHealth();
-    const routerStatus = checkRouterHealth();
-    const domStatus = checkDOMHealth();
+    // Create initial backup if none exists
+    if (!localStorage.getItem('site_structure_backup')) {
+      SiteBackupService.createBackup({ silent: true });
+    }
     
-    // Determine overall status
-    const hasErrors = [reactStatus, routerStatus, domStatus].some(s => s.status === 'error');
-    const hasWarnings = [reactStatus, routerStatus, domStatus].some(s => s.status === 'warning');
+    // Set up periodic health checks
+    this.setupPeriodicChecks();
     
-    let overallStatus: 'healthy' | 'degraded' | 'critical' = 'healthy';
-    if (hasErrors) overallStatus = 'critical';
-    else if (hasWarnings) overallStatus = 'degraded';
+    // Monitor for critical errors
+    this.setupErrorMonitoring();
     
-    // Extra helper property for emergency recovery
-    const healthInfo: HealthCheckResult = {
-      healthy: overallStatus === 'healthy',
-      criticalIssuesFound: overallStatus === 'critical',
-      issues: Object.entries({
-        react: reactStatus,
-        router: routerStatus,
-        dom: domStatus
-      })
-        .filter(([_, c]) => c.status !== 'ok')
-        .map(([name, c]) => `${name}: ${c.details || c.status}`)
-    };
+    // Set flag
+    monitoringActive = true;
     
-    return healthInfo;
-  },
+    console.log("Site health monitoring active");
+  }
   
-  start: () => {
-    if (isMonitoring) {
-      console.log('SiteHealthMonitor: Already monitoring');
-      return () => {};
+  // Perform a complete health check
+  public static checkHealth(): HealthCheckResult {
+    const issues: string[] = [];
+    let criticalIssuesFound = false;
+    
+    // Check for critical DOM elements - modified to check for only the root element
+    // which is the one we actually need for the React application
+    const criticalElements = [
+      { id: 'root', critical: true },
+      // Removed app-container and main-content which were causing false alerts
+    ];
+    
+    for (const element of criticalElements) {
+      if (!document.getElementById(element.id)) {
+        issues.push(`Missing critical DOM element: ${element.id}`);
+        if (element.critical) criticalIssuesFound = true;
+      }
     }
     
-    if (typeof window === 'undefined') {
-      console.log('SiteHealthMonitor: Cannot start in SSR environment');
-      return () => {};
+    // Check error count
+    const recentErrors = errorCollector.getRecentErrors?.() || [];
+    if (recentErrors.length > 10) {
+      issues.push(`High number of errors detected: ${recentErrors.length}`);
+      criticalIssuesFound = true;
     }
     
-    console.log('SiteHealthMonitor: Starting health monitoring');
-    isMonitoring = true;
+    // Check route availability
+    try {
+      const routes = document.querySelectorAll('a[href]');
+      if (routes.length === 0) {
+        issues.push('No navigation routes found');
+        criticalIssuesFound = true;
+      }
+    } catch (error) {
+      issues.push('Failed to check navigation routes');
+    }
     
-    // Initialize health data
-    if (typeof window !== 'undefined') {
-      window.siteHealth = {
-        ...(window.siteHealth || {}),
+    // Update last health check timestamp
+    lastHealthCheck = Date.now();
+    
+    return {
+      healthy: issues.length === 0,
+      issues,
+      criticalIssuesFound
+    };
+  }
+  
+  // Attempt recovery if needed
+  public static attemptRecovery(force = false): boolean {
+    const healthCheck = this.checkHealth();
+    
+    if (force || healthCheck.criticalIssuesFound) {
+      console.warn("Critical issues detected, attempting recovery", healthCheck.issues);
+      return SiteBackupService.restoreFromBackup();
+    }
+    
+    return false;
+  }
+  
+  // Private helper methods
+  private static setupPeriodicChecks() {
+    // Run periodic health checks
+    setInterval(() => {
+      const healthCheck = this.checkHealth();
+      
+      if (!healthCheck.healthy) {
+        console.warn("Site health issues detected:", healthCheck.issues);
         
-        // Check health of various components
-        check: (): any => {
-          console.log('SiteHealthMonitor: Performing health check');
+        if (healthCheck.criticalIssuesFound) {
+          consecutiveErrors++;
           
-          // Component checks
-          const reactStatus = checkReactHealth();
-          const routerStatus = checkRouterHealth();
-          const domStatus = checkDOMHealth();
-          
-          // Determine overall status
-          const hasErrors = [reactStatus, routerStatus, domStatus].some(s => s.status === 'error');
-          const hasWarnings = [reactStatus, routerStatus, domStatus].some(s => s.status === 'warning');
-          
-          let overallStatus: 'healthy' | 'degraded' | 'critical' = 'healthy';
-          if (hasErrors) overallStatus = 'critical';
-          else if (hasWarnings) overallStatus = 'degraded';
-          
-          const status: HealthStatus = {
-            status: overallStatus,
-            components: {
-              react: reactStatus,
-              router: routerStatus,
-              dom: domStatus
-            },
-            timestamp: new Date().toISOString()
-          };
-          
-          // Save last status
-          if (window.siteHealth) {
-            window.siteHealth.lastCheck = status;
-          }
-          
-          return status;
-        },
-        
-        // Get the last check result
-        getLastCheck: (): HealthStatus | undefined => {
-          return window.siteHealth?.lastCheck;
-        },
-        
-        // Force a full repair
-        repair: () => {
-          console.log('SiteHealthMonitor: Initiating repair');
-          try {
-            // Re-apply React patches
-            const { ensureReactCompatibility } = require('../reactPatches');
-            ensureReactCompatibility();
-            
-            // Re-apply router patches
-            const { ensureRouterCompatibility } = require('../routerPatches');
-            ensureRouterCompatibility();
-            
-            return { 
-              success: true, 
-              message: 'Repair completed successfully'
-            };
-          } catch (error) {
-            console.error('SiteHealthMonitor: Repair failed', error);
-            return { 
-              success: false, 
-              message: `Repair failed: ${error instanceof Error ? error.message : String(error)}`
-            };
+          if (consecutiveErrors >= CRITICAL_ERROR_THRESHOLD) {
+            console.error("Critical error threshold reached, attempting recovery");
+            this.showRecoveryPrompt();
+            consecutiveErrors = 0; // Reset counter after recovery attempt
           }
         }
-      };
-    }
-    
-    // Run initial health check
-    if (typeof window !== 'undefined' && window.siteHealth) {
-      window.siteHealth.check();
-    }
-    
-    // Set up periodic checks
-    const checkInterval = setInterval(() => {
-      if (typeof window !== 'undefined' && !document.hidden && window.siteHealth) {
-        window.siteHealth.check();
+      } else {
+        // Reset consecutive errors counter if health check passes
+        consecutiveErrors = 0;
+        
+        // Create a new backup periodically when the site is healthy
+        const hoursSinceLastBackup = (Date.now() - lastHealthCheck) / (1000 * 60 * 60);
+        if (hoursSinceLastBackup >= 24) {
+          SiteBackupService.createBackup({ silent: true });
+        }
       }
-    }, 60000); // Check every minute
-    
-    // Cleanup function (for completeness)
-    return () => {
-      clearInterval(checkInterval);
-      isMonitoring = false;
+    }, HEALTH_CHECK_INTERVAL);
+  }
+  
+  private static setupErrorMonitoring() {
+    // Override window.onerror to also count towards consecutive errors
+    const originalOnError = window.onerror;
+    window.onerror = (message, source, lineno, colno, error) => {
+      // Call original handler
+      if (originalOnError) {
+        originalOnError.call(window, message, source, lineno, colno, error);
+      }
+      
+      // Increment error counter
+      consecutiveErrors++;
+      
+      // Check if critical threshold reached
+      if (consecutiveErrors >= CRITICAL_ERROR_THRESHOLD) {
+        this.showRecoveryPrompt();
+        consecutiveErrors = 0; // Reset counter
+      }
+      
+      return false;
     };
   }
+  
+  private static showRecoveryPrompt() {
+    toast.error(
+      "Εντοπίστηκαν κρίσιμα σφάλματα", 
+      {
+        description: "Η ιστοσελίδα αντιμετωπίζει προβλήματα. Θέλετε να γίνει επαναφορά;",
+        action: {
+          label: "Επαναφορά",
+          onClick: () => SiteBackupService.restoreFromBackup()
+        },
+        duration: 0 // Toast stays until dismissed
+      }
+    );
+  }
+}
+
+// Initialize global accessor
+declare global {
+  interface Window {
+    siteHealth: {
+      check: () => HealthCheckResult;
+      recover: (force?: boolean) => boolean;
+    };
+  }
+}
+
+window.siteHealth = {
+  check: SiteHealthMonitor.checkHealth.bind(SiteHealthMonitor),
+  recover: SiteHealthMonitor.attemptRecovery.bind(SiteHealthMonitor)
 };
-
-// Helper functions for health checks
-function checkReactHealth(): { status: 'ok' | 'warning' | 'error'; details?: string } {
-  try {
-    // Check if React is available
-    if (!window.React) {
-      return { status: 'error', details: 'React not available on window' };
-    }
-    
-    // Check JSX runtime
-    if (!window.React.jsx || !window.React.jsxs) {
-      return { status: 'error', details: 'JSX runtime incomplete' };
-    }
-    
-    // Check development JSX runtime
-    if (!window.React.jsxDEV && process.env.NODE_ENV === 'development') {
-      return { status: 'warning', details: 'JSX development runtime missing' };
-    }
-    
-    return { status: 'ok' };
-  } catch (error) {
-    return { 
-      status: 'error', 
-      details: `Error checking React: ${error instanceof Error ? error.message : String(error)}` 
-    };
-  }
-}
-
-function checkRouterHealth(): { status: 'ok' | 'warning' | 'error'; details?: string } {
-  try {
-    // Check if React Router is available
-    if (!window.patchedReactRouter) {
-      return { status: 'warning', details: 'Router patches not applied' };
-    }
-    
-    return { status: 'ok' };
-  } catch (error) {
-    return { 
-      status: 'error', 
-      details: `Error checking Router: ${error instanceof Error ? error.message : String(error)}` 
-    };
-  }
-}
-
-function checkDOMHealth(): { status: 'ok' | 'warning' | 'error'; details?: string } {
-  try {
-    // Check if we can access basic DOM elements
-    if (!document || !document.getElementById('root')) {
-      return { status: 'error', details: 'DOM or root element not accessible' };
-    }
-    
-    return { status: 'ok' };
-  } catch (error) {
-    return { 
-      status: 'error', 
-      details: `Error checking DOM: ${error instanceof Error ? error.message : String(error)}` 
-    };
-  }
-}
-
-export default SiteHealthMonitor;

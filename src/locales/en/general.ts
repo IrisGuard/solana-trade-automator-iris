@@ -1,4 +1,3 @@
-
 export const general = {
   loading: "Loading...",
   error: "Error",
@@ -30,9 +29,5 @@ export const general = {
   connectionLost: "Connection Lost",
   connectionRestored: "Connection Restored",
   checkYourConnection: "Check your internet connection",
-  internetConnectionRestored: "Internet connection has been restored",
-  restore: "Restore",
-  confirmRestore: "Are you sure you want to restore the application?",
-  restoreSuccess: "Application restored successfully",
-  restoreError: "Error during restoration"
+  internetConnectionRestored: "Internet connection has been restored"
 };

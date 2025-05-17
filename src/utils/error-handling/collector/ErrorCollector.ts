@@ -36,7 +36,7 @@ export class ErrorCollector {
       errorId: options.errorId || null,
       errorType: options.errorType,
       details: options.details,
-      severity: options.severity || 'medium',
+      severity: options.severity || 'medium', // Updated to include 'critical'
       options: options
     };
 
@@ -81,14 +81,6 @@ export class ErrorCollector {
    */
   public getErrors(): ErrorData[] {
     return this.errors;
-  }
-  
-  /**
-   * Get recent errors
-   * Returns the most recent errors
-   */
-  public getRecentErrors(limit: number = 10): ErrorData[] {
-    return this.errors.slice(0, limit);
   }
 
   /**
