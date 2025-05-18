@@ -25,7 +25,7 @@ export function AppProviders({ children }: AppProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <LanguageProvider>
+        <LanguageProvider defaultLanguage="el">
           <SupabaseAuthProvider>
             {children}
           </SupabaseAuthProvider>

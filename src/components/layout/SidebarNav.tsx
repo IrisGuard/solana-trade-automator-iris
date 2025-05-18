@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 import { NavItem } from "@/types/nav";
 import { Home, Wallet, ArrowLeftRight, Bot, KeyRound } from "@/components/icons";
-import { t } from "@/i18n";
+import { useLanguage } from "@/hooks/use-language";
 
 interface SidebarNavProps {
   items: NavItem[];
@@ -20,6 +20,7 @@ interface SidebarNavProps {
 
 export function SidebarNav({ items = [], isCollapsed = false }: SidebarNavProps) {
   const location = useLocation();
+  const { t } = useLanguage();
   
   return (
     <div className="flex h-screen flex-col gap-2">
@@ -33,7 +34,7 @@ export function SidebarNav({ items = [], isCollapsed = false }: SidebarNavProps)
             )}
           >
             <Home className={cn("h-4 w-4", isCollapsed ? "mr-0" : "mr-2")} />
-            <span>{t('sidebar.dashboard')}</span>
+            <span>{t('general.dashboard')}</span>
           </Link>
           <Link
             to="/wallet"
@@ -43,7 +44,7 @@ export function SidebarNav({ items = [], isCollapsed = false }: SidebarNavProps)
             )}
           >
             <Wallet className={cn("h-4 w-4", isCollapsed ? "mr-0" : "mr-2")} />
-            <span>{t('sidebar.wallet')}</span>
+            <span>{t('general.wallet')}</span>
           </Link>
           <Link
             to="/transactions"
@@ -53,7 +54,7 @@ export function SidebarNav({ items = [], isCollapsed = false }: SidebarNavProps)
             )}
           >
             <ArrowLeftRight className={cn("h-4 w-4", isCollapsed ? "mr-0" : "mr-2")} />
-            <span>{t('sidebar.transactions')}</span>
+            <span>{t('general.transactions')}</span>
           </Link>
           <Link
             to="/bots"
@@ -63,7 +64,7 @@ export function SidebarNav({ items = [], isCollapsed = false }: SidebarNavProps)
             )}
           >
             <Bot className={cn("h-4 w-4", isCollapsed ? "mr-0" : "mr-2")} />
-            <span>{t('sidebar.bots')}</span>
+            <span>{t('general.bots')}</span>
           </Link>
           <Link
             to="/api-vault"
@@ -73,7 +74,7 @@ export function SidebarNav({ items = [], isCollapsed = false }: SidebarNavProps)
             )}
           >
             <KeyRound className={cn("h-4 w-4", isCollapsed ? "mr-0" : "mr-2")} />
-            <span>{t('sidebar.api_vault')}</span>
+            <span>{t('general.apiVault')}</span>
           </Link>
           
           {/* Temporary link for adding Helius key */}
@@ -85,7 +86,7 @@ export function SidebarNav({ items = [], isCollapsed = false }: SidebarNavProps)
             )}
           >
             <KeyRound className={cn("h-4 w-4", isCollapsed ? "mr-0" : "mr-2")} />
-            <span>Προσθήκη Helius Key</span>
+            <span>{t('apiVault.addHelius')}</span>
           </Link>
           
           <div className="my-2 border-t"></div>

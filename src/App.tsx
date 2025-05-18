@@ -1,7 +1,6 @@
 
 import { BrowserRouter } from 'react-router-dom';
 import { Suspense, useEffect } from 'react';
-import { Toaster } from 'sonner';
 
 // Components
 import { AppErrorBoundary } from './components/errors';
@@ -34,7 +33,6 @@ function App() {
             </SolanaProviderFallback>
           </WalletProviderWrapper>
         </BrowserRouter>
-        <Toaster position="top-center" richColors />
       </AppProviders>
     </AppErrorBoundary>
   );

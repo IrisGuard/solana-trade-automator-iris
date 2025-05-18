@@ -27,7 +27,7 @@ export default function Index() {
   
   const navigation = [
     { title: t("general.dashboard"), href: "/dashboard" },
-    { title: t("wallet.walletStatus"), href: "/wallet" },
+    { title: t("general.wallet"), href: "/wallet" },
     { title: t("makerBot.botSettings"), href: "/bot-control" },
     { title: t("general.apiVault"), href: "/api-vault" },
     { title: t("general.help"), href: "/help" },
@@ -64,7 +64,7 @@ export default function Index() {
               className="text-sm lg:text-base text-green-400 hover:text-green-300 transition-colors whitespace-nowrap px-2 py-1 flex items-center gap-1"
             >
               <Key className="h-4 w-4" />
-              Προσθήκη Κλειδιών API
+              {t('apiVault.addHelius')}
             </Link>
             
             <div className="flex items-center gap-2 ml-2">
@@ -113,7 +113,7 @@ export default function Index() {
                   className="text-green-400 hover:text-green-300 transition-colors py-2 flex items-center gap-2"
                 >
                   <Key className="h-4 w-4" />
-                  Προσθήκη Κλειδιών API
+                  {t('apiVault.addHelius')}
                 </Link>
                 <div className="py-2">
                   <WalletConnectButtonSafe 

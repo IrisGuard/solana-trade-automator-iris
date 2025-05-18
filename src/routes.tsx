@@ -29,7 +29,7 @@ export function Routes() {
       {/* Index page doesn't use the regular Layout */}
       <Route path="/" element={<Index />} />
       
-      {/* The rest of the pages use the regular Layout */}
+      {/* Όλες οι υπόλοιπες σελίδες χρησιμοποιούν το κανονικό Layout */}
       <Route element={<Layout />}>
         <Route path="/home" element={<Home />} />
         <Route path="/wallet" element={<Wallet />} />

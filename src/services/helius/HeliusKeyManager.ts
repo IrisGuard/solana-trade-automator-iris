@@ -28,12 +28,12 @@ class HeliusKeyManager {
     // If not initialized, try to get a key asynchronously
     if (!this.isInitialized) {
       this.refreshKeys().catch(err => {
-        console.error('Failed to refresh Helius API keys:', err);
+        console.error('Αποτυχία ανανέωσης κλειδιών Helius API:', err);
       });
     }
     
     if (this.apiKeys.length === 0) {
-      console.error('No Helius API keys available!');
+      console.error('Δεν υπάρχουν διαθέσιμα κλειδιά Helius API!');
       
       // Return a dummy key to prevent immediate crashes
       // This will likely fail API requests but prevents application crashes
@@ -53,7 +53,7 @@ class HeliusKeyManager {
   public async refreshKeys(): Promise<boolean> {
     // Prevent concurrent refreshes
     if (this.isRefreshing) {
-      console.log('Already refreshing Helius API keys, skipping duplicate request');
+      console.log('Ήδη γίνεται ανανέωση των κλειδιών Helius API, παράλειψη διπλού αιτήματος');
       return this.isInitialized;
     }
     
@@ -77,11 +77,11 @@ class HeliusKeyManager {
         .eq('status', 'active');
       
       if (error) {
-        console.error('Error fetching Helius API keys:', error);
+        console.error('Σφάλμα κατά τη λήψη κλειδιών Helius API:', error);
         errorCollector.captureError(error, {
           component: 'HeliusKeyManager',
           method: 'refreshKeys',
-          additional: 'Fallback to existing keys'
+          additional: 'Fallback στα υπάρχοντα κλειδιά'
         });
         
         // Increment retry count
@@ -89,8 +89,8 @@ class HeliusKeyManager {
         
         if (this.retryCount >= this.maxRetries && this.apiKeys.length === 0) {
           // After max retries, show a toast only if we have no keys
-          toast.error('Failed to load API keys', {
-            description: 'Unable to connect to API key service'
+          toast.error('Αποτυχία φόρτωσης κλειδιών API', {
+            description: 'Αδυναμία σύνδεσης με την υπηρεσία κλειδιών API'
           });
         }
         
@@ -105,27 +105,27 @@ class HeliusKeyManager {
           this.apiKeys = keys;
           this.isInitialized = true;
           this.retryCount = 0; // Reset retry count on success
-          console.log(`Successfully loaded ${keys.length} Helius API keys`);
+          console.log(`Επιτυχής φόρτωση ${keys.length} κλειδιών Helius API`);
           return true;
         }
       }
       
-      console.log('No Helius API keys found in database');
+      console.log('Δεν βρέθηκαν κλειδιά Helius API στη βάση δεδομένων');
       
       // If no keys found, use fallback key
       if (FALLBACK_HELIUS_KEY && this.apiKeys.length === 0) {
         this.apiKeys = [FALLBACK_HELIUS_KEY];
-        console.log('Using fallback Helius API key');
+        console.log('Χρήση εφεδρικού κλειδιού Helius API');
         return true;
       }
       
       return this.apiKeys.length > 0;
     } catch (error) {
-      console.error('Exception refreshing Helius API keys:', error);
+      console.error('Εξαίρεση κατά την ανανέωση των κλειδιών Helius API:', error);
       errorCollector.captureError(error, {
         component: 'HeliusKeyManager',
         method: 'refreshKeys',
-        additional: 'Unexpected exception'
+        additional: 'Απροσδόκητη εξαίρεση'
       });
       
       return this.apiKeys.length > 0;
@@ -150,7 +150,7 @@ class HeliusKeyManager {
     this.isInitialized = false;
     this.lastRefreshTime = 0;
     await this.refreshKeys();
-    console.log("HeliusKeyManager force reloaded");
+    console.log("HeliusKeyManager επαναφορτώθηκε αναγκαστικά");
   }
 
   /**
@@ -160,7 +160,7 @@ class HeliusKeyManager {
     this.isInitialized = false;
     this.retryCount = 0;
     await this.refreshKeys();
-    console.log("HeliusKeyManager initialized");
+    console.log("HeliusKeyManager αρχικοποιήθηκε");
   }
   
   /**
