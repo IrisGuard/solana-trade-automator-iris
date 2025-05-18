@@ -25,26 +25,28 @@ import Notifications from "@/pages/Notifications";
 export function Routes() {
   return (
     <RouterRoutes>
-      {/* Η Index σελίδα δεν χρησιμοποιεί το κανονικό Layout */}
+      {/* Index page doesn't use the regular Layout */}
       <Route path="/" element={<Index />} />
       
-      {/* Οι υπόλοιπες σελίδες χρησιμοποιούν το κανονικό Layout */}
-      <Route path="/home" element={<Layout><Home /></Layout>} />
-      <Route path="/wallet" element={<Layout><Wallet /></Layout>} />
-      <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
-      <Route path="/tokens" element={<Layout><Tokens /></Layout>} />
-      <Route path="/transactions" element={<Layout><Transactions /></Layout>} />
-      <Route path="/transactions-enhanced" element={<Layout><TransactionsEnhanced /></Layout>} />
-      <Route path="/bot-control" element={<Layout><BotControl /></Layout>} />
-      <Route path="/api-vault" element={<Layout><ApiVault /></Layout>} />
-      <Route path="/settings" element={<Layout><Settings /></Layout>} />
-      <Route path="/security" element={<Layout><Security /></Layout>} />
-      <Route path="/help" element={<Layout><Help /></Layout>} />
-      <Route path="/bots" element={<Layout><Bots /></Layout>} />
-      <Route path="/change-approval" element={<Layout><ChangeApproval /></Layout>} />
-      <Route path="/portfolio" element={<Layout><Portfolio /></Layout>} />
-      <Route path="/notifications" element={<Layout><Notifications /></Layout>} />
-      <Route path="*" element={<Layout><NotFound /></Layout>} />
+      {/* The rest of the pages use the regular Layout */}
+      <Route element={<Layout />}>
+        <Route path="/home" element={<Home />} />
+        <Route path="/wallet" element={<Wallet />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/tokens" element={<Tokens />} />
+        <Route path="/transactions" element={<Transactions />} />
+        <Route path="/transactions-enhanced" element={<TransactionsEnhanced />} />
+        <Route path="/bot-control" element={<BotControl />} />
+        <Route path="/api-vault" element={<ApiVault />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/security" element={<Security />} />
+        <Route path="/help" element={<Help />} />
+        <Route path="/bots" element={<Bots />} />
+        <Route path="/change-approval" element={<ChangeApproval />} />
+        <Route path="/portfolio" element={<Portfolio />} />
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
     </RouterRoutes>
   );
 }
