@@ -51,8 +51,24 @@ export function useApiKeyCheck() {
           let isWorking = false;
           
           if (service === 'helius') {
-            // Use the checkApiKey method we added to HeliusService
+            // Use the checkApiKey method to test the key
             isWorking = await heliusService.checkApiKey(key.key_value);
+          } else if (service === 'coingecko') {
+            // Simple check for CoinGecko key
+            try {
+              const response = await fetch(`https://api.coingecko.com/api/v3/ping?x_cg_pro_api_key=${key.key_value}`);
+              isWorking = response.status === 200;
+            } catch {
+              isWorking = false;
+            }
+          } else if (service === 'cryptocompare') {
+            // Simple check for CryptoCompare key
+            try {
+              const response = await fetch(`https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=USD&api_key=${key.key_value}`);
+              isWorking = response.status === 200;
+            } catch {
+              isWorking = false;
+            }
           } else {
             // Default to true for other services until we implement specific checks
             isWorking = true;

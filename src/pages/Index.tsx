@@ -13,7 +13,7 @@ import { UserTokensSection } from "@/components/home/UserTokensSection";
 import { UserBotsSection } from "@/components/home/UserBotsSection";
 import { FaqSection } from "@/components/home/FaqSection";
 import { FooterSection } from "@/components/home/FooterSection";
-import { Layers, Menu, X } from "lucide-react";
+import { Layers, Menu, X, Key } from "lucide-react";
 import { LanguageToggle } from "@/components/layout/LanguageToggle";
 
 export default function Index() {
@@ -29,6 +29,7 @@ export default function Index() {
     { title: t("general.dashboard"), href: "/dashboard" },
     { title: t("wallet.walletStatus"), href: "/wallet" },
     { title: t("makerBot.botSettings"), href: "/bot-control" },
+    { title: t("general.apiVault"), href: "/api-vault" },
     { title: t("general.help"), href: "/help" },
   ];
   
@@ -57,6 +58,14 @@ export default function Index() {
                 {item.title}
               </Link>
             ))}
+            
+            <Link 
+              to="/add-helius-key"
+              className="text-sm lg:text-base text-green-400 hover:text-green-300 transition-colors whitespace-nowrap px-2 py-1 flex items-center gap-1"
+            >
+              <Key className="h-4 w-4" />
+              Προσθήκη Κλειδιών API
+            </Link>
             
             <div className="flex items-center gap-2 ml-2">
               <LanguageToggle />
@@ -98,6 +107,14 @@ export default function Index() {
                     {item.title}
                   </Link>
                 ))}
+                <Link 
+                  to="/add-helius-key"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-green-400 hover:text-green-300 transition-colors py-2 flex items-center gap-2"
+                >
+                  <Key className="h-4 w-4" />
+                  Προσθήκη Κλειδιών API
+                </Link>
                 <div className="py-2">
                   <WalletConnectButtonSafe 
                     variant="default" 

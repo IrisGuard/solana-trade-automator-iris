@@ -7,6 +7,7 @@ import { useApiKeysDashboard } from "@/hooks/api-keys/useApiKeysDashboard";
 import { ApiKeysList } from "./api-keys/ApiKeysList";
 import { ApiKeysEmptyState } from "./api-keys/ApiKeysEmptyState";
 import { ApiKeysLoadingState } from "./api-keys/ApiKeysLoadingState";
+import { Link } from "react-router-dom";
 
 export function ApiKeysSection() {
   const {
@@ -69,7 +70,7 @@ export function ApiKeysSection() {
               onToggleVisibility={toggleKeyVisibility}
               onCopy={handleCopy}
             />
-            <div className="mt-4 text-center">
+            <div className="mt-4 text-center space-y-2">
               <Button 
                 variant="link" 
                 onClick={handleAddNewKey}
@@ -77,10 +78,36 @@ export function ApiKeysSection() {
               >
                 Προβολή όλων των κλειδιών API
               </Button>
+              
+              <div className="block">
+                <Link to="/add-helius-key">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="text-sm text-green-600 hover:text-green-700 border-green-200 hover:border-green-300 flex items-center gap-2"
+                  >
+                    <Key className="h-4 w-4" />
+                    Προσθήκη Κλειδιών Helius
+                  </Button>
+                </Link>
+              </div>
             </div>
           </>
         ) : (
-          <ApiKeysEmptyState onAddKey={handleAddNewKey} />
+          <div className="space-y-4">
+            <ApiKeysEmptyState onAddKey={handleAddNewKey} />
+            <div className="flex justify-center">
+              <Link to="/add-helius-key">
+                <Button 
+                  variant="outline" 
+                  className="mt-4 text-sm text-green-600 hover:text-green-700 border-green-200 hover:border-green-300 flex items-center gap-2"
+                >
+                  <Key className="h-4 w-4" />
+                  Προσθήκη Κλειδιών Helius
+                </Button>
+              </Link>
+            </div>
+          </div>
         )}
       </CardContent>
     </Card>
