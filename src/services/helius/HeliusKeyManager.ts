@@ -34,7 +34,10 @@ class HeliusKeyManager {
     
     if (this.apiKeys.length === 0) {
       console.error('No Helius API keys available!');
-      throw new Error('Helius API not configured properly');
+      
+      // Return a dummy key to prevent immediate crashes
+      // This will likely fail API requests but prevents application crashes
+      return "helius-key-missing-please-add-one";
     }
 
     // Round robin key selection
@@ -102,9 +105,12 @@ class HeliusKeyManager {
           this.apiKeys = keys;
           this.isInitialized = true;
           this.retryCount = 0; // Reset retry count on success
+          console.log(`Successfully loaded ${keys.length} Helius API keys`);
           return true;
         }
       }
+      
+      console.log('No Helius API keys found in database');
       
       // If no keys found, use fallback key
       if (FALLBACK_HELIUS_KEY && this.apiKeys.length === 0) {

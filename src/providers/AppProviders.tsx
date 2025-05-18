@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/providers/ThemeProvider";
 import { LanguageProvider } from "@/providers/LanguageProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
+import { SupabaseAuthProvider } from "@/providers/SupabaseAuthProvider";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -25,7 +26,9 @@ export function AppProviders({ children }: AppProvidersProps) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <LanguageProvider>
-          {children}
+          <SupabaseAuthProvider>
+            {children}
+          </SupabaseAuthProvider>
           <Toaster position="top-right" richColors />
         </LanguageProvider>
       </ThemeProvider>

@@ -12,7 +12,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { LanguageProvider } from "@/providers/LanguageProvider";
 import { ensureRouterCompatibility } from "@/utils/routerPatches";
-import { SupabaseAuthProvider } from "@/providers/SupabaseAuthProvider";
 import { EmergencyRecovery } from "@/components/emergency/EmergencyRecovery";
 import { initProtectionSystem } from "@/utils/errorTestUtils";
 import { HelpButton } from "@/components/help/HelpButton";
@@ -101,29 +100,26 @@ export function AppContent() {
       onError={logError}
     >
       <DOMErrorHandler />
-      {/* Removed BrowserRouter from here */}
       <ThemeProvider>
         <LanguageProvider defaultLanguage="el">
           <QueryClientProvider client={queryClient}>
-            <SupabaseAuthProvider>
-              <TooltipProvider>
-                <SolanaWalletProvider>
-                  <WalletProviderWrapper>
-                    <div id="app-container" className="app-root">
-                      <div id="main-content" className="app-content">
-                        <Routes />
-                        <EmergencyRecovery />
-                        <HealthStatusIndicator />
-                        <HelpButton />
-                        <PermanentRestoreButton />
-                        <Toaster position="top-right" richColors />
-                        <MonitoringSystem />
-                      </div>
+            <TooltipProvider>
+              <SolanaWalletProvider>
+                <WalletProviderWrapper>
+                  <div id="app-container" className="app-root">
+                    <div id="main-content" className="app-content">
+                      <Routes />
+                      <EmergencyRecovery />
+                      <HealthStatusIndicator />
+                      <HelpButton />
+                      <PermanentRestoreButton />
+                      <Toaster position="top-right" richColors />
+                      <MonitoringSystem />
                     </div>
-                  </WalletProviderWrapper>
-                </SolanaWalletProvider>
-              </TooltipProvider>
-            </SupabaseAuthProvider>
+                  </div>
+                </WalletProviderWrapper>
+              </SolanaWalletProvider>
+            </TooltipProvider>
           </QueryClientProvider>
         </LanguageProvider>
       </ThemeProvider>
