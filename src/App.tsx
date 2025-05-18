@@ -1,5 +1,5 @@
 
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, BrowserRouter } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import { Toaster } from 'sonner';
 
@@ -28,59 +28,61 @@ function App() {
   return (
     <AppErrorBoundary fallbackComponent={AppFallbackComponent}>
       <GlobalErrorHandler />
-      <WalletProviderWrapper>
-        <SolanaProviderFallback>
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              <Route index element={
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Dashboard />
-                </Suspense>
-              } />
-              <Route path="wallet" element={
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Wallet />
-                </Suspense>
-              } />
-              <Route path="transactions" element={
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Transactions />
-                </Suspense>
-              } />
-              <Route path="bots" element={
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Bots />
-                </Suspense>
-              } />
-              <Route path="api-vault" element={
-                <Suspense fallback={<div>Loading...</div>}>
-                  <ApiVault />
-                </Suspense>
-              } />
-              <Route path="settings" element={
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Settings />
-                </Suspense>
-              } />
-              <Route path="security" element={
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Security />
-                </Suspense>
-              } />
-              <Route path="help" element={
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Help />
-                </Suspense>
-              } />
-              <Route path="add-helius-key" element={
-                <Suspense fallback={<div>Loading...</div>}>
-                  <AddHeliusKeyPage />
-                </Suspense>
-              } />
-            </Route>
-          </Routes>
-        </SolanaProviderFallback>
-      </WalletProviderWrapper>
+      <BrowserRouter>
+        <WalletProviderWrapper>
+          <SolanaProviderFallback>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route index element={
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Dashboard />
+                  </Suspense>
+                } />
+                <Route path="wallet" element={
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Wallet />
+                  </Suspense>
+                } />
+                <Route path="transactions" element={
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Transactions />
+                  </Suspense>
+                } />
+                <Route path="bots" element={
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Bots />
+                  </Suspense>
+                } />
+                <Route path="api-vault" element={
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <ApiVault />
+                  </Suspense>
+                } />
+                <Route path="settings" element={
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Settings />
+                  </Suspense>
+                } />
+                <Route path="security" element={
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Security />
+                  </Suspense>
+                } />
+                <Route path="help" element={
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Help />
+                  </Suspense>
+                } />
+                <Route path="add-helius-key" element={
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <AddHeliusKeyPage />
+                  </Suspense>
+                } />
+              </Route>
+            </Routes>
+          </SolanaProviderFallback>
+        </WalletProviderWrapper>
+      </BrowserRouter>
       <Toaster position="top-center" richColors />
     </AppErrorBoundary>
   );
