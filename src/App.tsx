@@ -1,6 +1,6 @@
 
 import { Routes, Route, BrowserRouter } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { Toaster } from 'sonner';
 
 // Components
@@ -23,8 +23,16 @@ const AddHeliusKeyPage = lazy(() => import('./pages/AddHeliusKey'));
 import './App.css';
 import { GlobalErrorHandler } from './components/errors';
 import { WalletProviderWrapper } from './components/wallet/WalletProviderWrapper';
+import { initializeSystemApiKeys } from './utils/apiKeyInitializer';
 
 function App() {
+  // Initialize API endpoints on app launch
+  useEffect(() => {
+    initializeSystemApiKeys().catch(err => {
+      console.error('Failed to initialize API endpoints:', err);
+    });
+  }, []);
+
   return (
     <AppErrorBoundary fallbackComponent={AppFallbackComponent}>
       <GlobalErrorHandler />

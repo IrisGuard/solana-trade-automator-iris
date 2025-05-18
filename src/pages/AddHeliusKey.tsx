@@ -1,142 +1,177 @@
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, Check, AlertTriangle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { resetHeliusKeys } from "@/utils/resetHeliusKeys";
-import { heliusService } from "@/services/helius/HeliusService";
-import { toast } from "sonner";
-
-const HELIUS_API_KEY = "ddb32813-1f4b-459d-8964-310b1b73a053";
-const USER_ID = "af88a598-eb23-4281-a549-f923d1b14bed";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { initializeSystemApiKeys, addHeliusKeysForUser } from "@/utils/apiKeyInitializer";
+import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { HeliusStatusMonitor } from "@/components/HeliusStatusMonitor";
+import { HeliusSyncButton } from "@/components/HeliusSyncButton";
 
 export default function AddHeliusKeyPage() {
-  const [isResetting, setIsResetting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [keyStatus, setKeyStatus] = useState<"pending" | "valid" | "invalid">("pending");
-  
-  // Check if key is already working
+  const { user } = useAuth();
+  const [isInitializing, setIsInitializing] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const [endpointsInitialized, setEndpointsInitialized] = useState(false);
+  const [keysAdded, setKeysAdded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Initialize system endpoints on page load
   useEffect(() => {
-    const checkExistingKey = async () => {
+    const init = async () => {
+      setIsInitializing(true);
       try {
-        // Try to get a transaction to see if the key is working
-        const testResult = await heliusService.checkApiKey(HELIUS_API_KEY);
-        if (testResult) {
-          setKeyStatus("valid");
-          setIsSuccess(true);
-          toast.success("Το κλειδί Helius API λειτουργεί ήδη!");
-        } else {
-          setKeyStatus("invalid");
-        }
-      } catch (error) {
-        console.error("Error checking existing key:", error);
-        setKeyStatus("invalid");
+        const result = await initializeSystemApiKeys();
+        setEndpointsInitialized(result);
+      } catch (err) {
+        console.error('Error initializing API endpoints:', err);
+        setError('Σφάλμα κατά την αρχικοποίηση των endpoints. Παρακαλώ δοκιμάστε ξανά.');
+      } finally {
+        setIsInitializing(false);
       }
     };
-    
-    checkExistingKey();
+
+    init();
   }, []);
 
-  const handleReset = async () => {
-    setIsResetting(true);
+  // Handle adding keys to the user's account
+  const handleAddKeys = async () => {
+    if (!user) {
+      setError('Πρέπει να συνδεθείτε για να προσθέσετε κλειδιά');
+      return;
+    }
+
+    setIsAdding(true);
+    setError(null);
+    
     try {
-      const result = await resetHeliusKeys(USER_ID, HELIUS_API_KEY);
+      const result = await addHeliusKeysForUser(user.id);
+      setKeysAdded(result);
       
-      if (result) {
-        setIsSuccess(true);
-        // Verify the key actually works
-        const isWorking = await heliusService.checkApiKey(HELIUS_API_KEY);
-        
-        if (isWorking) {
-          setKeyStatus("valid");
-          toast.success("Το κλειδί Helius API προστέθηκε επιτυχώς!");
-        } else {
-          setKeyStatus("invalid");
-          toast.warning("Το κλειδί προστέθηκε αλλά ο έλεγχος απέτυχε");
-        }
-      } else {
-        toast.error("Αποτυχία προσθήκης κλειδιού Helius API");
+      if (!result) {
+        setError('Υπήρξε πρόβλημα κατά την προσθήκη των κλειδιών');
       }
-    } catch (error) {
-      console.error("Σφάλμα κατά την προσθήκη του κλειδιού Helius:", error);
-      toast.error("Σφάλμα κατά την προσθήκη του κλειδιού Helius");
+    } catch (err) {
+      console.error('Error adding API keys:', err);
+      setError('Σφάλμα κατά την προσθήκη των κλειδιών API');
     } finally {
-      setIsResetting(false);
+      setIsAdding(false);
     }
   };
 
   return (
-    <div className="container mx-auto py-8">
-      <Card className="w-full max-w-2xl mx-auto">
+    <div className="container mx-auto py-6 space-y-6">
+      <h1 className="text-2xl font-bold">Προσθήκη API Κλειδιών</h1>
+      
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Σφάλμα</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
+      <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Προσθήκη Helius API Key</CardTitle>
+          <CardTitle>Προσθήκη Helius API Keys</CardTitle>
           <CardDescription>
-            Προσθήκη του κλειδιού Helius API στο Supabase
+            Προσθέστε τα απαραίτητα κλειδιά API για τις λειτουργίες του Helius
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex justify-between items-center p-4 border rounded-md bg-slate-50">
-            <div>
-              <p className="font-medium">Κλειδί προς προσθήκη:</p>
-              <p className="font-mono text-sm">{HELIUS_API_KEY}</p>
+          <div className="flex items-center">
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">
+                Βήμα 1: Αρχικοποίηση API Endpoints
+              </p>
             </div>
-            <Badge 
-              variant={
-                keyStatus === "valid" ? "success" : 
-                keyStatus === "invalid" ? "destructive" : 
-                "outline"
-              }
-            >
-              {keyStatus === "valid" ? "Έγκυρο" : 
-               keyStatus === "invalid" ? "Μη έγκυρο" : 
-               "Εκκρεμεί"}
-            </Badge>
+            <div>
+              {isInitializing ? (
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              ) : endpointsInitialized ? (
+                <CheckCircle className="h-5 w-5 text-green-500" />
+              ) : (
+                <Button variant="outline" size="sm" disabled={isInitializing} onClick={() => initializeSystemApiKeys()}>
+                  Αρχικοποίηση
+                </Button>
+              )}
+            </div>
           </div>
           
-          {keyStatus === "valid" ? (
-            <div className="flex items-center gap-2 p-4 bg-green-50 text-green-800 rounded-md">
-              <Check className="h-5 w-5 text-green-600" />
-              <span>Το κλειδί Helius API είναι ήδη έγκυρο και λειτουργεί!</span>
+          <div className="flex items-center">
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">
+                Βήμα 2: Προσθήκη API Κλειδιών στο λογαριασμό σας
+              </p>
             </div>
-          ) : (
-            <Button
-              onClick={handleReset}
-              disabled={isResetting}
-              className="w-full"
-              variant="default"
-              size="lg"
-            >
-              {isResetting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Προσθήκη κλειδιού...
-                </>
+            <div>
+              {!user ? (
+                <Button variant="outline" size="sm" disabled>
+                  Συνδεθείτε πρώτα
+                </Button>
+              ) : isAdding ? (
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              ) : keysAdded ? (
+                <CheckCircle className="h-5 w-5 text-green-500" />
               ) : (
-                <>
-                  {keyStatus === "invalid" ? (
-                    <AlertTriangle className="h-4 w-4 mr-2" />
-                  ) : null}
-                  Προσθήκη κλειδιού Helius API
-                </>
+                <Button variant="outline" size="sm" disabled={isAdding || !endpointsInitialized} onClick={handleAddKeys}>
+                  Προσθήκη Κλειδιών
+                </Button>
               )}
-            </Button>
-          )}
-          
-          {isSuccess && (
-            <div className="flex items-center gap-2 p-4 bg-green-50 text-green-800 rounded-md">
-              <Check className="h-5 w-5 text-green-600" />
-              <span>Το κλειδί Helius προστέθηκε επιτυχώς στη βάση δεδομένων!</span>
             </div>
-          )}
-          
-          <div className="mt-6">
-            <h3 className="text-lg font-medium mb-2">Επόμενα βήματα:</h3>
-            <ol className="list-decimal ml-5 space-y-1">
-              <li>Μετά την προσθήκη του κλειδιού, το σύστημα θα το χρησιμοποιήσει αυτόματα</li>
-              <li>Δεν χρειάζεται επανεκκίνηση της εφαρμογής</li>
-              <li>Μπορείτε να κλείσετε αυτή τη σελίδα όταν είστε έτοιμοι</li>
-            </ol>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <Button variant="ghost" onClick={() => window.history.back()}>
+            Επιστροφή
+          </Button>
+          <Button 
+            disabled={!keysAdded} 
+            onClick={() => window.location.href = '/api-vault'}
+          >
+            Προβολή Όλων των Κλειδιών
+          </Button>
+        </CardFooter>
+      </Card>
+
+      {/* Status monitor component */}
+      {keysAdded && <HeliusStatusMonitor />}
+
+      {/* Add sync button if keys are added */}
+      {keysAdded && (
+        <div className="flex justify-end">
+          <HeliusSyncButton />
+        </div>
+      )}
+
+      {/* Key Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Πληροφορίες API Κλειδιών</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-medium">Helius API Keys</h3>
+              <p className="text-sm text-muted-foreground">
+                Τα κλειδιά Helius χρησιμοποιούνται για προηγμένες λειτουργίες του Solana blockchain, όπως εμπλουτισμένες συναλλαγές και πληροφορίες token.
+              </p>
+            </div>
+            
+            <div>
+              <h3 className="font-medium">Price API Keys</h3>
+              <p className="text-sm text-muted-foreground">
+                Τα κλειδιά τιμών (CoinGecko, CryptoCompare) παρέχουν πληροφορίες για τις τιμές των κρυπτονομισμάτων και τα δεδομένα αγοράς.
+              </p>
+            </div>
+            
+            <div>
+              <h3 className="font-medium">Solana RPC Endpoints</h3>
+              <p className="text-sm text-muted-foreground">
+                Τα RPC endpoints επιτρέπουν στην εφαρμογή να επικοινωνεί με το Solana blockchain.
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
