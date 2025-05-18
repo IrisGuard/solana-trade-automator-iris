@@ -1,16 +1,13 @@
 
-import React, { ReactNode } from "react";
+import React from "react";
+import { Outlet } from "react-router-dom";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { AppErrorBoundary } from "../errors/AppErrorBoundary";
 import { AppFallbackComponent } from "../errors/AppFallbackComponent";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-interface LayoutProps {
-  children: ReactNode;
-}
-
-export function Layout({ children }: LayoutProps) {
+export function Layout() {
   const isMobile = useIsMobile();
 
   return (
@@ -20,7 +17,7 @@ export function Layout({ children }: LayoutProps) {
         <div className="flex flex-1 overflow-hidden">
           {!isMobile && <Sidebar />}
           <main id="main-content" className="flex-1 px-3 py-3 md:px-6 md:py-6 overflow-auto">
-            {children}
+            <Outlet />
           </main>
         </div>
       </div>

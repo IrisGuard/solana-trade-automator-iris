@@ -3,7 +3,7 @@ import React from 'react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 
 // This component serves as a fallback when the real provider fails or isn't available
-interface SolanaProviderFallbackProps {
+export interface SolanaProviderFallbackProps {
   children: React.ReactNode;
 }
 
