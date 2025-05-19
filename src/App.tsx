@@ -13,13 +13,31 @@ import { WalletProviderWrapper } from './components/wallet/WalletProviderWrapper
 import { initializeSystemApiKeys } from './utils/apiKeyInitializer';
 import { AppProviders } from './providers/AppProviders';
 import { Routes } from './routes';
+import { toast } from 'sonner';
 
 function App() {
   // Initialize API endpoints on app launch
   useEffect(() => {
-    initializeSystemApiKeys().catch(err => {
-      console.error('Failed to initialize API endpoints:', err);
-    });
+    try {
+      console.log('Initializing system API keys...');
+      initializeSystemApiKeys().catch(err => {
+        console.error('Failed to initialize API endpoints:', err);
+      });
+      console.log('App component mounted successfully');
+    } catch (error) {
+      console.error('Error in App initialization:', error);
+    }
+    
+    // Check if we're on the root route and show a welcome toast
+    if (window.location.pathname === '/') {
+      toast.success('Καλώς ήρθατε στο Solana Trade Automator!', {
+        duration: 5000
+      });
+    }
+    
+    return () => {
+      console.log('App component unmounting');
+    };
   }, []);
 
   return (
@@ -29,7 +47,9 @@ function App() {
         <BrowserRouter>
           <WalletProviderWrapper>
             <SolanaProviderFallback>
-              <Routes />
+              <Suspense fallback={<div className="flex items-center justify-center h-screen">Φόρτωση...</div>}>
+                <Routes />
+              </Suspense>
             </SolanaProviderFallback>
           </WalletProviderWrapper>
         </BrowserRouter>

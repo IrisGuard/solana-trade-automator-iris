@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ApiKeyEntry, ApiKeyWithState } from './types';
 import { errorCollector } from '@/utils/error-handling/collector';

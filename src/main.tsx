@@ -75,13 +75,36 @@ console.log('[App] Root element exists:', !!document.getElementById('root'));
 // Initialize React application
 console.log('Initializing React application...');
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
-  </React.StrictMode>
-);
-
-// Log successful initialization
-console.log('[App] React application initialized');
+try {
+  const rootElement = document.getElementById('root');
+  if (!rootElement) {
+    throw new Error('Root element not found');
+  }
+  
+  ReactDOM.createRoot(rootElement).render(
+    <React.StrictMode>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </React.StrictMode>
+  );
+  
+  // Log successful initialization
+  console.log('[App] React application initialized successfully');
+} catch (error) {
+  console.error('[App] Failed to initialize React application:', error);
+  // Try to recover by removing StrictMode
+  try {
+    const rootElement = document.getElementById('root');
+    if (rootElement) {
+      console.log('[App] Attempting recovery without StrictMode...');
+      ReactDOM.createRoot(rootElement).render(
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      );
+    }
+  } catch (fallbackError) {
+    console.error('[App] Recovery attempt failed:', fallbackError);
+  }
+}

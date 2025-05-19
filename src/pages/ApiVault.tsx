@@ -8,6 +8,7 @@ import { ExportTabContent } from "@/components/api-vault/ExportTabContent";
 import { ImportTabContent } from "@/components/api-vault/ImportTabContent";
 import { LoginRequiredCard } from "@/components/api-vault/LoginRequiredCard";
 import { useAuth } from "@/providers/AuthProvider";
+import { Card } from "@/components/ui/card";
 
 export default function ApiVault() {
   const { user, loading } = useAuth();
@@ -35,7 +36,7 @@ export default function ApiVault() {
   if (!user) {
     return (
       <div className="space-y-6">
-        <ApiVaultHeader />
+        <ApiVaultHeader isLoggedIn={false} />
         <LoginRequiredCard onLogin={handleLoginClick} />
       </div>
     );
@@ -43,28 +44,30 @@ export default function ApiVault() {
 
   return (
     <div className="space-y-6">
-      <ApiVaultHeader isLoggedIn={!!user} />
+      <ApiVaultHeader isLoggedIn={true} />
       <ApiVaultInfoAlert />
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="manage">Διαχείριση</TabsTrigger>
-          <TabsTrigger value="export">Εξαγωγή</TabsTrigger>
-          <TabsTrigger value="import">Εισαγωγή</TabsTrigger>
-        </TabsList>
+      <Card className="p-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="manage">Διαχείριση</TabsTrigger>
+            <TabsTrigger value="export">Εξαγωγή</TabsTrigger>
+            <TabsTrigger value="import">Εισαγωγή</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="manage">
-          <ManageTabContent userId={user.id} />
-        </TabsContent>
+          <TabsContent value="manage">
+            <ManageTabContent userId={user.id} />
+          </TabsContent>
 
-        <TabsContent value="export">
-          <ExportTabContent userId={user.id} />
-        </TabsContent>
+          <TabsContent value="export">
+            <ExportTabContent userId={user.id} />
+          </TabsContent>
 
-        <TabsContent value="import">
-          <ImportTabContent userId={user.id} />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="import">
+            <ImportTabContent userId={user.id} />
+          </TabsContent>
+        </Tabs>
+      </Card>
     </div>
   );
 }

@@ -1,29 +1,39 @@
+
+/**
+ * Types for API key management
+ */
+
+export type ApiKeyStatus = 'active' | 'expired' | 'revoked' | 'failing';
+
 export interface ApiKeyEntry {
   id: string;
   user_id: string;
   name: string;
   service: string;
   key_value: string;
-  status: 'active' | 'expired' | 'revoked' | 'failing';
-  created_at: string;
+  status: ApiKeyStatus;
   description?: string;
+  created_at: string;
   is_encrypted?: boolean;
+  updated_at?: string;
 }
 
 export interface ApiKeyWithState extends ApiKeyEntry {
-  isVisible?: boolean;
-  isWorking?: boolean | null;
-  isTesting?: boolean;
+  isVisible: boolean;
+  isWorking: boolean;
+  isTesting: boolean;
 }
 
-// Update ApiService to be a more comprehensive interface instead of just a string type
-export interface ApiService {
-  id: string;
+export interface ApiKeyFilterOptions {
+  service?: string;
+  status?: ApiKeyStatus;
+  search?: string;
+}
+
+export interface ApiKeyServiceInfo {
   name: string;
   description: string;
-  documentationUrl: string;
-  apiKeyUrl: string;
+  icon: React.ReactNode;
+  testEndpoint?: string;
+  isCommon: boolean;
 }
-
-// Keep the type alias for backward compatibility
-export type ApiServiceType = 'helius' | 'solana' | 'coingecko' | 'other';
