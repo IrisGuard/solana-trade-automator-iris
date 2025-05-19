@@ -11,8 +11,16 @@ export type CustomApiKey = Tables['api_keys_storage']['Row'] & {
   isTesting?: boolean;
 };
 
-export type CustomApiEndpoint = Tables['api_endpoints']['Row'] & {
-  isActive?: boolean;
+// Define a custom type for API endpoints since the table might not exist yet in the schema
+export type CustomApiEndpoint = {
+  id: string;
+  name: string;
+  url: string;
+  category: string;
+  is_active: boolean;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
 };
 
 // Add any other custom types needed that would otherwise require modifying the read-only file
