@@ -1,5 +1,8 @@
 
-import { createClient } from '@supabase/supabase-js';
+import * as supabaseJs from '@supabase/supabase-js';
+
+// Use the createClient function from the namespace import
+const { createClient } = supabaseJs;
 
 // Hardcoded values for reliability - these are already public values
 const SUPABASE_URL = 'https://lvkbyfocssuzcdphpmfu.supabase.co';
