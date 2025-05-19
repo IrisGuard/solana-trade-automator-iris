@@ -54,6 +54,73 @@ export async function testCryptoCompareKey(apiKey: string): Promise<boolean> {
 }
 
 /**
+ * Tests if a Jupiter API key is valid
+ */
+export async function testJupiterKey(apiKey: string): Promise<boolean> {
+  try {
+    // Test with a simple quote request
+    const response = await axios.get(
+      'https://quote-api.jup.ag/v4/quote?inputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&outputMint=So11111111111111111111111111111111111111112&amount=100000',
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey
+        }
+      }
+    );
+    
+    return response.status === 200 && response.data && response.data.data;
+  } catch (error) {
+    console.error('Error testing Jupiter API key:', error);
+    return false;
+  }
+}
+
+/**
+ * Tests if a Solscan API key is valid
+ */
+export async function testSolscanKey(apiKey: string): Promise<boolean> {
+  try {
+    // Test with a simple account info request
+    const response = await axios.get(
+      'https://public-api.solscan.io/account/vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg',
+      {
+        headers: {
+          'Authorization': `Bearer ${apiKey}`
+        }
+      }
+    );
+    
+    return response.status === 200 && response.data;
+  } catch (error) {
+    console.error('Error testing Solscan API key:', error);
+    return false;
+  }
+}
+
+/**
+ * Tests if a Birdeye API key is valid
+ */
+export async function testBirdeyeKey(apiKey: string): Promise<boolean> {
+  try {
+    // Test with a simple price request for SOL
+    const response = await axios.get(
+      'https://public-api.birdeye.so/public/price?address=So11111111111111111111111111111111111111112',
+      {
+        headers: {
+          'x-api-key': apiKey
+        }
+      }
+    );
+    
+    return response.status === 200 && response.data && response.data.data;
+  } catch (error) {
+    console.error('Error testing Birdeye API key:', error);
+    return false;
+  }
+}
+
+/**
  * Tests multiple types of API keys
  */
 export async function testApiKey(service: string, key: string): Promise<boolean> {
@@ -71,6 +138,15 @@ export async function testApiKey(service: string, key: string): Promise<boolean>
         
       case 'cryptocompare':
         return await testCryptoCompareKey(key);
+        
+      case 'jupiter':
+        return await testJupiterKey(key);
+        
+      case 'solscan':
+        return await testSolscanKey(key);
+        
+      case 'birdeye':
+        return await testBirdeyeKey(key);
         
       default:
         console.warn(`No test implemented for service: ${service}`);

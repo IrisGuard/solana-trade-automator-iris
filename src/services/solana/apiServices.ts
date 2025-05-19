@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { fetchApiKey } from "@/utils/apiKeyFetcher";
 
 // Υπηρεσία για αλληλεπίδραση με το Phantom API
 export const phantomService = {
@@ -36,7 +37,18 @@ export const phantomService = {
 export const solscanService = {
   getAccountInfo: async (address: string) => {
     try {
-      const response = await fetch(`https://public-api.solscan.io/account/${address}`);
+      // Get API key if available
+      const apiKey = await fetchApiKey('solscan');
+      
+      const headers: HeadersInit = {};
+      if (apiKey) {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+      }
+      
+      const response = await fetch(`https://public-api.solscan.io/account/${address}`, {
+        headers
+      });
+      
       if (!response.ok) {
         throw new Error(`Solscan API error: ${response.status}`);
       }
@@ -50,7 +62,18 @@ export const solscanService = {
   
   getTokenHolders: async (tokenAddress: string) => {
     try {
-      const response = await fetch(`https://public-api.solscan.io/token/holders?tokenAddress=${tokenAddress}`);
+      // Get API key if available
+      const apiKey = await fetchApiKey('solscan');
+      
+      const headers: HeadersInit = {};
+      if (apiKey) {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+      }
+      
+      const response = await fetch(`https://public-api.solscan.io/token/holders?tokenAddress=${tokenAddress}`, {
+        headers
+      });
+      
       if (!response.ok) {
         throw new Error(`Solscan API error: ${response.status}`);
       }
@@ -67,9 +90,22 @@ export const solscanService = {
 export const jupiterService = {
   getQuote: async (inputMint: string, outputMint: string, amount: number) => {
     try {
+      // Get Jupiter API key
+      const apiKey = await fetchApiKey('jupiter');
+      
+      // Prepare headers with API key if available
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      };
+      
+      if (apiKey) {
+        headers['x-api-key'] = apiKey;
+      }
+      
       // Χρησιμοποιούμε το Jupiter API v4
       const response = await fetch(
-        `https://quote-api.jup.ag/v4/quote?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amount}&slippageBps=50`
+        `https://quote-api.jup.ag/v4/quote?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amount}&slippageBps=50`,
+        { headers }
       );
       
       if (!response.ok) {
@@ -80,6 +116,42 @@ export const jupiterService = {
     } catch (error) {
       console.error("Error fetching Jupiter swap quote:", error);
       toast.error("Failed to get swap quote from Jupiter");
+      throw error;
+    }
+  },
+  
+  buildSwapTransaction: async (quoteResponse: any) => {
+    try {
+      // Get Jupiter API key
+      const apiKey = await fetchApiKey('jupiter');
+      
+      // Prepare headers with API key if available
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      };
+      
+      if (apiKey) {
+        headers['x-api-key'] = apiKey;
+      }
+      
+      const response = await fetch('https://quote-api.jup.ag/v4/swap', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          quoteResponse,
+          userPublicKey: window.solana?.publicKey?.toString() || '',
+          wrapUnwrapSOL: true
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Jupiter API error: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error("Error building Jupiter swap transaction:", error);
+      toast.error("Failed to build swap transaction with Jupiter");
       throw error;
     }
   }
@@ -137,10 +209,46 @@ export const raydiumService = {
   }
 };
 
+// Υπηρεσία για αλληλεπίδραση με το Birdeye API
+export const birdeyeService = {
+  getTokenPrice: async (tokenAddress: string) => {
+    try {
+      const apiKey = await fetchApiKey('birdeye');
+      
+      if (!apiKey) {
+        console.warn("No Birdeye API key found, using fallback method");
+        // Fallback to Raydium if no Birdeye API key is available
+        const prices = await raydiumService.getPrices([tokenAddress]);
+        return prices;
+      }
+      
+      const headers = {
+        'x-api-key': apiKey
+      };
+      
+      const response = await fetch(
+        `https://public-api.birdeye.so/public/price?address=${tokenAddress}`,
+        { headers }
+      );
+      
+      if (!response.ok) {
+        throw new Error(`Birdeye API error: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching token price from Birdeye:", error);
+      toast.error("Failed to get token price");
+      throw error;
+    }
+  }
+};
+
 // Εξάγουμε όλες τις υπηρεσίες
 export const apiServices = {
   phantom: phantomService,
   solscan: solscanService,
   jupiter: jupiterService,
-  raydium: raydiumService
+  raydium: raydiumService,
+  birdeye: birdeyeService
 };

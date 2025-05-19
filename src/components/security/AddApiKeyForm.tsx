@@ -10,11 +10,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { KeyRound, Loader2, Check, X } from "lucide-react";
 import { validateHeliusKey } from "@/utils/addHeliusEndpoints";
+import { testApiKey } from "@/utils/apiKeyChecker";
 
 export function AddApiKeyForm() {
   const [name, setName] = useState("");
   const [key, setKey] = useState("");
   const [service, setService] = useState("helius");
+  const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [isValid, setIsValid] = useState<boolean | null>(null);
@@ -32,11 +34,22 @@ export function AddApiKeyForm() {
     try {
       let validationResult = false;
 
-      if (service === "helius") {
-        validationResult = await validateHeliusKey(key);
-      } else {
-        // Default validation logic for other services
-        validationResult = key.length > 8; // Simple validation
+      // Use the appropriate validation function based on service
+      switch(service) {
+        case "helius":
+          validationResult = await validateHeliusKey(key);
+          break;
+        case "jupiter":
+        case "solscan":
+        case "birdeye":
+        case "coingecko":
+        case "cryptocompare":
+          validationResult = await testApiKey(service, key);
+          break;
+        default:
+          // Simple validation for other services (just check length)
+          validationResult = key.length > 8;
+          break;
       }
 
       setIsValid(validationResult);
@@ -88,6 +101,7 @@ export function AddApiKeyForm() {
           name: name.trim(),
           key_value: key.trim(),
           service,
+          description: description.trim(),
           user_id: user.id,
           status: 'active',
           is_encrypted: false
@@ -98,6 +112,7 @@ export function AddApiKeyForm() {
       toast.success("Το κλειδί API προστέθηκε επιτυχώς");
       setName("");
       setKey("");
+      setDescription("");
       setIsValid(null);
     } catch (error) {
       console.error("Error adding API key:", error);
@@ -124,7 +139,7 @@ export function AddApiKeyForm() {
             <Label htmlFor="key-name">Όνομα Κλειδιού</Label>
             <Input
               id="key-name"
-              placeholder="π.χ. Helius Production API Key"
+              placeholder="π.χ. Jupiter Production API Key"
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={isSubmitting}
@@ -139,7 +154,12 @@ export function AddApiKeyForm() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="helius">Helius</SelectItem>
+                <SelectItem value="jupiter">Jupiter</SelectItem>
+                <SelectItem value="solscan">Solscan</SelectItem>
+                <SelectItem value="birdeye">Birdeye</SelectItem>
                 <SelectItem value="solana">Solana RPC</SelectItem>
+                <SelectItem value="coingecko">CoinGecko</SelectItem>
+                <SelectItem value="cryptocompare">CryptoCompare</SelectItem>
                 <SelectItem value="other">Άλλο</SelectItem>
               </SelectContent>
             </Select>
@@ -180,6 +200,17 @@ export function AddApiKeyForm() {
             {isValid === false && (
               <p className="text-xs text-red-500">Το κλειδί δεν είναι έγκυρο</p>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Περιγραφή (προαιρετικό)</Label>
+            <Input
+              id="description"
+              placeholder="Προαιρετική περιγραφή του κλειδιού..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={isSubmitting}
+            />
           </div>
         </form>
       </CardContent>
