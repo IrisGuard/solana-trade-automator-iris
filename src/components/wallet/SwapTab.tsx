@@ -11,6 +11,7 @@ import {
   ToggleGroupItem 
 } from "@/components/ui/toggle-group";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
+import { SwapFormProps } from "./swap/types";
 
 interface SwapTabProps {
   isConnected: boolean;
@@ -19,6 +20,12 @@ interface SwapTabProps {
 export function SwapTab({ isConnected }: SwapTabProps) {
   const [swapService, setSwapService] = useState<"jupiter" | "raydium">("jupiter");
   const { connectWallet } = useWalletConnection();
+
+  // Create a props object that matches the SwapFormProps interface
+  const swapFormProps: SwapFormProps = {
+    isConnected: isConnected,
+    connectWallet: connectWallet
+  };
 
   return (
     <TabsContent value="swap" className="space-y-6">
