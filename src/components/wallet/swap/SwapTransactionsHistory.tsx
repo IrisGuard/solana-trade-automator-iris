@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { transactionsService } from "@/services/transactionsService";
 import { formatDate } from "@/utils/transactionUtils";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Clock } from "lucide-react";
 
 interface SwapTransaction {
   id: string;
@@ -30,7 +30,10 @@ export function SwapTransactionsHistory({ selectedService }: SwapTransactionsHis
 
   useEffect(() => {
     const loadTransactions = async () => {
-      if (!walletAddress) return;
+      if (!walletAddress) {
+        setIsLoading(false);
+        return;
+      }
       
       setIsLoading(true);
       try {
@@ -73,9 +76,18 @@ export function SwapTransactionsHistory({ selectedService }: SwapTransactionsHis
     return `https://solscan.io/tx/${signature}`;
   };
 
+  const getServiceBadge = (signature: string) => {
+    const isRaydium = signature.startsWith("raydium-");
+    return (
+      <Badge variant={isRaydium ? "purple" : "blue"} className="ml-2">
+        {isRaydium ? "Raydium" : "Jupiter"}
+      </Badge>
+    );
+  };
+
   return (
-    <Card>
-      <CardHeader>
+    <Card className="h-full">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-xl">
           {selectedService 
             ? `${selectedService.charAt(0).toUpperCase() + selectedService.slice(1)} Swap History` 
@@ -90,22 +102,24 @@ export function SwapTransactionsHistory({ selectedService }: SwapTransactionsHis
             <Skeleton className="h-16 w-full" />
           </div>
         ) : transactions.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            No swap transactions found{selectedService ? ` for ${selectedService}` : ""}
+          <div className="text-center py-12 text-muted-foreground">
+            <Clock className="mx-auto h-12 w-12 opacity-30 mb-3" />
+            <p>No swap transactions found{selectedService ? ` for ${selectedService}` : ""}</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
             {transactions.map((tx) => (
               <div 
                 key={tx.id}
-                className="p-4 border rounded-lg flex flex-col gap-2"
+                className="p-4 border rounded-lg flex flex-col gap-2 hover:bg-muted/50 transition-colors"
               >
                 <div className="flex justify-between items-start">
                   <div>
                     <Badge variant={tx.status === "success" ? "success" : "destructive"}>
                       {tx.status}
                     </Badge>
-                    <div className="mt-1 font-medium">{tx.amount}</div>
+                    {getServiceBadge(tx.signature)}
+                    <div className="mt-2 font-medium">{tx.amount}</div>
                   </div>
                   {!tx.signature.startsWith("raydium-") ? (
                     <a 
@@ -123,14 +137,10 @@ export function SwapTransactionsHistory({ selectedService }: SwapTransactionsHis
                     </span>
                   )}
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock size={12} />
                   {formatDate(tx.created_at || tx.block_time)}
                 </div>
-                {tx.signature.startsWith("raydium-") && (
-                  <div className="text-xs text-purple-500">
-                    Raydium
-                  </div>
-                )}
               </div>
             ))}
           </div>

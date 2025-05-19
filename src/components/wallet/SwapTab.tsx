@@ -33,10 +33,10 @@ export function SwapTab({ isConnected }: SwapTabProps) {
         <>
           <div className="flex justify-center mb-4">
             <ToggleGroup type="single" value={swapService} onValueChange={(value) => value && setSwapService(value as "jupiter" | "raydium")}>
-              <ToggleGroupItem value="jupiter" aria-label="Jupiter Swap">
+              <ToggleGroupItem value="jupiter" aria-label="Jupiter Swap" className="px-6">
                 Jupiter
               </ToggleGroupItem>
-              <ToggleGroupItem value="raydium" aria-label="Raydium Swap">
+              <ToggleGroupItem value="raydium" aria-label="Raydium Swap" className="px-6">
                 Raydium
               </ToggleGroupItem>
             </ToggleGroup>
@@ -45,7 +45,10 @@ export function SwapTab({ isConnected }: SwapTabProps) {
           <div className="grid gap-6 md:grid-cols-2">
             <div>
               {swapService === "jupiter" ? (
-                <JupiterSwapForm />
+                <JupiterSwapForm 
+                  isConnected={isConnected}
+                  connectWallet={connectWallet}
+                />
               ) : (
                 <RaydiumSwapForm 
                   isConnected={isConnected}

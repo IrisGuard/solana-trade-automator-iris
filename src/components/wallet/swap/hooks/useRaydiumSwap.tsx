@@ -3,7 +3,7 @@ import { useState } from "react";
 import { transactionsService } from "@/services/transactionsService";
 import { toast } from "sonner";
 import { Token } from "@/types/wallet";
-import { SwapState } from "../types";
+import { SwapState, TokenInfo } from "../types";
 
 interface UseRaydiumSwapProps {
   walletAddress: string | null;
