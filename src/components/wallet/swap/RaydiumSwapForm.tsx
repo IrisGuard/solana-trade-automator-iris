@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import { AlertCircle, Loader2, RefreshCw } from "lucide-react";
-import { raydiumService } from "@/services/solana/raydiumService";
+import { ArrowDown, AlertCircle, Loader2, RefreshCw } from "lucide-react";
+import { apiServices } from "@/services/solana/apiServices";
 import { transactionsService } from "@/services/transactionsService";
 import { toast } from "sonner";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
@@ -27,10 +27,10 @@ interface SwapState {
   outputMint: string;
   inputAmount: string;
   isLoading: boolean;
+  quoteResponse: any;
   swapStatus: 'idle' | 'loading' | 'success' | 'error';
   outputAmount: string;
   priceImpact: string;
-  pairInfo: any;
 }
 
 export function RaydiumSwapForm() {
@@ -41,14 +41,13 @@ export function RaydiumSwapForm() {
     outputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC by default
     inputAmount: "0.1",
     isLoading: false,
+    quoteResponse: null,
     swapStatus: 'idle',
     outputAmount: "0",
-    priceImpact: "0",
-    pairInfo: null
+    priceImpact: "0"
   });
 
   const [availableTokens, setAvailableTokens] = useState<Token[]>([]);
-  const [availablePairs, setAvailablePairs] = useState<any[]>([]);
 
   // Load user tokens and combine with common tokens
   useEffect(() => {
@@ -88,123 +87,58 @@ export function RaydiumSwapForm() {
     }
   }, [tokens]);
 
-  // Load available pairs from Raydium
-  useEffect(() => {
-    const loadPairs = async () => {
-      try {
-        // Placeholder for API settings - normally would come from a context or hook
-        const apiSettings = {
-          raydiumEnabled: true,
-          raydiumApiEndpoint: 'https://api.raydium.io',
-          raydiumApiVersion: 'v2'
-        };
-        
-        const pairs = await raydiumService.getAllPairs(apiSettings);
-        setAvailablePairs(pairs);
-        
-        // If we have pairs, find a matching one for the current tokens
-        if (pairs.length > 0) {
-          findAndSetPairInfo(pairs);
-        }
-      } catch (error) {
-        console.error('Error loading Raydium pairs:', error);
-        toast.error('Failed to load Raydium trading pairs');
-      }
-    };
-    
-    loadPairs();
-  }, []);
-
-  // Find pair info when tokens change
-  const findAndSetPairInfo = (pairs = availablePairs) => {
-    const { inputMint, outputMint } = swapState;
-    
-    // Find pair by mint addresses (simplified - actual logic would be more complex)
-    const pair = pairs.find(p => 
-      (p.baseMint === inputMint && p.quoteMint === outputMint) || 
-      (p.baseMint === outputMint && p.quoteMint === inputMint)
-    );
-    
-    if (pair) {
-      setSwapState(prev => ({ ...prev, pairInfo: pair }));
-    } else {
-      setSwapState(prev => ({ ...prev, pairInfo: null }));
-    }
-  };
-
-  useEffect(() => {
-    if (availablePairs.length > 0) {
-      findAndSetPairInfo();
-    }
-  }, [swapState.inputMint, swapState.outputMint, availablePairs]);
-
   const getQuote = async () => {
     if (!isConnected) {
       toast.error("Please connect your wallet first");
       return;
     }
 
-    const { inputMint, outputMint, inputAmount, pairInfo } = swapState;
+    const { inputMint, outputMint, inputAmount } = swapState;
     if (!inputMint || !outputMint || !inputAmount || parseFloat(inputAmount) <= 0) {
       toast.error("Please provide valid input values");
-      return;
-    }
-
-    // If no pair info is available, we can't proceed
-    if (!pairInfo) {
-      toast.error("No trading pair found for these tokens on Raydium");
       return;
     }
 
     setSwapState(prev => ({ ...prev, isLoading: true }));
 
     try {
-      // Placeholder for API settings
-      const apiSettings = {
-        raydiumEnabled: true,
-        raydiumApiEndpoint: 'https://api.raydium.io',
-        raydiumApiVersion: 'v2'
+      // In a real implementation, we'd call the Raydium API here
+      // For demonstration, we'll simulate a swap quote
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Simulate Raydium API response
+      const simulatedResponse = {
+        inAmount: parseFloat(inputAmount) * Math.pow(10, 9), // Convert to lamports for SOL
+        outAmount: parseFloat(inputAmount) * 30 * Math.pow(10, 6), // Simulated USDC amount (1 SOL = ~$30)
+        fee: {
+          amount: parseFloat(inputAmount) * 0.0025 * Math.pow(10, 9),
+          mint: inputMint,
+          percent: 0.0025
+        },
+        priceImpact: 0.0015
       };
       
-      // Get token info
-      const inputToken = availableTokens.find(token => token.address === inputMint);
-      if (!inputToken) {
-        throw new Error("Input token not found");
-      }
-      
-      const decimals = inputToken.decimals || 9; // Default to 9 for SOL
-      const amountInSmallestUnit = parseFloat(inputAmount) * Math.pow(10, decimals);
-      
-      // Calculate output based on price from pair info
-      const price = pairInfo.price;
-      const isInputBase = pairInfo.baseMint === inputMint;
-      
-      let calculatedOutput;
-      if (isInputBase) {
-        // If input is base token, multiply by price
-        calculatedOutput = parseFloat(inputAmount) * price;
-      } else {
-        // If input is quote token, divide by price
-        calculatedOutput = parseFloat(inputAmount) / price;
-      }
-      
+      // Format output amount
       const outputToken = availableTokens.find(token => token.address === outputMint);
-      const outputDecimals = outputToken?.decimals || 6;
-      const formattedOutput = calculatedOutput.toFixed(outputDecimals);
+      const outputDecimals = outputToken?.decimals || 6; // Default to 6 for USDC/USDT
+      const outputAmount = (Number(simulatedResponse.outAmount) / Math.pow(10, outputDecimals)).toFixed(outputDecimals);
       
-      // Simplified price impact calculation
-      const priceImpact = "< 1.00%"; // Placeholder - actual calculation would be more complex
+      // Format price impact
+      const priceImpact = (Number(simulatedResponse.priceImpact) * 100).toFixed(2) + '%';
       
       setSwapState(prev => ({
         ...prev,
-        outputAmount: formattedOutput,
+        quoteResponse: simulatedResponse,
+        outputAmount,
         priceImpact,
         isLoading: false
       }));
       
-      toast.success("Quote received successfully");
+      toast.success("Quote received successfully (simulated)");
     } catch (error: any) {
-      console.error("Error fetching quote:", error);
+      console.error("Error fetching Raydium quote:", error);
       toast.error(`Failed to get quote: ${error.message}`);
       setSwapState(prev => ({ ...prev, isLoading: false }));
     }
@@ -216,7 +150,7 @@ export function RaydiumSwapForm() {
       return;
     }
 
-    if (!swapState.outputAmount || parseFloat(swapState.outputAmount) <= 0) {
+    if (!swapState.quoteResponse) {
       toast.error("Please get a quote first");
       return;
     }
@@ -224,14 +158,14 @@ export function RaydiumSwapForm() {
     setSwapState(prev => ({ ...prev, swapStatus: 'loading' }));
 
     try {
-      // This is a simplified mock of a Raydium swap
-      // In a real implementation, this would use the Raydium SDK to execute the swap
+      // In a real implementation, we would execute the swap through the Raydium API
+      // For demonstration, we'll simulate a successful swap
       
-      // Simulate a delay for the swap
+      // Simulate transaction delay
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Generate a mock signature
-      const signature = `raydium-${Math.random().toString(36).substring(2, 15)}`;
+      // Generate a mock transaction signature with a "raydium-" prefix to identify it
+      const mockSignature = `raydium-${Math.random().toString(36).substring(2, 15)}`;
       
       // Save transaction to database
       const inputToken = availableTokens.find(token => token.address === swapState.inputMint);
@@ -243,7 +177,7 @@ export function RaydiumSwapForm() {
           await transactionsService.saveTransaction({
             user_id: null, // Will be filled by backend RLS
             wallet_address: walletAddress,
-            signature: signature,
+            signature: mockSignature,
             type: "swap",
             status: "success",
             amount: `${swapState.inputAmount} ${inputToken?.symbol || 'Unknown'}`,
@@ -257,13 +191,14 @@ export function RaydiumSwapForm() {
       }
 
       setSwapState(prev => ({ ...prev, swapStatus: 'success' }));
-      toast.success(`Swap successful! Signature: ${signature}`);
+      toast.success(`Swap successful! Signature: ${mockSignature}`);
       
       // Reset form after success
       setTimeout(() => {
         setSwapState(prev => ({
           ...prev,
           swapStatus: 'idle',
+          quoteResponse: null,
           outputAmount: "0",
           priceImpact: "0"
         }));
@@ -281,6 +216,7 @@ export function RaydiumSwapForm() {
       ...prev,
       inputMint: prev.outputMint,
       outputMint: prev.inputMint,
+      quoteResponse: null,
       outputAmount: "0",
       priceImpact: "0"
     }));
@@ -302,7 +238,7 @@ export function RaydiumSwapForm() {
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
         <CardTitle>Raydium Swap</CardTitle>
-        <CardDescription>Swap tokens using Raydium liquidity pools</CardDescription>
+        <CardDescription>Simulated swap experience with Raydium</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {!isConnected ? (
@@ -320,6 +256,7 @@ export function RaydiumSwapForm() {
                     setSwapState(prev => ({ 
                       ...prev, 
                       inputMint: value,
+                      quoteResponse: null,
                       outputAmount: "0", 
                       priceImpact: "0"
                     }))
@@ -346,6 +283,7 @@ export function RaydiumSwapForm() {
                     setSwapState(prev => ({ 
                       ...prev, 
                       inputAmount: e.target.value,
+                      quoteResponse: null,
                       outputAmount: "0",
                       priceImpact: "0"
                     }))
@@ -367,7 +305,7 @@ export function RaydiumSwapForm() {
                 onClick={swapTokens}
                 disabled={swapState.isLoading || swapState.swapStatus === 'loading'}
               >
-                <RefreshCw />
+                <ArrowDown />
               </Button>
             </div>
 
@@ -380,6 +318,7 @@ export function RaydiumSwapForm() {
                     setSwapState(prev => ({ 
                       ...prev, 
                       outputMint: value,
+                      quoteResponse: null,
                       outputAmount: "0",
                       priceImpact: "0"
                     }))
@@ -415,7 +354,7 @@ export function RaydiumSwapForm() {
               </div>
             </div>
 
-            {swapState.outputAmount !== "0" && (
+            {swapState.quoteResponse && (
               <div className="bg-muted p-3 rounded-md">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Rate</span>
@@ -429,20 +368,7 @@ export function RaydiumSwapForm() {
                   <span className="text-muted-foreground">Price Impact</span>
                   <span>{swapState.priceImpact}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Provider</span>
-                  <span>Raydium</span>
-                </div>
               </div>
-            )}
-
-            {!swapState.pairInfo && (
-              <Alert variant="warning">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  No Raydium pool found for this token pair. Try Jupiter instead.
-                </AlertDescription>
-              </Alert>
             )}
 
             {swapState.swapStatus === 'error' && (
@@ -457,7 +383,7 @@ export function RaydiumSwapForm() {
             <div className="flex gap-2">
               <Button
                 onClick={getQuote}
-                disabled={!swapState.pairInfo || swapState.isLoading || swapState.swapStatus === 'loading'}
+                disabled={swapState.isLoading || swapState.swapStatus === 'loading'}
                 variant="outline"
                 className="flex-1"
               >
@@ -476,7 +402,7 @@ export function RaydiumSwapForm() {
               
               <Button
                 onClick={executeSwap}
-                disabled={!swapState.pairInfo || parseFloat(swapState.outputAmount) <= 0 || swapState.swapStatus === 'loading'}
+                disabled={!swapState.quoteResponse || swapState.swapStatus === 'loading'}
                 className="flex-1"
               >
                 {swapState.swapStatus === 'loading' ? (
@@ -493,3 +419,4 @@ export function RaydiumSwapForm() {
     </Card>
   );
 }
+
