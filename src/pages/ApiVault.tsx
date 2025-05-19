@@ -1,31 +1,35 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useUser } from "@/hooks/useUser";
 import { ApiVaultHeader } from "@/components/api-vault/ApiVaultHeader";
 import { ApiVaultInfoAlert } from "@/components/api-vault/ApiVaultInfoAlert";
 import { ManageTabContent } from "@/components/api-vault/ManageTabContent";
 import { ExportTabContent } from "@/components/api-vault/ExportTabContent";
 import { ImportTabContent } from "@/components/api-vault/ImportTabContent";
 import { LoginRequiredCard } from "@/components/api-vault/LoginRequiredCard";
-import { useAuth } from "@/providers/SupabaseAuthProvider";
-import { toast } from "sonner";
+import { useAuth } from "@/providers/AuthProvider";
 
 export default function ApiVault() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState("manage");
   
-  // Check for active session on page load
-  useEffect(() => {
-    if (!user) {
-      toast.info("Συνδεθείτε για να διαχειριστείτε τα κλειδιά API σας");
-    }
-  }, [user]);
-
   // Handle login click
   const handleLoginClick = () => {
     window.location.href = "/auth";
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <ApiVaultHeader />
+        <div className="flex items-center justify-center p-12 bg-background rounded-lg border">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <span className="ml-3 text-muted-foreground">Φόρτωση...</span>
+        </div>
+      </div>
+    );
+  }
 
   // If user is not logged in, show login required card
   if (!user) {

@@ -1,125 +1,208 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect, useCallback } from 'react';
+import { ApiKeyService } from '@/services/api-keys/apiKeyService';
+import { ApiKeyEntry, ApiKeyWithState } from '@/services/api-keys/types';
 import { toast } from 'sonner';
-import { errorCollector } from '@/utils/error-handling/collector';
-import { ApiKeyEntry } from '@/services/api-keys/types';
 
 interface UseApiKeyListProps {
   userId?: string;
   includeDemoKeys?: boolean;
 }
 
-interface UseApiKeyListResult {
-  keys: ApiKeyEntry[];
-  loading: boolean;
-  error: Error | null;
-  refreshKeys: () => Promise<void>;
-  deleteKey: (keyId: string) => Promise<boolean>;
-}
-
 export function useApiKeyList({ 
   userId,
-  includeDemoKeys = false // Demo keys are disabled by default
-}: UseApiKeyListProps): UseApiKeyListResult {
-  const [keys, setKeys] = useState<ApiKeyEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  includeDemoKeys = false
+}: UseApiKeyListProps = {}) {
+  const [keys, setKeys] = useState<ApiKeyWithState[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
-
-  const fetchKeys = async () => {
+  
+  const refreshKeys = useCallback(async () => {
     if (!userId) {
       setKeys([]);
       setLoading(false);
       return;
     }
-
+    
     setLoading(true);
-    setError(null);
-
     try {
-      let fetchedKeys: ApiKeyEntry[] = [];
+      const fetchedKeys = await ApiKeyService.fetchUserApiKeys(userId);
       
-      // If user is logged in, fetch their keys
-      if (userId) {
-        const { data, error: fetchError } = await supabase
-          .from('api_keys_storage')
-          .select('*')
-          .eq('user_id', userId);
-          
-        if (fetchError) throw fetchError;
-        
-        if (data) {
-          fetchedKeys = data.map((item) => ({
-            id: item.id,
-            user_id: item.user_id,
-            name: item.name,
-            service: item.service,
-            key_value: item.key_value,
-            status: item.status as 'active' | 'expired' | 'revoked' | 'failing',
-            created_at: item.created_at,
-            description: item.description,
-            is_encrypted: item.is_encrypted
-          }));
-        }
+      // Add demo keys if needed
+      if (includeDemoKeys && fetchedKeys.length === 0) {
+        const demoKeys: ApiKeyWithState[] = [
+          {
+            id: 'demo-1',
+            user_id: userId,
+            name: 'Demo Helius API Key',
+            service: 'helius',
+            key_value: 'helius-api-demo-key-123',
+            status: 'active',
+            created_at: new Date().toISOString(),
+            description: 'Demo key for testing',
+            is_encrypted: false,
+            isVisible: false,
+            isWorking: true,
+            isTesting: false
+          },
+          {
+            id: 'demo-2',
+            user_id: userId,
+            name: 'Demo Solana RPC Key',
+            service: 'solana',
+            key_value: 'solana-rpc-demo-key-456',
+            status: 'active',
+            created_at: new Date().toISOString(),
+            description: 'Demo key for testing',
+            is_encrypted: false,
+            isVisible: false,
+            isWorking: true,
+            isTesting: false
+          }
+        ];
+        setKeys([...fetchedKeys, ...demoKeys]);
+      } else {
+        setKeys(fetchedKeys);
       }
       
-      // No more demo keys included by default
-      setKeys(fetchedKeys);
+      setError(null);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load API keys';
-      setError(new Error(errorMessage));
-      console.error('Error in useApiKeyList:', err);
-      errorCollector.captureError(err instanceof Error ? err : new Error(errorMessage), {
-        component: 'useApiKeyList',
-        source: 'fetchKeys',
-      });
+      setError(err as Error);
+      console.error('Error fetching API keys:', err);
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchKeys();
   }, [userId, includeDemoKeys]);
-
-  const deleteKey = async (keyId: string): Promise<boolean> => {
-    if (!userId) return false;
+  
+  // Initial fetch
+  useEffect(() => {
+    refreshKeys();
+  }, [refreshKeys]);
+  
+  const addKey = useCallback(async (key: Omit<ApiKeyEntry, 'id'>) => {
+    if (!userId) {
+      toast.error('Πρέπει να συνδεθείτε για να προσθέσετε κλειδιά');
+      return null;
+    }
     
-    // Demo keys should not exist anymore, but just in case
-    if (keyId.startsWith('demo-')) {
-      toast.error('Δεν είναι δυνατή η διαγραφή κλειδιών demo');
+    try {
+      const newKey = await ApiKeyService.saveApiKey({ 
+        ...key, 
+        user_id: userId,
+        id: undefined
+      } as ApiKeyEntry);
+      
+      if (newKey) {
+        toast.success('Το κλειδί προστέθηκε με επιτυχία');
+        await refreshKeys();
+        return newKey;
+      }
+      return null;
+    } catch (err) {
+      toast.error('Σφάλμα κατά την προσθήκη του κλειδιού');
+      console.error('Error adding API key:', err);
+      return null;
+    }
+  }, [userId, refreshKeys]);
+  
+  const updateKey = useCallback(async (key: ApiKeyEntry) => {
+    if (!userId || !key.id) {
+      toast.error('Απαιτούνται οι πληροφορίες κλειδιού και χρήστη');
       return false;
     }
     
     try {
-      const { error } = await supabase
-        .from('api_keys_storage')
-        .delete()
-        .eq('id', keyId)
-        .eq('user_id', userId);
-        
-      if (error) throw error;
-      
-      setKeys(prev => prev.filter(key => key.id !== keyId));
-      toast.success('Το κλειδί API διαγράφηκε επιτυχώς');
-      return true;
-    } catch (err) {
-      console.error('Error deleting API key:', err);
-      errorCollector.captureError(err instanceof Error ? err : new Error('Failed to delete API key'), {
-        component: 'useApiKeyList',
-        source: 'deleteKey',
-        details: { keyId }
+      const updatedKey = await ApiKeyService.saveApiKey({
+        ...key,
+        user_id: userId
       });
-      toast.error('Αποτυχία διαγραφής κλειδιού API');
+      
+      if (updatedKey) {
+        toast.success('Το κλειδί ενημερώθηκε με επιτυχία');
+        await refreshKeys();
+        return true;
+      }
+      return false;
+    } catch (err) {
+      toast.error('Σφάλμα κατά την ενημέρωση του κλειδιού');
+      console.error('Error updating API key:', err);
       return false;
     }
-  };
-
+  }, [userId, refreshKeys]);
+  
+  const deleteKey = useCallback(async (keyId: string) => {
+    if (!userId || !keyId) {
+      toast.error('Απαιτούνται οι πληροφορίες κλειδιού και χρήστη');
+      return false;
+    }
+    
+    try {
+      const success = await ApiKeyService.deleteApiKey(keyId, userId);
+      
+      if (success) {
+        toast.success('Το κλειδί διαγράφηκε με επιτυχία');
+        await refreshKeys();
+        return true;
+      }
+      return false;
+    } catch (err) {
+      toast.error('Σφάλμα κατά τη διαγραφή του κλειδιού');
+      console.error('Error deleting API key:', err);
+      return false;
+    }
+  }, [userId, refreshKeys]);
+  
+  const testKey = useCallback(async (keyId: string, service: string, keyValue: string) => {
+    try {
+      setKeys(prev => prev.map(k => 
+        k.id === keyId ? { ...k, isTesting: true } : k
+      ));
+      
+      const isValid = await ApiKeyService.testApiKey(service, keyValue);
+      
+      // Update key status based on test result
+      if (userId && keyId !== 'demo-1' && keyId !== 'demo-2') {
+        await ApiKeyService.updateKeyStatus(
+          keyId,
+          userId,
+          isValid ? 'active' : 'failing'
+        );
+      }
+      
+      setKeys(prev => prev.map(k => 
+        k.id === keyId ? { 
+          ...k, 
+          isTesting: false,
+          isWorking: isValid,
+          status: isValid ? 'active' : 'failing'
+        } : k
+      ));
+      
+      if (isValid) {
+        toast.success(`Το κλειδί για ${service} λειτουργεί κανονικά`);
+      } else {
+        toast.error(`Το κλειδί για ${service} δεν λειτουργεί σωστά`);
+      }
+      
+      return isValid;
+    } catch (err) {
+      setKeys(prev => prev.map(k => 
+        k.id === keyId ? { ...k, isTesting: false } : k
+      ));
+      toast.error(`Σφάλμα κατά τον έλεγχο του κλειδιού για ${service}`);
+      console.error('Error testing API key:', err);
+      return false;
+    }
+  }, [userId]);
+  
   return {
     keys,
     loading,
     error,
-    refreshKeys: fetchKeys,
-    deleteKey
+    refreshKeys,
+    addKey,
+    updateKey,
+    deleteKey,
+    testKey
   };
 }

@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
@@ -9,14 +9,16 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ConsoleMonitor } from "@/components/debug/ConsoleMonitor";
 import { toast } from "sonner";
 import { useErrorReporting } from "@/hooks/useErrorReporting";
+import { useAuth } from "@/providers/AuthProvider";
+import { MonitoringSystem } from "../monitoring/MonitoringSystem";
 
 export function Layout() {
   const isMobile = useIsMobile();
   const location = useLocation();
   const { reportError } = useErrorReporting();
-  const [isLayoutMounted, setIsLayoutMounted] = useState(false);
+  const { user } = useAuth();
 
-  // Log DOM initialization and layout rendering
+  // Log Layout initialization and rendering
   useEffect(() => {
     try {
       console.log(`[Layout] Page mount started: ${location.pathname}`);
@@ -24,9 +26,6 @@ export function Layout() {
       // Check if main DOM elements exist
       const mainContent = document.getElementById('main-content');
       console.log(`[Debug] Main content element exists: ${!!mainContent}`);
-      
-      // Mark layout as mounted
-      setIsLayoutMounted(true);
       
       // Log after a small delay to catch any immediate errors
       const timer = setTimeout(() => {
@@ -39,8 +38,17 @@ export function Layout() {
             duration: 3000
           });
         }
+        
+        // Welcome users after login
+        if (user && location.pathname === '/') {
+          toast.success(`Καλώς ήρθατε${user.email ? ` ${user.email}` : ''}!`, {
+            description: "Η πλατφόρμα είναι έτοιμη για χρήση",
+            duration: 5000
+          });
+        }
       }, 1000);
       
+      // Cleanup timer on unmount
       return () => {
         clearTimeout(timer);
         console.log(`[Layout] Page unmounted: ${location.pathname}`);
@@ -53,12 +61,12 @@ export function Layout() {
         showToast: true
       });
     }
-  }, [location.pathname, reportError]);
+  }, [location.pathname, reportError, user]);
 
   return (
     <AppErrorBoundary fallbackComponent={AppFallbackComponent}>
       <div className="min-h-screen flex flex-col bg-background">
-        <ConsoleMonitor />
+        <MonitoringSystem />
         <Header />
         <div className="flex flex-1 overflow-hidden">
           {!isMobile && <Sidebar />}
@@ -66,7 +74,7 @@ export function Layout() {
             <Outlet />
           </main>
         </div>
-        {isLayoutMounted && <div id="layout-mounted" style={{ display: 'none' }} />}
+        <div id="layout-mounted" style={{ display: 'none' }} data-testid="layout-initialized" />
       </div>
     </AppErrorBoundary>
   );

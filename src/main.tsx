@@ -20,6 +20,7 @@ import './index.css';
 import { SiteBackupService } from './utils/site-protection/SiteBackupService';
 import { SiteHealthMonitor } from './utils/error-handling/SiteHealthMonitor';
 import { routeDebugger } from './utils/routeDebugger';
+import { AuthProvider } from './providers/AuthProvider';
 
 // Log startup diagnostics
 console.log('[App] Application starting up...');
@@ -76,7 +77,9 @@ console.log('Initializing React application...');
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <AuthProvider>
+      <App />
+    </AuthProvider>
   </React.StrictMode>
 );
 

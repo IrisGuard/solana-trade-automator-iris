@@ -1,10 +1,15 @@
+
 import { useState, useCallback } from 'react';
 
+/**
+ * Hook for managing API key visibility with utilities
+ */
 export function useApiKeyVisibility() {
-  // Keep track of which key IDs should be visible using an object
   const [visibleKeyIds, setVisibleKeyIds] = useState<Record<string, boolean>>({});
   
-  // Toggle visibility for a key
+  /**
+   * Toggle visibility for a specific key
+   */
   const toggleKeyVisibility = useCallback((keyId: string) => {
     setVisibleKeyIds(prev => ({
       ...prev,
@@ -12,27 +17,58 @@ export function useApiKeyVisibility() {
     }));
   }, []);
   
-  // Check if a key is currently visible
-  const isKeyVisible = useCallback((keyId: string) => {
-    return !!visibleKeyIds[keyId];
-  }, [visibleKeyIds]);
-  
-  // Format key display based on visibility
-  const formatKeyDisplay = useCallback((key: string, isVisible: boolean) => {
+  /**
+   * Format key display based on visibility
+   */
+  const formatKeyDisplay = useCallback((key: string, isVisible: boolean): string => {
     if (!key) return '';
     
     if (isVisible) {
       return key;
-    } else {
-      // Show first 4 and last 4 characters, hide the rest
-      return `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
     }
+    
+    // Show first and last 4 characters with ... in between
+    return `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
+  }, []);
+  
+  /**
+   * Hide all visible keys
+   */
+  const hideAllKeys = useCallback(() => {
+    setVisibleKeyIds({});
+  }, []);
+  
+  /**
+   * Reset key visibility (for component unmount/cleanup)
+   */
+  const resetVisibility = useCallback(() => {
+    setVisibleKeyIds({});
+  }, []);
+  
+  /**
+   * Make a specific key visible
+   */
+  const showKey = useCallback((keyId: string) => {
+    setVisibleKeyIds(prev => ({
+      ...prev,
+      [keyId]: true
+    }));
+    
+    // Auto-hide after 10 seconds
+    setTimeout(() => {
+      setVisibleKeyIds(prev => ({
+        ...prev,
+        [keyId]: false
+      }));
+    }, 10000);
   }, []);
   
   return {
     visibleKeyIds,
     toggleKeyVisibility,
     formatKeyDisplay,
-    isKeyVisible
+    hideAllKeys,
+    resetVisibility,
+    showKey
   };
 }
