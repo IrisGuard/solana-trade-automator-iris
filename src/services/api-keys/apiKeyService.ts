@@ -30,7 +30,7 @@ export class ApiKeyService {
         name: item.name,
         service: item.service,
         key_value: item.key_value,
-        status: item.status as 'active' | 'expired' | 'revoked' | 'failing',
+        status: item.status as ApiKeyEntry['status'],
         created_at: item.created_at,
         description: item.description || '',
         is_encrypted: item.is_encrypted || false,
@@ -136,7 +136,7 @@ export class ApiKeyService {
         name: key.name,
         service: key.service,
         key_value: key.key_value,
-        status: key.status || 'active',
+        status: (key.status || 'active') as ApiKeyEntry['status'],
         description: key.description || '',
         is_encrypted: key.is_encrypted || false,
         created_at: key.created_at || new Date().toISOString()
@@ -160,7 +160,15 @@ export class ApiKeyService {
           .select();
           
         if (error) throw error;
-        return data && data[0] ? data[0] : null;
+        
+        if (data && data[0]) {
+          // Ensure the returned data has the correct type for status
+          return {
+            ...data[0],
+            status: data[0].status as ApiKeyEntry['status']
+          };
+        }
+        return null;
       } else {
         // Insert new key
         const { data, error } = await supabase
@@ -169,7 +177,15 @@ export class ApiKeyService {
           .select();
           
         if (error) throw error;
-        return data && data[0] ? data[0] : null;
+        
+        if (data && data[0]) {
+          // Ensure the returned data has the correct type for status
+          return {
+            ...data[0],
+            status: data[0].status as ApiKeyEntry['status']
+          };
+        }
+        return null;
       }
     } catch (error) {
       errorCollector.captureError(error as Error, {
