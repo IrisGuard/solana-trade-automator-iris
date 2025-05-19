@@ -47,6 +47,7 @@ export function Sidebar() {
       title: "Test API",
       href: "/test-api",
       icon: Search,
+      highlight: true, // Add highlight property for special styling
     }
   ];
 
@@ -103,11 +104,15 @@ export function Sidebar() {
                       "flex items-center py-2 px-2 sm:px-3 rounded-md text-sm transition-colors",
                       isActive
                         ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                        : item.highlight 
+                          ? "text-blue-400 hover:bg-blue-900/20 hover:text-blue-300" 
+                          : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                      // Add a subtle pulse animation for the highlighted item
+                      item.highlight && "animate-pulse"
                     )
                   }
                 >
-                  <item.icon className="h-4 w-4 mr-0 sm:mr-2" />
+                  <item.icon className={cn("h-4 w-4 mr-0 sm:mr-2", item.highlight ? "text-blue-400" : "")} />
                   <span className="hidden sm:inline">{item.title}</span>
                 </NavLink>
               ))}
