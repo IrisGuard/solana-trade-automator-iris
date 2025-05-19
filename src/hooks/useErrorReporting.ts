@@ -18,7 +18,7 @@ interface ErrorReportingOptions {
 export function useErrorReporting() {
   const reportError = useCallback((error: Error, options: ErrorReportingOptions = {}) => {
     // Log to console
-    console.error('Error reported:', error);
+    console.error('[Error Reporting] Error reported:', error);
     
     // Add default options
     const mergedOptions = {

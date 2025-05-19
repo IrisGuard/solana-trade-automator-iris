@@ -5,31 +5,43 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { ConsoleMonitor } from "@/components/debug/ConsoleMonitor";
 
 export default function TestAPI() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Add comprehensive logging
   useEffect(() => {
-    // Log that the page is being mounted
-    console.log("TestAPI page is mounting");
+    console.log("[Debug] TestAPI page mounting...");
     
     try {
+      console.log("[Debug] Starting loading timer...");
       // Simulate a short loading time to ensure components are ready
       const timer = setTimeout(() => {
+        console.log("[Debug] Timer completed, setting isLoading=false");
         setIsLoading(false);
-        console.log("TestAPI page loaded successfully");
-        toast.success("Η σελίδα API Testing φορτώθηκε επιτυχώς");
-      }, 1000);
+        console.log("[Debug] TestAPI page loaded successfully");
+        toast.success("Η σελίδα API Testing φορτώθηκε επιτυχώς", { 
+          id: "test-api-load-success" 
+        });
+      }, 1500); // Slight increase to ensure components have time to mount
       
       return () => {
         clearTimeout(timer);
-        console.log("TestAPI page unmounted");
+        console.log("[Debug] TestAPI page unmounted, timer cleared");
       };
     } catch (err) {
-      console.error("Error loading TestAPI page:", err);
+      console.error("[Error] Error in TestAPI page load effect:", err);
       setError("Προέκυψε σφάλμα κατά τη φόρτωση της σελίδας. Παρακαλώ ανανεώστε τη σελίδα.");
       setIsLoading(false);
+      
+      // Log the error with more details
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      toast.error("Σφάλμα φόρτωσης", {
+        description: errorMessage,
+        id: "test-api-load-error"
+      });
     }
   }, []);
 
@@ -67,12 +79,15 @@ export default function TestAPI() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="API Testing"
-        description="Test various API integration methods"
-      />
-      <TestApp />
-    </div>
+    <>
+      <ConsoleMonitor />
+      <div className="space-y-6">
+        <PageHeader
+          title="API Testing"
+          description="Test various API integration methods"
+        />
+        <TestApp />
+      </div>
+    </>
   );
 }

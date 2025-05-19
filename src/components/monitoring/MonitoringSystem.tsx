@@ -5,6 +5,7 @@ import { SiteHealthMonitor } from '@/utils/error-handling/SiteHealthMonitor';
 import { toast } from 'sonner';
 import { GlobalErrorHandler } from '@/components/errors/GlobalErrorHandler';
 import { NetworkStatusMonitor } from './NetworkStatusMonitor';
+import { ConsoleMonitor } from '@/components/debug/ConsoleMonitor';
 
 export function MonitoringSystem() {
   useEffect(() => {
@@ -14,11 +15,18 @@ export function MonitoringSystem() {
     // Start site health monitoring
     SiteHealthMonitor.start();
     
-    console.log("Monitoring system initialized");
+    console.log("[Debug] Monitoring system initialized");
+
+    // Display startup toast to confirm UI is working
+    toast.info("Το σύστημα παρακολούθησης ενεργοποιήθηκε", {
+      id: "monitoring-system-init",
+      duration: 3000
+    });
     
     // Clean up when component unmounts
     return () => {
       consoleLogger.restore();
+      console.log("[Debug] Monitoring system cleanup complete");
     };
   }, []);
   
@@ -26,6 +34,7 @@ export function MonitoringSystem() {
     <>
       <GlobalErrorHandler />
       <NetworkStatusMonitor />
+      <ConsoleMonitor />
     </>
   );
 }

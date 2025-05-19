@@ -1,6 +1,5 @@
-
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { 
   Activity, 
   BarChart3, 
@@ -17,6 +16,9 @@ import {
 import { cn } from "@/lib/utils";
 
 export function Sidebar() {
+  const location = useLocation();
+  const currentPath = location.pathname;
+
   const mainNavItems = [
     {
       title: "Πίνακας Ελέγχου",
@@ -47,7 +49,7 @@ export function Sidebar() {
       title: "Test API",
       href: "/test-api",
       icon: Search,
-      highlight: true, // Add highlight property for special styling
+      highlight: true,
     }
   ];
 
@@ -77,6 +79,8 @@ export function Sidebar() {
     }
   ];
 
+  console.log("[Debug] Current path:", currentPath); // Log current path
+
   return (
     <aside className="fixed inset-y-0 left-0 z-10 w-16 sm:w-64 overflow-y-auto border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex flex-col h-full">
@@ -95,27 +99,32 @@ export function Sidebar() {
               <div className="hidden sm:block text-xs text-muted-foreground mb-2 px-2">
                 Κύριο Μενού
               </div>
-              {mainNavItems.map((item) => (
-                <NavLink
-                  key={item.href}
-                  to={item.href}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex items-center py-2 px-2 sm:px-3 rounded-md text-sm transition-colors",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : item.highlight 
-                          ? "text-blue-400 hover:bg-blue-900/20 hover:text-blue-300" 
-                          : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                      // Add a subtle pulse animation for the highlighted item
-                      item.highlight && "animate-pulse"
-                    )
-                  }
-                >
-                  <item.icon className={cn("h-4 w-4 mr-0 sm:mr-2", item.highlight ? "text-blue-400" : "")} />
-                  <span className="hidden sm:inline">{item.title}</span>
-                </NavLink>
-              ))}
+              {mainNavItems.map((item) => {
+                const isActive = currentPath === item.href;
+                console.log(`[Debug] Menu item ${item.title}: path=${item.href}, active=${isActive}`);
+                
+                return (
+                  <NavLink
+                    key={item.href}
+                    to={item.href}
+                    className={({ isActive }) =>
+                      cn(
+                        "flex items-center py-2 px-2 sm:px-3 rounded-md text-sm transition-colors",
+                        isActive
+                          ? "bg-primary/10 text-primary"
+                          : item.highlight 
+                            ? "text-blue-400 hover:bg-blue-900/20 hover:text-blue-300" 
+                            : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                        item.highlight && "animate-pulse"
+                      )
+                    }
+                    onClick={() => console.log(`[Debug] Clicked on ${item.title}, navigating to ${item.href}`)}
+                  >
+                    <item.icon className={cn("h-4 w-4 mr-0 sm:mr-2", item.highlight ? "text-blue-400" : "")} />
+                    <span className="hidden sm:inline">{item.title}</span>
+                  </NavLink>
+                );
+              })}
             </div>
 
             <div className="space-y-2">
