@@ -10,6 +10,7 @@ import {
   ToggleGroup, 
   ToggleGroupItem 
 } from "@/components/ui/toggle-group";
+import { useWalletConnection } from "@/hooks/useWalletConnection";
 
 interface SwapTabProps {
   isConnected: boolean;
@@ -17,6 +18,7 @@ interface SwapTabProps {
 
 export function SwapTab({ isConnected }: SwapTabProps) {
   const [swapService, setSwapService] = useState<"jupiter" | "raydium">("jupiter");
+  const { connectWallet } = useWalletConnection();
 
   return (
     <TabsContent value="swap" className="space-y-6">
@@ -45,7 +47,10 @@ export function SwapTab({ isConnected }: SwapTabProps) {
               {swapService === "jupiter" ? (
                 <JupiterSwapForm />
               ) : (
-                <RaydiumSwapForm />
+                <RaydiumSwapForm 
+                  isConnected={isConnected}
+                  connectWallet={connectWallet}
+                />
               )}
             </div>
             <div>

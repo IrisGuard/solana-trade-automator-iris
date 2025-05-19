@@ -12,29 +12,28 @@ import { useTokenList } from "./hooks/useTokenList";
 import { useRaydiumSwap } from "./hooks/useRaydiumSwap";
 import { SwapFormProps } from "./types";
 
-export function RaydiumSwapForm({ isConnected = false, connectWallet = () => {} }: SwapFormProps = {}) {
+export function RaydiumSwapForm({ isConnected = false, connectWallet = () => {} }: SwapFormProps) {
   const { walletAddress, tokens } = useWalletConnection();
   const availableTokens = useTokenList(tokens);
   
   const {
     swapState,
-    setSwapState,
+    inputToken,
+    outputToken,
     getQuote,
     executeSwap,
-    swapTokens
-  } = useRaydiumSwap(walletAddress, availableTokens);
+    swapTokens,
+    updateInputMint,
+    updateOutputMint,
+    updateInputAmount
+  } = useRaydiumSwap({ 
+    walletAddress, 
+    isConnected, 
+    availableTokens 
+  });
 
-  // Find token info by mint address
-  const getTokenInfo = (mintAddress: string) => {
-    return availableTokens.find(token => token.address === mintAddress) || {
-      symbol: "Unknown",
-      name: "Unknown Token",
-      decimals: 0
-    };
-  };
-
-  const inputToken = getTokenInfo(swapState.inputMint);
-  const outputToken = getTokenInfo(swapState.outputMint);
+  const inputTokenBalance = tokens?.find(t => t.address === swapState.inputMint)?.amount || 0;
+  const outputTokenBalance = tokens?.find(t => t.address === swapState.outputMint)?.amount || 0;
 
   if (!isConnected) {
     return (
@@ -52,39 +51,6 @@ export function RaydiumSwapForm({ isConnected = false, connectWallet = () => {} 
     );
   }
 
-  const handleInputAmountChange = (value: string) => {
-    setSwapState(prev => ({ 
-      ...prev, 
-      inputAmount: value,
-      quoteResponse: null,
-      outputAmount: "0",
-      priceImpact: "0"
-    }));
-  };
-
-  const handleInputTokenChange = (value: string) => {
-    setSwapState(prev => ({ 
-      ...prev, 
-      inputMint: value,
-      quoteResponse: null,
-      outputAmount: "0", 
-      priceImpact: "0"
-    }));
-  };
-
-  const handleOutputTokenChange = (value: string) => {
-    setSwapState(prev => ({ 
-      ...prev, 
-      outputMint: value,
-      quoteResponse: null,
-      outputAmount: "0",
-      priceImpact: "0"
-    }));
-  };
-
-  const inputTokenBalance = tokens?.find(t => t.address === swapState.inputMint)?.amount || 0;
-  const outputTokenBalance = tokens?.find(t => t.address === swapState.outputMint)?.amount || 0;
-
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
@@ -97,8 +63,8 @@ export function RaydiumSwapForm({ isConnected = false, connectWallet = () => {} 
           tokens={availableTokens}
           tokenMint={swapState.inputMint}
           amount={swapState.inputAmount}
-          onTokenChange={handleInputTokenChange}
-          onAmountChange={handleInputAmountChange}
+          onTokenChange={updateInputMint}
+          onAmountChange={updateInputAmount}
           disabled={swapState.isLoading || swapState.swapStatus === 'loading'}
           excludeToken={swapState.outputMint}
           balance={inputTokenBalance}
@@ -121,7 +87,7 @@ export function RaydiumSwapForm({ isConnected = false, connectWallet = () => {} 
           tokens={availableTokens}
           tokenMint={swapState.outputMint}
           amount={swapState.outputAmount}
-          onTokenChange={handleOutputTokenChange}
+          onTokenChange={updateOutputMint}
           disabled={swapState.isLoading || swapState.swapStatus === 'loading'}
           readOnly={true}
           excludeToken={swapState.inputMint}
