@@ -1,137 +1,99 @@
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
-// Προσθέτει τα προκαθορισμένα endpoints του Helius στη βάση δεδομένων
-export const addHeliusEndpoints = async (): Promise<boolean> => {
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { heliusService } from '@/services/helius/HeliusService';
+
+/**
+ * Adds a new Helius API key for the user
+ * @param userId User ID to associate the key with
+ * @returns Promise resolving to true if successful
+ */
+export async function addHeliusKey(userId: string): Promise<boolean> {
   try {
-    // Έλεγχος αν υπάρχουν ήδη τα endpoints
+    // Generate a placeholder key or obtain it from elsewhere
+    const placeholderKey = `helius-placeholder-${Date.now()}-${Math.round(Math.random() * 1000)}`;
+    
+    // Add the key to the database
+    const { error } = await supabase.from('api_keys_storage').insert({
+      user_id: userId,
+      service: 'helius',
+      name: 'Default Helius API Key',
+      key_value: placeholderKey,
+      status: 'needs_setup',
+      description: 'Generated automatically. Please replace with your actual Helius API key.'
+    });
+    
+    if (error) {
+      console.error('Error adding Helius key:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (err) {
+    console.error('Error in addHeliusKey:', err);
+    return false;
+  }
+}
+
+/**
+ * Adds default Helius endpoints to the database
+ * @returns Promise resolving to true if successful
+ */
+export async function addHeliusEndpoints(): Promise<boolean> {
+  try {
+    // First check if endpoints already exist
     const { data: existingEndpoints, error: checkError } = await supabase
       .from('api_endpoints')
-      .select('*')
+      .select('name')
       .eq('category', 'helius');
     
-    if (checkError) throw checkError;
+    if (checkError) {
+      console.error('Error checking existing Helius endpoints:', checkError);
+      return false;
+    }
     
-    // Αν υπάρχουν ήδη endpoints Helius, επιστρέφουμε επιτυχία
+    // If endpoints already exist, return success
     if (existingEndpoints && existingEndpoints.length > 0) {
-      console.log('Endpoints Helius ήδη υπάρχουν:', existingEndpoints.length);
+      console.log('Helius endpoints already exist, skipping creation');
       return true;
     }
     
-    // Λίστα με τα template endpoints του Helius που θέλουμε να προσθέσουμε
-    // Σημείωση: Τα API_KEY θα πρέπει να συμπληρωθούν από τον χρήστη
-    const heliusEndpoints = [
+    // Create default Helius endpoints
+    const endpoints = [
       {
-        name: "Helius Enhanced Transactions",
-        url: `https://api.helius.xyz/v0/transactions?api-key={API_KEY}`,
-        category: "helius",
-        is_active: true,
-        is_public: true
+        name: 'helius_base',
+        url: 'https://api.helius.xyz/v0',
+        category: 'helius',
+        is_active: true
       },
       {
-        name: "Helius Name Service",
-        url: `https://api.helius.xyz/v0/addresses/{address}/names?api-key={API_KEY}`,
-        category: "helius",
-        is_active: true,
-        is_public: true
+        name: 'helius_balances',
+        url: 'https://api.helius.xyz/v0/addresses/{address}/balances',
+        category: 'helius',
+        is_active: true
       },
       {
-        name: "Helius Token Balances",
-        url: `https://api.helius.xyz/v0/addresses/{address}/balances?api-key={API_KEY}`,
-        category: "helius",
-        is_active: true,
-        is_public: true
+        name: 'helius_transactions',
+        url: 'https://api.helius.xyz/v0/addresses/{address}/transactions',
+        category: 'helius',
+        is_active: true
       }
     ];
     
-    // Προσθήκη των endpoints στη βάση δεδομένων
-    const { error } = await supabase
-      .from('api_endpoints')
-      .insert(heliusEndpoints);
-      
-    if (error) throw error;
+    // Insert endpoints
+    const { error } = await supabase.from('api_endpoints').insert(endpoints);
     
-    console.log('Επιτυχής προσθήκη endpoints Helius');
-    return true;
-  } catch (error) {
-    console.error('Σφάλμα κατά την προσθήκη των endpoints Helius:', error);
-    toast.error('Σφάλμα κατά την προσθήκη endpoints Helius');
-    return false;
-  }
-};
-
-// Προσθέτει το κλειδί API Helius στην κλειδοθήκη του χρήστη
-export const addHeliusKey = async (userId: string, apiKey: string = ""): Promise<boolean> => {
-  if (apiKey && !apiKey.trim()) {
-    toast.error("Παρακαλώ εισάγετε ένα έγκυρο κλειδί API");
-    return false;
-  }
-
-  try {
-    // Έλεγχος αν υπάρχει ήδη το κλειδί
-    if (apiKey) {
-      const { data: existingKeys, error: checkError } = await supabase
-        .from('api_keys_storage')
-        .select('*')
-        .eq('service', 'helius')
-        .eq('key_value', apiKey)
-        .eq('user_id', userId);
-      
-      if (checkError) throw checkError;
-      
-      // Αν υπάρχουν ήδη κλειδιά με την ίδια τιμή, επιστρέφουμε αποτυχία
-      if (existingKeys && existingKeys.length > 0) {
-        console.log('Κλειδί Helius με την ίδια τιμή υπάρχει ήδη');
-        toast.error("Αυτό το κλειδί API υπάρχει ήδη");
-        return false;
-      }
+    if (error) {
+      console.error('Error adding Helius endpoints:', error);
+      return false;
     }
     
-    // Δημιουργία νέου κλειδιού Helius
-    const heliusKey = {
-      name: "Helius API Key",
-      key_value: apiKey || "ΧΡΕΙΑΖΕΤΑΙ_ΚΛΕΙΔΙ_API", // Placeholder if no key provided
-      service: "helius",
-      description: "Key for accessing Helius API services",
-      status: apiKey ? "active" : "pending", // Mark as pending if no key provided
-      user_id: userId,
-      is_encrypted: false
-    };
-    
-    // Προσθήκη του κλειδιού στη βάση δεδομένων
-    const { error } = await supabase
-      .from('api_keys_storage')
-      .insert(heliusKey);
-      
-    if (error) throw error;
-    
-    console.log('Επιτυχής προσθήκη κλειδιού Helius');
-    
-    if (apiKey) {
-      toast.success("Το κλειδί API προστέθηκε επιτυχώς");
-    } else {
-      toast.info("Δημιουργήθηκε εγγραφή κλειδιού. Παρακαλώ προσθέστε το πραγματικό κλειδί API στις ρυθμίσεις.");
-    }
+    // Reset Helius service to use new endpoints
+    heliusService.reinitialize();
     
     return true;
-  } catch (error) {
-    console.error('Σφάλμα κατά την προσθήκη του κλειδιού Helius:', error);
-    toast.error('Σφάλμα κατά την προσθήκη κλειδιού Helius');
+  } catch (err) {
+    console.error('Error in addHeliusEndpoints:', err);
     return false;
   }
-};
-
-// Έλεγχος αν ένα κλειδί Helius είναι έγκυρο
-export const validateHeliusKey = async (apiKey: string): Promise<boolean> => {
-  try {
-    if (!apiKey || !apiKey.trim()) return false;
-
-    const url = `https://api.helius.xyz/v0/addresses/vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg/balances?api-key=${apiKey}`;
-    const response = await fetch(url);
-    
-    return response.status === 200;
-  } catch (error) {
-    console.error("Error validating Helius key:", error);
-    return false;
-  }
-};
+}
