@@ -166,7 +166,7 @@ export function SwapTransactionsHistory({ selectedService }: SwapTransactionsHis
                     ) : (
                       <span className="text-xs text-muted-foreground flex items-center gap-1">
                         {truncateSignature(tx.signature)}
-                        <Info size={12} title="Simulated transaction" />
+                        <Info size={12} aria-label="Simulated transaction" />
                       </span>
                     )}
                   </div>
