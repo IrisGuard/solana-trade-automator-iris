@@ -19,7 +19,11 @@ interface SwapTransaction {
   created_at: string;
 }
 
-export function SwapTransactionsHistory() {
+interface SwapTransactionsHistoryProps {
+  selectedService?: "jupiter" | "raydium";
+}
+
+export function SwapTransactionsHistory({ selectedService }: SwapTransactionsHistoryProps) {
   const { walletAddress } = useWalletConnection();
   const [transactions, setTransactions] = useState<SwapTransaction[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -33,7 +37,19 @@ export function SwapTransactionsHistory() {
         const data = await transactionsService.getTransactionsByWallet(walletAddress);
         // Filter for swap transactions only
         const swapTxs = data.filter(tx => tx.type === "swap");
-        setTransactions(swapTxs as SwapTransaction[]);
+
+        // Filter by service if specified (Jupiter signatures don't start with "raydium-")
+        const filteredTxs = selectedService
+          ? swapTxs.filter(tx => {
+              if (selectedService === "raydium") {
+                return tx.signature.startsWith("raydium-");
+              } else {
+                return !tx.signature.startsWith("raydium-");
+              }
+            })
+          : swapTxs;
+
+        setTransactions(filteredTxs as SwapTransaction[]);
       } catch (error) {
         console.error("Error loading swap transactions:", error);
       } finally {
@@ -42,7 +58,7 @@ export function SwapTransactionsHistory() {
     };
 
     loadTransactions();
-  }, [walletAddress]);
+  }, [walletAddress, selectedService]);
 
   const truncateSignature = (signature: string) => {
     if (!signature) return "";
@@ -50,13 +66,21 @@ export function SwapTransactionsHistory() {
   };
 
   const getSolscanLink = (signature: string) => {
+    // Don't generate Solscan links for mock Raydium transactions
+    if (signature.startsWith("raydium-")) {
+      return "#";
+    }
     return `https://solscan.io/tx/${signature}`;
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl">Swap History</CardTitle>
+        <CardTitle className="text-xl">
+          {selectedService 
+            ? `${selectedService.charAt(0).toUpperCase() + selectedService.slice(1)} Swap History` 
+            : "Swap History"}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -67,7 +91,7 @@ export function SwapTransactionsHistory() {
           </div>
         ) : transactions.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            No swap transactions found
+            No swap transactions found{selectedService ? ` for ${selectedService}` : ""}
           </div>
         ) : (
           <div className="space-y-4">
@@ -83,19 +107,30 @@ export function SwapTransactionsHistory() {
                     </Badge>
                     <div className="mt-1 font-medium">{tx.amount}</div>
                   </div>
-                  <a 
-                    href={getSolscanLink(tx.signature)} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-xs text-blue-500 hover:text-blue-700 flex items-center gap-1"
-                  >
-                    {truncateSignature(tx.signature)}
-                    <ExternalLink size={12} />
-                  </a>
+                  {!tx.signature.startsWith("raydium-") ? (
+                    <a 
+                      href={getSolscanLink(tx.signature)} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-500 hover:text-blue-700 flex items-center gap-1"
+                    >
+                      {truncateSignature(tx.signature)}
+                      <ExternalLink size={12} />
+                    </a>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">
+                      {truncateSignature(tx.signature)}
+                    </span>
+                  )}
                 </div>
                 <div className="text-xs text-muted-foreground">
                   {formatDate(tx.created_at || tx.block_time)}
                 </div>
+                {tx.signature.startsWith("raydium-") && (
+                  <div className="text-xs text-purple-500">
+                    Raydium
+                  </div>
+                )}
               </div>
             ))}
           </div>
