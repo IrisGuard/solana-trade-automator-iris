@@ -1,13 +1,13 @@
 
-// Using the default import for the Supabase client
-import { createClient as supabaseCreateClient } from '@supabase/supabase-js';
+// Import Supabase client correctly - using the default export
+import { createClient } from '@supabase/supabase-js';
 
 // Hardcoded values for reliability - these are already public values
 const SUPABASE_URL = 'https://lvkbyfocssuzcdphpmfu.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2a2J5Zm9jc3N1emNkcGhwbWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY4MDk3NTIsImV4cCI6MjA2MjM4NTc1Mn0.fkQe2TgniccYP-AvrYnFL_ladauqL7-ULiTagMDszhc';
 
 // Create client with correct format
-export const supabase = supabaseCreateClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
@@ -37,5 +37,5 @@ export async function checkSupabaseConnection(): Promise<boolean> {
 // Type for database tables, to be fully defined when needed
 export type Tables = any;
 
-// Export createClient for use in other files if needed
-export const createClient = supabaseCreateClient;
+// Also export createClient for use in other files if needed
+export { createClient };
