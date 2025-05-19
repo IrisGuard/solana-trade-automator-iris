@@ -12,7 +12,7 @@ import { useTokenList } from "./hooks/useTokenList";
 import { useRaydiumSwap } from "./hooks/useRaydiumSwap";
 import { SwapFormProps } from "./types";
 
-export function RaydiumSwapForm({ isConnected = false, connectWallet = () => {} }: SwapFormProps) {
+export function RaydiumSwapForm({ isConnected = false, connectWallet }: SwapFormProps) {
   const { walletAddress, tokens } = useWalletConnection();
   const availableTokens = useTokenList(tokens);
   

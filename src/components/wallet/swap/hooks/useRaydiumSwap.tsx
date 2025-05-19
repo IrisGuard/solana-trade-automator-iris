@@ -3,7 +3,7 @@ import { useState } from "react";
 import { transactionsService } from "@/services/transactionsService";
 import { toast } from "sonner";
 import { Token } from "@/types/wallet";
-import { SwapState, TokenInfo } from "../types";
+import { SwapState, TokenInfo, COMMON_TOKENS } from "../types";
 
 interface UseRaydiumSwapProps {
   walletAddress: string | null;
@@ -13,8 +13,8 @@ interface UseRaydiumSwapProps {
 
 export function useRaydiumSwap({ walletAddress, isConnected, availableTokens }: UseRaydiumSwapProps) {
   const [swapState, setSwapState] = useState<SwapState>({
-    inputMint: "So11111111111111111111111111111111111111112", // SOL by default
-    outputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC by default
+    inputMint: COMMON_TOKENS.SOL, // SOL by default
+    outputMint: COMMON_TOKENS.USDC, // USDC by default
     inputAmount: "0.1",
     isLoading: false,
     quoteResponse: null,
@@ -24,11 +24,12 @@ export function useRaydiumSwap({ walletAddress, isConnected, availableTokens }: 
   });
 
   // Find token info by mint address
-  const getTokenInfo = (mintAddress: string) => {
-    return availableTokens.find(token => token.address === mintAddress) || {
-      symbol: "Unknown",
-      name: "Unknown Token",
-      decimals: 0
+  const getTokenInfo = (mintAddress: string): TokenInfo => {
+    const token = availableTokens.find(token => token.address === mintAddress);
+    return {
+      symbol: token?.symbol || "Unknown",
+      name: token?.name || "Unknown Token",
+      decimals: token?.decimals || 0
     };
   };
 

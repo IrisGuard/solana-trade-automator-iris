@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Token } from "@/types/wallet";
-import { COMMON_TOKENS } from "../types";
+import { COMMON_TOKEN_LIST } from "../types";
 
 export function useTokenList(tokens: Token[] | null | undefined) {
   const [availableTokens, setAvailableTokens] = useState<Token[]>([]);
@@ -14,7 +14,7 @@ export function useTokenList(tokens: Token[] | null | undefined) {
       // Add common tokens if they're not already in the user's tokens
       const combinedTokens = [...tokens];
       
-      COMMON_TOKENS.forEach(commonToken => {
+      COMMON_TOKEN_LIST.forEach(commonToken => {
         if (!tokenAddressSet.has(commonToken.mint)) {
           combinedTokens.push({
             address: commonToken.mint,
@@ -30,7 +30,7 @@ export function useTokenList(tokens: Token[] | null | undefined) {
       setAvailableTokens(combinedTokens);
     } else {
       // If no user tokens are available, use common tokens
-      const formattedCommonTokens = COMMON_TOKENS.map(token => ({
+      const formattedCommonTokens = COMMON_TOKEN_LIST.map(token => ({
         address: token.mint,
         symbol: token.symbol,
         name: token.name,

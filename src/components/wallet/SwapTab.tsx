@@ -26,7 +26,7 @@ export function SwapTab({ isConnected }: SwapTabProps) {
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Παρακαλώ συνδέστε το πορτοφόλι σας για να χρησιμοποιήσετε το Swap
+            Please connect your wallet to use the Swap feature
           </AlertDescription>
         </Alert>
       ) : (

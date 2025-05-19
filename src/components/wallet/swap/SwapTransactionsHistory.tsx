@@ -4,9 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { transactionsService } from "@/services/transactionsService";
+import { solscanService } from "@/services/solscan/solscanService";
 import { formatDate } from "@/utils/transactionUtils";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
-import { ExternalLink, Clock } from "lucide-react";
+import { ExternalLink, Clock, Info } from "lucide-react";
+import { TransactionDetailDialog } from "./TransactionDetailDialog";
 
 interface SwapTransaction {
   id: string;
@@ -15,7 +17,7 @@ interface SwapTransaction {
   source: string;
   destination: string;
   status: string;
-  block_time: string;
+  block_time?: string;
   created_at: string;
 }
 
@@ -27,6 +29,7 @@ export function SwapTransactionsHistory({ selectedService }: SwapTransactionsHis
   const { walletAddress } = useWalletConnection();
   const [transactions, setTransactions] = useState<SwapTransaction[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [solscanData, setSolscanData] = useState<Record<string, any>>({});
 
   useEffect(() => {
     const loadTransactions = async () => {
@@ -53,6 +56,30 @@ export function SwapTransactionsHistory({ selectedService }: SwapTransactionsHis
           : swapTxs;
 
         setTransactions(filteredTxs as SwapTransaction[]);
+        
+        // Fetch Solscan data for real transactions (not mocked Raydium ones)
+        const realTxs = filteredTxs.filter(tx => !tx.signature.startsWith("raydium-"));
+        
+        const fetchSolscanData = async () => {
+          const txData: Record<string, any> = {};
+          
+          // To prevent rate limiting, only fetch for the first 5 transactions
+          for (const tx of realTxs.slice(0, 5)) {
+            try {
+              const data = await solscanService.getTransactionDetails(tx.signature);
+              if (data) {
+                txData[tx.signature] = data;
+              }
+            } catch (error) {
+              console.error(`Error fetching Solscan data for ${tx.signature}:`, error);
+            }
+          }
+          
+          setSolscanData(txData);
+        };
+        
+        fetchSolscanData();
+
       } catch (error) {
         console.error("Error loading swap transactions:", error);
       } finally {
@@ -73,7 +100,7 @@ export function SwapTransactionsHistory({ selectedService }: SwapTransactionsHis
     if (signature.startsWith("raydium-")) {
       return "#";
     }
-    return `https://solscan.io/tx/${signature}`;
+    return solscanService.getSolscanLink(signature);
   };
 
   const getServiceBadge = (signature: string) => {
@@ -109,39 +136,46 @@ export function SwapTransactionsHistory({ selectedService }: SwapTransactionsHis
         ) : (
           <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
             {transactions.map((tx) => (
-              <div 
+              <TransactionDetailDialog 
                 key={tx.id}
-                className="p-4 border rounded-lg flex flex-col gap-2 hover:bg-muted/50 transition-colors"
+                transaction={tx}
+                solscanData={solscanData[tx.signature]}
               >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <Badge variant={tx.status === "success" ? "success" : "destructive"}>
-                      {tx.status}
-                    </Badge>
-                    {getServiceBadge(tx.signature)}
-                    <div className="mt-2 font-medium">{tx.amount}</div>
+                <div 
+                  className="p-4 border rounded-lg flex flex-col gap-2 hover:bg-muted/50 transition-colors cursor-pointer"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <Badge variant={tx.status === "success" ? "success" : "destructive"}>
+                        {tx.status}
+                      </Badge>
+                      {getServiceBadge(tx.signature)}
+                      <div className="mt-2 font-medium">{tx.amount}</div>
+                    </div>
+                    {!tx.signature.startsWith("raydium-") ? (
+                      <a 
+                        href={getSolscanLink(tx.signature)} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-500 hover:text-blue-700 flex items-center gap-1"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {truncateSignature(tx.signature)}
+                        <ExternalLink size={12} />
+                      </a>
+                    ) : (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        {truncateSignature(tx.signature)}
+                        <Info size={12} title="Simulated transaction" />
+                      </span>
+                    )}
                   </div>
-                  {!tx.signature.startsWith("raydium-") ? (
-                    <a 
-                      href={getSolscanLink(tx.signature)} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-500 hover:text-blue-700 flex items-center gap-1"
-                    >
-                      {truncateSignature(tx.signature)}
-                      <ExternalLink size={12} />
-                    </a>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">
-                      {truncateSignature(tx.signature)}
-                    </span>
-                  )}
+                  <div className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Clock size={12} />
+                    {formatDate(tx.created_at || tx.block_time || "")}
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock size={12} />
-                  {formatDate(tx.created_at || tx.block_time)}
-                </div>
-              </div>
+              </TransactionDetailDialog>
             ))}
           </div>
         )}
