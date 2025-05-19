@@ -18,6 +18,12 @@ const queryClient = new QueryClient({
           console.error('Query error:', error);
         }
       }
+    },
+    mutations: {
+      // Add better error handling for mutations
+      onError: (error: Error) => {
+        console.error('Mutation error:', error);
+      }
     }
   }
 });

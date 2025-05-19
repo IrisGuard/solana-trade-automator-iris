@@ -1,6 +1,9 @@
 
 import { fetchApiKey } from '@/utils/apiKeyFetcher';
 
+// Add a fallback key config
+const FALLBACK_HELIUS_KEY = null; // No hardcoded keys - will be populated from database
+
 class HeliusService {
   private baseUrl = 'https://api.helius.xyz/v0';
   private apiKey: string | null = null;

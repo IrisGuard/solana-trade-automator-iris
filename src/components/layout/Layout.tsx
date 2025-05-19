@@ -70,7 +70,7 @@ export function Layout() {
         <Header />
         <div className="flex flex-1 overflow-hidden">
           {!isMobile && <Sidebar />}
-          <main id="main-content" className="flex-1 px-3 py-3 md:px-6 md:py-6 overflow-auto">
+          <main id="main-content" className="flex-1 px-3 py-3 md:px-6 md:py-6 overflow-auto ml-16 sm:ml-64">
             <Outlet />
           </main>
         </div>
