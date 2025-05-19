@@ -64,6 +64,77 @@ class HeliusService {
       throw error;
     }
   }
+  
+  // Get token balances for an address
+  async getTokenBalances(address: string): Promise<any> {
+    try {
+      const apiKey = await this.getApiKey();
+      const url = `${this.baseUrl}/addresses/${address}/balances?api-key=${apiKey}`;
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch token balances: ${response.statusText}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching token balances from Helius:', error);
+      throw error;
+    }
+  }
+  
+  // Get token metadata
+  async getTokenMetadata(mintAddresses: string[]): Promise<any> {
+    try {
+      if (!mintAddresses || mintAddresses.length === 0) {
+        return [];
+      }
+      
+      const apiKey = await this.getApiKey();
+      const url = `${this.baseUrl}/tokens/metadata?api-key=${apiKey}`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ mintAccounts: mintAddresses }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch token metadata: ${response.statusText}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching token metadata from Helius:', error);
+      throw error;
+    }
+  }
+  
+  // Get transaction history for an address
+  async getTransactionHistory(address: string, limit = 10, offset = 0): Promise<any> {
+    try {
+      const apiKey = await this.getApiKey();
+      const url = `${this.baseUrl}/addresses/${address}/transactions?api-key=${apiKey}&limit=${limit}&before=${offset}`;
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch transaction history: ${response.statusText}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching transaction history from Helius:', error);
+      throw error;
+    }
+  }
+  
+  // Reinitialize the service (for example, after adding a new key)
+  reinitialize(): void {
+    this.apiKey = null;
+    console.log('HeliusService reinitialized');
+  }
 }
 
 export const heliusService = new HeliusService();

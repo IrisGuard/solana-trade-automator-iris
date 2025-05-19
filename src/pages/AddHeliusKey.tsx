@@ -6,7 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, AlertCircle, CheckCircle, KeyRound, Globe, CreditCard } from "lucide-react";
 import { initializeSystemApiKeys, addHeliusKeysForUser } from "@/utils/apiKeyInitializer";
-import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { useAuth } from "@/hooks/useAuth";
 import { HeliusStatusMonitor } from "@/components/HeliusStatusMonitor";
 import { HeliusSyncButton } from "@/components/HeliusSyncButton";
 import { AddApiKeyForm } from "@/components/security/AddApiKeyForm";
