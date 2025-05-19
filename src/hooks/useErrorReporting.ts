@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 interface ErrorReportingOptions {
   component?: string;
   source?: string;
-  severity?: 'low' | 'medium' | 'high';
+  severity?: 'low' | 'medium' | 'high' | 'critical';
   details?: any;
   showUI?: boolean;
   showToast?: boolean;
@@ -18,7 +18,7 @@ interface ErrorReportingOptions {
 export function useErrorReporting() {
   const reportError = useCallback((error: Error, options: ErrorReportingOptions = {}) => {
     // Log to console
-    console.error('[Error Reporting] Error reported:', error);
+    console.error(`[Error Reporting] Error in ${options.component || 'unknown'}: ${error.message}`, error);
     
     // Add default options
     const mergedOptions = {
@@ -35,7 +35,7 @@ export function useErrorReporting() {
     if (options.showUI) {
       displayError(error, {
         showToast: true,
-        toastTitle: options.toastTitle,
+        toastTitle: options.toastTitle || "Σφάλμα",
         ...options
       });
     } else if (options.showToast) {
@@ -45,8 +45,54 @@ export function useErrorReporting() {
       });
     }
     
+    // Add additional diagnostic information when it's a critical error
+    if (options.severity === 'high' || options.severity === 'critical') {
+      try {
+        // Gather more detailed system information
+        const diagnosticInfo = {
+          url: window.location.href,
+          userAgent: navigator.userAgent,
+          timestamp: new Date().toISOString(),
+          viewportSize: `${window.innerWidth}x${window.innerHeight}`,
+          memoryUsage: performance?.memory ? JSON.stringify(performance.memory) : 'Not available',
+          component: options.component,
+          source: options.source
+        };
+        
+        console.warn("[Error Diagnostics] Additional information:", diagnosticInfo);
+        
+        // Log to localStorage for recovery purposes
+        try {
+          const storedErrors = JSON.parse(localStorage.getItem('app_critical_errors') || '[]');
+          storedErrors.push({
+            message: error.message,
+            stack: error.stack,
+            diagnosticInfo,
+            timestamp: new Date().toISOString()
+          });
+          localStorage.setItem('app_critical_errors', JSON.stringify(storedErrors.slice(-20))); // Keep last 20 errors
+        } catch (e) {
+          console.error("Failed to store error in localStorage:", e);
+        }
+      } catch (e) {
+        console.error("Error in diagnostic information collection:", e);
+      }
+    }
+    
     return errorId;
   }, []);
+
+  const clearErrorCache = useCallback(() => {
+    try {
+      localStorage.removeItem('app_errors');
+      localStorage.removeItem('app_critical_errors');
+      console.log("[Error Reporting] Error cache cleared");
+      return true;
+    } catch (e) {
+      console.error("[Error Reporting] Failed to clear error cache:", e);
+      return false;
+    }
+  }, []);
   
-  return { reportError };
+  return { reportError, clearErrorCache };
 }

@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { 
   Activity, 
@@ -14,6 +15,7 @@ import {
   Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export function Sidebar() {
   const location = useLocation();
@@ -79,13 +81,43 @@ export function Sidebar() {
     }
   ];
 
-  console.log("[Debug] Current path:", currentPath); // Log current path
+  useEffect(() => {
+    console.log("[Debug] Sidebar mounted, current path:", currentPath);
+    
+    // Highlight the Test API button if we're on the home page to encourage navigation
+    if (currentPath === "/" || currentPath === "") {
+      const testApiItem = mainNavItems.find(item => item.href === "/test-api");
+      if (testApiItem) {
+        console.log("[Debug] On homepage, highlighting Test API navigation");
+      }
+    }
+    
+    return () => {
+      console.log("[Debug] Sidebar unmounted");
+    };
+  }, [currentPath]);
+
+  const handleNavLinkClick = (title: string, href: string) => {
+    console.log(`[Navigation] Clicked on ${title}, navigating to ${href}`);
+    
+    // Show navigation toast for Test API to confirm click handler works
+    if (href === '/test-api') {
+      toast.info(`Μετάβαση στο ${title}`, {
+        id: "navigation-test-api",
+        duration: 2000
+      });
+    }
+  };
 
   return (
     <aside className="fixed inset-y-0 left-0 z-10 w-16 sm:w-64 overflow-y-auto border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex flex-col h-full">
         <div className="p-3 sm:p-6">
-          <NavLink to="/" className="flex items-center gap-2 mb-6">
+          <NavLink 
+            to="/" 
+            className="flex items-center gap-2 mb-6"
+            onClick={() => console.log("[Navigation] Clicked on home logo")}
+          >
             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
               <Layers className="h-4 w-4 text-primary" />
             </div>
@@ -101,7 +133,6 @@ export function Sidebar() {
               </div>
               {mainNavItems.map((item) => {
                 const isActive = currentPath === item.href;
-                console.log(`[Debug] Menu item ${item.title}: path=${item.href}, active=${isActive}`);
                 
                 return (
                   <NavLink
@@ -115,10 +146,10 @@ export function Sidebar() {
                           : item.highlight 
                             ? "text-blue-400 hover:bg-blue-900/20 hover:text-blue-300" 
                             : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                        item.highlight && "animate-pulse"
+                        item.title === "Test API" && !isActive && "animate-pulse"
                       )
                     }
-                    onClick={() => console.log(`[Debug] Clicked on ${item.title}, navigating to ${item.href}`)}
+                    onClick={() => handleNavLinkClick(item.title, item.href)}
                   >
                     <item.icon className={cn("h-4 w-4 mr-0 sm:mr-2", item.highlight ? "text-blue-400" : "")} />
                     <span className="hidden sm:inline">{item.title}</span>

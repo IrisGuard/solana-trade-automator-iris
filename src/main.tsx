@@ -19,6 +19,11 @@ import './index.css';
 // Import site protection components
 import { SiteBackupService } from './utils/site-protection/SiteBackupService';
 import { SiteHealthMonitor } from './utils/error-handling/SiteHealthMonitor';
+import { routeDebugger } from './utils/routeDebugger';
+
+// Log startup diagnostics
+console.log('[App] Application starting up...');
+console.log('[App] Current URL:', window.location.href);
 
 // Create initial backup if needed
 if (!localStorage.getItem('site_structure_backup')) {
@@ -61,7 +66,10 @@ document.addEventListener('keydown', (e) => {
 console.log('React version available:', React.version);
 console.log('ReactDOM available:', !!ReactDOM);
 console.log('React.Fragment available:', !!React.Fragment);
-// Removed the problematic line checking for React.jsx
+
+// Log DOM readiness
+console.log('[App] Checking DOM readiness...');
+console.log('[App] Root element exists:', !!document.getElementById('root'));
 
 // Initialize React application
 console.log('Initializing React application...');
@@ -71,3 +79,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <App />
   </React.StrictMode>
 );
+
+// Log successful initialization
+console.log('[App] React application initialized');
