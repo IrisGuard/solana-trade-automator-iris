@@ -58,9 +58,9 @@ export async function testCryptoCompareKey(apiKey: string): Promise<boolean> {
  */
 export async function testJupiterKey(apiKey: string): Promise<boolean> {
   try {
-    // Test with a simple quote request
+    // Test with a simple quote request using v6 API
     const response = await axios.get(
-      'https://quote-api.jup.ag/v4/quote?inputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&outputMint=So11111111111111111111111111111111111111112&amount=100000',
+      'https://quote-api.jup.ag/v6/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=1000000',
       {
         headers: {
           'Content-Type': 'application/json',
@@ -69,7 +69,7 @@ export async function testJupiterKey(apiKey: string): Promise<boolean> {
       }
     );
     
-    return response.status === 200 && response.data && response.data.data;
+    return response.status === 200 && response.data && response.data.outAmount;
   } catch (error) {
     console.error('Error testing Jupiter API key:', error);
     return false;

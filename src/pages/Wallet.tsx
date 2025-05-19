@@ -10,6 +10,7 @@ import { EnhancedTradingBotTab } from "@/components/wallet/trading-bot/EnhancedT
 import { MakerBotTab } from "@/components/wallet/MakerBotTab";
 import { ApiVaultTab } from "@/components/wallet/ApiVaultTab";
 import { SimulationTab } from "@/components/wallet/SimulationTab";
+import { SwapTab } from "@/components/wallet/SwapTab";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { AppNavigation } from "@/components/navigation/AppNavigation";
 import { GradientCard } from "@/components/ui/gradient-card";
@@ -82,9 +83,10 @@ export default function WalletPage() {
 
       <GradientCard variant="purple">
         <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-2 md:grid-cols-6 w-full">
+          <TabsList className="grid grid-cols-2 md:grid-cols-7 w-full">
             <TabsTrigger value="overview" className="text-sm">Επισκόπηση</TabsTrigger>
             <TabsTrigger value="tokens" className="text-sm">Tokens</TabsTrigger>
+            <TabsTrigger value="swap" className="text-sm">Swap</TabsTrigger>
             <TabsTrigger value="trading-bot" className="text-sm">Trading Bot</TabsTrigger>
             <TabsTrigger value="maker-bot" className="text-sm">Maker Bot</TabsTrigger>
             <TabsTrigger value="api-vault" className="text-sm">API Vault</TabsTrigger>
@@ -106,6 +108,8 @@ export default function WalletPage() {
             handleConnectWallet={connectWallet}
           />
           
+          <SwapTab isConnected={isConnected} />
+
           <EnhancedTradingBotTab />
 
           <MakerBotTab 

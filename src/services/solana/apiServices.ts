@@ -1,3 +1,4 @@
+
 import { toast } from "sonner";
 import { fetchApiKey } from "@/utils/apiKeyFetcher";
 
@@ -102,9 +103,9 @@ export const jupiterService = {
         headers['x-api-key'] = apiKey;
       }
       
-      // Χρησιμοποιούμε το Jupiter API v4
+      // Χρησιμοποιούμε το Jupiter API v6
       const response = await fetch(
-        `https://quote-api.jup.ag/v4/quote?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amount}&slippageBps=50`,
+        `https://quote-api.jup.ag/v6/quote?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amount}&slippageBps=50`,
         { headers }
       );
       
@@ -134,13 +135,13 @@ export const jupiterService = {
         headers['x-api-key'] = apiKey;
       }
       
-      const response = await fetch('https://quote-api.jup.ag/v4/swap', {
+      const response = await fetch('https://quote-api.jup.ag/v6/swap', {
         method: 'POST',
         headers,
         body: JSON.stringify({
           quoteResponse,
           userPublicKey: window.solana?.publicKey?.toString() || '',
-          wrapUnwrapSOL: true
+          wrapAndUnwrapSol: true
         })
       });
       
@@ -152,6 +153,25 @@ export const jupiterService = {
     } catch (error) {
       console.error("Error building Jupiter swap transaction:", error);
       toast.error("Failed to build swap transaction with Jupiter");
+      throw error;
+    }
+  },
+  
+  executeSwapTransaction: async (swapTransaction: string) => {
+    try {
+      if (!window.solana) {
+        throw new Error("Phantom wallet is not installed");
+      }
+      
+      // Sign and send the transaction
+      const { signature } = await window.solana.signAndSendTransaction(
+        swapTransaction
+      );
+      
+      return signature;
+    } catch (error) {
+      console.error("Error executing swap transaction:", error);
+      toast.error("Failed to execute swap transaction");
       throw error;
     }
   }
