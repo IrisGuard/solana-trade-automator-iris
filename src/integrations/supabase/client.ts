@@ -1,4 +1,5 @@
 
+// Using correct import for Supabase v2.49.4
 import { createClient } from '@supabase/supabase-js';
 
 // Hardcoded values for reliability - these are already public values
