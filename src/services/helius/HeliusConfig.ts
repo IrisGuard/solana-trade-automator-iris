@@ -1,33 +1,30 @@
 
-// Fallback API key for development
-export const FALLBACK_HELIUS_KEY = "ddb32813-1f4b-459d-8964-310b1b73a053";
+// Configuration for Helius API
+// No hardcoded API keys - these are managed through the database
 
-// API Base URL
-export const HELIUS_API_BASE_URL = "https://api.helius.xyz/v0";
-// Alias for backward compatibility
-export const HELIUS_BASE_URL = HELIUS_API_BASE_URL;
+// Base URL for Helius API
+export const HELIUS_API_BASE_URL = 'https://api.helius.xyz/v0';
 
-// Rate limiting configuration
-export const HELIUS_RATE_LIMITS = {
-  MAX_REQUESTS_PER_MINUTE: 60,
-  MAX_REQUESTS_PER_DAY: 10000,
-  RETRY_AFTER_MS: 60 * 1000, // 1 minute
+// Fallback key - this is only used if no key is found in the database
+// Should be null in production to avoid unexpected API usage
+export const FALLBACK_HELIUS_KEY = null;
+
+// Default RPC endpoint
+export const DEFAULT_HELIUS_RPC = 'https://mainnet.helius-rpc.com';
+
+// API endpoints
+export const HELIUS_ENDPOINTS = {
+  balances: '/addresses/{address}/balances',
+  transactions: '/addresses/{address}/transactions',
+  nftEvents: '/nft-events',
+  tokenMetadata: '/tokens/metadata',
+  enhancedTransactions: '/transactions'
 };
 
-// Default network
-export const DEFAULT_NETWORK = "mainnet-beta";
-
-// Stale time for data (used in react-query)
-export const STALE_TIME = 60 * 1000; // 1 minute
-
-// Timeout for requests
-export const REQUEST_TIMEOUT = 10000; // 10 seconds
-
-// Configuration object for Helius (for easier imports)
+// Configuration options
 export const HELIUS_CONFIG = {
-  baseUrl: HELIUS_API_BASE_URL,
-  rateLimits: HELIUS_RATE_LIMITS,
-  defaultNetwork: DEFAULT_NETWORK,
-  staleTime: STALE_TIME,
-  timeout: REQUEST_TIMEOUT
+  cacheDuration: 60 * 1000, // 1 minute cache
+  retryCount: 3,
+  retryDelay: 1000,
+  timeout: 30000 // 30 seconds
 };

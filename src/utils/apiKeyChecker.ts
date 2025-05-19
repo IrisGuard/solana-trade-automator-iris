@@ -1,224 +1,62 @@
 
-import axios from 'axios';
-import { toast } from 'sonner';
-
 /**
- * Tests if a Helius API key is valid
+ * Tests if an API key is valid for a specific service
+ * @param service The service name (e.g., 'helius', 'solscan')
+ * @param apiKey The API key to test
+ * @returns Promise resolving to true if the key is valid
  */
-export async function testHeliusKey(apiKey: string): Promise<boolean> {
-  try {
-    // Use a simple request to test the key
-    const response = await axios.get(
-      `https://api.helius.xyz/v0/addresses/vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg/balances?api-key=${apiKey}`
-    );
-    
-    return response.status === 200 && response.data && Array.isArray(response.data.tokens);
-  } catch (error) {
-    console.error('Error testing Helius API key:', error);
+export async function testApiKey(service: string, apiKey: string): Promise<boolean> {
+  if (!apiKey || apiKey.trim() === '') {
     return false;
   }
-}
-
-/**
- * Tests if a CoinGecko API key is valid
- */
-export async function testCoinGeckoKey(apiKey: string): Promise<boolean> {
+  
   try {
-    // Use a simple request to test the key
-    const response = await axios.get(
-      `https://api.coingecko.com/api/v3/ping?x_cg_pro_api_key=${apiKey}`
-    );
+    let testUrl: string;
+    let options: RequestInit = {
+      method: 'GET',
+      headers: {}
+    };
     
-    return response.status === 200;
-  } catch (error) {
-    console.error('Error testing CoinGecko API key:', error);
-    return false;
-  }
-}
-
-/**
- * Tests if a CryptoCompare API key is valid
- */
-export async function testCryptoCompareKey(apiKey: string): Promise<boolean> {
-  try {
-    // Use a simple request to test the key
-    const response = await axios.get(
-      `https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=USD&api_key=${apiKey}`
-    );
-    
-    return response.status === 200 && response.data && response.data.USD;
-  } catch (error) {
-    console.error('Error testing CryptoCompare API key:', error);
-    return false;
-  }
-}
-
-/**
- * Tests if a Jupiter API key is valid
- */
-export async function testJupiterKey(apiKey: string): Promise<boolean> {
-  try {
-    // Test with a simple quote request using v6 API
-    const response = await axios.get(
-      'https://quote-api.jup.ag/v6/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=1000000',
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey
-        }
-      }
-    );
-    
-    return response.status === 200 && response.data && response.data.outAmount;
-  } catch (error) {
-    console.error('Error testing Jupiter API key:', error);
-    return false;
-  }
-}
-
-/**
- * Tests if a Solscan API key is valid
- */
-export async function testSolscanKey(apiKey: string): Promise<boolean> {
-  try {
-    // Test with a simple account info request
-    const response = await axios.get(
-      'https://public-api.solscan.io/account/vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg',
-      {
-        headers: {
-          'Authorization': `Bearer ${apiKey}`
-        }
-      }
-    );
-    
-    return response.status === 200 && response.data;
-  } catch (error) {
-    console.error('Error testing Solscan API key:', error);
-    return false;
-  }
-}
-
-/**
- * Tests if a Birdeye API key is valid
- */
-export async function testBirdeyeKey(apiKey: string): Promise<boolean> {
-  try {
-    // Test with a simple price request for SOL
-    const response = await axios.get(
-      'https://public-api.birdeye.so/public/price?address=So11111111111111111111111111111111111111112',
-      {
-        headers: {
-          'x-api-key': apiKey
-        }
-      }
-    );
-    
-    return response.status === 200 && response.data && response.data.data;
-  } catch (error) {
-    console.error('Error testing Birdeye API key:', error);
-    return false;
-  }
-}
-
-/**
- * Tests multiple types of API keys
- */
-export async function testApiKey(service: string, key: string): Promise<boolean> {
-  try {
-    if (!key || key.trim() === '') {
-      return false;
-    }
-    
-    switch (service.toLowerCase()) {
+    // Configure test endpoint based on service
+    switch (service) {
       case 'helius':
-        return await testHeliusKey(key);
-        
-      case 'coingecko':
-        return await testCoinGeckoKey(key);
-        
-      case 'cryptocompare':
-        return await testCryptoCompareKey(key);
-        
-      case 'jupiter':
-        return await testJupiterKey(key);
+        testUrl = `https://api.helius.xyz/v0/addresses/vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg/balances?api-key=${apiKey}`;
+        break;
         
       case 'solscan':
-        return await testSolscanKey(key);
+        testUrl = 'https://public-api.solscan.io/token/meta?tokenAddress=So11111111111111111111111111111111111111112';
+        options.headers = { 'x-api-key': apiKey };
+        break;
         
       case 'birdeye':
-        return await testBirdeyeKey(key);
+        testUrl = 'https://public-api.birdeye.so/public/tokenlist?sort_by=v24hUSD&sort_type=desc&offset=0&limit=10';
+        options.headers = { 'x-api-key': apiKey };
+        break;
+        
+      case 'jupiter':
+        testUrl = 'https://quote-api.jup.ag/v6/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=10000000&slippage=0.5';
+        break;
+        
+      case 'coingecko':
+        testUrl = `https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd&x_cg_api_key=${apiKey}`;
+        break;
+        
+      case 'cryptocompare':
+        testUrl = `https://min-api.cryptocompare.com/data/price?fsym=SOL&tsyms=USD&api_key=${apiKey}`;
+        break;
         
       default:
-        console.warn(`No test implemented for service: ${service}`);
-        return true; // Default to assuming it works if we don't have a specific test
+        // For unknown services, just check if the key is at least 10 chars long
+        return apiKey.length >= 10;
     }
+    
+    // Make test request
+    const response = await fetch(testUrl, options);
+    
+    // Key is valid if response is successful
+    return response.status === 200;
   } catch (error) {
     console.error(`Error testing ${service} API key:`, error);
     return false;
   }
-}
-
-/**
- * Tests all API keys of a specific service
- */
-export async function testAllApiKeys(
-  keys: { service: string; key: string; name: string }[]
-): Promise<{ service: string; key: string; name: string; valid: boolean }[]> {
-  const results = [];
-  
-  for (const keyInfo of keys) {
-    try {
-      const isValid = await testApiKey(keyInfo.service, keyInfo.key);
-      results.push({
-        ...keyInfo,
-        valid: isValid
-      });
-    } catch (error) {
-      console.error(`Error testing ${keyInfo.service} key ${keyInfo.name}:`, error);
-      results.push({
-        ...keyInfo,
-        valid: false
-      });
-    }
-  }
-  
-  return results;
-}
-
-/**
- * Displays a summary of API key test results
- */
-export function showApiKeyTestResults(
-  results: { service: string; name: string; valid: boolean }[]
-): void {
-  const servicesMap: Record<string, { total: number; valid: number; names: string[] }> = {};
-  
-  // Group results by service
-  results.forEach(result => {
-    if (!servicesMap[result.service]) {
-      servicesMap[result.service] = { 
-        total: 0, 
-        valid: 0, 
-        names: [] 
-      };
-    }
-    
-    servicesMap[result.service].total++;
-    
-    if (result.valid) {
-      servicesMap[result.service].valid++;
-      servicesMap[result.service].names.push(result.name);
-    }
-  });
-  
-  // Display results for each service
-  Object.entries(servicesMap).forEach(([service, stats]) => {
-    if (stats.valid === 0) {
-      toast.error(`Κανένα έγκυρο κλειδί ${service}`);
-    } else if (stats.valid < stats.total) {
-      toast.warning(`${stats.valid}/${stats.total} κλειδιά ${service} είναι έγκυρα`);
-    } else {
-      toast.success(`Όλα τα κλειδιά ${service} είναι έγκυρα (${stats.valid})`);
-    }
-  });
 }

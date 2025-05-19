@@ -4,6 +4,28 @@ import { toast } from 'sonner';
 import { heliusService } from '@/services/helius/HeliusService';
 
 /**
+ * Validates if a Helius API key is correct
+ * @param apiKey The Helius API key to validate
+ * @returns Promise resolving to true if the key is valid
+ */
+export async function validateHeliusKey(apiKey: string): Promise<boolean> {
+  try {
+    if (!apiKey || apiKey.trim() === '') {
+      return false;
+    }
+    
+    // Test the API key with a simple request
+    const response = await fetch(`https://api.helius.xyz/v0/addresses/vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg/balances?api-key=${apiKey}`);
+    
+    // Key is valid if response is successful
+    return response.status === 200;
+  } catch (error) {
+    console.error('Error validating Helius key:', error);
+    return false;
+  }
+}
+
+/**
  * Adds a new Helius API key for the user
  * @param userId User ID to associate the key with
  * @returns Promise resolving to true if successful

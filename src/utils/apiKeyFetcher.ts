@@ -51,3 +51,50 @@ export async function hasValidApiKey(service: string): Promise<boolean> {
   const key = await fetchApiKey(service);
   return !!key;
 }
+
+/**
+ * Fetches data from an API endpoint with automatic API key inclusion
+ * @param url The API endpoint URL
+ * @param service The service name for the API key
+ * @param options Optional fetch options
+ * @returns Promise resolving to the JSON response
+ */
+export async function fetchWithApiKey(url: string, service: string, options: RequestInit = {}): Promise<any> {
+  try {
+    const apiKey = await fetchApiKey(service);
+    
+    if (!apiKey) {
+      throw new Error(`No API key available for service: ${service}`);
+    }
+    
+    // Clone the options to avoid modifying the original
+    const fetchOptions = { ...options };
+    
+    // Prepare URL with API key based on service
+    let apiUrl = url;
+    
+    // Add API key based on service-specific patterns
+    if (service === 'helius') {
+      const separator = url.includes('?') ? '&' : '?';
+      apiUrl = `${url}${separator}api-key=${apiKey}`;
+    } else if (service === 'solscan' || service === 'birdeye') {
+      // For services that use headers for API keys
+      fetchOptions.headers = {
+        ...(fetchOptions.headers || {}),
+        'x-api-key': apiKey
+      };
+    }
+    
+    // Make the request
+    const response = await fetch(apiUrl, fetchOptions);
+    
+    if (!response.ok) {
+      throw new Error(`API request failed with status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (err) {
+    console.error(`Error in fetchWithApiKey for ${service}:`, err);
+    throw err;
+  }
+}

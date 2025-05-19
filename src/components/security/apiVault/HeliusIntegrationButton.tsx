@@ -25,7 +25,7 @@ export function HeliusIntegrationButton() {
       await addHeliusEndpoints();
       
       // Προσθήκη template κλειδιού στην κλειδοθήκη για να το συμπληρώσει ο χρήστης
-      await addHeliusKey(user.id, "");
+      await addHeliusKey(user.id);
       
       setIsAdded(true);
       toast.success("Τα endpoints του Helius προστέθηκαν επιτυχώς! Προσθέστε το κλειδί API σας στην κλειδοθήκη.");
