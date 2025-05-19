@@ -1,28 +1,19 @@
 
-// If this file doesn't exist yet, let's create it with the necessary types
 import { Token } from "@/types/wallet";
 
 export interface SwapFormProps {
   isConnected: boolean;
-  connectWallet: () => void;
+  connectWallet: () => Promise<void>;
 }
 
 export interface SwapState {
   inputMint: string;
   outputMint: string;
   inputAmount: string;
+  outputAmount: string;
   isLoading: boolean;
   quoteResponse: any | null;
   swapStatus: 'idle' | 'loading' | 'success' | 'error';
-  outputAmount: string;
-  priceImpact: string;
-}
-
-export interface SwapQuoteProps {
-  inputToken: TokenInfo;
-  outputToken: TokenInfo;
-  outputAmount: string;
-  inputAmount: string;
   priceImpact: string;
 }
 
@@ -32,44 +23,45 @@ export interface TokenInfo {
   decimals: number;
 }
 
-// Common tokens for easier access
+export interface SwapQuoteProps {
+  inputToken: TokenInfo;
+  outputToken: TokenInfo;
+  inputAmount: string;
+  outputAmount: string;
+  priceImpact: string;
+}
+
+// Common token constants for the app
 export const COMMON_TOKENS = {
   SOL: "So11111111111111111111111111111111111111112",
   USDC: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
   USDT: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-  BTC: "9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E",
   ETH: "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs"
 };
 
 export const COMMON_TOKEN_LIST = [
   {
-    mint: COMMON_TOKENS.SOL,
     symbol: "SOL",
     name: "Solana",
+    mint: COMMON_TOKENS.SOL,
     decimals: 9
   },
   {
-    mint: COMMON_TOKENS.USDC,
     symbol: "USDC",
     name: "USD Coin",
+    mint: COMMON_TOKENS.USDC,
     decimals: 6
   },
   {
-    mint: COMMON_TOKENS.USDT,
     symbol: "USDT",
-    name: "Tether USD",
+    name: "Tether",
+    mint: COMMON_TOKENS.USDT,
     decimals: 6
   },
   {
-    mint: COMMON_TOKENS.BTC,
-    symbol: "BTC",
-    name: "Bitcoin (Wrapped)",
-    decimals: 8
-  },
-  {
-    mint: COMMON_TOKENS.ETH,
     symbol: "ETH",
-    name: "Ethereum (Wrapped)",
+    name: "Ethereum (Solana)",
+    mint: COMMON_TOKENS.ETH,
     decimals: 8
   }
 ];

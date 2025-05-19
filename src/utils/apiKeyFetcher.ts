@@ -1,81 +1,112 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { getRotatedApiKey, markKeyAsFailing } from './apiKeyRotation';
+
+// Optional default keys (fallbacks)
+const defaultKeys: Record<string, string> = {
+  // Default keys can be added here, but using the database is more secure
+};
 
 /**
- * Fetches an API key for a specific service from the database
- * @param service The service name (e.g., 'jupiter', 'helius', 'solscan')
- * @param userId Optional user ID. If not provided, will fetch any key for the service with status 'active'
- * @returns The API key value or null if not found
+ * Fetch an API key for a specific service with fallback and error handling
+ * @param service The service name (e.g., 'helius', 'jupiter')
+ * @returns A promise that resolves to an API key or null if none available
  */
-export async function fetchApiKey(service: string, userId?: string): Promise<string | null> {
+export async function fetchApiKey(service: string): Promise<string | null> {
   try {
-    let query = supabase
-      .from('api_keys_storage')
-      .select('key_value')
-      .eq('service', service)
-      .eq('status', 'active')
-      .limit(1);
+    // Try to get a key from the rotation system (from database)
+    const key = await getRotatedApiKey(service);
     
-    // If userId is provided, filter by user
-    if (userId) {
-      query = query.eq('user_id', userId);
-    }
-
-    const { data, error } = await query;
-    
-    if (error) {
-      console.error(`Error fetching ${service} API key:`, error);
-      return null;
+    if (key) {
+      return key;
     }
     
-    if (data && data.length > 0) {
-      return data[0].key_value;
+    // Fall back to default key if available
+    if (defaultKeys[service]) {
+      console.warn(`Using fallback key for ${service}`);
+      return defaultKeys[service];
     }
     
+    console.warn(`No API key available for ${service}`);
     return null;
-  } catch (err) {
-    console.error(`Failed to fetch ${service} API key:`, err);
-    return null;
+  } catch (error) {
+    console.error(`Error fetching ${service} API key:`, error);
+    return defaultKeys[service] || null;
   }
 }
 
 /**
- * Caches API keys to minimize database calls
- * @param services Array of service names to cache keys for
- * @param userId Optional user ID
- * @returns Object with service names as keys and API keys as values
+ * Handle API errors, marking keys as failing if they're rate limited
+ * @param error The error that occurred
+ * @param service The service name
+ * @param key The API key that was used
  */
-export async function cacheApiKeys(services: string[], userId?: string): Promise<Record<string, string>> {
-  const cachedKeys: Record<string, string> = {};
+export function handleApiKeyError(error: any, service: string, key: string): void {
+  if (!key) return;
+  
+  // Check if the error is a rate limit error
+  const isRateLimit = error.status === 429 || 
+                     (error.message && /rate limit|too many requests/i.test(error.message));
+  
+  if (isRateLimit) {
+    console.warn(`Rate limit hit for ${service} API key: ${key.substring(0, 4)}...`);
+    markKeyAsFailing(service, key);
+  }
+}
+
+/**
+ * Make an API request with an API key, handling errors and key rotation
+ */
+export async function fetchWithApiKey<T>(
+  url: string, 
+  service: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const key = await fetchApiKey(service);
+  
+  // Add the API key to the headers based on service-specific format
+  let headers = { ...options.headers };
+  
+  if (key) {
+    switch (service) {
+      case 'helius':
+        // Helius uses query parameters instead of headers
+        url = url.includes('?') ? `${url}&api-key=${key}` : `${url}?api-key=${key}`;
+        break;
+      case 'jupiter':
+        headers = { ...headers, 'x-api-key': key };
+        break;
+      case 'birdeye':
+        headers = { ...headers, 'x-api-key': key };
+        break;
+      case 'solscan':
+        headers = { ...headers, 'Authorization': `Bearer ${key}` };
+        break;
+      default:
+        // For other services, add as a generic header
+        headers = { ...headers, 'Authorization': `Bearer ${key}` };
+    }
+  }
   
   try {
-    let query = supabase
-      .from('api_keys_storage')
-      .select('service, key_value')
-      .in('service', services)
-      .eq('status', 'active');
+    const response = await fetch(url, {
+      ...options,
+      headers
+    });
     
-    if (userId) {
-      query = query.eq('user_id', userId);
+    if (!response.ok) {
+      if (response.status === 429 && key) {
+        // Rate limit hit, mark the key as failing
+        markKeyAsFailing(service, key);
+      }
+      
+      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
     }
     
-    const { data, error } = await query;
-    
-    if (error) {
-      console.error('Error fetching API keys:', error);
-      return cachedKeys;
+    return response.json();
+  } catch (error) {
+    if (key && error instanceof Error && /rate limit|too many requests/i.test(error.message)) {
+      markKeyAsFailing(service, key);
     }
-    
-    if (data) {
-      data.forEach(item => {
-        cachedKeys[item.service] = item.key_value;
-      });
-    }
-    
-    return cachedKeys;
-  } catch (err) {
-    console.error('Failed to cache API keys:', err);
-    return cachedKeys;
+    throw error;
   }
 }

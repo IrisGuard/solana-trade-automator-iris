@@ -52,10 +52,7 @@ export function SwapTab({ isConnected }: SwapTabProps) {
           <div className="grid gap-6 md:grid-cols-2">
             <div>
               {swapService === "jupiter" ? (
-                <JupiterSwapForm 
-                  isConnected={isConnected}
-                  connectWallet={connectWallet}
-                />
+                <JupiterSwapForm />
               ) : (
                 <RaydiumSwapForm 
                   isConnected={isConnected}
