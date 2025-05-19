@@ -54,10 +54,24 @@ export function useErrorReporting() {
           userAgent: navigator.userAgent,
           timestamp: new Date().toISOString(),
           viewportSize: `${window.innerWidth}x${window.innerHeight}`,
-          memoryUsage: performance?.memory ? JSON.stringify(performance.memory) : 'Not available',
+          memoryUsage: 'Not available', // Default value
           component: options.component,
           source: options.source
         };
+        
+        // Try to get memory info if available in the browser
+        // Check if performance.memory exists before trying to access it
+        if (performance && 'memory' in performance) {
+          try {
+            // Use type assertion to access memory property
+            const memoryInfo = (performance as any).memory;
+            if (memoryInfo) {
+              diagnosticInfo.memoryUsage = JSON.stringify(memoryInfo);
+            }
+          } catch (memErr) {
+            console.warn("Could not access memory information:", memErr);
+          }
+        }
         
         console.warn("[Error Diagnostics] Additional information:", diagnosticInfo);
         
