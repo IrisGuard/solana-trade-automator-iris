@@ -1,6 +1,5 @@
 
-import React, { createContext, useContext, ReactNode } from 'react';
-import { useAuthSession } from '@/hooks/useAuthSession';
+import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@/types/auth';
 import { toast } from 'sonner';
@@ -21,7 +20,56 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { user, session, loading, signOut, refreshSession } = useAuthSession();
+  const [state, setState] = useState<{
+    user: User | null;
+    session: Session | null;
+    loading: boolean;
+    error: Error | null;
+  }>({
+    user: null,
+    session: null,
+    loading: true,
+    error: null
+  });
+
+  // Initialize auth
+  useEffect(() => {
+    console.log("Initializing auth provider...");
+    
+    // Set up auth state listener first
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, currentSession) => {
+        console.log(`Auth state changed: ${event}`);
+        setState(prev => ({
+          ...prev,
+          session: currentSession as Session | null,
+          user: currentSession?.user as User | null,
+          loading: false
+        }));
+      }
+    );
+    
+    // Then check current session
+    supabase.auth.getSession()
+      .then(({ data: { session: currentSession } }) => {
+        setState(prev => ({
+          ...prev,
+          session: currentSession as Session | null,
+          user: currentSession?.user as User | null,
+          loading: false
+        }));
+        console.log("Auth session initialized:", !!currentSession);
+      })
+      .catch(err => {
+        console.error("Error getting auth session:", err);
+        setState(prev => ({ ...prev, error: err as Error, loading: false }));
+      });
+    
+    // Clean up listener on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
   
   // Sign in with email and password
   const signIn = async (email: string, password: string) => {
@@ -78,6 +126,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
   
+  // Sign out
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast.error('Σφάλμα κατά την αποσύνδεση');
+    }
+  };
+  
   // Reset password
   const resetPassword = async (email: string) => {
     try {
@@ -103,12 +161,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
   
+  // Refresh session
+  const refreshSession = async () => {
+    try {
+      setState(prev => ({ ...prev, loading: true }));
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        setState({
+          user: session.user as User,
+          session: session as Session,
+          loading: false,
+          error: null
+        });
+      } else {
+        setState({
+          user: null,
+          session: null,
+          loading: false,
+          error: null
+        });
+      }
+    } catch (error) {
+      console.error('Error refreshing session:', error);
+      setState(prev => ({ ...prev, error: error as Error, loading: false }));
+    }
+  };
+  
   // Context value
   const authContextValue: AuthContextType = {
-    user,
-    session,
-    loading,
-    initialized: !loading,
+    user: state.user,
+    session: state.session,
+    loading: state.loading,
+    initialized: !state.loading,
     signIn,
     signUp,
     signOut,

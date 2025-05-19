@@ -10,29 +10,25 @@ import { SolanaProviderFallback } from './components/wallet/SolanaProviderFallba
 import './App.css';
 import { GlobalErrorHandler } from './components/errors';
 import { WalletProviderWrapper } from './components/wallet/WalletProviderWrapper';
-import { initializeSystemApiKeys } from './utils/apiKeyInitializer';
 import { AppProviders } from './providers/AppProviders';
 import { Routes } from './routes';
 import { toast } from 'sonner';
 
 function App() {
-  // Initialize API endpoints on app launch
+  // Show welcome toast only once on app launch
   useEffect(() => {
     try {
-      console.log('Initializing system API keys...');
-      initializeSystemApiKeys().catch(err => {
-        console.error('Failed to initialize API endpoints:', err);
-      });
       console.log('App component mounted successfully');
+      
+      // Check if we're on the root route and show a welcome toast
+      if (window.location.pathname === '/' && !sessionStorage.getItem('welcome_shown')) {
+        toast.success('Καλώς ήρθατε στο Solana Trade Automator!', {
+          duration: 5000
+        });
+        sessionStorage.setItem('welcome_shown', 'true');
+      }
     } catch (error) {
       console.error('Error in App initialization:', error);
-    }
-    
-    // Check if we're on the root route and show a welcome toast
-    if (window.location.pathname === '/') {
-      toast.success('Καλώς ήρθατε στο Solana Trade Automator!', {
-        duration: 5000
-      });
     }
     
     return () => {

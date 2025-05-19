@@ -4,15 +4,18 @@ import { ThemeProvider } from "@/providers/ThemeProvider";
 import { LanguageProvider } from "@/providers/LanguageProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
-import { SupabaseAuthProvider } from "@/providers/SupabaseAuthProvider";
+import { AuthProvider } from "@/providers/AuthProvider"; 
 
-// Create a client
+// Create a client with better error handling
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
-      staleTime: 60000 // 1 minute
+      staleTime: 60000, // 1 minute
+      onError: (err) => {
+        console.error('Query error:', err);
+      }
     }
   }
 });
@@ -26,9 +29,9 @@ export function AppProviders({ children }: AppProvidersProps) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <LanguageProvider defaultLanguage="el">
-          <SupabaseAuthProvider>
+          <AuthProvider>
             {children}
-          </SupabaseAuthProvider>
+          </AuthProvider>
           <Toaster position="top-right" richColors />
         </LanguageProvider>
       </ThemeProvider>

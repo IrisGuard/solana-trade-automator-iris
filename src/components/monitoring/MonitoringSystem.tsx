@@ -6,9 +6,12 @@ import { toast } from 'sonner';
 import { GlobalErrorHandler } from '@/components/errors/GlobalErrorHandler';
 import { NetworkStatusMonitor } from './NetworkStatusMonitor';
 import { ConsoleMonitor } from '@/components/debug/ConsoleMonitor';
+import { SystemLoaderFallback } from './SystemLoaderFallback';
+import { checkSupabaseConnection } from '@/integrations/supabase/client';
 
 export function MonitoringSystem() {
   const [monitoringReady, setMonitoringReady] = useState(false);
+  const [supabaseConnected, setSupabaseConnected] = useState<boolean | null>(null);
 
   useEffect(() => {
     // Initialize console logging
@@ -19,16 +22,6 @@ export function MonitoringSystem() {
       // Start site health monitoring
       SiteHealthMonitor.start();
       
-      // Perform initial health check
-      const initialHealth = SiteHealthMonitor.checkHealth();
-      console.log("[Debug] Initial health check result:", initialHealth);
-      
-      // Log system information
-      console.log("[Debug] User Agent:", navigator.userAgent);
-      console.log("[Debug] App Version:", "1.0.0");
-      console.log("[Debug] Current URL:", window.location.href);
-      console.log("[Debug] Screen Size:", `${window.innerWidth}x${window.innerHeight}`);
-      
       // Check if critical resources are loaded
       const rootElement = document.getElementById('root');
       console.log("[Debug] Root element exists:", !!rootElement);
@@ -38,23 +31,23 @@ export function MonitoringSystem() {
       console.log("[Debug] sessionStorage available:", !!window.sessionStorage);
       console.log("[Debug] fetch API available:", !!window.fetch);
       
+      // Check Supabase connection
+      checkSupabaseConnection().then(connected => {
+        setSupabaseConnected(connected);
+        console.log("[Debug] Supabase connected:", connected);
+      });
+      
+      // Set monitoring as ready
       setMonitoringReady(true);
       console.log("[Debug] Monitoring system initialization complete");
       
-      // Display startup toast to confirm UI is working
-      toast.info("Το σύστημα παρακολούθησης ενεργοποιήθηκε", {
-        id: "monitoring-system-init",
-        duration: 3000
-      });
-      
-      // Check if we're on the home page and display a help message
-      if (window.location.pathname === '/' || window.location.pathname === '') {
-        setTimeout(() => {
-          toast.info("Καλώς ήρθατε στην εφαρμογή", {
-            description: "Πατήστε το κουμπί 'Test API' για να δοκιμάσετε το API",
-            duration: 5000
-          });
-        }, 3500);
+      // Display startup toast to confirm UI is working (only show once per session)
+      if (!sessionStorage.getItem('system-monitoring-init')) {
+        toast.info("Το σύστημα παρακολούθησης ενεργοποιήθηκε", {
+          id: "monitoring-system-init",
+          duration: 3000
+        });
+        sessionStorage.setItem('system-monitoring-init', 'true');
       }
     } catch (err) {
       console.error("[Error] Failed to initialize monitoring system:", err);
@@ -81,7 +74,16 @@ export function MonitoringSystem() {
       <GlobalErrorHandler />
       <NetworkStatusMonitor />
       <ConsoleMonitor />
+      
+      {/* Fallback component that shows if the system takes too long to load */}
+      <SystemLoaderFallback />
+      
       {monitoringReady && <div id="monitoring-ready" style={{ display: 'none' }} />}
+      {supabaseConnected === false && (
+        <div className="fixed top-0 left-0 right-0 bg-red-500 text-white p-2 text-center z-50">
+          Αδυναμία σύνδεσης με τη βάση δεδομένων. Ορισμένες λειτουργίες ενδέχεται να μην είναι διαθέσιμες.
+        </div>
+      )}
     </>
   );
 }

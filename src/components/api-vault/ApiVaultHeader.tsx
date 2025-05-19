@@ -1,8 +1,9 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Key, Download, Upload, Plus, Shield, Lock, Unlock } from "lucide-react";
+import { Key, Download, Upload, Plus, Shield } from "lucide-react";
 import { CardTitle } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 
 interface ApiVaultHeaderProps {
   isLoggedIn?: boolean;
@@ -11,6 +12,24 @@ interface ApiVaultHeaderProps {
 export const ApiVaultHeader: React.FC<ApiVaultHeaderProps> = ({ 
   isLoggedIn = false 
 }) => {
+  const navigate = useNavigate();
+  
+  const handleNewKeyClick = () => {
+    navigate('/api-vault/new');
+  };
+  
+  const handleSettingsClick = () => {
+    navigate('/api-vault/settings');
+  };
+  
+  const handleExportClick = () => {
+    navigate('/api-vault/export');
+  };
+  
+  const handleImportClick = () => {
+    navigate('/api-vault/import');
+  };
+  
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
@@ -22,13 +41,15 @@ export const ApiVaultHeader: React.FC<ApiVaultHeaderProps> = ({
           <Button 
             variant="outline" 
             size="sm"
+            onClick={handleSettingsClick}
           >
-            <Lock className="mr-1 h-4 w-4" />
+            <Shield className="mr-1 h-4 w-4" />
             Ρυθμίσεις
           </Button>
           <Button 
             variant="outline" 
             size="sm"
+            onClick={handleExportClick}
           >
             <Download className="mr-1 h-4 w-4" />
             Εξαγωγή
@@ -36,6 +57,7 @@ export const ApiVaultHeader: React.FC<ApiVaultHeaderProps> = ({
           <Button 
             variant="outline" 
             size="sm"
+            onClick={handleImportClick}
           >
             <Upload className="mr-1 h-4 w-4" />
             Εισαγωγή
@@ -43,6 +65,7 @@ export const ApiVaultHeader: React.FC<ApiVaultHeaderProps> = ({
           <Button 
             size="sm" 
             className="gap-1"
+            onClick={handleNewKeyClick}
           >
             <Plus className="h-4 w-4" />
             Νέο Κλειδί

@@ -20,7 +20,6 @@ import './index.css';
 import { SiteBackupService } from './utils/site-protection/SiteBackupService';
 import { SiteHealthMonitor } from './utils/error-handling/SiteHealthMonitor';
 import { routeDebugger } from './utils/routeDebugger';
-import { AuthProvider } from './providers/AuthProvider';
 
 // Log startup diagnostics
 console.log('[App] Application starting up...');
@@ -44,30 +43,6 @@ try {
   console.error('Failed to start health monitoring:', e);
 }
 
-// Add keyboard shortcut for emergency recovery
-document.addEventListener('keydown', (e) => {
-  if (e.altKey && e.shiftKey && e.key === 'R') {
-    e.preventDefault();
-    console.log('Emergency recovery triggered via keyboard shortcut');
-    SiteBackupService.restoreFromBackup();
-  }
-});
-
-// Add keyboard shortcut for manual health check
-document.addEventListener('keydown', (e) => {
-  if (e.altKey && e.shiftKey && e.key === 'C') {
-    e.preventDefault();
-    console.log('Manual health check triggered via keyboard shortcut');
-    const healthStatus = SiteHealthMonitor.checkHealth();
-    console.log('Health check results:', healthStatus);
-  }
-});
-
-// Console log to debug React availability
-console.log('React version available:', React.version);
-console.log('ReactDOM available:', !!ReactDOM);
-console.log('React.Fragment available:', !!React.Fragment);
-
 // Log DOM readiness
 console.log('[App] Checking DOM readiness...');
 console.log('[App] Root element exists:', !!document.getElementById('root'));
@@ -83,9 +58,7 @@ try {
   
   ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <App />
     </React.StrictMode>
   );
   
@@ -98,11 +71,7 @@ try {
     const rootElement = document.getElementById('root');
     if (rootElement) {
       console.log('[App] Attempting recovery without StrictMode...');
-      ReactDOM.createRoot(rootElement).render(
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      );
+      ReactDOM.createRoot(rootElement).render(<App />);
     }
   } catch (fallbackError) {
     console.error('[App] Recovery attempt failed:', fallbackError);
