@@ -11,7 +11,8 @@ import {
   Layers, 
   Settings, 
   Wallet, 
-  Coins
+  Coins,
+  Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +42,11 @@ export function Sidebar() {
       title: "Tokens",
       href: "/tokens",
       icon: Coins,
+    },
+    {
+      title: "Test API",
+      href: "/test-api",
+      icon: Search,
     }
   ];
 

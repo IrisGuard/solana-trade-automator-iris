@@ -360,6 +360,30 @@ export type Database = {
         }
         Relationships: []
       }
+      solscan_data: {
+        Row: {
+          address: string
+          created_at: string
+          data_type: string
+          id: string
+          response: Json | null
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          data_type: string
+          id?: string
+          response?: Json | null
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          data_type?: string
+          id?: string
+          response?: Json | null
+        }
+        Relationships: []
+      }
       tokens: {
         Row: {
           amount: number | null

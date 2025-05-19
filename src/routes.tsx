@@ -22,6 +22,7 @@ import ChangeApproval from "@/pages/ChangeApproval";
 import Portfolio from "@/pages/Portfolio";
 import Notifications from "@/pages/Notifications";
 import AddHeliusKeyPage from "@/pages/AddHeliusKey";
+import TestAPI from "@/pages/TestAPI";
 
 export function Routes() {
   return (
@@ -47,6 +48,7 @@ export function Routes() {
         <Route path="/portfolio" element={<Portfolio />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/add-helius-key" element={<AddHeliusKeyPage />} />
+        <Route path="/test-api" element={<TestAPI />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </RouterRoutes>
