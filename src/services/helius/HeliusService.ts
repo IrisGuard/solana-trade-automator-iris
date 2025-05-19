@@ -17,8 +17,13 @@ class HeliusService {
     if (!this.apiKey) {
       try {
         this.apiKey = await fetchApiKey('helius');
+        console.log('Helius API key loaded successfully');
       } catch (error) {
         console.error('Failed to fetch Helius API key:', error);
+        if (!this.apiKey && FALLBACK_HELIUS_KEY) {
+          console.warn('Using fallback Helius API key');
+          this.apiKey = FALLBACK_HELIUS_KEY;
+        }
       }
     }
     
@@ -74,12 +79,16 @@ class HeliusService {
       const apiKey = await this.getApiKey();
       const url = `${this.baseUrl}/addresses/${address}/balances?api-key=${apiKey}`;
       
+      console.log(`Fetching token balances from Helius for address: ${address}`);
       const response = await fetch(url);
+      
       if (!response.ok) {
         throw new Error(`Failed to fetch token balances: ${response.statusText}`);
       }
       
-      return await response.json();
+      const data = await response.json();
+      console.log(`Received token balances from Helius: ${data ? data.length : 0} tokens`);
+      return data;
     } catch (error) {
       console.error('Error fetching token balances from Helius:', error);
       throw error;
@@ -96,6 +105,7 @@ class HeliusService {
       const apiKey = await this.getApiKey();
       const url = `${this.baseUrl}/tokens/metadata?api-key=${apiKey}`;
       
+      console.log(`Fetching metadata for ${mintAddresses.length} tokens from Helius`);
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -108,7 +118,9 @@ class HeliusService {
         throw new Error(`Failed to fetch token metadata: ${response.statusText}`);
       }
       
-      return await response.json();
+      const data = await response.json();
+      console.log(`Received metadata for ${data ? data.length : 0} tokens from Helius`);
+      return data;
     } catch (error) {
       console.error('Error fetching token metadata from Helius:', error);
       throw error;

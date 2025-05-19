@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Token, TokenPrices } from '@/types/wallet';
 import { toast } from 'sonner';
 import { heliusService } from '@/services/helius/HeliusService';
@@ -10,10 +10,19 @@ export function useWalletData() {
   const [tokenPrices, setTokenPrices] = useState<TokenPrices>({});
   const [isLoadingTokens, setIsLoadingTokens] = useState(false);
   const { reportError } = useErrorReporting();
+  const [lastLoadTime, setLastLoadTime] = useState<number>(0);
 
   // Load wallet data
   const loadWalletData = useCallback(async (address: string) => {
+    // Throttle calls to avoid too many API requests
+    const now = Date.now();
+    if (now - lastLoadTime < 10000) { // 10 seconds throttle
+      console.log('Throttling wallet data load request');
+      return;
+    }
+    
     setIsLoadingTokens(true);
+    setLastLoadTime(now);
     
     try {
       console.log('Loading wallet data for address:', address);
@@ -65,20 +74,25 @@ export function useWalletData() {
           setTokenPrices(prices);
         } else {
           console.log('No token balances received or empty array returned');
+          toast.info('Δε βρέθηκαν tokens στο πορτοφόλι σας');
           setTokens([]);
         }
       } catch (tokenError) {
         console.error('Error fetching token balances:', tokenError);
         reportError(tokenError);
+        toast.error('Αδυναμία φόρτωσης των tokens', {
+          description: 'Παρακαλώ δοκιμάστε ξανά αργότερα'
+        });
         setTokens([]);
       }
     } catch (err: any) {
       console.error('Error loading wallet data:', err);
       reportError(err);
+      toast.error('Σφάλμα φόρτωσης δεδομένων πορτοφολιού');
     } finally {
       setIsLoadingTokens(false);
     }
-  }, [reportError]);
+  }, [reportError, lastLoadTime]);
 
   // Select token for trading
   const selectTokenForTrading = useCallback((tokenAddress: string) => {

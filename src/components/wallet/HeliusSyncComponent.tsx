@@ -26,12 +26,16 @@ export function HeliusSyncComponent({ onSync }: { onSync?: () => void }) {
       console.log("Έναρξη συγχρονισμού Helius για χρήστη:", user.id);
       const result = await syncAllHeliusData(user.id);
       if (result) {
+        toast.success("Συγχρονισμός κλειδιών Helius ολοκληρώθηκε");
         setHasError(false);
         setRetryCount(0);
         console.log("Συγχρονισμός Helius ολοκληρώθηκε επιτυχώς");
       } else {
         setHasError(true);
         setRetryCount(prev => prev + 1);
+        toast.error("Ο συγχρονισμός Helius απέτυχε", {
+          description: "Βεβαιωθείτε ότι έχετε προσθέσει κλειδιά Helius"
+        });
         console.error("Συγχρονισμός Helius απέτυχε");
       }
       if (onSync) {
@@ -41,6 +45,9 @@ export function HeliusSyncComponent({ onSync }: { onSync?: () => void }) {
       console.error("Σφάλμα συγχρονισμού Helius:", error);
       setHasError(true);
       setRetryCount(prev => prev + 1);
+      toast.error("Σφάλμα κατά το συγχρονισμό", {
+        description: "Παρακαλώ δοκιμάστε ξανά αργότερα"
+      });
     } finally {
       setIsSyncing(false);
     }

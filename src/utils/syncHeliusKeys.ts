@@ -1,59 +1,132 @@
 
-import { heliusKeyManager } from '@/services/helius/HeliusKeyManager';
 import { supabase } from '@/integrations/supabase/client';
-import { errorCollector } from '@/utils/error-handling/collector';
 import { toast } from 'sonner';
 
 /**
- * Synchronize all Helius API keys for a specific user
+ * Synchronizes all Helius API keys for a user between Supabase and local storage
  */
 export async function syncAllHeliusData(userId: string): Promise<boolean> {
   if (!userId) {
-    console.error('Cannot sync Helius keys: No userId provided');
+    console.error('Cannot sync Helius data: No user ID provided');
     return false;
   }
-
+  
   try {
-    console.log(`Synchronizing Helius data for user ${userId}...`);
+    console.log(`Syncing Helius API keys for user ${userId}`);
     
-    // Force a fresh reload of the Helius API keys
-    const success = await heliusKeyManager.refreshKeys();
+    // Fetch all active Helius keys from Supabase
+    const { data: heliusKeys, error } = await supabase
+      .from('api_keys_storage')
+      .select('*')
+      .eq('service', 'helius')
+      .eq('status', 'active')
+      .eq('user_id', userId);
     
-    if (!success || heliusKeyManager.getKeyCount() === 0) {
-      console.warn('No Helius API keys available after refresh');
-      
-      // Only show toast if this is not a background refresh
-      toast.warning('Limited functionality available', {
-        description: 'Helius API keys not configured properly'
-      });
-      
+    if (error) {
+      console.error('Error fetching Helius keys:', error);
       return false;
     }
     
-    console.log(`Successfully synchronized Helius data with ${heliusKeyManager.getKeyCount()} keys available`);
+    if (!heliusKeys || heliusKeys.length === 0) {
+      console.warn('No Helius keys found for user');
+      return false;
+    }
+    
+    // Store the first active key in local storage for quick access
+    const firstActiveKey = heliusKeys[0];
+    localStorage.setItem(`api_key_helius`, JSON.stringify({
+      key: firstActiveKey.key_value,
+      timestamp: Date.now()
+    }));
+    
+    console.log(`Synchronized ${heliusKeys.length} Helius keys`);
+    
+    // Reset the Helius service to use the new key
+    const { heliusService } = await import('@/services/helius/HeliusService');
+    heliusService.reinitialize();
+    
     return true;
   } catch (error) {
-    console.error('Error synchronizing Helius data:', error);
-    errorCollector.captureError(error, {
-      component: 'syncHeliusKeys', 
-      method: 'syncAllHeliusData',
-      details: { userId }
+    console.error('Error syncing Helius keys:', error);
+    toast.error('Σφάλμα συγχρονισμού κλειδιών API', {
+      description: 'Παρακαλώ δοκιμάστε ξανά αργότερα'
     });
-    
     return false;
   }
 }
 
 /**
- * Check if Helius is properly configured
+ * Tests all Helius API keys for a user and updates their status in Supabase
  */
-export function isHeliusConfigured(): boolean {
-  return heliusKeyManager.hasKeys();
-}
-
-/**
- * Get the number of available API keys
- */
-export function getHeliusKeyCount(): number {
-  return heliusKeyManager.getKeyCount();
+export async function testAllHeliusKeys(userId: string): Promise<number> {
+  if (!userId) {
+    console.error('Cannot test Helius keys: No user ID provided');
+    return 0;
+  }
+  
+  try {
+    console.log(`Testing Helius API keys for user ${userId}`);
+    
+    // Fetch all Helius keys from Supabase
+    const { data: heliusKeys, error } = await supabase
+      .from('api_keys_storage')
+      .select('*')
+      .eq('service', 'helius')
+      .eq('user_id', userId);
+    
+    if (error) {
+      console.error('Error fetching Helius keys:', error);
+      return 0;
+    }
+    
+    if (!heliusKeys || heliusKeys.length === 0) {
+      console.warn('No Helius keys found for user');
+      return 0;
+    }
+    
+    // Import the HeliusService to test keys
+    const { heliusService } = await import('@/services/helius/HeliusService');
+    
+    // Test each key and update its status
+    let workingKeys = 0;
+    
+    for (const key of heliusKeys) {
+      const isWorking = await heliusService.checkApiKey(key.key_value);
+      
+      // Update key status in Supabase
+      const { error: updateError } = await supabase
+        .from('api_keys_storage')
+        .update({ 
+          status: isWorking ? 'active' : 'failing',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', key.id);
+      
+      if (updateError) {
+        console.error(`Error updating key ${key.id} status:`, updateError);
+      }
+      
+      if (isWorking) {
+        workingKeys++;
+        
+        // If this is the first working key, store it in local storage
+        if (workingKeys === 1) {
+          localStorage.setItem(`api_key_helius`, JSON.stringify({
+            key: key.key_value,
+            timestamp: Date.now()
+          }));
+        }
+      }
+    }
+    
+    console.log(`Tested ${heliusKeys.length} Helius keys, ${workingKeys} are working`);
+    
+    // Reset the Helius service to use the new key
+    heliusService.reinitialize();
+    
+    return workingKeys;
+  } catch (error) {
+    console.error('Error testing Helius keys:', error);
+    return 0;
+  }
 }

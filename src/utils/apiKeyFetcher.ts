@@ -2,99 +2,98 @@
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Fetches an API key for a specific service from the database
- * @param service The service name (e.g., 'helius')
- * @returns Promise resolving to the API key or null if not found
+ * Fetches an active API key for the specified service
  */
-export async function fetchApiKey(service: string): Promise<string | null> {
+export async function fetchApiKey(service: string): Promise<string> {
   try {
-    // Get the current user
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session || !session.user) {
-      console.error('No active user session found when fetching API key');
-      return null;
+    // First try to fetch from localStorage for quick access
+    const cachedKey = localStorage.getItem(`api_key_${service}`);
+    if (cachedKey) {
+      try {
+        // Check if the cached key is still valid (not expired)
+        const parsedKey = JSON.parse(cachedKey);
+        const expiryTime = parsedKey.timestamp + (1000 * 60 * 30); // 30 minutes cache
+        
+        if (Date.now() < expiryTime) {
+          console.log(`Using cached ${service} API key`);
+          return parsedKey.key;
+        }
+      } catch (e) {
+        // Invalid JSON in localStorage, will fetch from DB
+      }
     }
     
-    // Query for the API key
+    // Fetch from Supabase
+    console.log(`Fetching ${service} API key from Supabase...`);
     const { data, error } = await supabase
       .from('api_keys_storage')
-      .select('key_value')
-      .eq('user_id', session.user.id)
+      .select('*')
       .eq('service', service)
       .eq('status', 'active')
-      .maybeSingle();
+      .limit(1);
     
     if (error) {
       console.error(`Error fetching ${service} API key:`, error);
-      return null;
+      throw error;
     }
     
-    if (!data || !data.key_value) {
-      console.warn(`No active ${service} API key found for user`);
-      return null;
+    if (!data || data.length === 0) {
+      throw new Error(`No active ${service} API key found`);
     }
     
-    return data.key_value;
-  } catch (err) {
-    console.error(`Error in fetchApiKey for ${service}:`, err);
-    return null;
+    // Cache the key in localStorage for faster access next time
+    localStorage.setItem(`api_key_${service}`, JSON.stringify({
+      key: data[0].key_value,
+      timestamp: Date.now()
+    }));
+    
+    return data[0].key_value;
+  } catch (error) {
+    console.error(`Failed to fetch ${service} API key:`, error);
+    throw error;
   }
 }
 
 /**
- * Checks if the user has a valid API key for a specific service
- * @param service The service name (e.g., 'helius')
- * @returns Promise resolving to true if a valid key exists
+ * Tests if an API key is valid for the specified service
  */
-export async function hasValidApiKey(service: string): Promise<boolean> {
-  const key = await fetchApiKey(service);
-  return !!key;
+export async function testApiKey(service: string, key: string): Promise<boolean> {
+  try {
+    // Different validation methods based on service
+    switch (service) {
+      case 'helius':
+        // Use HeliusService to validate the key
+        const { heliusService } = await import('@/services/helius/HeliusService');
+        return await heliusService.checkApiKey(key);
+      
+      default:
+        // Generic validation for other services
+        console.warn(`No specific validation method for ${service} keys`);
+        return true;
+    }
+  } catch (error) {
+    console.error(`Error testing ${service} API key:`, error);
+    return false;
+  }
 }
 
 /**
- * Fetches data from an API endpoint with automatic API key inclusion
- * @param url The API endpoint URL
- * @param service The service name for the API key
- * @param options Optional fetch options
- * @returns Promise resolving to the JSON response
+ * Fetches and validates the specified service API key
  */
-export async function fetchWithApiKey(url: string, service: string, options: RequestInit = {}): Promise<any> {
+export async function getValidatedApiKey(service: string): Promise<string | null> {
   try {
-    const apiKey = await fetchApiKey(service);
+    const key = await fetchApiKey(service);
+    const isValid = await testApiKey(service, key);
     
-    if (!apiKey) {
-      throw new Error(`No API key available for service: ${service}`);
+    if (isValid) {
+      return key;
     }
     
-    // Clone the options to avoid modifying the original
-    const fetchOptions = { ...options };
-    
-    // Prepare URL with API key based on service
-    let apiUrl = url;
-    
-    // Add API key based on service-specific patterns
-    if (service === 'helius') {
-      const separator = url.includes('?') ? '&' : '?';
-      apiUrl = `${url}${separator}api-key=${apiKey}`;
-    } else if (service === 'solscan' || service === 'birdeye') {
-      // For services that use headers for API keys
-      fetchOptions.headers = {
-        ...(fetchOptions.headers || {}),
-        'x-api-key': apiKey
-      };
-    }
-    
-    // Make the request
-    const response = await fetch(apiUrl, fetchOptions);
-    
-    if (!response.ok) {
-      throw new Error(`API request failed with status: ${response.status}`);
-    }
-    
-    return await response.json();
-  } catch (err) {
-    console.error(`Error in fetchWithApiKey for ${service}:`, err);
-    throw err;
+    // If key is invalid, clear it from cache
+    localStorage.removeItem(`api_key_${service}`);
+    return null;
+  } catch (error) {
+    console.error(`Could not get validated ${service} API key:`, error);
+    return null;
   }
 }
