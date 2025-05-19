@@ -55,6 +55,52 @@ export async function fetchApiKey(service: string): Promise<string> {
 }
 
 /**
+ * Fetches an API key and adds it to the fetch request
+ * This is a convenience wrapper for the TestApp component
+ */
+export async function fetchWithApiKey(url: string, service: string, options: RequestInit = {}): Promise<any> {
+  try {
+    // Get the API key for the requested service
+    const apiKey = await fetchApiKey(service);
+    
+    // Create headers with the API key
+    const headers = new Headers(options.headers || {});
+    
+    // Different services may expect the key in different header formats
+    switch (service) {
+      case 'helius':
+        // Helius accepts the API key as a URL parameter
+        const separator = url.includes('?') ? '&' : '?';
+        url = `${url}${separator}api-key=${apiKey}`;
+        break;
+      case 'solscan':
+        headers.set('Authorization', `Bearer ${apiKey}`);
+        break;
+      default:
+        headers.set('X-API-Key', apiKey);
+    }
+    
+    // Merge the headers back into the options
+    const updatedOptions = {
+      ...options,
+      headers
+    };
+    
+    // Make the request
+    const response = await fetch(url, updatedOptions);
+    
+    if (!response.ok) {
+      throw new Error(`API request failed with status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error(`Error in fetchWithApiKey for ${service}:`, error);
+    throw error;
+  }
+}
+
+/**
  * Tests if an API key is valid for the specified service
  */
 export async function testApiKey(service: string, key: string): Promise<boolean> {
