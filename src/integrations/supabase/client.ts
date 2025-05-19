@@ -1,5 +1,5 @@
 
-// Import Supabase client correctly - using the default export
+// Import Supabase client correctly
 import { createClient } from '@supabase/supabase-js';
 
 // Hardcoded values for reliability - these are already public values
