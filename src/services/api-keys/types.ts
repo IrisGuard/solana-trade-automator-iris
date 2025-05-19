@@ -37,3 +37,11 @@ export interface ApiKeyServiceInfo {
   testEndpoint?: string;
   isCommon: boolean;
 }
+
+export interface ApiService {
+  id: string;
+  name: string;
+  description: string;
+  documentationUrl: string;
+  apiKeyUrl: string;
+}

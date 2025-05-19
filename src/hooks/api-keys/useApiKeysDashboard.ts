@@ -53,7 +53,8 @@ export function useApiKeysDashboard(limit = 4) {
           ...key,
           isVisible,
           isWorking,
-          status: validStatus
+          status: validStatus,
+          isTesting: false // Add the missing isTesting property
         };
       }) || [];
       
