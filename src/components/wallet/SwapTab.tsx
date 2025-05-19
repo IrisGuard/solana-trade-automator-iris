@@ -21,12 +21,6 @@ export function SwapTab({ isConnected }: SwapTabProps) {
   const [swapService, setSwapService] = useState<"jupiter" | "raydium">("jupiter");
   const { connectWallet } = useWalletConnection();
 
-  // Create a props object that matches the SwapFormProps interface
-  const swapFormProps: SwapFormProps = {
-    isConnected: isConnected,
-    connectWallet: connectWallet
-  };
-
   return (
     <TabsContent value="swap" className="space-y-6">
       {!isConnected ? (

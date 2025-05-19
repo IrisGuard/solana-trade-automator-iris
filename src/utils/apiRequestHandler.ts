@@ -105,7 +105,7 @@ export function createApiService(baseUrl: string, serviceName: string) {
     get: async <T>(path: string, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> => {
       return makeApiRequest<T>(`${baseUrl}${path}`, {
         ...options,
-        endpoint: serviceName,
+        endpoint: options.endpoint || serviceName,
         method: 'GET'
       });
     },
@@ -113,7 +113,7 @@ export function createApiService(baseUrl: string, serviceName: string) {
     post: async <T>(path: string, body: any, options: Omit<ApiRequestOptions, 'method'> = {}): Promise<T> => {
       return makeApiRequest<T>(`${baseUrl}${path}`, {
         ...options,
-        endpoint: serviceName,
+        endpoint: options.endpoint || serviceName,
         method: 'POST',
         body
       });
