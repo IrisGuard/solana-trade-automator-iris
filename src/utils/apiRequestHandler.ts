@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { isRateLimited, withRateLimitRetry } from "@/utils/error-handling/rateLimitHandler";
 
 interface ApiRequestOptions {
-  endpoint: string;
+  endpoint?: string; // Make this optional
   headers?: Record<string, string>;
   method?: string;
   body?: any;
