@@ -1,6 +1,7 @@
 
 // Using correct import syntax for Supabase client
-import { createClient } from '@supabase/supabase-js';
+import supabaseJs from '@supabase/supabase-js';
+const { createClient } = supabaseJs;
 
 // Hardcoded values for reliability - these are already public values
 const SUPABASE_URL = 'https://lvkbyfocssuzcdphpmfu.supabase.co';
