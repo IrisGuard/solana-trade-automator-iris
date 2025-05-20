@@ -18,7 +18,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       react({
         // Use options that are actually supported by the SWC React plugin
         tsDecorators: true,
-        // Use JSX runtime to React
+        // Use our custom JSX runtime with hooks
         jsxImportSource: "react",
       }),
       mode === 'development' && componentTagger(),
@@ -27,8 +27,8 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       alias: {
         "@": path.resolve(__dirname, "./src"),
         // Fix JSX runtime issue with CORRECT absolute paths
-        'react/jsx-runtime': path.resolve(__dirname, "./node_modules/react/jsx-runtime.js"),
-        'react/jsx-dev-runtime': path.resolve(__dirname, "./node_modules/react/jsx-dev-runtime.js"),
+        'react/jsx-runtime': path.resolve(__dirname, "./src/jsx-runtime-bridge.ts"),
+        'react/jsx-dev-runtime': path.resolve(__dirname, "./src/jsx-runtime-bridge.ts"),
         // Add explicit references to React hooks modules
         'react-router-dom': path.resolve(__dirname, "./node_modules/react-router-dom"),
         'react': path.resolve(__dirname, "./node_modules/react"),
@@ -76,7 +76,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         '@solana/spl-token',
         '@solana/wallet-adapter-base',
         '@solana/wallet-adapter-react',
-        // Add React and React Router DOM to the optimization
+        // Make sure React and React Router are optimized
         'react',
         'react-dom',
         'react-router-dom',
@@ -107,6 +107,13 @@ export default defineConfig(({ mode }: ConfigEnv) => {
             return;
           }
           warn(warning);
+        },
+        // Ensure React Router has access to React hooks
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom'],
+            'react-router': ['react-router-dom'],
+          },
         },
       },
       // Ensure sourcemaps are generated

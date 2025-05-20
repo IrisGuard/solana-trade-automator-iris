@@ -1,27 +1,28 @@
 
-// Import our JSX runtime bridge first
+// Import React hooks exporter first - critical for React 18.3.1 compatibility
+import './utils/reactHooksExporter';
+
+// Import JSX runtime bridge next
 import './jsx-runtime-bridge';
 
-// Import hooks exporter before any React components
-import './utils/reactHooksExporter';
+// Import router hooks bridge early
 import './utils/reactHooksBridge';
+import './utils/routerHooksBridge';
 
-// Import polyfills and patches first
+// Import React fixes before React components
+import './react-exports-fix';
+import './lib/router-exports';
+
+// Import polyfills and patches
 import './polyfills';
 
 // Apply DOM patches early
 import { applyAllDOMPatches } from './utils/domPatches';
 applyAllDOMPatches();
 
-// Import React fixes before React components
-import './utils/reactPatches';
-import './react-exports-fix';
-import './utils/routerHooksBridge';
-import './utils/routerPatches';
-
 // Important: Import React directly to ensure it's available
-import React from 'react';
-import ReactDOM from 'react-dom/client';
+import * as React from 'react';
+import * as ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
@@ -40,7 +41,13 @@ console.log('[App] React exports check:', {
   createElement: typeof React.createElement,
   useState: typeof React.useState,
   jsx: typeof (React as any).jsx,
-  Fragment: typeof React.Fragment
+  Fragment: typeof React.Fragment,
+  hooks: {
+    useState: typeof React.useState === 'function',
+    useEffect: typeof React.useEffect === 'function',
+    useRef: typeof React.useRef === 'function',
+    useContext: typeof React.useContext === 'function'
+  }
 });
 
 // Create initial backup if none exists
@@ -67,6 +74,22 @@ try {
   const rootElement = document.getElementById('root');
   if (!rootElement) {
     throw new Error('Root element not found');
+  }
+  
+  // Added manual React hook patching before rendering
+  if (typeof window !== 'undefined' && window.React) {
+    if (!window.React.useState && React.useState) {
+      console.log('[Manual patch] Adding useState to window.React');
+      window.React.useState = React.useState;
+    }
+    if (!window.React.useEffect && React.useEffect) {
+      console.log('[Manual patch] Adding useEffect to window.React');
+      window.React.useEffect = React.useEffect;
+    }
+    if (!window.React.useRef && React.useRef) {
+      console.log('[Manual patch] Adding useRef to window.React');
+      window.React.useRef = React.useRef;
+    }
   }
   
   ReactDOM.createRoot(rootElement).render(

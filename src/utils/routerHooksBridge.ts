@@ -1,13 +1,29 @@
 
 /**
  * This file provides bridge functions for React Router hooks
- * to ensure they can access React hooks properly
+ * to ensure they can access React hooks properly with React 18.3.1
  */
 import * as React from 'react';
 import * as ReactRouter from 'react-router-dom';
 
-// Ensure essential React exports are available
-const { useState, useEffect, useRef, useContext } = React;
+// First ensure React hooks are available
+import { 
+  useState, 
+  useEffect, 
+  useRef, 
+  useContext,
+  useCallback,
+  useMemo,
+  useReducer,
+  useLayoutEffect,
+  useImperativeHandle,
+  useDebugValue,
+  useId,
+  useDeferredValue,
+  useInsertionEffect,
+  useSyncExternalStore,
+  useTransition
+} from '../utils/reactHooksExporter';
 
 // Re-export React Router hooks with ensured React hooks access
 export const useNavigate = ReactRouter.useNavigate;
@@ -40,6 +56,39 @@ export function checkRouterHooksAvailable() {
       useState: typeof React.useState === 'function',
       useEffect: typeof React.useEffect === 'function',
       useRef: typeof React.useRef === 'function'
+    },
+    originalReactExports: {
+      useState: typeof useState === 'function',
+      useEffect: typeof useEffect === 'function', 
+      useRef: typeof useRef === 'function'
+    }
+  });
+}
+
+// Patch window.React if available to ensure React Router can find hooks
+if (typeof window !== 'undefined' && window.React) {
+  const hooksToAdd = {
+    useState, 
+    useEffect, 
+    useRef, 
+    useContext,
+    useCallback,
+    useMemo,
+    useReducer,
+    useLayoutEffect,
+    useImperativeHandle,
+    useDebugValue,
+    useId,
+    useDeferredValue,
+    useInsertionEffect,
+    useSyncExternalStore,
+    useTransition
+  };
+  
+  Object.entries(hooksToAdd).forEach(([hookName, hookFn]) => {
+    if (!window.React[hookName]) {
+      window.React[hookName] = hookFn;
+      console.log(`[RouterBridge] Added ${hookName} to global React`);
     }
   });
 }
