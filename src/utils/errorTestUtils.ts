@@ -27,7 +27,9 @@ export function createTestError(message: string = 'This is a test error') {
     // Format the error properly to avoid object rendering issues
     const errorObj = {
       message: error instanceof Error ? error.message : String(message),
-      stack: error instanceof Error ? error.stack : 'No stack trace available',
+      stack: error instanceof Error ? 
+        (typeof error.stack === 'string' ? error.stack : JSON.stringify(error.stack, null, 2)) 
+        : 'No stack trace available',
       timestamp: new Date().toISOString(),
       url: window.location.href
     };

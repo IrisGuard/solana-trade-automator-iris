@@ -46,18 +46,28 @@ export function useErrorDialogInChat() {
     window.lovableChat.createErrorDialog = (errorData: any) => {
       console.log('Κλήση του createErrorDialog με δεδομένα:', errorData);
       
+      // Ensure errorData is properly processed to avoid direct object rendering
+      const processedError = {
+        message: typeof errorData.message === 'string'
+          ? errorData.message 
+          : errorData.message 
+            ? JSON.stringify(errorData.message, null, 2)
+            : 'Unknown Error',
+        stack: typeof errorData.stack === 'string' 
+          ? errorData.stack 
+          : errorData.stack 
+            ? JSON.stringify(errorData.stack, null, 2)
+            : 'No stack trace available',
+        timestamp: errorData.timestamp || new Date().toISOString(),
+        url: typeof errorData.url === 'string'
+          ? errorData.url
+          : errorData.url
+            ? String(errorData.url)
+            : window.location.href
+      };
+      
       // Προσθήκη του νέου σφάλματος στο array (διατηρώντας και τα προηγούμενα)
       setErrors(prevErrors => {
-        // Επεξεργασία του error object για να αποφύγουμε την απευθείας render αντικειμένων
-        const processedError = {
-          message: errorData.message || 'Unknown Error',
-          stack: typeof errorData.stack === 'string' 
-            ? errorData.stack 
-            : JSON.stringify(errorData.stack, null, 2),
-          timestamp: errorData.timestamp || new Date().toISOString(),
-          url: errorData.url || window.location.href
-        };
-        
         // Έλεγχος για αποφυγή διπλότυπων σφαλμάτων
         const isDuplicate = prevErrors.some(err => 
           err.message === processedError.message && 

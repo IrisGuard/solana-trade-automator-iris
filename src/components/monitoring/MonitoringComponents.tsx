@@ -67,7 +67,18 @@ export function PublishErrorMonitor() {
               console.log("Επιτυχής σύνδεση με το Supabase");
             })
             .catch(error => {
-              displayError(error, {
+              // Ensure error is properly formatted before displaying
+              const processedError = error instanceof Error 
+                ? { 
+                    message: error.message,
+                    stack: error.stack || 'No stack trace available'
+                  }
+                : { 
+                    message: String(error), 
+                    stack: 'No stack trace available' 
+                  };
+                  
+              displayError(processedError, {
                 toastTitle: "Σφάλμα κατά τη δημοσίευση",
                 showToast: true,
                 component: 'PublishErrorMonitor',

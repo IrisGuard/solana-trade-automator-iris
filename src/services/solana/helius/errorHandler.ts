@@ -8,12 +8,14 @@ import { toast } from 'sonner';
 export const handleHeliusError = (error: unknown, source: string) => {
   // Create a proper error object
   const errorMessage = error instanceof Error ? error.message : String(error);
-  const errorStack = error instanceof Error ? error.stack : undefined;
+  const errorStack = error instanceof Error ? 
+    (typeof error.stack === 'string' ? error.stack : JSON.stringify(error.stack, null, 2)) 
+    : undefined;
   const errorObj = error instanceof Error ? error : new Error(errorMessage);
   
   // Create a proper details object that satisfies Record<string, unknown>
   const details: Record<string, unknown> = {
-    originalError: error,
+    originalError: errorMessage,  // Store as string to avoid object rendering issues
     source,
     timestamp: new Date().toISOString()
   };

@@ -27,6 +27,13 @@ export function ErrorDialogContent({ error, onClose, errorCode }: ErrorDialogCon
       ? JSON.stringify(error.stack, null, 2)
       : 'No stack trace available';
   
+  // Ensure message is a string
+  const errorMessage = typeof error.message === 'string' 
+    ? error.message 
+    : error.message 
+      ? JSON.stringify(error.message, null, 2)
+      : 'Unknown error';
+  
   return (
     <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden">
       <DialogHeader>
@@ -36,7 +43,7 @@ export function ErrorDialogContent({ error, onClose, errorCode }: ErrorDialogCon
       <div className="py-2">
         <h3 className="font-medium mb-1">Μήνυμα σφάλματος:</h3>
         <p className="text-sm bg-gray-100 dark:bg-gray-800 p-2 rounded">
-          {error.message || 'Άγνωστο σφάλμα'}
+          {errorMessage}
         </p>
       </div>
       
@@ -53,7 +60,7 @@ export function ErrorDialogContent({ error, onClose, errorCode }: ErrorDialogCon
         <h3 className="font-medium mb-1">Λεπτομέρειες:</h3>
         <div className="text-xs space-y-1">
           <p>Χρόνος: {timestamp}</p>
-          {error.url && <p>URL: {error.url}</p>}
+          {typeof error.url === 'string' && <p>URL: {error.url}</p>}
         </div>
       </div>
       
