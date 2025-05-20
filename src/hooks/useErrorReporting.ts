@@ -4,6 +4,13 @@ interface ErrorContext {
   source?: string;
   details?: Record<string, any>;
   additional?: string;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+  showToast?: boolean;
+  toastTitle?: string;
+  showUI?: boolean;
+  sendToChat?: boolean;
+  useCollector?: boolean;
+  notifyUser?: boolean;
 }
 
 export function useErrorReporting() {

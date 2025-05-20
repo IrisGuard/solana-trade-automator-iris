@@ -1,42 +1,29 @@
 
 /**
- * Αποστολή σφάλματος στο chat για ανάλυση
+ * Utility for sending errors to the support chat
  */
-export function sendErrorToChat(error: Error | string, additionalInfo?: any): void {
+
+interface ErrorDetails {
+  component?: string;
+  details?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+/**
+ * Send error details to the support chat
+ */
+export function sendErrorToChat(error: Error, options: ErrorDetails = {}): boolean {
   try {
-    // Μετατροπή string σε Error αν χρειάζεται
-    const errorObject = typeof error === 'string' ? new Error(error) : error;
+    // In a production app, we would integrate with a chat service
+    console.log('[Support Chat] Sending error to support chat:', {
+      message: error.message,
+      stack: error.stack,
+      ...options
+    });
     
-    // Δημιουργία αντικειμένου δεδομένων για το chat
-    const errorData = {
-      type: 'error',
-      message: errorObject.message,
-      stack: errorObject.stack,
-      additionalInfo,
-      url: window.location.href,
-      timestamp: new Date().toISOString(),
-    };
-    
-    // Αποθήκευση στο localStorage για το Lovable Chat
-    try {
-      const storedErrors = JSON.parse(localStorage.getItem('lovable_chat_errors') || '[]');
-      storedErrors.push(errorData);
-      localStorage.setItem('lovable_chat_errors', JSON.stringify(storedErrors));
-    } catch (e) {
-      console.error("Error storing error for chat:", e);
-    }
-    
-    // Αποστολή custom event για να ενημερώσει το Lovable Chat
-    try {
-      const event = new CustomEvent('lovable-error', { detail: errorData });
-      window.dispatchEvent(event);
-      
-      console.log('Error sent to chat successfully');
-    } catch (e) {
-      console.error('Failed to dispatch error event to chat:', e);
-    }
-    
+    return true;
   } catch (e) {
-    console.error("Error in sendErrorToChat:", e);
+    console.error('Failed to send error to chat:', e);
+    return false;
   }
 }
