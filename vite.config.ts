@@ -19,16 +19,17 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       react({
         // Use options that are actually supported by the SWC React plugin
         tsDecorators: true,
-        // Removed jsxRuntime as it's not a valid option in this version
+        // Use JSX runtime to React
+        jsxImportSource: "react",
       }),
       mode === 'development' && componentTagger(),
     ].filter(Boolean) as PluginOption[],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
-        // Fix JSX runtime issue with correct paths
-        'react/jsx-runtime': 'react/jsx-runtime',
-        'react/jsx-dev-runtime': 'react/jsx-dev-runtime',
+        // Fix JSX runtime issue with CORRECT absolute paths
+        'react/jsx-runtime': path.resolve(__dirname, "./node_modules/react/jsx-runtime.js"),
+        'react/jsx-dev-runtime': path.resolve(__dirname, "./node_modules/react/jsx-dev-runtime.js"),
         // Fix polyfill path issues - explicitly map each required polyfill
         buffer: 'buffer/',
         // Fix the process polyfill path - important change
@@ -96,8 +97,8 @@ export default defineConfig(({ mode }: ConfigEnv) => {
           // Enable rollup polyfills plugin
           rollupNodePolyFill() as any,
         ],
-        // External to prevent Rollup from trying to bundle process
-        external: ['process/browser', 'react'], 
+        // IMPORTANT: Remove React from external to ensure proper bundling
+        external: ['process/browser'],
         onwarn(warning, warn) {
           if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
             return;

@@ -15,6 +15,23 @@ export function ensureReactCompatibility(): void {
       // Create a full copy of React in the window
       window.React = React;
       
+      // Explicitly patch jsx and jsxs functions if they don't exist
+      if (!window.React.jsx) {
+        Object.defineProperty(window.React, 'jsx', {
+          value: React.createElement,
+          writable: false,
+          configurable: true
+        });
+      }
+      
+      if (!window.React.jsxs) {
+        Object.defineProperty(window.React, 'jsxs', {
+          value: React.createElement,
+          writable: false,
+          configurable: true
+        });
+      }
+      
       // Log success
       console.log('React patches applied successfully');
     } catch (error) {
