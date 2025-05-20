@@ -4,10 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 // Import the correct type from supabase-js
-import type { User as SupabaseUser } from '@supabase/supabase-js';
+// In the latest versions of supabase-js, the User type is imported directly from the package
+import type { User } from '@supabase/supabase-js';
 
 export function useUser() {
-  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   
   useEffect(() => {
