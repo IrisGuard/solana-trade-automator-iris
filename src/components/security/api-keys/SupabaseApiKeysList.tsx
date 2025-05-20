@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2, Copy, RefreshCw, Eye, EyeOff, Plus, KeyRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { useAuth } from "@/contexts/SupabaseAuthContext";
 import { useApiKeyVisibility } from "@/hooks/api-keys/useApiKeyVisibility";
 
 // Define the SupabaseApiKey interface

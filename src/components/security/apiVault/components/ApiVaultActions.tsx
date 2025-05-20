@@ -2,7 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Lock, Upload, Download, ShieldAlert, Server, RefreshCw } from "lucide-react";
-import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { useAuth } from "@/contexts/SupabaseAuthContext";
 import { useSupabaseSync } from "../hooks/useSupabaseSync";
 import { ApiKey } from "../types";
 

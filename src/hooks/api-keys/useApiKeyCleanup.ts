@@ -1,9 +1,8 @@
-
 import { useState } from 'react';
 import { ApiIntegrationService } from '@/components/security/apiVault/ApiIntegrationService';
 import { ApiKey } from '@/components/security/apiVault/types';
 import { toast } from 'sonner';
-import { useAuth } from '@/providers/SupabaseAuthProvider';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 
 export function useApiKeyCleanup() {
   const [isRunning, setIsRunning] = useState(false);

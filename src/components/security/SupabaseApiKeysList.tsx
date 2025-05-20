@@ -1,13 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Loader2, Copy, RefreshCw, Eye, EyeOff, KeyRound, Plus } from "lucide-react";
+import { Loader2, Copy, RefreshCw, Eye, EyeOff, Plus, KeyRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { useAuth } from "@/contexts/SupabaseAuthContext";
 
 export function SupabaseApiKeysList() {
   const [keys, setKeys] = useState<any[]>([]);

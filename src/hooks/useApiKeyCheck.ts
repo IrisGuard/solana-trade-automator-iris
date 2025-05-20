@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/providers/SupabaseAuthProvider';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { toast } from 'sonner';
 import { heliusService } from '@/services/helius/HeliusService';
 

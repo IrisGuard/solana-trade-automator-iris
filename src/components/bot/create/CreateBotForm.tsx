@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { useAuth } from "@/contexts/SupabaseAuthContext";
 import { botsService } from "@/services/botsService";
 import { Loader2 } from "lucide-react";
 import { BotNameField } from "./BotNameField";

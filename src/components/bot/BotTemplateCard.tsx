@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
-import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { useAuth } from "@/contexts/SupabaseAuthContext";
 import { toast } from "sonner";
 
 interface BotTemplateCardProps {

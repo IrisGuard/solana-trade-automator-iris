@@ -1,9 +1,8 @@
-
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useState } from "react";
-import { useAuth } from "@/providers/SupabaseAuthProvider";
-import { Check, AlertCircle, RefreshCcw } from "lucide-react";
+import { useAuth } from "@/contexts/SupabaseAuthContext";
+import { Check, AlertCircle, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { heliusService } from "@/services/helius/HeliusService";
 
@@ -134,7 +133,7 @@ export function ApiKeyCheckButton() {
       className="gap-2"
     >
       {isChecking ? (
-        <RefreshCcw className="h-4 w-4 animate-spin" />
+        <RefreshCw className="h-4 w-4 animate-spin" />
       ) : stats ? (
         stats.notWorking > 0 ? (
           <AlertCircle className="h-4 w-4 text-amber-500" />
@@ -142,7 +141,7 @@ export function ApiKeyCheckButton() {
           <Check className="h-4 w-4 text-green-500" />
         )
       ) : (
-        <RefreshCcw className="h-4 w-4" />
+        <RefreshCw className="h-4 w-4" />
       )}
       
       {isChecking ? "Έλεγχος..." : "Έλεγχος κλειδιών API"}

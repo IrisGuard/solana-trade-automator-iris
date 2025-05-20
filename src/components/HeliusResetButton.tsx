@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { resetHeliusKeys } from "@/utils/resetHeliusKeys";
-import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { useAuth } from "@/contexts/SupabaseAuthContext";
 
 export function HeliusResetButton() {
   const [isResetting, setIsResetting] = useState(false);

@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { useAuth } from "@/contexts/SupabaseAuthContext";
 import { toast } from "sonner";
 import { syncAllHeliusData } from "@/utils/syncHeliusKeys";
 import { Loader2, RefreshCw } from "lucide-react";
