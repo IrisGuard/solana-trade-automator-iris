@@ -3,53 +3,52 @@
  * Utility functions for error testing and management
  */
 
-import { errorCollector } from './error-handling/collector';
-import { errorManager } from './error-handling/ErrorManager';
-import { toast } from 'sonner';
-
-/**
- * Clear all errors from various sources
- */
+// Function to clear all error dialogs
 export function clearAllErrors() {
-  // Clear errors from the collector
-  if (errorCollector && typeof errorCollector.clearErrors === 'function') {
-    errorCollector.clearErrors();
+  // Dispatch custom event to clear errors
+  const clearEvent = new Event('lovable-clear-errors');
+  window.dispatchEvent(clearEvent);
+  
+  // Backup: also call the direct method if available
+  if (window.lovableChat?.clearErrors) {
+    window.lovableChat.clearErrors();
   }
   
-  // Clear errors from error manager
-  if (errorManager && typeof errorManager.clearErrors === 'function') {
-    errorManager.clearErrors();
-  }
-  
-  // Clear error logs from local storage
-  try {
-    localStorage.removeItem('app_errors');
-    localStorage.removeItem('app_console_logs');
-  } catch (e) {
-    console.error('Failed to clear errors from localStorage:', e);
-  }
-  
-  toast.success('Όλα τα σφάλματα καθαρίστηκαν');
-  
-  return true;
+  console.log('All error dialogs cleared');
 }
 
-/**
- * Initialize the site protection system
- * Called by AppContent component during initialization
- */
-export function initProtectionSystem() {
-  console.log("Initializing site protection system");
-  
-  // Return an API that can be used by the caller
-  return {
-    checkHealth: () => {
-      console.log("Running health check...");
-      return { status: "healthy" };
-    },
-    protect: () => {
-      console.log("Protection mechanisms activated");
-      return true;
+// Function to create and display a test error
+export function createTestError(message: string = 'This is a test error') {
+  try {
+    // Explicitly throw an error to generate a stack trace
+    throw new Error(message);
+  } catch (error) {
+    // Format the error properly to avoid object rendering issues
+    const errorObj = {
+      message: error instanceof Error ? error.message : String(message),
+      stack: error instanceof Error ? error.stack : 'No stack trace available',
+      timestamp: new Date().toISOString(),
+      url: window.location.href
+    };
+    
+    // Log the error
+    console.error('Test error created:', errorObj);
+    
+    // Use the global error handler if available
+    if (window.lovableChat?.createErrorDialog) {
+      window.lovableChat.createErrorDialog(errorObj);
     }
-  };
+    
+    return errorObj;
+  }
+}
+
+// Update the window typing
+declare global {
+  interface Window {
+    lovableChat?: {
+      createErrorDialog?: (error: any) => void;
+      clearErrors?: () => void;
+    };
+  }
 }

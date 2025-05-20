@@ -9,8 +9,8 @@ interface ErrorDialogProps {
   error: {
     message: string;
     stack?: string;
-    timestamp: string;
-    url: string;
+    timestamp?: string;
+    url?: string;
   };
   onClose: () => void;
 }
