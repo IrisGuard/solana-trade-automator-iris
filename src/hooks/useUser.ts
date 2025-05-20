@@ -3,11 +3,16 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-// Import the appropriate type for Supabase user
-// Since both User and AuthUser are not available, we'll use the type from the auth object
-import { type Session } from '@supabase/supabase-js';
-// Use the actual type from the Supabase auth response
-type SupabaseUser = NonNullable<Session['user']>;
+// Avoid importing specific types that might change between Supabase versions
+// Instead, use a type that accurately represents the user object structure
+type SupabaseUser = {
+  id: string;
+  email?: string;
+  app_metadata: any;
+  user_metadata: any;
+  aud: string;
+  created_at: string;
+};
 
 export function useUser() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -23,7 +28,7 @@ export function useUser() {
           console.error('Error getting user:', error);
           setUser(null);
         } else {
-          setUser(user);
+          setUser(user as SupabaseUser);
         }
       } catch (error) {
         console.error('Unexpected error in useUser:', error);
@@ -37,7 +42,7 @@ export function useUser() {
     
     // Listen for auth changes
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
+      setUser(session?.user as SupabaseUser ?? null);
       
       // Show toast on login/logout
       if (event === 'SIGNED_IN') {
