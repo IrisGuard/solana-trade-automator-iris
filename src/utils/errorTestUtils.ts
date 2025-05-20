@@ -2,6 +2,7 @@
 /**
  * Utility functions for error testing and management
  */
+import * as React from 'react';
 
 // Function to clear all error dialogs
 export function clearAllErrors() {
