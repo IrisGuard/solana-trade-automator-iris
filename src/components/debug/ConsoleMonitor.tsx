@@ -1,7 +1,9 @@
+
 import React, { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import { useErrorReporting } from "@/hooks/useErrorReporting";
 import { displayError } from "@/utils/error-handling/displayError";
+import { sanitizeErrorObject } from "@/utils/errorTestUtils";
 
 interface LogRecord {
   type: 'error' | 'warn' | 'info';
@@ -38,9 +40,19 @@ export function ConsoleMonitor() {
       originalConsoleError.apply(console, args);
       
       try {
-        const message = args.map(arg => 
-          typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-        ).join(' ');
+        const message = args.map(arg => {
+          // Sanitize objects before trying to display them
+          if (arg instanceof Error) {
+            return sanitizeErrorObject(arg).message;
+          } else if (typeof arg === 'object' && arg !== null) {
+            try {
+              return JSON.stringify(arg);
+            } catch (e) {
+              return `[Object cannot be stringified]`;
+            }
+          }
+          return String(arg);
+        }).join(' ');
         
         // Add to logs
         setLogs(prev => [
@@ -66,15 +78,17 @@ export function ConsoleMonitor() {
             message.includes('is not defined') ||
             message.includes('is not a function')
           ) {
-            // Create an error object to report
+            // Create an error object to report and sanitize it
             const error = new Error(message);
-            reportError(error, {
+            const sanitizedError = sanitizeErrorObject(error);
+            
+            reportError(sanitizedError, {
               component: 'ConsoleMonitor',
               source: 'client',
               severity: 'medium',
               showToast: true,
               toastTitle: "Σφάλμα εφαρμογής",
-              additional: message.substring(0, 150) // Use 'additional' instead of 'toastDescription'
+              additional: sanitizedError.message.substring(0, 150) // Use 'additional' instead of 'toastDescription'
             });
           }
         }
@@ -90,9 +104,18 @@ export function ConsoleMonitor() {
       originalConsoleWarn.apply(console, args);
       
       try {
-        const message = args.map(arg => 
-          typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-        ).join(' ');
+        const message = args.map(arg => {
+          if (arg instanceof Error) {
+            return sanitizeErrorObject(arg).message;
+          } else if (typeof arg === 'object' && arg !== null) {
+            try {
+              return JSON.stringify(arg);
+            } catch (e) {
+              return `[Object cannot be stringified]`;
+            }
+          }
+          return String(arg);
+        }).join(' ');
         
         // Add to logs
         setLogs(prev => [
@@ -111,9 +134,18 @@ export function ConsoleMonitor() {
       originalConsoleLog.apply(console, args);
       
       try {
-        const message = args.map(arg => 
-          typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-        ).join(' ');
+        const message = args.map(arg => {
+          if (arg instanceof Error) {
+            return sanitizeErrorObject(arg).message;
+          } else if (typeof arg === 'object' && arg !== null) {
+            try {
+              return JSON.stringify(arg);
+            } catch (e) {
+              return `[Object cannot be stringified]`;
+            }
+          }
+          return String(arg);
+        }).join(' ');
         
         // Only capture logs with specific debugging prefixes
         if (
@@ -180,8 +212,9 @@ export function ConsoleMonitor() {
           
           return response;
         } catch (error) {
-          // Network errors or CORS issues
-          console.error(`API call to ${url} failed:`, error);
+          // Network errors or CORS issues - sanitize before logging
+          const sanitizedError = sanitizeErrorObject(error);
+          console.error(`API call to ${url} failed:`, sanitizedError);
           throw error;
         }
       };

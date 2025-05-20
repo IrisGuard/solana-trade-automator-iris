@@ -7,6 +7,7 @@ import { AlertCircle, X } from 'lucide-react';
 import { displayError } from '@/utils/error-handling/displayError';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 import { toast } from 'sonner';
+import { sanitizeErrorObject } from '@/utils/errorTestUtils';
 
 export function GlobalErrorHandler() {
   const [errors, setErrors] = useState<ErrorData[]>([]);
@@ -16,37 +17,48 @@ export function GlobalErrorHandler() {
   // Λήψη των σφαλμάτων από τον collector
   useEffect(() => {
     const checkForErrors = () => {
-      // Use getRecentErrors instead of getErrors to match implementation
-      const allErrors = errorCollector.getRecentErrors().map(e => ({
-        id: `err_${e.timestamp}`,
-        error: e.error,
-        timestamp: new Date(e.timestamp).toISOString(),
-        message: e.error.message,
-        stack: e.error.stack,
-        component: e.data.component || null,
-        source: e.data.source || 'client',
-        url: window.location.href,
-        browserInfo: { 
-          userAgent: navigator.userAgent,
-          language: navigator.language,
-          platform: navigator.platform
-        },
-        errorCode: null,
-        context: null,
-        metadata: null,
-        status: null,
-        errorId: null,
-        errorType: e.data.method,
-        details: e.data.details,
-        severity: e.data.severity || 'medium',
-        options: e.data
-      }));
-      
-      setErrors(allErrors);
-      
-      // Εάν υπάρχει νέο σφάλμα, το αποθηκεύουμε ως το τελευταίο
-      if (allErrors.length > 0 && (!lastError || allErrors[0].id !== lastError.id)) {
-        setLastError(allErrors[0]);
+      try {
+        // Use getRecentErrors instead of getErrors to match implementation
+        const allErrors = (errorCollector.getRecentErrors ? errorCollector.getRecentErrors() : errorCollector.getErrors()).map(e => {
+          // Sanitize error objects before using them
+          const sanitizedError = e.error ? sanitizeErrorObject(e.error) : { message: 'Unknown error' };
+          
+          return {
+            id: `err_${e.timestamp || Date.now()}`,
+            error: sanitizedError,
+            timestamp: e.timestamp ? new Date(e.timestamp).toISOString() : new Date().toISOString(),
+            message: sanitizedError.message,
+            stack: sanitizedError.stack,
+            component: e.data?.component || null,
+            source: e.data?.source || 'client',
+            url: window.location.href,
+            browserInfo: { 
+              userAgent: navigator.userAgent,
+              language: navigator.language,
+              platform: navigator.platform
+            },
+            errorCode: null,
+            context: null,
+            metadata: null,
+            status: null,
+            errorId: null,
+            errorType: e.data?.method,
+            details: e.data?.details,
+            severity: e.data?.severity || 'medium',
+            options: e.data
+          };
+        });
+        
+        setErrors(allErrors);
+        
+        // Εάν υπάρχει νέο σφάλμα, το αποθηκεύουμε ως το τελευταίο
+        if (allErrors.length > 0 && (!lastError || allErrors[0].id !== lastError.id)) {
+          setLastError(allErrors[0]);
+        }
+      } catch (error) {
+        // Sanitize any errors that occur during error processing
+        const sanitizedError = sanitizeErrorObject(error);
+        console.error("Error processing errors in GlobalErrorHandler:", sanitizedError);
       }
     };
     
@@ -81,8 +93,13 @@ export function GlobalErrorHandler() {
       });
       
     } catch (e) {
-      console.error("Σφάλμα κατά την αποστολή του σφάλματος:", e);
-      reportError(e instanceof Error ? e : new Error("Αποτυχία αποστολής σφάλματος στην υποστήριξη"));
+      // Sanitize any errors that occur during error handling
+      const sanitizedError = sanitizeErrorObject(e);
+      console.error("Σφάλμα κατά την αποστολή του σφάλματος:", sanitizedError);
+      reportError(sanitizedError, {
+        component: 'GlobalErrorHandler',
+        severity: 'low',
+      });
     }
   };
 

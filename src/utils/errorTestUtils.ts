@@ -87,7 +87,9 @@ export function initProtectionSystem() {
         console.warn("[Protection] Error dialog system is not initialized");
       }
     } catch (err) {
-      console.error("[Protection] Failed to perform health check:", err);
+      // Sanitize the error before logging
+      const sanitizedError = sanitizeErrorObject(err);
+      console.error("[Protection] Failed to perform health check:", sanitizedError);
     }
     return true;
   };

@@ -17,6 +17,7 @@ import { DatabaseInitializeButton } from './components/database/DatabaseInitiali
 import { StatusSection } from './components/dashboard/StatusSection';
 import { ensureAuthenticated } from './integrations/supabase/client';
 import { autoInitialize } from './utils/autoInitialize';
+import { sanitizeErrorObject } from './utils/errorTestUtils';
 
 function App() {
   // Auto-initialize once on app launch
@@ -58,7 +59,9 @@ function App() {
       
       initializeApp();
     } catch (error) {
-      console.error('Error in App initialization:', error);
+      // Sanitize the error before logging it
+      const sanitizedError = sanitizeErrorObject(error);
+      console.error('Error in App initialization:', sanitizedError);
     }
     
     return () => {

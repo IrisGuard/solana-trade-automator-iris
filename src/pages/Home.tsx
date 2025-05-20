@@ -13,6 +13,7 @@ import { EnhancedLandingNav } from "@/components/home/enhanced/EnhancedLandingNa
 import { GradientHeading } from "@/components/ui/gradient-heading";
 import { GradientCard } from "@/components/ui/gradient-card";
 import { HeliusSyncComponent } from "@/components/wallet/HeliusSyncComponent";
+import { sanitizeErrorObject } from "@/utils/errorTestUtils";
 
 export default function Home() {
   const [isPageLoading, setIsPageLoading] = useState(true);
@@ -75,6 +76,11 @@ export default function Home() {
     );
   }
 
+  // Make sure connectionError is properly sanitized before using it
+  const sanitizedError = connectionError ? 
+    (typeof connectionError === 'string' ? connectionError : sanitizeErrorObject(connectionError).message) : 
+    null;
+
   return (
     <div className="space-y-8">
       <div className="mb-8">
@@ -110,11 +116,11 @@ export default function Home() {
           </div>
         }
       >
-        {connectionError && (
+        {sanitizedError && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Σφάλμα σύνδεσης: {connectionError}. Παρακαλώ δοκιμάστε ξανά αργότερα.
+              Σφάλμα σύνδεσης: {sanitizedError}. Παρακαλώ δοκιμάστε ξανά αργότερα.
             </AlertDescription>
           </Alert>
         )}
@@ -127,7 +133,7 @@ export default function Home() {
             tokens={tokens}
             tokenPrices={tokenPrices}
             isLoadingTokens={isLoadingTokens}
-            connectionError={connectionError}
+            connectionError={sanitizedError}
             selectTokenForTrading={selectTokenForTrading}
           />
         ) : (
