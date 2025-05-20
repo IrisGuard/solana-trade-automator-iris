@@ -12,6 +12,7 @@ type SupabaseUser = {
   user_metadata: any;
   aud: string;
   created_at: string;
+  username?: string; // Add username field that other components are expecting
 };
 
 export function useUser() {
@@ -28,7 +29,21 @@ export function useUser() {
           console.error('Error getting user:', error);
           setUser(null);
         } else {
-          setUser(user as SupabaseUser);
+          // Check if the username is in user_metadata and attach it to the user object
+          const supabaseUser = user as SupabaseUser;
+          
+          // If user has user_metadata.username, expose it directly at the user level
+          if (user?.user_metadata?.username) {
+            supabaseUser.username = user.user_metadata.username;
+          }
+          
+          // Alternatively, try to use email as username if no username is set
+          // This fallback helps prevent UI errors
+          if (!supabaseUser.username && supabaseUser.email) {
+            supabaseUser.username = supabaseUser.email.split('@')[0];
+          }
+          
+          setUser(supabaseUser);
         }
       } catch (error) {
         console.error('Unexpected error in useUser:', error);
@@ -42,7 +57,22 @@ export function useUser() {
     
     // Listen for auth changes
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user as SupabaseUser ?? null);
+      const supabaseUser = session?.user as SupabaseUser ?? null;
+      
+      // If we have a user, process the username
+      if (supabaseUser) {
+        // Check for username in user_metadata
+        if (supabaseUser.user_metadata?.username) {
+          supabaseUser.username = supabaseUser.user_metadata.username;
+        }
+        
+        // Fallback to email-based username
+        if (!supabaseUser.username && supabaseUser.email) {
+          supabaseUser.username = supabaseUser.email.split('@')[0];
+        }
+      }
+      
+      setUser(supabaseUser);
       
       // Show toast on login/logout
       if (event === 'SIGNED_IN') {
