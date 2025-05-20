@@ -1,15 +1,50 @@
 
-import { useContext } from "react";
-import { LanguageContext, LanguageType } from "@/providers/LanguageProvider";
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { useTranslation } from './useTranslation';
+
+interface LanguageContextType {
+  language: string;
+  setLanguage: (language: string) => void;
+  t: (key: string, fallback?: string) => string;
+}
+
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+
+export function LanguageProvider({ 
+  children, 
+  defaultLanguage = 'el' 
+}: { 
+  children: ReactNode; 
+  defaultLanguage?: string;
+}) {
+  const [language, setLanguage] = useState<string>(defaultLanguage);
+  const { t } = useTranslation();
+
+  return (
+    <LanguageContext.Provider 
+      value={{ 
+        language, 
+        setLanguage,
+        t 
+      }}
+    >
+      {children}
+    </LanguageContext.Provider>
+  );
+}
 
 export function useLanguage() {
   const context = useContext(LanguageContext);
   
   if (context === undefined) {
-    throw new Error("useLanguage πρέπει να χρησιμοποιείται εντός του LanguageProvider");
+    // Fallback if used outside of LanguageProvider
+    const { t } = useTranslation();
+    return {
+      language: 'el',
+      setLanguage: () => console.warn('setLanguage was called outside of LanguageProvider'),
+      t
+    };
   }
   
-  const { language, setLanguage, t } = context;
-  
-  return { language, setLanguage, t };
+  return context;
 }

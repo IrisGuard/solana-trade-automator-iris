@@ -12,7 +12,14 @@ export function useTranslation() {
       'errors.refreshed': 'Ανανέωση λίστας σφαλμάτων',
       'errors.errorsCleared': 'Τα σφάλματα διαγράφηκαν',
       'errors.errorResolved': 'Το σφάλμα επιλύθηκε',
-      'errors.errorResolvingError': 'Σφάλμα κατά την επίλυση του σφάλματος'
+      'errors.errorResolvingError': 'Σφάλμα κατά την επίλυση του σφάλματος',
+      'general.all': 'Όλα',
+      'general.visit': 'Επίσκεψη',
+      'general.learnMore': 'Μάθετε περισσότερα',
+      'help.documentation': 'Τεκμηρίωση',
+      'help.exploreResources': 'Εξερευνήστε πόρους για να μάθετε περισσότερα για το blockchain και το οικοσύστημα του Solana',
+      'help.searchResources': 'Αναζήτηση πόρων',
+      'help.noResourcesFound': 'Δεν βρέθηκαν πόροι που να ταιριάζουν με τα κριτήριά σας'
     };
 
     // Use the provided fallback or the key itself as fallback
