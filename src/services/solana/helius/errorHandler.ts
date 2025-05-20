@@ -7,11 +7,23 @@ import { toast } from 'sonner';
  */
 export const handleHeliusError = (error: unknown, source: string) => {
   // Create a proper error object
-  const errorMessage = error instanceof Error ? error.message : String(error);
-  const errorStack = error instanceof Error ? 
-    (typeof error.stack === 'string' ? error.stack : JSON.stringify(error.stack, null, 2)) 
-    : undefined;
-  const errorObj = error instanceof Error ? error : new Error(errorMessage);
+  const errorObj = error instanceof Error ? error : new Error(String(error));
+  const errorMessage = errorObj.message;
+  
+  // Ensure stack trace is properly set
+  if (!(error instanceof Error) || !errorObj.stack) {
+    // Generate a new stack trace or use one from the original error
+    if (typeof error === 'object' && error !== null && 'stack' in error && typeof error.stack === 'string') {
+      errorObj.stack = error.stack;
+    } else {
+      // Create a new stack trace if none exists
+      try {
+        throw errorObj;
+      } catch (e) {
+        // The error now has a stack trace
+      }
+    }
+  }
   
   // Create a proper details object that satisfies Record<string, unknown>
   const details: Record<string, unknown> = {
@@ -33,5 +45,5 @@ export const handleHeliusError = (error: unknown, source: string) => {
     duration: 5000
   });
   
-  throw error;
+  throw errorObj;
 };
