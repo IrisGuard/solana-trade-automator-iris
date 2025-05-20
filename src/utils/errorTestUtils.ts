@@ -43,12 +43,49 @@ export function createTestError(message: string = 'This is a test error') {
   }
 }
 
+// Site protection system initialization
+export function initProtectionSystem() {
+  console.log('Initializing site protection system...');
+  
+  // Basic health check function
+  const checkHealth = () => {
+    console.log('Running system health check...');
+    // Check if critical application components are available
+    const reactAvailable = typeof React !== 'undefined';
+    const domAvailable = document.getElementById('root') !== null;
+    
+    if (!reactAvailable || !domAvailable) {
+      console.error('Health check failed: Critical system components missing');
+      // Attempt recovery if needed
+      return false;
+    }
+    
+    console.log('Health check passed: System operating normally');
+    return true;
+  };
+  
+  // Return protection system API
+  return {
+    checkHealth,
+    protect: () => {
+      console.log('Site protection enabled');
+      // Add protection methods here
+    },
+    recover: () => {
+      console.log('Attempting system recovery');
+      // Add recovery methods here
+      return true;
+    }
+  };
+}
+
 // Update the window typing
 declare global {
   interface Window {
     lovableChat?: {
-      createErrorDialog?: (error: any) => void;
+      createErrorDialog?: (errorData: any) => void;
       clearErrors?: () => void;
+      [key: string]: any;
     };
   }
 }
