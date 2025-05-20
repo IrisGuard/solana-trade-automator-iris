@@ -1,23 +1,21 @@
 
 import * as React from 'react';
 
-// Βεβαιώνουμε ότι το React είναι διαθέσιμο στο window για προβλήματα συμβατότητας
-
-// Προσθήκη τύπων για το window object
+// Ensure React is available in the window object for compatibility issues
 declare global {
   interface Window {
     React: typeof React;
   }
 }
 
-// Εξαγωγή της συνάρτησης για εφαρμογή συμβατότητας με το React
+// Export the function for applying React compatibility
 export function ensureReactCompatibility(): void {
   if (typeof window !== 'undefined') {
     try {
-      // Δημιουργία πλήρους αντιγράφου του React στο window
-      window.React = { ...React };
+      // Create a full copy of React in the window
+      window.React = React;
       
-      // Καταγραφή επιτυχίας
+      // Log success
       console.log('React patches applied successfully');
     } catch (error) {
       console.error('Error applying React patches:', error);
@@ -25,8 +23,8 @@ export function ensureReactCompatibility(): void {
   }
 }
 
-// Βεβαιώνουμε ότι το patch εφαρμόζεται αυτόματα κατά την εισαγωγή του module
+// Ensure the patch is applied automatically when the module is imported
 ensureReactCompatibility();
 
-// Για συμβατότητα με παλαιότερες εκδόσεις κώδικα
+// For backwards compatibility with older code
 export default ensureReactCompatibility;

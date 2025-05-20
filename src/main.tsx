@@ -1,3 +1,5 @@
+// Import our JSX runtime bridge first
+import './jsx-runtime-bridge';
 
 // Import polyfills and patches first
 import './polyfills';
