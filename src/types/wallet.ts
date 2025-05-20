@@ -6,7 +6,7 @@ export interface Token {
   amount: number;
   decimals: number;
   logo?: string;
-  mint: string; // Add this property to match tokenService usage
+  mint: string;
 }
 
 export interface TokenBalance {
@@ -24,3 +24,5 @@ export interface WalletData {
   balance: number;
   tokens: Token[];
 }
+
+export type TokenPrices = Record<string, { price: number; priceChange24h: number }>;

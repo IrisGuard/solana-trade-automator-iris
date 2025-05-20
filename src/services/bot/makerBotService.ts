@@ -1,7 +1,6 @@
-
 import { toast } from "sonner";
 import { errorCollector } from '@/utils/error-handling/collector';
-import { TokenPrices } from "@/types/wallet";
+import { Token, TokenPrices } from '@/types/wallet';
 
 // MakerBot configuration types
 export interface MakerBotConfig {

@@ -1,6 +1,7 @@
-
-import { useState, useCallback, useEffect } from 'react';
-import { Token, TokenPrices } from '@/types/wallet';
+import { useState, useEffect } from 'react';
+import { Token } from '@/types/wallet';
+import { TokenPrices } from '@/types/wallet';
+import { getWalletTokens } from '@/services/wallet/tokenService';
 import { toast } from 'sonner';
 import { heliusService } from '@/services/helius/HeliusService';
 import { useErrorReporting } from '@/hooks/useErrorReporting';

@@ -118,6 +118,7 @@ export function usePhantomConnection() {
           amount: Math.random() * 1000,
           decimals: 6,
           logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
+          mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
         },
         {
           address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
@@ -126,6 +127,7 @@ export function usePhantomConnection() {
           amount: Math.random() * 500,
           decimals: 6,
           logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.png',
+          mint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'
         },
         {
           address: 'So11111111111111111111111111111111111111112',
@@ -134,6 +136,7 @@ export function usePhantomConnection() {
           amount: solBalance,
           decimals: 9,
           logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png',
+          mint: 'So11111111111111111111111111111111111111112'
         },
       ];
       

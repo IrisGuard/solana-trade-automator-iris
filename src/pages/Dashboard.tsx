@@ -213,7 +213,7 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <PageHeader 
         title="Πίνακας Ελέγχου"
-        description={!userLoading && user?.username ? `Καλωσήρθατε, ${user.username}!` : "Συνολική επισκόπηση του χαρτοφυλακίου σας"}
+        description={!isLoading && user?.username ? `Καλωσήρθατε, ${user.username}!` : "Συνολική επισκόπηση του χαρτοφυλακίου σας"}
         breadcrumbs={[{ label: "Dashboard" }]}
         variant="blue"
         actions={

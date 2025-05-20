@@ -23,6 +23,7 @@ export function useTokenList(tokens: Token[] | null | undefined) {
             decimals: commonToken.decimals,
             amount: 0,
             logo: "",
+            mint: commonToken.mint
           });
         }
       });
@@ -37,6 +38,7 @@ export function useTokenList(tokens: Token[] | null | undefined) {
         decimals: token.decimals,
         amount: 0,
         logo: "",
+        mint: token.mint
       }));
       
       setAvailableTokens(formattedCommonTokens);
