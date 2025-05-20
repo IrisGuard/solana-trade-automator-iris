@@ -27,9 +27,38 @@ export async function syncAllHeliusData(userId: string): Promise<boolean> {
       return false;
     }
     
+    // If no active keys found, try to use any available key regardless of status
     if (!heliusKeys || heliusKeys.length === 0) {
-      console.warn('No Helius keys found for user');
-      return false;
+      console.warn('No active Helius keys found, trying to find any Helius key');
+      
+      const { data: anyHeliusKeys, error: anyKeysError } = await supabase
+        .from('api_keys_storage')
+        .select('*')
+        .eq('service', 'helius')
+        .eq('user_id', userId);
+      
+      if (anyKeysError || !anyHeliusKeys || anyHeliusKeys.length === 0) {
+        console.error('No Helius keys found at all');
+        
+        // Create a placeholder key as fallback
+        await createPlaceholderHeliusKey(userId);
+        return false;
+      }
+      
+      // Use first available key even if not active
+      const firstKey = anyHeliusKeys[0];
+      localStorage.setItem(`api_key_helius`, JSON.stringify({
+        key: firstKey.key_value,
+        timestamp: Date.now()
+      }));
+      
+      console.log('Using non-active Helius key as fallback');
+      
+      // Reset the Helius service to use the new key
+      const { heliusService } = await import('@/services/helius/HeliusService');
+      heliusService.reinitialize();
+      
+      return true;
     }
     
     // Store the first active key in local storage for quick access
@@ -51,6 +80,43 @@ export async function syncAllHeliusData(userId: string): Promise<boolean> {
     toast.error('Σφάλμα συγχρονισμού κλειδιών API', {
       description: 'Παρακαλώ δοκιμάστε ξανά αργότερα'
     });
+    return false;
+  }
+}
+
+/**
+ * Creates a placeholder Helius API key
+ */
+async function createPlaceholderHeliusKey(userId: string): Promise<boolean> {
+  try {
+    const placeholderKey = `helius-placeholder-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    
+    const { error } = await supabase
+      .from('api_keys_storage')
+      .insert({
+        user_id: userId,
+        name: 'Default Helius API Key',
+        service: 'helius',
+        key_value: placeholderKey,
+        status: 'needs_setup',
+        description: 'Generated automatically. Please replace with your actual Helius API key.'
+      });
+      
+    if (error) {
+      console.error('Failed to create placeholder key:', error);
+      return false;
+    }
+    
+    // Store the placeholder key in local storage for immediate use
+    localStorage.setItem(`api_key_helius`, JSON.stringify({
+      key: placeholderKey,
+      timestamp: Date.now()
+    }));
+    
+    console.log('Created placeholder Helius key');
+    return true;
+  } catch (error) {
+    console.error('Error creating placeholder key:', error);
     return false;
   }
 }
@@ -81,6 +147,7 @@ export async function testAllHeliusKeys(userId: string): Promise<number> {
     
     if (!heliusKeys || heliusKeys.length === 0) {
       console.warn('No Helius keys found for user');
+      await createPlaceholderHeliusKey(userId);
       return 0;
     }
     

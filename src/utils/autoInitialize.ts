@@ -17,34 +17,77 @@ export async function autoInitialize(): Promise<boolean> {
     
     if (!isAuthenticated) {
       console.error('Failed to authenticate user');
-      toast.error('Αδυναμία αυτόματης σύνδεσης');
+      toast.error('Αδυναμία αυτόματης σύνδεσης', {
+        description: 'Παρακαλούμε συνδεθείτε χειροκίνητα'
+      });
       return false;
     }
     
-    // Step 2: Initialize database
+    // Step 2: Initialize database with retry
     console.log('Step 2: Initializing database...');
-    const dbInitialized = await initializeDatabase();
+    let dbInitialized = false;
+    let attempts = 0;
+    
+    while (!dbInitialized && attempts < 3) {
+      attempts++;
+      console.log(`Database initialization attempt ${attempts}`);
+      
+      try {
+        dbInitialized = await initializeDatabase();
+        if (dbInitialized) break;
+        
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (err) {
+        console.error(`Database initialization attempt ${attempts} failed:`, err);
+      }
+    }
     
     if (!dbInitialized) {
-      console.error('Failed to initialize database');
-      toast.error('Αδυναμία αρχικοποίησης βάσης δεδομένων');
+      console.error('Failed to initialize database after multiple attempts');
+      toast.error('Αδυναμία αρχικοποίησης βάσης δεδομένων', {
+        description: 'Δοκιμάστε να ανανεώσετε τη σελίδα'
+      });
       return false;
     }
     
     // Step 3: Sync Helius keys
     console.log('Step 3: Syncing Helius keys...');
-    const keysInitialized = await syncHeliusKeys();
+    let keysInitialized = false;
+    attempts = 0;
+    
+    while (!keysInitialized && attempts < 3) {
+      attempts++;
+      console.log(`Helius key sync attempt ${attempts}`);
+      
+      try {
+        keysInitialized = await syncHeliusKeys();
+        if (keysInitialized) break;
+        
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (err) {
+        console.error(`Helius key sync attempt ${attempts} failed:`, err);
+      }
+    }
     
     if (!keysInitialized) {
       console.warn('Failed to sync Helius keys, but continuing');
-      toast.warning('Τα κλειδιά Helius δεν συγχρονίστηκαν πλήρως');
+      toast.warning('Τα κλειδιά Helius δεν συγχρονίστηκαν πλήρως', {
+        description: 'Ορισμένες λειτουργίες ενδέχεται να μην είναι διαθέσιμες'
+      });
+      // Continue despite Helius key issues
+    } else {
+      toast.success('Τα κλειδιά API συγχρονίστηκαν με επιτυχία');
     }
     
     toast.success('Η εφαρμογή αρχικοποιήθηκε με επιτυχία!');
     return true;
   } catch (error) {
     console.error('Auto-initialization error:', error);
-    toast.error('Σφάλμα κατά την αυτόματη αρχικοποίηση');
+    toast.error('Σφάλμα κατά την αυτόματη αρχικοποίηση', {
+      description: 'Παρακαλούμε δοκιμάστε να ανανεώσετε τη σελίδα'
+    });
     return false;
   }
 }
@@ -61,41 +104,37 @@ export async function isInitialized(): Promise<boolean> {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return false;
     
-    // Check if profile exists
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('id', session.user.id)
-      .single();
+    try {
+      // Check if profile exists
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', session.user.id)
+        .single();
       
-    if (!profile) return false;
-    
-    // Check if wallet exists
-    const { data: wallets } = await supabase
-      .from('wallets')
-      .select('id')
-      .eq('user_id', session.user.id);
+      if (profileError || !profile) {
+        console.log('Profile not found, database not initialized');
+        return false;
+      }
       
-    if (!wallets || wallets.length === 0) return false;
-    
-    // Check if tokens exist
-    const { data: tokens } = await supabase
-      .from('tokens')
-      .select('id')
-      .eq('user_id', session.user.id);
+      // Check if wallet exists
+      const { data: wallets, error: walletsError } = await supabase
+        .from('wallets')
+        .select('id')
+        .eq('user_id', session.user.id);
       
-    if (!tokens || tokens.length === 0) return false;
-    
-    // Check if bots exist
-    const { data: bots } = await supabase
-      .from('bots')
-      .select('id')
-      .eq('user_id', session.user.id);
+      if (walletsError || !wallets || wallets.length === 0) {
+        console.log('No wallets found, database not initialized');
+        return false;
+      }
       
-    if (!bots || bots.length === 0) return false;
-    
-    // All checks passed
-    return true;
+      // If we get here, database is initialized
+      console.log('Database appears to be initialized');
+      return true;
+    } catch (error) {
+      console.error('Error checking specific tables:', error);
+      return false;
+    }
   } catch (error) {
     console.error('Error checking initialization status:', error);
     return false;

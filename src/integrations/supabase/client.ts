@@ -1,6 +1,6 @@
 
 // Import Supabase client correctly from the proper location in version 2.49.4
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js/dist/module';
 
 // Hardcoded values for reliability - these are already public values
 const SUPABASE_URL = 'https://lvkbyfocssuzcdphpmfu.supabase.co';
