@@ -1,27 +1,24 @@
 
-/**
- * Configuration for Helius API service
- */
+// Helius API configuration
 
-// Add a fallback key config - όχι hardcoded κλειδί για ασφάλεια
-export const FALLBACK_HELIUS_KEY = null; // Δεν χρησιμοποιούμε hardcoded κλειδιά - θα φορτωθούν από τη βάση δεδομένων
+// Fallback key for development (should be replaced with user's key in production)
+export const FALLBACK_HELIUS_KEY = "your-fallback-helius-dev-key";
 
-// Base URL for Helius API
-export const HELIUS_API_BASE_URL = 'https://api.helius.xyz/v0';
+// Default Helius RPC endpoint
+export const HELIUS_RPC_URL = "https://api.helius.xyz/v0";
 
-// Function to get Helius API key - παρωχημένη, χρησιμοποιήστε HeliusKeyManager
-export const getHeliusApiKey = (): string | null => {
-  // Προσπάθεια ανάκτησης κλειδιού από το localStorage
-  try {
-    const storedKey = localStorage.getItem('api_key_helius');
-    if (storedKey) {
-      const parsedKey = JSON.parse(storedKey);
-      return parsedKey.key;
-    }
-  } catch (error) {
-    console.error('Σφάλμα ανάκτησης κλειδιού Helius:', error);
-  }
-  
-  // Επιστροφή null αν δεν βρέθηκε έγκυρο κλειδί
-  return FALLBACK_HELIUS_KEY;
+// Configuration object for Helius service
+export const HELIUS_CONFIG = {
+  useLocalStorage: true,        // Whether to cache API keys in localStorage
+  localStorageKey: "helius_api_key",
+  maxConcurrentRequests: 5,     // Rate limiting
+  requestTimeout: 30000,        // 30 seconds timeout
+  retryAttempts: 2,             // Number of retry attempts for failed requests
+  defaultNetwork: "mainnet"     // Default network to use
+};
+
+export default {
+  FALLBACK_HELIUS_KEY,
+  HELIUS_RPC_URL,
+  HELIUS_CONFIG
 };
