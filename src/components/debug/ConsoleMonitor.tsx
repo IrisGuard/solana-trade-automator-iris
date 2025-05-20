@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import { useErrorReporting } from "@/hooks/useErrorReporting";
@@ -75,7 +74,7 @@ export function ConsoleMonitor() {
               severity: 'medium',
               showToast: true,
               toastTitle: "Σφάλμα εφαρμογής",
-              toastDescription: message.substring(0, 150)
+              additional: message.substring(0, 150) // Use 'additional' instead of 'toastDescription'
             });
           }
         }

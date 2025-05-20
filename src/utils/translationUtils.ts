@@ -9,7 +9,6 @@
  * @param key The translation key
  * @param defaultText Default text to use if translation is not found
  */
-export function safeTranslate(t: (key: string) => string, key: string): string {
-  const translation = t(key);
-  return translation === key ? key : translation; // If key is returned unchanged, use key as fallback
+export function safeTranslate(t: (key: string, fallback?: string) => string, key: string, defaultText?: string): string {
+  return t(key, defaultText);
 }

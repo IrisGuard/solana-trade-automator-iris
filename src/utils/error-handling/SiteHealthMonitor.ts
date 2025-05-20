@@ -1,183 +1,107 @@
 
-import { errorCollector } from './collector';
-import { SiteBackupService } from '../site-protection/SiteBackupService';
+/**
+ * Monitor the health of the application
+ */
 import { toast } from 'sonner';
-
-// Health check intervals
-const HEALTH_CHECK_INTERVAL = 60000; // 1 minute
-const CRITICAL_ERROR_THRESHOLD = 3;
-
-// Track consecutive errors
-let consecutiveErrors = 0;
-let lastHealthCheck = Date.now();
-let monitoringActive = false;
 
 interface HealthCheckResult {
   healthy: boolean;
-  issues: string[];
   criticalIssuesFound: boolean;
+  issues: string[];
 }
 
 export class SiteHealthMonitor {
-  // Start the health monitor
-  public static start() {
-    if (monitoringActive) return;
-    
-    // Create initial backup if none exists
-    if (!localStorage.getItem('site_structure_backup')) {
-      SiteBackupService.createBackup({ silent: true });
+  private static isRunning: boolean = false;
+  private static healthCheckInterval: number | null = null;
+  
+  /**
+   * Start the health monitoring
+   */
+  public static start(): void {
+    if (this.isRunning) {
+      return;
     }
     
-    // Set up periodic health checks
-    this.setupPeriodicChecks();
+    this.isRunning = true;
+    console.log("[Health] Starting site health monitoring");
     
-    // Monitor for critical errors
-    this.setupErrorMonitoring();
+    // Run initial check
+    this.checkHealth();
     
-    // Set flag
-    monitoringActive = true;
-    
-    console.log("Site health monitoring active");
+    // Set up periodic checks
+    this.healthCheckInterval = window.setInterval(() => {
+      this.checkHealth();
+    }, 5 * 60 * 1000); // Every 5 minutes
   }
   
-  // Perform a complete health check
+  /**
+   * Stop the health monitoring
+   */
+  public static stop(): void {
+    if (!this.isRunning) {
+      return;
+    }
+    
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+      this.healthCheckInterval = null;
+    }
+    
+    this.isRunning = false;
+    console.log("[Health] Stopped site health monitoring");
+  }
+  
+  /**
+   * Check the health of the site
+   * This performs various checks to ensure the application is working properly
+   */
   public static checkHealth(): HealthCheckResult {
+    console.log("[Health] Running site health check");
+    
     const issues: string[] = [];
-    let criticalIssuesFound = false;
+    let criticalIssues = false;
     
-    // Check for critical DOM elements - modified to check for only the root element
-    // which is the one we actually need for the React application
-    const criticalElements = [
-      { id: 'root', critical: true },
-      // Removed app-container and main-content which were causing false alerts
-    ];
+    // Check for local storage access
+    try {
+      localStorage.setItem("health_check", "ok");
+      localStorage.removeItem("health_check");
+    } catch (e) {
+      issues.push("localStorage unavailable");
+      criticalIssues = true;
+    }
     
-    for (const element of criticalElements) {
-      if (!document.getElementById(element.id)) {
-        issues.push(`Missing critical DOM element: ${element.id}`);
-        if (element.critical) criticalIssuesFound = true;
-      }
+    // Check for important DOM elements
+    const rootElement = document.getElementById("root");
+    if (!rootElement) {
+      issues.push("Root element missing");
+      criticalIssues = true;
+    }
+    
+    // Check if error collector is available
+    if (typeof window.errorCollector === 'undefined') {
+      issues.push("Error collector unavailable");
     }
     
     // Check error count
-    const recentErrors = errorCollector.getRecentErrors?.() || [];
-    if (recentErrors.length > 10) {
-      issues.push(`High number of errors detected: ${recentErrors.length}`);
-      criticalIssuesFound = true;
+    const errorCount = window.errorCollector?.getErrorCount?.() || 0;
+    if (errorCount > 10) {
+      issues.push(`High error count (${errorCount})`);
+      criticalIssues = errorCount > 20;
     }
     
-    // Check route availability
-    try {
-      const routes = document.querySelectorAll('a[href]');
-      if (routes.length === 0) {
-        issues.push('No navigation routes found');
-        criticalIssuesFound = true;
-      }
-    } catch (error) {
-      issues.push('Failed to check navigation routes');
-    }
-    
-    // Update last health check timestamp
-    lastHealthCheck = Date.now();
-    
-    return {
+    const result = {
       healthy: issues.length === 0,
-      issues,
-      criticalIssuesFound
+      criticalIssuesFound: criticalIssues,
+      issues
     };
-  }
-  
-  // Attempt recovery if needed
-  public static attemptRecovery(force = false): boolean {
-    const healthCheck = this.checkHealth();
     
-    if (force || healthCheck.criticalIssuesFound) {
-      console.warn("Critical issues detected, attempting recovery", healthCheck.issues);
-      return SiteBackupService.restoreFromBackup();
+    if (!result.healthy && criticalIssues) {
+      toast.error("Εντοπίστηκαν κρίσιμα προβλήματα", {
+        description: `${issues[0]}${issues.length > 1 ? ' και άλλα...' : ''}`,
+        duration: 0
+      });
     }
     
-    return false;
-  }
-  
-  // Private helper methods
-  private static setupPeriodicChecks() {
-    // Run periodic health checks
-    setInterval(() => {
-      const healthCheck = this.checkHealth();
-      
-      if (!healthCheck.healthy) {
-        console.warn("Site health issues detected:", healthCheck.issues);
-        
-        if (healthCheck.criticalIssuesFound) {
-          consecutiveErrors++;
-          
-          if (consecutiveErrors >= CRITICAL_ERROR_THRESHOLD) {
-            console.error("Critical error threshold reached, attempting recovery");
-            this.showRecoveryPrompt();
-            consecutiveErrors = 0; // Reset counter after recovery attempt
-          }
-        }
-      } else {
-        // Reset consecutive errors counter if health check passes
-        consecutiveErrors = 0;
-        
-        // Create a new backup periodically when the site is healthy
-        const hoursSinceLastBackup = (Date.now() - lastHealthCheck) / (1000 * 60 * 60);
-        if (hoursSinceLastBackup >= 24) {
-          SiteBackupService.createBackup({ silent: true });
-        }
-      }
-    }, HEALTH_CHECK_INTERVAL);
-  }
-  
-  private static setupErrorMonitoring() {
-    // Override window.onerror to also count towards consecutive errors
-    const originalOnError = window.onerror;
-    window.onerror = (message, source, lineno, colno, error) => {
-      // Call original handler
-      if (originalOnError) {
-        originalOnError.call(window, message, source, lineno, colno, error);
-      }
-      
-      // Increment error counter
-      consecutiveErrors++;
-      
-      // Check if critical threshold reached
-      if (consecutiveErrors >= CRITICAL_ERROR_THRESHOLD) {
-        this.showRecoveryPrompt();
-        consecutiveErrors = 0; // Reset counter
-      }
-      
-      return false;
-    };
-  }
-  
-  private static showRecoveryPrompt() {
-    toast.error(
-      "Εντοπίστηκαν κρίσιμα σφάλματα", 
-      {
-        description: "Η ιστοσελίδα αντιμετωπίζει προβλήματα. Θέλετε να γίνει επαναφορά;",
-        action: {
-          label: "Επαναφορά",
-          onClick: () => SiteBackupService.restoreFromBackup()
-        },
-        duration: 0 // Toast stays until dismissed
-      }
-    );
+    return result;
   }
 }
-
-// Initialize global accessor
-declare global {
-  interface Window {
-    siteHealth: {
-      check: () => HealthCheckResult;
-      recover: (force?: boolean) => boolean;
-    };
-  }
-}
-
-window.siteHealth = {
-  check: SiteHealthMonitor.checkHealth.bind(SiteHealthMonitor),
-  recover: SiteHealthMonitor.attemptRecovery.bind(SiteHealthMonitor)
-};

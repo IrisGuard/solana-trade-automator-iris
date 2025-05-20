@@ -7,6 +7,7 @@ interface ErrorContext {
   severity?: 'low' | 'medium' | 'high' | 'critical';
   showToast?: boolean;
   toastTitle?: string;
+  toastDescription?: string; // Added this property
   showUI?: boolean;
   sendToChat?: boolean;
   useCollector?: boolean;

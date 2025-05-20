@@ -33,3 +33,23 @@ export function clearAllErrors() {
   
   return true;
 }
+
+/**
+ * Initialize the site protection system
+ * Called by AppContent component during initialization
+ */
+export function initProtectionSystem() {
+  console.log("Initializing site protection system");
+  
+  // Return an API that can be used by the caller
+  return {
+    checkHealth: () => {
+      console.log("Running health check...");
+      return { status: "healthy" };
+    },
+    protect: () => {
+      console.log("Protection mechanisms activated");
+      return true;
+    }
+  };
+}

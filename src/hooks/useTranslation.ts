@@ -2,7 +2,7 @@
 // Simple translation hook to handle internationalization
 export function useTranslation() {
   // In a real app, this would fetch translations based on the current locale
-  const t = (key: string) => {
+  const t = (key: string, fallback?: string) => {
     // Sample translations for Greek language
     const translations: Record<string, string> = {
       'general.restore': 'Επαναφορά',
@@ -15,7 +15,8 @@ export function useTranslation() {
       'errors.errorResolvingError': 'Σφάλμα κατά την επίλυση του σφάλματος'
     };
 
-    return translations[key] || key;
+    // Use the provided fallback or the key itself as fallback
+    return translations[key] || fallback || key;
   };
 
   return { t };

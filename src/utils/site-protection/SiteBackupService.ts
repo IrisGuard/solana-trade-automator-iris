@@ -1,61 +1,79 @@
 
 /**
- * Service for application backup and restore functionality
+ * Service for site backup and restoration functionality
  */
 
+import { toast } from 'sonner';
+
+/**
+ * SiteBackupService provides functionality to create and restore backups
+ * of important site data and configuration
+ */
 export class SiteBackupService {
   /**
-   * Create a backup of the current application state
+   * Create a backup of the current site state
    */
-  static createBackup(): boolean {
+  public static createBackup(): boolean {
     try {
-      // In a real app, we would implement actual backup logic
-      console.log('[SiteBackupService] Creating backup...');
+      console.log("Creating site backup");
       
-      // Example implementation - save settings to localStorage
-      const settings = {
-        theme: localStorage.getItem('theme'),
-        apiKeys: localStorage.getItem('api_keys'),
-        lastBackup: new Date().toISOString()
-      };
+      // Get all localStorage data
+      const backup: Record<string, string> = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key) {
+          backup[key] = localStorage.getItem(key) || '';
+        }
+      }
       
-      localStorage.setItem('app_backup', JSON.stringify(settings));
+      // Store the backup with timestamp
+      const timestamp = new Date().toISOString();
+      localStorage.setItem('site_backup_' + timestamp, JSON.stringify(backup));
+      localStorage.setItem('latest_backup', timestamp);
       
+      toast.success("Επιτυχής δημιουργία αντιγράφου ασφαλείας");
       return true;
     } catch (error) {
-      console.error('[SiteBackupService] Error creating backup:', error);
+      console.error("Error creating backup:", error);
+      toast.error("Σφάλμα κατά τη δημιουργία αντιγράφου ασφαλείας");
       return false;
     }
   }
   
   /**
-   * Restore the application from the last backup
+   * Restore the site from the latest backup
    */
-  static restoreFromBackup(): boolean {
+  public static restoreFromBackup(): boolean {
     try {
-      console.log('[SiteBackupService] Restoring from backup...');
+      console.log("Restoring site from backup");
       
-      // Example implementation - restore settings from localStorage
-      const backupData = localStorage.getItem('app_backup');
-      
-      if (!backupData) {
-        console.warn('[SiteBackupService] No backup found');
+      // Get latest backup timestamp
+      const latestBackup = localStorage.getItem('latest_backup');
+      if (!latestBackup) {
+        toast.error("Δεν βρέθηκε αντίγραφο ασφαλείας");
         return false;
       }
       
-      const settings = JSON.parse(backupData);
-      
-      if (settings.theme) {
-        localStorage.setItem('theme', settings.theme);
+      // Get backup data
+      const backupData = localStorage.getItem('site_backup_' + latestBackup);
+      if (!backupData) {
+        toast.error("Κατεστραμμένο αντίγραφο ασφαλείας");
+        return false;
       }
       
-      if (settings.apiKeys) {
-        localStorage.setItem('api_keys', settings.apiKeys);
-      }
+      // Parse backup
+      const backup = JSON.parse(backupData);
       
+      // Restore data
+      Object.keys(backup).forEach(key => {
+        localStorage.setItem(key, backup[key]);
+      });
+      
+      toast.success("Επιτυχής επαναφορά από αντίγραφο ασφαλείας");
       return true;
     } catch (error) {
-      console.error('[SiteBackupService] Error restoring from backup:', error);
+      console.error("Error restoring from backup:", error);
+      toast.error("Σφάλμα κατά την επαναφορά από αντίγραφο ασφαλείας");
       return false;
     }
   }
