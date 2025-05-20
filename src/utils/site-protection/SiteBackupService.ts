@@ -1,4 +1,3 @@
-
 /**
  * Service for site backup and restoration functionality
  */
@@ -10,6 +9,9 @@ import { toast } from 'sonner';
  * of important site data and configuration
  */
 export class SiteBackupService {
+  // Maximum number of backups to keep
+  private static readonly MAX_BACKUPS = 10;
+
   /**
    * Create a backup of the current site state
    */
@@ -76,5 +78,31 @@ export class SiteBackupService {
       toast.error("Σφάλμα κατά την επαναφορά από αντίγραφο ασφαλείας");
       return false;
     }
+  }
+
+  /**
+   * Count the number of available backups
+   */
+  public static countAvailableBackups(): number {
+    try {
+      let count = 0;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('site_backup_')) {
+          count++;
+        }
+      }
+      return count;
+    } catch (error) {
+      console.error("Error counting backups:", error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get the maximum number of backups allowed
+   */
+  public static getMaxBackups(): number {
+    return SiteBackupService.MAX_BACKUPS;
   }
 }

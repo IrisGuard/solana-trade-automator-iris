@@ -24,7 +24,7 @@ interface ChartDataPoint {
   month: string;
 }
 
-export default function Dashboard() {
+export default function DashboardPage() {
   const {
     isConnected,
     walletAddress,
@@ -38,7 +38,7 @@ export default function Dashboard() {
     selectTokenForTrading
   } = useWalletConnection();
 
-  const { user, loading: userLoading } = useUser();
+  const { user, isLoading } = useUser();
   const { reportError } = useErrorReporting();
   const [botActive, setBotActive] = useState(false);
   const [botLoading, setBotLoading] = useState(false);
@@ -204,6 +204,10 @@ export default function Dashboard() {
     e.preventDefault();
     refreshWalletData();
   };
+
+  if (isLoading) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className="space-y-6">

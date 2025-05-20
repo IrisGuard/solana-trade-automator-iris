@@ -1,3 +1,4 @@
+
 import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
 import { toast } from 'sonner';
 import { RPC_ENDPOINTS } from '@/utils/error-handling/constants';
@@ -109,10 +110,10 @@ export const solanaService = {
   },
   
   // Add method to fetch token prices (delegating to token service)
-  fetchTokenPrices: async (tokenAddress: string) => {
+  fetchTokenPrices: async (addresses: string[]) => {
     const { tokenService } = await import('./solana/token');
-    const prices = await tokenService.fetchTokenPrices([tokenAddress]);
-    return prices[tokenAddress];
+    const prices = await tokenService.fetchTokenPrices(addresses);
+    return prices;
   },
   
   // Get the current best RPC endpoint

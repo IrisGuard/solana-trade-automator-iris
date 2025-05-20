@@ -1,4 +1,3 @@
-
 // Import our JSX runtime bridge first
 import './jsx-runtime-bridge';
 
@@ -32,14 +31,9 @@ import { routeDebugger } from './utils/routeDebugger';
 console.log('[App] Application starting up...');
 console.log('[App] Current URL:', window.location.href);
 
-// Create initial backup if needed
-if (!localStorage.getItem('site_structure_backup')) {
-  try {
-    console.log('Creating initial site backup...');
-    SiteBackupService.createBackup({ silent: true });
-  } catch (e) {
-    console.error('Failed to create initial backup:', e);
-  }
+// Create initial backup if none exists
+if (SiteBackupService.countAvailableBackups() === 0) {
+  SiteBackupService.createBackup();
 }
 
 // Start health monitoring

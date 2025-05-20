@@ -1,31 +1,26 @@
 
-// Token type for wallet tokens
 export interface Token {
   address: string;
-  symbol: string;
   name: string;
+  symbol: string;
   amount: number;
   decimals: number;
   logo?: string;
+  mint: string; // Add this property to match tokenService usage
 }
 
-// Token price information
-export interface TokenPrice {
-  price: number;
-  priceChange24h: number;
-  lastUpdated: Date;
-}
-
-// Record of token prices by address
-export interface TokenPrices {
-  [tokenAddress: string]: TokenPrice;
-}
-
-// Wallet type for user wallets
-export interface Wallet {
-  id?: string;
+export interface TokenBalance {
   address: string;
-  blockchain?: string;
-  is_primary?: boolean;
-  last_connected?: string;
+  balance: number;
+}
+
+export interface TokenPriceData {
+  price: number;
+  change24h: number;
+}
+
+export interface WalletData {
+  address: string;
+  balance: number;
+  tokens: Token[];
 }

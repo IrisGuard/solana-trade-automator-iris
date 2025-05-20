@@ -7,6 +7,9 @@ export const FALLBACK_HELIUS_KEY = "your-fallback-helius-dev-key";
 // Default Helius RPC endpoint
 export const HELIUS_RPC_URL = "https://api.helius.xyz/v0";
 
+// Base URL for Helius API
+export const HELIUS_API_BASE_URL = "https://api.helius.xyz/v1";
+
 // Configuration object for Helius service
 export const HELIUS_CONFIG = {
   useLocalStorage: true,        // Whether to cache API keys in localStorage
@@ -20,5 +23,6 @@ export const HELIUS_CONFIG = {
 export default {
   FALLBACK_HELIUS_KEY,
   HELIUS_RPC_URL,
-  HELIUS_CONFIG
+  HELIUS_CONFIG,
+  HELIUS_API_BASE_URL
 };

@@ -1,6 +1,6 @@
 
 import { heliusKeyManager } from './HeliusKeyManager';
-import { HELIUS_RPC_URL } from './HeliusConfig';
+import { HELIUS_RPC_URL, HELIUS_API_BASE_URL } from './HeliusConfig';
 
 class HeliusService {
   private initialized = false;
@@ -95,6 +95,33 @@ class HeliusService {
     } catch (error) {
       console.error('Error checking API key:', error);
       return false;
+    }
+  }
+
+  // Add method to get transaction history
+  async getTransactionHistory(walletAddress: string, limit: number = 10) {
+    try {
+      console.log(`Getting transaction history for wallet: ${walletAddress}`);
+      const url = new URL(`${HELIUS_API_BASE_URL}/addresses/${walletAddress}/transactions`);
+      
+      // Add API key
+      const apiKey = this.getApiKey();
+      url.searchParams.append('api-key', apiKey);
+      
+      // Add parameters
+      url.searchParams.append('limit', limit.toString());
+      
+      // Make the request
+      const response = await fetch(url.toString());
+      if (!response.ok) {
+        throw new Error(`Helius API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data || [];
+    } catch (error) {
+      console.error("Error fetching transaction history:", error);
+      return [];
     }
   }
 }
