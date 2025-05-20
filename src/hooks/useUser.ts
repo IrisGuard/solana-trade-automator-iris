@@ -3,12 +3,12 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-// In newer versions of supabase-js, we need to import the correct user type
-// The User type is now part of the AuthUser namespace
-import type { AuthUser } from '@supabase/supabase-js';
+// In newer versions of supabase-js, we need to use the correct user type
+// The User type is accessed directly from the auth namespace
+import type { User } from '@supabase/supabase-js';
 
 export function useUser() {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   
   useEffect(() => {
