@@ -3,11 +3,11 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-// Import User from supabase-js
-import type { User } from '@supabase/supabase-js';
+// Import the correct type from supabase-js
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 export function useUser() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   
   useEffect(() => {

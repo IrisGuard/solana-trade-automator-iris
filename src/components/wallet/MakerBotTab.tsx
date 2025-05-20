@@ -20,6 +20,11 @@ interface MakerBotTabProps {
 export function MakerBotTab({ isConnected }: MakerBotTabProps) {
   const { walletAddress, tokens } = useWalletConnection();
   const [botConfig, setBotConfig] = useState<MakerBotConfig>({
+    baseToken: null,
+    quoteToken: null,
+    spreadPercentage: 2,
+    orderQuantity: 100,
+    rebalanceThreshold: 5,
     isSimulation: true,
     makers: 5,
     minDelay: 10,
