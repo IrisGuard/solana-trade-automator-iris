@@ -2,8 +2,8 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { useConsoleErrorMonitor } from "@/hooks/useConsoleErrorMonitor";
-import { useErrorDialogInChat } from "@/components/debug/ErrorDialogInChat";
-import { displayError } from "@/utils/errorUtils";
+import { useErrorDialogInChat } from "@/components/debug/error-dialog/useErrorDialog";
+import { displayError } from "@/utils/error-handling/displayError";
 
 // Component που παρακολουθεί για σφάλματα κονσόλας
 export function ErrorMonitor() {
@@ -67,8 +67,8 @@ export function PublishErrorMonitor() {
               console.log("Επιτυχής σύνδεση με το Supabase");
             })
             .catch(error => {
-              // Create a proper Error object
-              const errorObj = new Error(error instanceof Error ? error.message : String(error));
+              // Always create a proper Error object
+              const errorObj = error instanceof Error ? error : new Error(String(error));
               
               // If original error has a stack trace, copy it to our new error object
               if (error instanceof Error && error.stack) {

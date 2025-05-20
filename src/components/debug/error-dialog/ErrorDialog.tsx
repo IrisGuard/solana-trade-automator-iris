@@ -30,7 +30,7 @@ export function ErrorDialogInChat({ error, onClose }: ErrorDialogProps) {
     message: typeof error.message === 'string' ? error.message : String(error.message || 'Unknown Error'),
     stack: typeof error.stack === 'string' ? error.stack : 
       error.stack ? JSON.stringify(error.stack, null, 2) : 'No stack trace available',
-    timestamp: error.timestamp || new Date().toISOString(),
+    timestamp: typeof error.timestamp === 'string' ? error.timestamp : new Date().toISOString(),
     url: typeof error.url === 'string' ? error.url : String(error.url || window.location.href)
   };
 

@@ -27,7 +27,7 @@ export const handleHeliusError = (error: unknown, source: string) => {
   
   // Create a proper details object that satisfies Record<string, unknown>
   const details: Record<string, unknown> = {
-    originalError: errorMessage,  // Store as string to avoid object rendering issues
+    originalError: typeof errorMessage === 'string' ? errorMessage : String(errorMessage),
     source,
     timestamp: new Date().toISOString()
   };
@@ -41,7 +41,7 @@ export const handleHeliusError = (error: unknown, source: string) => {
   
   // Show toast notification for critical errors
   toast.error('Helius API Error', {
-    description: errorMessage.substring(0, 100), // Limit the length
+    description: typeof errorMessage === 'string' ? errorMessage.substring(0, 100) : String(errorMessage).substring(0, 100), // Limit the length
     duration: 5000
   });
   

@@ -18,7 +18,7 @@ interface ErrorDialogContentProps {
 
 export function ErrorDialogContent({ error, onClose, errorCode }: ErrorDialogContentProps) {
   // Format timestamp if available, otherwise use current time
-  const timestamp = error.timestamp ? new Date(error.timestamp).toLocaleString() : new Date().toLocaleString();
+  const timestamp = error.timestamp ? new Date(String(error.timestamp)).toLocaleString() : new Date().toLocaleString();
   
   // Ensure stack trace is displayed as a string
   const stackTrace = typeof error.stack === 'string' 
@@ -51,7 +51,7 @@ export function ErrorDialogContent({ error, onClose, errorCode }: ErrorDialogCon
         <div className="py-2">
           <h3 className="font-medium mb-1">Κωδικός σφάλματος:</h3>
           <p className="text-sm font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded">
-            {errorCode}
+            {String(errorCode)}
           </p>
         </div>
       )}

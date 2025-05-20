@@ -20,7 +20,10 @@ interface DisplayErrorOptions {
 /**
  * Display an error to the user and optionally collect it
  */
-export function displayError(error: Error, options: DisplayErrorOptions = {}): void {
+export function displayError(error: Error | unknown, options: DisplayErrorOptions = {}): void {
+  // Ensure we have a proper Error object
+  const errorObj = error instanceof Error ? error : new Error(String(error));
+
   // Default options
   const {
     showToast = true,
@@ -34,11 +37,11 @@ export function displayError(error: Error, options: DisplayErrorOptions = {}): v
   } = options;
 
   // Always log to console
-  console.error(`[displayError] ${component}:`, error);
+  console.error(`[displayError] ${component}:`, errorObj);
 
   // Collect the error if requested
   if (useCollector) {
-    errorCollector.captureError(error, {
+    errorCollector.captureError(errorObj, {
       component,
       details,
       severity,
@@ -49,13 +52,15 @@ export function displayError(error: Error, options: DisplayErrorOptions = {}): v
   // Show toast if requested
   if (showToast) {
     toast.error(toastTitle, {
-      description: error.message || 'Παρουσιάστηκε ένα σφάλμα',
+      description: typeof errorObj.message === 'string' ? 
+        errorObj.message : 
+        'Παρουσιάστηκε ένα σφάλμα',
       duration: 5000,
     });
   }
 
   // Send to chat if requested
   if (sendToChat) {
-    sendErrorToChat(error, { component, details });
+    sendErrorToChat(errorObj, { component, details });
   }
 }

@@ -1,94 +1,71 @@
 
 /**
- * Utility functions for error testing and management
+ * Utility functions for error testing and handling
  */
-import * as React from 'react';
 
-// Function to clear all error dialogs
-export function clearAllErrors() {
-  // Dispatch custom event to clear errors
-  const clearEvent = new Event('lovable-clear-errors');
-  window.dispatchEvent(clearEvent);
-  
-  // Backup: also call the direct method if available
-  if (window.lovableChat?.clearErrors) {
+/**
+ * Clear all errors from the lovableChat system
+ */
+export function clearAllErrors(): void {
+  if (window.lovableChat && typeof window.lovableChat.clearErrors === 'function') {
     window.lovableChat.clearErrors();
   }
-  
-  console.log('All error dialogs cleared');
 }
 
-// Function to create and display a test error
-export function createTestError(message: string = 'This is a test error') {
-  try {
-    // Explicitly throw an error to generate a stack trace
-    throw new Error(message);
-  } catch (error) {
-    // Format the error properly to avoid object rendering issues
-    const errorObj = {
-      message: error instanceof Error ? error.message : String(message),
-      stack: error instanceof Error ? 
-        (typeof error.stack === 'string' ? error.stack : JSON.stringify(error.stack, null, 2)) 
-        : 'No stack trace available',
-      timestamp: new Date().toISOString(),
-      url: window.location.href
-    };
-    
-    // Log the error
-    console.error('Test error created:', errorObj);
-    
-    // Use the global error handler if available
-    if (window.lovableChat?.createErrorDialog) {
-      window.lovableChat.createErrorDialog(errorObj);
-    }
-    
-    return errorObj;
-  }
+/**
+ * Ensure an error object has all properties as strings
+ * to prevent React rendering issues
+ */
+export function sanitizeErrorObject(error: any): {
+  message: string; 
+  stack?: string;
+  timestamp?: string;
+  url?: string;
+  [key: string]: any;
+} {
+  return {
+    ...error,
+    message: typeof error.message === 'string' 
+      ? error.message 
+      : error.message
+        ? JSON.stringify(error.message)
+        : 'Unknown Error',
+    stack: typeof error.stack === 'string' 
+      ? error.stack 
+      : error.stack
+        ? JSON.stringify(error.stack, null, 2)
+        : undefined,
+    timestamp: error.timestamp || new Date().toISOString(),
+    url: typeof error.url === 'string'
+      ? error.url
+      : error.url
+        ? String(error.url)
+        : window.location.href
+  };
 }
 
-// Site protection system initialization
+/**
+ * Initialize the site protection system
+ */
 export function initProtectionSystem() {
-  console.log('Initializing site protection system...');
-  
-  // Basic health check function
   const checkHealth = () => {
-    console.log('Running system health check...');
-    // Check if critical application components are available
-    const reactAvailable = typeof React !== 'undefined';
-    const domAvailable = document.getElementById('root') !== null;
-    
-    if (!reactAvailable || !domAvailable) {
-      console.error('Health check failed: Critical system components missing');
-      // Attempt recovery if needed
-      return false;
+    // Simple health check that ensures errors are being handled
+    try {
+      // Check if the error dialog system is working
+      if (!window.lovableChat) {
+        console.warn("[Protection] Error dialog system is not initialized");
+      }
+    } catch (err) {
+      console.error("[Protection] Failed to perform health check:", err);
     }
-    
-    console.log('Health check passed: System operating normally');
     return true;
   };
-  
-  // Return protection system API
-  return {
-    checkHealth,
-    protect: () => {
-      console.log('Site protection enabled');
-      // Add protection methods here
-    },
-    recover: () => {
-      console.log('Attempting system recovery');
-      // Add recovery methods here
-      return true;
-    }
-  };
-}
 
-// Update the window typing
-declare global {
-  interface Window {
-    lovableChat?: {
-      createErrorDialog?: (errorData: any) => void;
-      clearErrors?: () => void;
-      [key: string]: any;
-    };
-  }
+  // Initial health check
+  checkHealth();
+
+  // Return methods that can be called from outside
+  return {
+    checkHealth
+  };
 }

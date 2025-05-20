@@ -1,29 +1,31 @@
 
 /**
- * Utility for sending errors to the support chat
+ * Utility for sending errors to the lovable chat system
  */
+export function sendErrorToChat(error: Error | unknown, options: { component?: string; details?: Record<string, unknown> } = {}) {
+  // Early return if window or lovableChat is not available
+  if (!window.lovableChat || !window.lovableChat.createErrorDialog) {
+    console.error("[sendErrorToChat] Chat error dialog system is not available");
+    return;
+  }
 
-interface ErrorDetails {
-  component?: string;
-  details?: Record<string, unknown>;
-  [key: string]: unknown;
-}
-
-/**
- * Send error details to the support chat
- */
-export function sendErrorToChat(error: Error, options: ErrorDetails = {}): boolean {
   try {
-    // In a production app, we would integrate with a chat service
-    console.log('[Support Chat] Sending error to support chat:', {
-      message: error.message,
-      stack: error.stack,
-      ...options
-    });
+    // Ensure we have a proper Error object
+    const errorObj = error instanceof Error ? error : new Error(String(error));
     
-    return true;
+    // Create error detail object with string properties
+    const errorData = {
+      message: typeof errorObj.message === 'string' ? errorObj.message : String(errorObj.message || 'Unknown Error'),
+      stack: typeof errorObj.stack === 'string' ? errorObj.stack : String(errorObj.stack || ''),
+      timestamp: new Date().toISOString(),
+      url: window.location.href,
+      component: options.component || 'unknown',
+      details: options.details ? JSON.stringify(options.details) : undefined
+    };
+
+    // Send to chat system
+    window.lovableChat.createErrorDialog(errorData);
   } catch (e) {
-    console.error('Failed to send error to chat:', e);
-    return false;
+    console.error("[sendErrorToChat] Failed to send error to chat:", e);
   }
 }
