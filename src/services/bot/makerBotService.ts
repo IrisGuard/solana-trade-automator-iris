@@ -1,3 +1,4 @@
+
 import { type Token } from '@/types/wallet';
 import { type TokenPrices } from '@/services/solana/price/types';
 
@@ -7,6 +8,19 @@ export interface MakerBotConfig {
   spreadPercentage: number;
   orderQuantity: number;
   rebalanceThreshold: number;
+  isSimulation: boolean;
+  makers: number;
+  minDelay: number;
+  maxDelay: number;
+  tokenAmount: number;
+  solAmount: number;
+  selectedToken?: string;
+}
+
+export interface BoostConfig {
+  boostPercentage: number;
+  duration: number;
+  gradual: boolean;
 }
 
 export class MakerBotService {
@@ -43,4 +57,38 @@ export class MakerBotService {
     
     return { bidPrice, askPrice };
   }
+
+  // Add functions being used in MakerBotTab
+  public async startBot(walletAddress: string, config: MakerBotConfig): Promise<boolean> {
+    console.log(`Starting bot for wallet ${walletAddress} with config:`, config);
+    // Simulation of async operation
+    return new Promise(resolve => setTimeout(() => resolve(true), 500));
+  }
+
+  public async stopBot(walletAddress: string): Promise<boolean> {
+    console.log(`Stopping bot for wallet ${walletAddress}`);
+    // Simulation of async operation
+    return new Promise(resolve => setTimeout(() => resolve(true), 500));
+  }
+
+  public async boostPrice(walletAddress: string, tokenAddress: string, boostConfig: BoostConfig): Promise<boolean> {
+    console.log(`Boosting price for token ${tokenAddress} with config:`, boostConfig);
+    // Simulation of async operation
+    return new Promise(resolve => setTimeout(() => resolve(true), 500));
+  }
 }
+
+// Create and export an instance of the service with default config
+export const makerBotService = new MakerBotService({
+  baseToken: null,
+  quoteToken: null,
+  spreadPercentage: 2,
+  orderQuantity: 100,
+  rebalanceThreshold: 5,
+  isSimulation: true,
+  makers: 5,
+  minDelay: 10,
+  maxDelay: 30,
+  tokenAmount: 100,
+  solAmount: 0.1
+});

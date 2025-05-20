@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-// Import User from supabase-js instead of gotrue-js
+// Import User from supabase-js
 import type { User } from '@supabase/supabase-js';
 
 export function useUser() {
