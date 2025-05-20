@@ -3,12 +3,14 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-// In newer versions of supabase-js, we need to use the correct user type
-// The User type is accessed directly from the auth namespace
-import type { User } from '@supabase/supabase-js';
+// Import the appropriate type for Supabase user
+// Since both User and AuthUser are not available, we'll use the type from the auth object
+import { type Session } from '@supabase/supabase-js';
+// Use the actual type from the Supabase auth response
+type SupabaseUser = NonNullable<Session['user']>;
 
 export function useUser() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   
   useEffect(() => {
