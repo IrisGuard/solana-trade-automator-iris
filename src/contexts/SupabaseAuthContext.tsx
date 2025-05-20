@@ -192,6 +192,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
     }
   };
 
+  // Fixed signOut function: removed return statements at the end that were causing TypeScript errors
   const signOut = async (): Promise<void> => {
     try {
       setAuthState(prev => ({ ...prev, loading: true }));
@@ -201,15 +202,13 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
       if (error) throw error;
       
       // Auth state will be updated by the listener
-      
-      return { error: null };
     } catch (error) {
       errorCollector.captureError(error as Error, { 
         component: 'AuthProvider',
         source: 'signOut'
       });
       
-      return { error: error as Error };
+      // No return statement here
     } finally {
       setAuthState(prev => ({ ...prev, loading: false }));
     }
@@ -258,3 +257,4 @@ export const useAuth = () => {
   }
   return context;
 };
+
