@@ -11,18 +11,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { sanitizeErrorObject } from '@/utils/errorTestUtils';
 
 export function WalletErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
   const [showHelp, setShowHelp] = React.useState(false);
   
+  // Make sure error is properly sanitized
+  const sanitizedError = sanitizeErrorObject(error);
+  
   // Έλεγχος για συγκεκριμένα σφάλματα
-  const isSubstringError = error.message.includes('substring is not a function');
-  const isPublicKeyError = error.message.includes('Objects are not valid as a React child') && 
-                          error.message.includes('PublicKey');
-  const isConnectionError = error.message.includes('Failed to fetch') || 
-                           error.message.includes('Network Error');
-  const isPermissionError = error.message.includes('User rejected') || 
-                           error.message.includes('permission');
+  const isSubstringError = sanitizedError.message.includes('substring is not a function');
+  const isPublicKeyError = sanitizedError.message.includes('Objects are not valid as a React child') && 
+                          sanitizedError.message.includes('PublicKey');
+  const isConnectionError = sanitizedError.message.includes('Failed to fetch') || 
+                           sanitizedError.message.includes('Network Error');
+  const isPermissionError = sanitizedError.message.includes('User rejected') || 
+                           sanitizedError.message.includes('permission');
   
   // Προσδιορισμός του κατάλληλου μηνύματος σφάλματος
   const getErrorMessage = () => {
@@ -35,7 +39,7 @@ export function WalletErrorFallback({ error, resetErrorBoundary }: FallbackProps
     } else if (isPermissionError) {
       return 'Απορρίφθηκε η άδεια σύνδεσης με το πορτοφόλι';
     } else {
-      return error.message;
+      return sanitizedError.message;
     }
   };
 
