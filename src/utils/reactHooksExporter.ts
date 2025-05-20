@@ -48,26 +48,52 @@ export const {
 // Ensure the hooks are also available on the global React object
 if (typeof window !== 'undefined') {
   // Create React on window if it doesn't exist
-  window.React = window.React || {} as any;
+  if (!window.React) {
+    Object.defineProperty(window, 'React', { 
+      value: {}, 
+      writable: true, 
+      configurable: true 
+    });
+  }
   
   // Check if each hook exists on global React and add it if not
   Object.entries(reactHooks).forEach(([hookName, hookFn]) => {
     if (!window.React[hookName]) {
-      console.log(`Patching ${hookName} onto global React object`);
-      window.React[hookName] = hookFn;
+      try {
+        // Use Object.defineProperty for safer property assignment
+        Object.defineProperty(window.React, hookName, {
+          value: hookFn,
+          writable: true,
+          configurable: true
+        });
+        console.log(`Patched ${hookName} onto global React object`);
+      } catch (e) {
+        console.warn(`Could not patch ${hookName} onto global React:`, e);
+      }
     }
   });
   
   // Export JSX runtime functions to global React
-  if (!window.React.jsx) {
-    window.React.jsx = React.createElement;
-  }
-  if (!window.React.jsxs) {
-    window.React.jsxs = React.createElement;
-  }
-  if (!window.React.Fragment) {
-    window.React.Fragment = React.Fragment;
-  }
+  const jsxFunctions = {
+    jsx: React.createElement,
+    jsxs: React.createElement,
+    Fragment: React.Fragment
+  };
+  
+  Object.entries(jsxFunctions).forEach(([fnName, fn]) => {
+    if (!window.React[fnName]) {
+      try {
+        Object.defineProperty(window.React, fnName, {
+          value: fn,
+          writable: true,
+          configurable: true
+        });
+        console.log(`Patched ${fnName} onto global React object`);
+      } catch (e) {
+        console.warn(`Could not patch ${fnName} onto global React:`, e);
+      }
+    }
+  });
   
   console.log('React hooks exported to global React object successfully');
 }

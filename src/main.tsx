@@ -36,10 +36,12 @@ console.log('[App] Application starting up...');
 console.log('[App] Current URL:', window.location.href);
 console.log('[App] React version:', React.version);
 
-// Diagnose React exports
+// Diagnose React exports - enhanced with more detail
 console.log('[App] React exports check:', {
   createElement: typeof React.createElement,
   useState: typeof React.useState,
+  useRef: typeof React.useRef,
+  useEffect: typeof React.useEffect,
   jsx: typeof (React as any).jsx,
   Fragment: typeof React.Fragment,
   hooks: {
@@ -47,7 +49,13 @@ console.log('[App] React exports check:', {
     useEffect: typeof React.useEffect === 'function',
     useRef: typeof React.useRef === 'function',
     useContext: typeof React.useContext === 'function'
-  }
+  },
+  globalReact: typeof window !== 'undefined' && !!window.React,
+  globalHooks: typeof window !== 'undefined' && window.React ? {
+    useState: typeof window.React.useState === 'function',
+    useEffect: typeof window.React.useEffect === 'function',
+    useRef: typeof window.React.useRef === 'function'
+  } : 'Not available'
 });
 
 // Create initial backup if none exists
@@ -78,18 +86,21 @@ try {
   
   // Added manual React hook patching before rendering
   if (typeof window !== 'undefined' && window.React) {
-    if (!window.React.useState && React.useState) {
-      console.log('[Manual patch] Adding useState to window.React');
-      window.React.useState = React.useState;
-    }
-    if (!window.React.useEffect && React.useEffect) {
-      console.log('[Manual patch] Adding useEffect to window.React');
-      window.React.useEffect = React.useEffect;
-    }
-    if (!window.React.useRef && React.useRef) {
-      console.log('[Manual patch] Adding useRef to window.React');
-      window.React.useRef = React.useRef;
-    }
+    // Use Object.defineProperty for safety
+    ['useState', 'useEffect', 'useRef'].forEach(hookName => {
+      if (!window.React[hookName] && React[hookName]) {
+        try {
+          Object.defineProperty(window.React, hookName, {
+            value: React[hookName],
+            writable: true,
+            configurable: true
+          });
+          console.log(`[Manual patch] Added ${hookName} to window.React`);
+        } catch (e) {
+          console.warn(`[Manual patch] Failed to add ${hookName}:`, e);
+        }
+      }
+    });
   }
   
   ReactDOM.createRoot(rootElement).render(

@@ -46,37 +46,53 @@ export const {
 // For browser environment, ensure global React object has hooks
 if (typeof window !== 'undefined') {
   // Create React on window if it doesn't exist
-  window.React = window.React || {} as any;
+  if (!window.React) {
+    Object.defineProperty(window, 'React', { 
+      value: {}, 
+      writable: true, 
+      configurable: true 
+    });
+  }
   
   // Apply hooks to global React and log diagnostic info
   Object.entries(hooks).forEach(([hookName, hookFn]) => {
     if (!window.React[hookName]) {
-      window.React[hookName] = hookFn;
-      console.log(`[ReactBridge] Bridged ${hookName} to global React`);
+      try {
+        Object.defineProperty(window.React, hookName, {
+          value: hookFn,
+          writable: true,
+          configurable: true
+        });
+        console.log(`[ReactBridge] Bridged ${hookName} to global React`);
+      } catch (e) {
+        console.warn(`[ReactBridge] Failed to bridge ${hookName}:`, e);
+      }
     }
   });
   
-  // Add createElement and Fragment if not present
-  if (!window.React.createElement) {
-    window.React.createElement = React.createElement;
-    console.log('[ReactBridge] Added createElement to global React');
-  }
+  // JSX runtime functions
+  const jsxFunctions = {
+    createElement: React.createElement,
+    Fragment: React.Fragment,
+    jsx: React.createElement,
+    jsxs: React.createElement
+  };
   
-  if (!window.React.Fragment) {
-    window.React.Fragment = React.Fragment;
-    console.log('[ReactBridge] Added Fragment to global React');
-  }
-  
-  // Add JSX runtime functions
-  if (!window.React.jsx) {
-    window.React.jsx = React.createElement;
-    console.log('[ReactBridge] Added jsx to global React');
-  }
-  
-  if (!window.React.jsxs) {
-    window.React.jsxs = React.createElement;
-    console.log('[ReactBridge] Added jsxs to global React');
-  }
+  // Add createElement and other JSX functions if not present
+  Object.entries(jsxFunctions).forEach(([fnName, fn]) => {
+    if (!window.React[fnName]) {
+      try {
+        Object.defineProperty(window.React, fnName, {
+          value: fn,
+          writable: true,
+          configurable: true
+        });
+        console.log(`[ReactBridge] Added ${fnName} to global React`);
+      } catch (e) {
+        console.warn(`[ReactBridge] Failed to add ${fnName}:`, e);
+      }
+    }
+  });
   
   console.log('[ReactBridge] React hooks bridge initialization completed');
 }
