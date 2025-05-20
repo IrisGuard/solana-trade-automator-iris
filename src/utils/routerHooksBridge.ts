@@ -3,8 +3,11 @@
  * This file provides bridge functions for React Router hooks
  * to ensure they can access React hooks properly
  */
-import React from 'react';
+import * as React from 'react';
 import * as ReactRouter from 'react-router-dom';
+
+// Ensure essential React exports are available
+const { useState, useEffect, useRef, useContext } = React;
 
 // Re-export React Router hooks with ensured React hooks access
 export const useNavigate = ReactRouter.useNavigate;

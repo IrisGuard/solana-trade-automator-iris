@@ -14,5 +14,8 @@ export const Fragment = React.Fragment;
 export const jsxDEV = React.createElement;
 export const jsxsDEV = React.createElement;
 
+// Make sure createElement is also exported
+export const createElement = React.createElement;
+
 // Export default React for compatibility
 export default React;

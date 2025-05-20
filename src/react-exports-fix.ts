@@ -22,7 +22,8 @@ export const {
   useInsertionEffect,
   useSyncExternalStore,
   useTransition,
-  Fragment
+  Fragment,
+  createElement
 } = React;
 
 // Provide JSX runtime functions
@@ -49,7 +50,9 @@ if (typeof window !== 'undefined' && window.React) {
     useDebugValue,
     jsx,
     jsxs,
-    jsxDEV
+    jsxDEV,
+    Fragment,
+    createElement
   }).forEach(([key, value]) => {
     if (!window.React[key]) {
       window.React[key] = value;

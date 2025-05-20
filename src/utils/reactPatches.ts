@@ -25,6 +25,23 @@ export function ensureReactCompatibility(): void {
         });
       }
       
+      // Explicitly add other important React exports
+      const reactExports = {
+        createElement: React.createElement,
+        createContext: React.createContext,
+        Fragment: React.Fragment,
+        useState: React.useState,
+        useEffect: React.useEffect,
+        useContext: React.useContext,
+        useRef: React.useRef
+      };
+      
+      Object.entries(reactExports).forEach(([key, value]) => {
+        if (!window.React[key]) {
+          window.React[key] = value;
+        }
+      });
+      
       // Log success
       console.log('React patches applied successfully');
     } catch (error) {

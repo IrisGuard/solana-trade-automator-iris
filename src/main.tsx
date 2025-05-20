@@ -1,8 +1,10 @@
+
 // Import our JSX runtime bridge first
 import './jsx-runtime-bridge';
 
 // Import hooks exporter before any React components
 import './utils/reactHooksExporter';
+import './utils/reactHooksBridge';
 
 // Import polyfills and patches first
 import './polyfills';
@@ -15,6 +17,7 @@ applyAllDOMPatches();
 import './utils/reactPatches';
 import './react-exports-fix';
 import './utils/routerHooksBridge';
+import './utils/routerPatches';
 
 // Important: Import React directly to ensure it's available
 import React from 'react';
@@ -30,6 +33,15 @@ import { routeDebugger } from './utils/routeDebugger';
 // Log startup diagnostics
 console.log('[App] Application starting up...');
 console.log('[App] Current URL:', window.location.href);
+console.log('[App] React version:', React.version);
+
+// Diagnose React exports
+console.log('[App] React exports check:', {
+  createElement: typeof React.createElement,
+  useState: typeof React.useState,
+  jsx: typeof (React as any).jsx,
+  Fragment: typeof React.Fragment
+});
 
 // Create initial backup if none exists
 if (SiteBackupService.countAvailableBackups() === 0) {
