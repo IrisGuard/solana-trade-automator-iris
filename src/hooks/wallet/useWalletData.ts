@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { Token } from '@/types/wallet';
-import { TokenPrices } from '@/types/wallet';
+import { TokenPrices } from '@/services/solana/price/types';
 import { getWalletTokens } from '@/services/wallet/tokenService';
 import { toast } from 'sonner';
 import { heliusService } from '@/services/helius/HeliusService';
@@ -55,7 +56,8 @@ export function useWalletData() {
               name: metadata.name || 'Unknown Token',
               amount: token.amount || 0,
               decimals: token.decimals || 9,
-              logo: metadata.logoURI || ''
+              logo: metadata.logoURI || '',
+              mint: token.mint
             };
           }).filter(token => token.amount > 0); // Filter out zero-balance tokens
           
@@ -67,8 +69,8 @@ export function useWalletData() {
           processedTokens.forEach(token => {
             prices[token.address] = {
               price: Math.random() * 100,
-              priceChange24h: (Math.random() * 20) - 10,
-              lastUpdated: new Date()
+              priceChange24h: (Math.random() * 20) - 10
+              // Remove lastUpdated field as it's not in the type
             };
           });
           
@@ -80,7 +82,7 @@ export function useWalletData() {
         }
       } catch (tokenError) {
         console.error('Error fetching token balances:', tokenError);
-        reportError(tokenError);
+        reportError(tokenError as Error);
         toast.error('Αδυναμία φόρτωσης των tokens', {
           description: 'Παρακαλώ δοκιμάστε ξανά αργότερα'
         });

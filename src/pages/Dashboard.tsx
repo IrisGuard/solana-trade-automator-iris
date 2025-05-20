@@ -10,6 +10,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { AppNavigation } from "@/components/navigation/AppNavigation";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
+import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 
 // Define simple interfaces for bot data
 interface BotData {
