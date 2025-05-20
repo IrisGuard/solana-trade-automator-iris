@@ -47,7 +47,16 @@ export function sanitizeErrorObject(error: any): {
       sanitized[key] = value;
     } else if (typeof value === 'object') {
       try {
-        sanitized[key] = JSON.stringify(value, null, 2);
+        // Handle objects that might have fileName, lineNumber, columnNumber keys
+        if (value && typeof value === 'object' && ('fileName' in value || 'lineNumber' in value || 'columnNumber' in value)) {
+          const objDetails = [];
+          if ('fileName' in value) objDetails.push(`file: ${String(value.fileName)}`);
+          if ('lineNumber' in value) objDetails.push(`line: ${String(value.lineNumber)}`);
+          if ('columnNumber' in value) objDetails.push(`column: ${String(value.columnNumber)}`);
+          sanitized[key] = objDetails.join(', ');
+        } else {
+          sanitized[key] = JSON.stringify(value, null, 2);
+        }
       } catch (e) {
         sanitized[key] = `[Complex ${key} object]`;
       }
