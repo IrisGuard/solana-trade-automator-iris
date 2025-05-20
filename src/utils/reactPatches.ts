@@ -1,19 +1,12 @@
 
 import * as React from 'react';
 
-// Ensure React is available in the window object for compatibility issues
-declare global {
-  interface Window {
-    React: any; // Use any type for React global to avoid TypeScript errors
-  }
-}
-
 // Export the function for applying React compatibility
 export function ensureReactCompatibility(): void {
   if (typeof window !== 'undefined') {
     try {
       // Create a full copy of React in the window
-      window.React = React;
+      window.React = window.React || Object.assign({}, React);
       
       // Explicitly patch jsx and jsxs functions if they don't exist
       if (!window.React.jsx) {

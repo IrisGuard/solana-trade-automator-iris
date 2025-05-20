@@ -6,7 +6,6 @@ declare global {
   interface Window {
     __REACT_CONTEXT_FALLBACK__?: any;
     __JSX_RUNTIME_PATCHED__?: boolean;
-    React?: any; // Use any type for React to avoid TypeScript errors
   }
 }
 
@@ -38,9 +37,19 @@ function injectJsxRuntimeFallback() {
     script.onload = () => {
       // Add explicit JSX runtime functions to React global
       if (window.React) {
-        // Using type assertion to avoid TypeScript errors
-        (window.React as any).jsx = (window.React as any).createElement;
-        (window.React as any).jsxs = (window.React as any).createElement;
+        // Using safe property assignment with runtime checks
+        if (typeof window.React.createElement === 'function') {
+          Object.defineProperty(window.React, 'jsx', {
+            value: window.React.createElement,
+            writable: false,
+            configurable: true
+          });
+          Object.defineProperty(window.React, 'jsxs', {
+            value: window.React.createElement,
+            writable: false,
+            configurable: true
+          });
+        }
       }
       toast.success("React JSX runtime patched", {
         description: "JSX runtime issue fixed, reloading page..."

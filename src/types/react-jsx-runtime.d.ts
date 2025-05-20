@@ -10,11 +10,13 @@ declare module 'react' {
 }
 
 // Extend window.React to include JSX runtime functions
-interface Window {
-  React: typeof React & {
-    jsx: typeof React.createElement;
-    jsxs: typeof React.createElement;
-    jsxDEV: typeof React.createElement;
-    jsxsDEV: typeof React.createElement;
-  };
+declare global {
+  interface Window {
+    React: typeof React & {
+      jsx: typeof React.createElement;
+      jsxs: typeof React.createElement;
+      jsxDEV: typeof React.createElement;
+      jsxsDEV: typeof React.createElement;
+    };
+  }
 }
