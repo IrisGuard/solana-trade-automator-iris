@@ -15,20 +15,27 @@ export function useErrorDialogInChat() {
       const processedError = {
         message: typeof event.detail.message === 'string' 
           ? event.detail.message 
-          : event.detail.message
-            ? JSON.stringify(event.detail.message)
-            : 'Unknown Error',
+          : typeof event.detail.message === 'object'
+            ? JSON.stringify(event.detail.message, null, 2)
+            : String(event.detail.message || 'Unknown Error'),
+        
         stack: typeof event.detail.stack === 'string' 
           ? event.detail.stack 
-          : event.detail.stack
+          : typeof event.detail.stack === 'object'
             ? JSON.stringify(event.detail.stack, null, 2)
-            : 'No stack trace available',
-        timestamp: event.detail.timestamp || new Date().toISOString(),
+            : String(event.detail.stack || 'No stack trace available'),
+        
+        timestamp: typeof event.detail.timestamp === 'string'
+          ? event.detail.timestamp
+          : typeof event.detail.timestamp === 'object'
+            ? JSON.stringify(event.detail.timestamp)
+            : String(event.detail.timestamp || new Date().toISOString()),
+        
         url: typeof event.detail.url === 'string'
           ? event.detail.url
-          : event.detail.url
-            ? String(event.detail.url)
-            : window.location.href
+          : typeof event.detail.url === 'object'
+            ? JSON.stringify(event.detail.url)
+            : String(event.detail.url || window.location.href)
       };
       
       // Προσθήκη του νέου σφάλματος στο array (διατηρώντας και τα προηγούμενα)
@@ -56,24 +63,31 @@ export function useErrorDialogInChat() {
     window.lovableChat.createErrorDialog = (errorData: any) => {
       console.log('Κλήση του createErrorDialog με δεδομένα:', errorData);
       
-      // Ensure errorData is properly processed to avoid direct object rendering
+      // Enhanced error processing to handle any possible object type
       const processedError = {
         message: typeof errorData.message === 'string'
           ? errorData.message 
-          : errorData.message 
+          : typeof errorData.message === 'object' 
             ? JSON.stringify(errorData.message, null, 2)
-            : 'Unknown Error',
+            : String(errorData.message || 'Unknown Error'),
+        
         stack: typeof errorData.stack === 'string' 
           ? errorData.stack 
-          : errorData.stack 
+          : typeof errorData.stack === 'object'
             ? JSON.stringify(errorData.stack, null, 2)
-            : 'No stack trace available',
-        timestamp: errorData.timestamp || new Date().toISOString(),
+            : String(errorData.stack || 'No stack trace available'),
+        
+        timestamp: typeof errorData.timestamp === 'string'
+          ? errorData.timestamp
+          : typeof errorData.timestamp === 'object'
+            ? JSON.stringify(errorData.timestamp)
+            : String(errorData.timestamp || new Date().toISOString()),
+        
         url: typeof errorData.url === 'string'
           ? errorData.url
-          : errorData.url
-            ? String(errorData.url)
-            : window.location.href
+          : typeof errorData.url === 'object'
+            ? JSON.stringify(errorData.url)
+            : String(errorData.url || window.location.href)
       };
       
       // Προσθήκη του νέου σφάλματος στο array (διατηρώντας και τα προηγούμενα)

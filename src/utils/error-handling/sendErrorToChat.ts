@@ -2,6 +2,8 @@
 /**
  * Utility for sending errors to the lovable chat system
  */
+import { sanitizeErrorObject } from '@/utils/errorTestUtils';
+
 export function sendErrorToChat(error: Error | unknown, options: { component?: string; details?: Record<string, unknown> } = {}) {
   // Early return if window or lovableChat is not available
   if (!window.lovableChat || !window.lovableChat.createErrorDialog) {
@@ -13,12 +15,15 @@ export function sendErrorToChat(error: Error | unknown, options: { component?: s
     // Ensure we have a proper Error object
     const errorObj = error instanceof Error ? error : new Error(String(error));
     
+    // Sanitize the error object to ensure all properties are strings
+    const sanitizedError = sanitizeErrorObject(errorObj);
+    
     // Create error detail object with string properties
     const errorData = {
-      message: typeof errorObj.message === 'string' ? errorObj.message : String(errorObj.message || 'Unknown Error'),
-      stack: typeof errorObj.stack === 'string' ? errorObj.stack : String(errorObj.stack || ''),
-      timestamp: new Date().toISOString(),
-      url: window.location.href,
+      message: sanitizedError.message,
+      stack: sanitizedError.stack || '',
+      timestamp: sanitizedError.timestamp || new Date().toISOString(),
+      url: sanitizedError.url || window.location.href,
       component: options.component || 'unknown',
       details: options.details ? JSON.stringify(options.details) : undefined
     };

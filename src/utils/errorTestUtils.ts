@@ -23,24 +23,36 @@ export function sanitizeErrorObject(error: any): {
   url?: string;
   [key: string]: any;
 } {
+  // First ensure error is an object
+  const errorObj = error || {};
+  
+  // Create a new object with sanitized properties
+  const sanitized: Record<string, any> = {};
+  
+  // Process each property to ensure it's in string format
+  Object.entries(errorObj).forEach(([key, value]) => {
+    if (value === undefined || value === null) {
+      sanitized[key] = key === 'message' ? 'Unknown Error' : undefined;
+    } else if (typeof value === 'string') {
+      sanitized[key] = value;
+    } else if (typeof value === 'object') {
+      try {
+        sanitized[key] = JSON.stringify(value, null, 2);
+      } catch (e) {
+        sanitized[key] = `[Complex ${key} object]`;
+      }
+    } else {
+      sanitized[key] = String(value);
+    }
+  });
+
+  // Ensure required properties exist
   return {
-    ...error,
-    message: typeof error.message === 'string' 
-      ? error.message 
-      : error.message
-        ? JSON.stringify(error.message)
-        : 'Unknown Error',
-    stack: typeof error.stack === 'string' 
-      ? error.stack 
-      : error.stack
-        ? JSON.stringify(error.stack, null, 2)
-        : undefined,
-    timestamp: error.timestamp || new Date().toISOString(),
-    url: typeof error.url === 'string'
-      ? error.url
-      : error.url
-        ? String(error.url)
-        : window.location.href
+    ...sanitized,
+    message: sanitized.message || 'Unknown Error',
+    stack: sanitized.stack || undefined,
+    timestamp: sanitized.timestamp || new Date().toISOString(),
+    url: sanitized.url || window.location.href
   };
 }
 

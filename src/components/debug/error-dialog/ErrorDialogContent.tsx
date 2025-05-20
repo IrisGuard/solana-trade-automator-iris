@@ -20,18 +20,22 @@ export function ErrorDialogContent({ error, onClose, errorCode }: ErrorDialogCon
   // Format timestamp if available, otherwise use current time
   const timestamp = error.timestamp ? new Date(String(error.timestamp)).toLocaleString() : new Date().toLocaleString();
   
-  // Ensure stack trace is displayed as a string
+  // Ensure stack trace is displayed as a string - thoroughly convert any possible object
   const stackTrace = typeof error.stack === 'string' 
     ? error.stack 
     : error.stack 
-      ? JSON.stringify(error.stack, null, 2)
+      ? typeof error.stack === 'object' 
+        ? JSON.stringify(error.stack, null, 2)
+        : String(error.stack)
       : 'No stack trace available';
   
-  // Ensure message is a string
+  // Ensure message is a string and handle potentially complex objects
   const errorMessage = typeof error.message === 'string' 
     ? error.message 
     : error.message 
-      ? JSON.stringify(error.message, null, 2)
+      ? typeof error.message === 'object'
+        ? JSON.stringify(error.message, null, 2)
+        : String(error.message)
       : 'Unknown error';
   
   return (

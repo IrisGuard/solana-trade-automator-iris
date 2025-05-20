@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useConsoleErrorMonitor } from "@/hooks/useConsoleErrorMonitor";
 import { useErrorDialogInChat } from "@/components/debug/error-dialog/useErrorDialog";
 import { displayError } from "@/utils/error-handling/displayError";
+import { sanitizeErrorObject } from "@/utils/errorTestUtils";
 
 // Component που παρακολουθεί για σφάλματα κονσόλας
 export function ErrorMonitor() {
@@ -67,15 +68,13 @@ export function PublishErrorMonitor() {
               console.log("Επιτυχής σύνδεση με το Supabase");
             })
             .catch(error => {
-              // Always create a proper Error object
+              // Create a proper Error object and ensure it's correctly sanitized
               const errorObj = error instanceof Error ? error : new Error(String(error));
               
-              // If original error has a stack trace, copy it to our new error object
-              if (error instanceof Error && error.stack) {
-                errorObj.stack = error.stack;
-              }
+              // Sanitize the error to ensure all properties are strings
+              const sanitizedError = sanitizeErrorObject(errorObj);
                   
-              displayError(errorObj, {
+              displayError(sanitizedError, {
                 toastTitle: "Σφάλμα κατά τη δημοσίευση",
                 showToast: true,
                 component: 'PublishErrorMonitor',

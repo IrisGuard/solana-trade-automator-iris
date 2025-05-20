@@ -1,6 +1,7 @@
 
 import { errorCollector } from '@/utils/error-handling/collector';
 import { toast } from 'sonner';
+import { sanitizeErrorObject } from '@/utils/errorTestUtils';
 
 /**
  * Error handler specifically for Helius API errors
@@ -32,7 +33,10 @@ export const handleHeliusError = (error: unknown, source: string) => {
     timestamp: new Date().toISOString()
   };
   
-  errorCollector.captureError(errorObj, {
+  // Sanitize the error before collection
+  const sanitizedError = sanitizeErrorObject(errorObj);
+  
+  errorCollector.captureError(sanitizedError, {
     component: 'HeliusService',
     source,
     details,
