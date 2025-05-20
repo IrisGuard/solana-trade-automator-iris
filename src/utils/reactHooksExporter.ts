@@ -4,7 +4,8 @@
  * It fixes the "useState is not exported by React" errors
  */
 
-import React from 'react';
+// Use namespace import instead of default import for React 18.3.1+ compatibility
+import * as React from 'react';
 
 // Explicitly export all hooks from React
 export const {

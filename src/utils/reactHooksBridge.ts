@@ -2,7 +2,10 @@
 /**
  * This file ensures React hooks are properly bridged between ESM and CommonJS modules
  */
-import { 
+import * as React from 'react';
+
+// Get React hooks via destructuring
+const { 
   useState, 
   useEffect, 
   useContext, 
@@ -18,7 +21,7 @@ import {
   useInsertionEffect,
   useSyncExternalStore,
   useTransition
-} from 'react';
+} = React;
 
 // Re-export all hooks for direct usage
 export {
