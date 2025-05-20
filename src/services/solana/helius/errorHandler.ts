@@ -9,7 +9,6 @@ import { sanitizeErrorObject } from '@/utils/errorTestUtils';
 export const handleHeliusError = (error: unknown, source: string) => {
   // Create a proper error object
   const errorObj = error instanceof Error ? error : new Error(String(error));
-  const errorMessage = errorObj.message;
   
   // Ensure stack trace is properly set
   if (!(error instanceof Error) || !errorObj.stack) {
@@ -28,12 +27,12 @@ export const handleHeliusError = (error: unknown, source: string) => {
   
   // Create a proper details object that satisfies Record<string, unknown>
   const details: Record<string, unknown> = {
-    originalError: typeof errorMessage === 'string' ? errorMessage : String(errorMessage),
+    originalError: typeof errorObj.message === 'string' ? errorObj.message : String(errorObj.message),
     source,
     timestamp: new Date().toISOString()
   };
   
-  // Sanitize the error before collection
+  // Sanitize the error before collection to ensure all properties are strings
   const sanitizedError = sanitizeErrorObject(errorObj);
   
   errorCollector.captureError(sanitizedError, {
@@ -45,9 +44,11 @@ export const handleHeliusError = (error: unknown, source: string) => {
   
   // Show toast notification for critical errors
   toast.error('Helius API Error', {
-    description: typeof errorMessage === 'string' ? errorMessage.substring(0, 100) : String(errorMessage).substring(0, 100), // Limit the length
+    description: typeof sanitizedError.message === 'string' ? 
+      sanitizedError.message.substring(0, 100) : 
+      String(sanitizedError.message).substring(0, 100), // Limit the length
     duration: 5000
   });
   
-  throw errorObj;
+  throw sanitizedError;
 };

@@ -68,7 +68,7 @@ export function PublishErrorMonitor() {
               console.log("Επιτυχής σύνδεση με το Supabase");
             })
             .catch(error => {
-              // Create a proper Error object and ensure it's correctly sanitized
+              // Create a proper Error object
               const errorObj = error instanceof Error ? error : new Error(String(error));
               
               // Sanitize the error to ensure all properties are strings

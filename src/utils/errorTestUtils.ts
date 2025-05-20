@@ -23,8 +23,18 @@ export function sanitizeErrorObject(error: any): {
   url?: string;
   [key: string]: any;
 } {
+  // Handle null or undefined error
+  if (error === null || error === undefined) {
+    return {
+      message: 'Unknown Error',
+      stack: 'No stack trace available',
+      timestamp: new Date().toISOString(),
+      url: window.location.href
+    };
+  }
+
   // First ensure error is an object
-  const errorObj = error || {};
+  const errorObj = typeof error === 'object' ? error : { message: String(error) };
   
   // Create a new object with sanitized properties
   const sanitized: Record<string, any> = {};

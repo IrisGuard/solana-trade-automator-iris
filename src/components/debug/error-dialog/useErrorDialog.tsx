@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ErrorDialogInChat } from './ErrorDialog';
+import { sanitizeErrorObject } from '@/utils/errorTestUtils';
 
 export function useErrorDialogInChat() {
   const [errors, setErrors] = useState<any[]>([]);
@@ -11,32 +12,8 @@ export function useErrorDialogInChat() {
     const handleLovableError = (event: CustomEvent) => {
       console.log('Λήφθηκε lovable-error event:', event.detail);
       
-      // Μετατροπή των πολύπλοκων αντικειμένων σε strings
-      const processedError = {
-        message: typeof event.detail.message === 'string' 
-          ? event.detail.message 
-          : typeof event.detail.message === 'object'
-            ? JSON.stringify(event.detail.message, null, 2)
-            : String(event.detail.message || 'Unknown Error'),
-        
-        stack: typeof event.detail.stack === 'string' 
-          ? event.detail.stack 
-          : typeof event.detail.stack === 'object'
-            ? JSON.stringify(event.detail.stack, null, 2)
-            : String(event.detail.stack || 'No stack trace available'),
-        
-        timestamp: typeof event.detail.timestamp === 'string'
-          ? event.detail.timestamp
-          : typeof event.detail.timestamp === 'object'
-            ? JSON.stringify(event.detail.timestamp)
-            : String(event.detail.timestamp || new Date().toISOString()),
-        
-        url: typeof event.detail.url === 'string'
-          ? event.detail.url
-          : typeof event.detail.url === 'object'
-            ? JSON.stringify(event.detail.url)
-            : String(event.detail.url || window.location.href)
-      };
+      // Process and sanitize the error to ensure all properties are strings
+      const processedError = sanitizeErrorObject(event.detail);
       
       // Προσθήκη του νέου σφάλματος στο array (διατηρώντας και τα προηγούμενα)
       setErrors(prevErrors => {
@@ -63,32 +40,8 @@ export function useErrorDialogInChat() {
     window.lovableChat.createErrorDialog = (errorData: any) => {
       console.log('Κλήση του createErrorDialog με δεδομένα:', errorData);
       
-      // Enhanced error processing to handle any possible object type
-      const processedError = {
-        message: typeof errorData.message === 'string'
-          ? errorData.message 
-          : typeof errorData.message === 'object' 
-            ? JSON.stringify(errorData.message, null, 2)
-            : String(errorData.message || 'Unknown Error'),
-        
-        stack: typeof errorData.stack === 'string' 
-          ? errorData.stack 
-          : typeof errorData.stack === 'object'
-            ? JSON.stringify(errorData.stack, null, 2)
-            : String(errorData.stack || 'No stack trace available'),
-        
-        timestamp: typeof errorData.timestamp === 'string'
-          ? errorData.timestamp
-          : typeof errorData.timestamp === 'object'
-            ? JSON.stringify(errorData.timestamp)
-            : String(errorData.timestamp || new Date().toISOString()),
-        
-        url: typeof errorData.url === 'string'
-          ? errorData.url
-          : typeof errorData.url === 'object'
-            ? JSON.stringify(errorData.url)
-            : String(errorData.url || window.location.href)
-      };
+      // Process and sanitize the error
+      const processedError = sanitizeErrorObject(errorData);
       
       // Προσθήκη του νέου σφάλματος στο array (διατηρώντας και τα προηγούμενα)
       setErrors(prevErrors => {

@@ -20,23 +20,10 @@ export function ErrorDialogContent({ error, onClose, errorCode }: ErrorDialogCon
   // Format timestamp if available, otherwise use current time
   const timestamp = error.timestamp ? new Date(String(error.timestamp)).toLocaleString() : new Date().toLocaleString();
   
-  // Ensure stack trace is displayed as a string - thoroughly convert any possible object
-  const stackTrace = typeof error.stack === 'string' 
-    ? error.stack 
-    : error.stack 
-      ? typeof error.stack === 'object' 
-        ? JSON.stringify(error.stack, null, 2)
-        : String(error.stack)
-      : 'No stack trace available';
-  
-  // Ensure message is a string and handle potentially complex objects
-  const errorMessage = typeof error.message === 'string' 
-    ? error.message 
-    : error.message 
-      ? typeof error.message === 'object'
-        ? JSON.stringify(error.message, null, 2)
-        : String(error.message)
-      : 'Unknown error';
+  // Ensure all values are strings
+  const stackTrace = typeof error.stack === 'string' ? error.stack : String(error.stack || 'No stack trace available');
+  const errorMessage = typeof error.message === 'string' ? error.message : String(error.message || 'Unknown error');
+  const errorUrl = typeof error.url === 'string' ? error.url : String(error.url || '');
   
   return (
     <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden">
@@ -64,7 +51,7 @@ export function ErrorDialogContent({ error, onClose, errorCode }: ErrorDialogCon
         <h3 className="font-medium mb-1">Λεπτομέρειες:</h3>
         <div className="text-xs space-y-1">
           <p>Χρόνος: {timestamp}</p>
-          {typeof error.url === 'string' && <p>URL: {error.url}</p>}
+          {errorUrl && <p>URL: {errorUrl}</p>}
         </div>
       </div>
       
