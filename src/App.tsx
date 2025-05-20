@@ -14,26 +14,49 @@ import { AppProviders } from './providers/AppProviders';
 import { Routes } from './routes';
 import { toast } from 'sonner';
 import { DatabaseInitializeButton } from './components/database/DatabaseInitializeButton';
+import { StatusSection } from './components/dashboard/StatusSection';
+import { ensureAuthenticated } from './integrations/supabase/client';
+import { autoInitialize } from './utils/autoInitialize';
 
 function App() {
-  // Show welcome toast only once on app launch
+  // Auto-initialize once on app launch
   useEffect(() => {
     try {
       console.log('App component mounted successfully');
       
-      // Check if we're on the root route and show a welcome toast
-      if (window.location.pathname === '/' && !sessionStorage.getItem('welcome_shown')) {
-        toast.success('Καλώς ήρθατε στο Solana Trade Automator!', {
-          duration: 5000,
-          action: {
-            label: 'Αρχικοποίηση',
-            onClick: () => {
-              document.getElementById('initialize-db-button')?.click();
+      const initializeApp = async () => {
+        // Ensure authentication
+        const isAuthenticated = await ensureAuthenticated();
+        
+        if (isAuthenticated) {
+          console.log('User authenticated, checking if database needs initialization...');
+          
+          // Show toast notification
+          toast.success('Καλώς ήρθατε στο Solana Trade Automator!', {
+            duration: 5000,
+            action: {
+              label: 'Άμεση Ενεργοποίηση',
+              onClick: () => {
+                autoInitialize();
+              }
             }
+          });
+          
+          // Auto-initialize only on first load (not on hot reload during development)
+          if (!window.localStorage.getItem('app_initialized')) {
+            console.log('Starting auto-initialization...');
+            await autoInitialize();
+            window.localStorage.setItem('app_initialized', 'true');
           }
-        });
-        sessionStorage.setItem('welcome_shown', 'true');
-      }
+        } else {
+          console.log('Authentication failed, manual initialization will be required');
+          toast.error('Αδυναμία αυτόματης σύνδεσης. Παρακαλώ κάντε χειροκίνητη σύνδεση.', {
+            duration: 8000
+          });
+        }
+      };
+      
+      initializeApp();
     } catch (error) {
       console.error('Error in App initialization:', error);
     }

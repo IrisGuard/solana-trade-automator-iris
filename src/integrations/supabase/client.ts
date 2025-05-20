@@ -18,6 +18,61 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 // Export default DB client for backward compatibility
 export const dbClient = supabase;
 
+// Auto-login function
+export async function ensureAuthenticated() {
+  try {
+    // Check if user is already logged in
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      console.log('No active session, attempting auto-login...');
+      
+      // Try auto-login with test credentials
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: 'test@example.com',
+        password: 'testpassword123'
+      });
+      
+      if (error) {
+        console.log('Auto-login failed, attempting to create test account...');
+        
+        // Create test account if login fails
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: 'test@example.com',
+          password: 'testpassword123'
+        });
+        
+        if (signUpError) {
+          console.error('Failed to create test account:', signUpError);
+          return false;
+        }
+        
+        console.log('Test account created successfully');
+        
+        // Try logging in again
+        const { error: loginError } = await supabase.auth.signInWithPassword({
+          email: 'test@example.com',
+          password: 'testpassword123'
+        });
+        
+        if (loginError) {
+          console.error('Failed to log in with new account:', loginError);
+          return false;
+        }
+      }
+      
+      console.log('Auto-login successful');
+      return true;
+    }
+    
+    console.log('User already authenticated');
+    return true;
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return false;
+  }
+}
+
 // Add error logging for critical operations
 supabase.auth.onAuthStateChange((event, session) => {
   console.log(`Auth state changed: ${event}`);
