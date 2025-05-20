@@ -5,6 +5,16 @@
  */
 import React from '../react-exports-fix'; // Import from our fixed exports
 
+// Import all React hooks first to ensure they're available
+import {
+  useState,
+  useEffect,
+  useContext,
+  useRef,
+  useCallback,
+  useMemo
+} from '../utils/reactHooksExporter';
+
 // Import all react-router-dom exports that we need
 import * as ReactRouterDOM from 'react-router-dom';
 

@@ -2,6 +2,9 @@
 // Import our JSX runtime bridge first
 import './jsx-runtime-bridge';
 
+// Import hooks exporter before any React components
+import './utils/reactHooksExporter';
+
 // Import polyfills and patches first
 import './polyfills';
 
@@ -12,6 +15,7 @@ applyAllDOMPatches();
 // Import React fixes before React components
 import './utils/reactPatches';
 import './react-exports-fix';
+import './utils/routerHooksBridge';
 
 // Important: Import React directly to ensure it's available
 import React from 'react';

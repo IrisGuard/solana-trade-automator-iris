@@ -30,6 +30,9 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         // Fix JSX runtime issue with CORRECT absolute paths
         'react/jsx-runtime': path.resolve(__dirname, "./node_modules/react/jsx-runtime.js"),
         'react/jsx-dev-runtime': path.resolve(__dirname, "./node_modules/react/jsx-dev-runtime.js"),
+        // Add explicit references to React hooks modules
+        'react-router-dom': path.resolve(__dirname, "./node_modules/react-router-dom"),
+        'react': path.resolve(__dirname, "./node_modules/react"),
         // Fix polyfill path issues - explicitly map each required polyfill
         buffer: 'buffer/',
         // Fix the process polyfill path - important change
@@ -38,12 +41,10 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         util: 'util/',
         crypto: 'crypto-browserify',
         assert: 'assert/',
-        // Add React alias to ensure consistent version
-        "react": path.resolve(__dirname, "node_modules/react"),
-        "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
-        "react-router-dom": path.resolve(__dirname, "node_modules/react-router-dom"),
       },
       mainFields: ['browser', 'module', 'main'],
+      // Add dedupe to avoid duplicate React instances
+      dedupe: ['react', 'react-dom', 'react-router-dom']
     },
     define: {
       // Node.js polyfills
@@ -79,7 +80,10 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         // Add React and React Router DOM to the optimization
         'react',
         'react-dom',
-        'react-router-dom'
+        'react-router-dom',
+        // Include specific hooks that are causing issues
+        'react/jsx-runtime',
+        'react/jsx-dev-runtime'
       ],
       // Force optimization of problematic dependencies
       force: true,
