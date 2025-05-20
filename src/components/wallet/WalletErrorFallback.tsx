@@ -16,7 +16,7 @@ import { sanitizeErrorObject } from '@/utils/errorTestUtils';
 export function WalletErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
   const [showHelp, setShowHelp] = React.useState(false);
   
-  // Make sure error is properly sanitized
+  // Make sure error is properly sanitized with all required properties including 'name'
   const sanitizedError = sanitizeErrorObject(error);
   
   // Έλεγχος για συγκεκριμένα σφάλματα

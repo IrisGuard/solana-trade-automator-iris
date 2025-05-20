@@ -20,10 +20,11 @@ export function GlobalErrorHandler() {
       try {
         // Use getRecentErrors instead of getErrors to match implementation
         const allErrors = (errorCollector.getRecentErrors ? errorCollector.getRecentErrors() : errorCollector.getErrors()).map(e => {
-          // Sanitize error objects before using them
-          const sanitizedError = e.error ? sanitizeErrorObject(e.error) : { message: 'Unknown error' };
+          // Sanitize error objects before using them and ensure they have the 'name' property
+          const sanitizedError = e.error ? sanitizeErrorObject(e.error) : new Error('Unknown error');
           
-          return {
+          // Create a properly typed ErrorData object
+          const typedErrorData: ErrorData = {
             id: `err_${e.timestamp || Date.now()}`,
             error: sanitizedError,
             timestamp: e.timestamp ? new Date(e.timestamp).toISOString() : new Date().toISOString(),
@@ -47,6 +48,8 @@ export function GlobalErrorHandler() {
             severity: e.data?.severity || 'medium',
             options: e.data
           };
+          
+          return typedErrorData;
         });
         
         setErrors(allErrors);

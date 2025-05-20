@@ -1,4 +1,3 @@
-
 /**
  * Utility for displaying errors to users
  */
@@ -22,9 +21,8 @@ interface DisplayErrorOptions {
  * Display an error to the user and optionally collect it
  */
 export function displayError(error: Error | unknown, options: DisplayErrorOptions = {}): void {
-  // Ensure we have a proper Error object that is sanitized for React
-  const errorObj = error instanceof Error ? error : new Error(String(error));
-  const sanitizedError = sanitizeErrorObject(errorObj);
+  // Ensure we have a proper Error object that is sanitized for React with the required 'name' property
+  const sanitizedError = sanitizeErrorObject(error);
 
   // Default options
   const {

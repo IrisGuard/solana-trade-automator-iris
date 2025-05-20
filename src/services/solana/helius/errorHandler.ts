@@ -7,33 +7,15 @@ import { sanitizeErrorObject } from '@/utils/errorTestUtils';
  * Error handler specifically for Helius API errors
  */
 export const handleHeliusError = (error: unknown, source: string) => {
-  // Create a proper error object
-  const errorObj = error instanceof Error ? error : new Error(String(error));
-  
-  // Ensure stack trace is properly set
-  if (!(error instanceof Error) || !errorObj.stack) {
-    // Generate a new stack trace or use one from the original error
-    if (typeof error === 'object' && error !== null && 'stack' in error && typeof error.stack === 'string') {
-      errorObj.stack = error.stack;
-    } else {
-      // Create a new stack trace if none exists
-      try {
-        throw errorObj;
-      } catch (e) {
-        // The error now has a stack trace
-      }
-    }
-  }
+  // Sanitize and create proper Error object with all required properties including 'name'
+  const sanitizedError = sanitizeErrorObject(error);
   
   // Create a proper details object that satisfies Record<string, unknown>
   const details: Record<string, unknown> = {
-    originalError: typeof errorObj.message === 'string' ? errorObj.message : String(errorObj.message),
+    originalError: typeof sanitizedError.message === 'string' ? sanitizedError.message : String(sanitizedError.message),
     source,
     timestamp: new Date().toISOString()
   };
-  
-  // Sanitize the error before collection to ensure all properties are strings
-  const sanitizedError = sanitizeErrorObject(errorObj);
   
   errorCollector.captureError(sanitizedError, {
     component: 'HeliusService',

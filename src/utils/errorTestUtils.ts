@@ -16,8 +16,9 @@ export function clearAllErrors(): void {
  * Ensure an error object has all properties as strings
  * to prevent React rendering issues
  */
-export function sanitizeErrorObject(error: any): {
+export function sanitizeErrorObject(error: any): Error & {
   message: string; 
+  name: string;
   stack?: string;
   timestamp?: string;
   url?: string;
@@ -26,6 +27,7 @@ export function sanitizeErrorObject(error: any): {
   // Handle null or undefined error
   if (error === null || error === undefined) {
     return {
+      name: 'Error',
       message: 'Unknown Error',
       stack: 'No stack trace available',
       timestamp: new Date().toISOString(),
@@ -34,7 +36,7 @@ export function sanitizeErrorObject(error: any): {
   }
 
   // First ensure error is an object
-  const errorObj = typeof error === 'object' ? error : { message: String(error) };
+  const errorObj = typeof error === 'object' ? error : { message: String(error), name: 'Error' };
   
   // Create a new object with sanitized properties
   const sanitized: Record<string, any> = {};
@@ -42,7 +44,8 @@ export function sanitizeErrorObject(error: any): {
   // Process each property to ensure it's in string format
   Object.entries(errorObj).forEach(([key, value]) => {
     if (value === undefined || value === null) {
-      sanitized[key] = key === 'message' ? 'Unknown Error' : undefined;
+      sanitized[key] = key === 'message' ? 'Unknown Error' : 
+                      key === 'name' ? 'Error' : undefined;
     } else if (typeof value === 'string') {
       sanitized[key] = value;
     } else if (typeof value === 'object') {
@@ -69,6 +72,7 @@ export function sanitizeErrorObject(error: any): {
   return {
     ...sanitized,
     message: sanitized.message || 'Unknown Error',
+    name: sanitized.name || 'Error', // Ensure name is present for Error interface
     stack: sanitized.stack || undefined,
     timestamp: sanitized.timestamp || new Date().toISOString(),
     url: sanitized.url || window.location.href

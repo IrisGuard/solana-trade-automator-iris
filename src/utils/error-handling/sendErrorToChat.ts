@@ -12,14 +12,12 @@ export function sendErrorToChat(error: Error | unknown, options: { component?: s
   }
 
   try {
-    // Ensure we have a proper Error object
-    const errorObj = error instanceof Error ? error : new Error(String(error));
-    
-    // Sanitize the error object to ensure all properties are strings
-    const sanitizedError = sanitizeErrorObject(errorObj);
+    // Ensure we have a proper Error object with the 'name' property
+    const sanitizedError = sanitizeErrorObject(error);
     
     // Create error detail object with string properties
     const errorData = {
+      name: sanitizedError.name || 'Error',
       message: sanitizedError.message,
       stack: sanitizedError.stack || '',
       timestamp: sanitizedError.timestamp || new Date().toISOString(),
