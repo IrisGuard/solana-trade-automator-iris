@@ -4,7 +4,7 @@ import * as React from 'react';
 // Ensure React is available in the window object for compatibility issues
 declare global {
   interface Window {
-    React: typeof React;
+    React: any; // Use any type for React global to avoid TypeScript errors
   }
 }
 
