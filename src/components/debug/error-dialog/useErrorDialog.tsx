@@ -13,12 +13,22 @@ export function useErrorDialogInChat() {
       
       // Μετατροπή των πολύπλοκων αντικειμένων σε strings
       const processedError = {
-        message: event.detail.message || 'Unknown Error',
+        message: typeof event.detail.message === 'string' 
+          ? event.detail.message 
+          : event.detail.message
+            ? JSON.stringify(event.detail.message)
+            : 'Unknown Error',
         stack: typeof event.detail.stack === 'string' 
           ? event.detail.stack 
-          : JSON.stringify(event.detail.stack, null, 2),
+          : event.detail.stack
+            ? JSON.stringify(event.detail.stack, null, 2)
+            : 'No stack trace available',
         timestamp: event.detail.timestamp || new Date().toISOString(),
-        url: event.detail.url || window.location.href
+        url: typeof event.detail.url === 'string'
+          ? event.detail.url
+          : event.detail.url
+            ? String(event.detail.url)
+            : window.location.href
       };
       
       // Προσθήκη του νέου σφάλματος στο array (διατηρώντας και τα προηγούμενα)
