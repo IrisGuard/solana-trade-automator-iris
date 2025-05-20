@@ -1,7 +1,8 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
-import { TokenData } from '@/types/tokens';
+import { TokenData } from '@/types/tokenTypes'; // Changed the import path
 import { toast } from 'sonner';
 import { errorCollector } from '@/utils/error-handling/collector';
 import { useWallet } from '@solana/wallet-adapter-react';

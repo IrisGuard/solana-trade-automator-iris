@@ -14,7 +14,6 @@ interface ApiVaultActionsProps {
   isLocked: boolean;
   apiKeys: ApiKey[];
   setApiKeys?: React.Dispatch<React.SetStateAction<ApiKey[]>>;
-  // Add the missing props from the error
   isRecovering?: boolean;
   isTestingKeys?: boolean;
   handleRecoverClick?: () => void;
