@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/providers/SupabaseAuthProvider';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { isInitialized, autoInitialize } from '@/utils/autoInitialize';
 import { Loader2 } from 'lucide-react';
 import { syncAllHeliusData } from '@/utils/syncHeliusKeys';
