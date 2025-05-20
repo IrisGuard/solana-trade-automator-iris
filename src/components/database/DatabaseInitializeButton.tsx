@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Database } from "lucide-react";
 import { initializeDatabase, syncHeliusKeys } from "@/utils/databaseInitializer";
 import { toast } from "sonner";
-import { useAuth } from "@/providers/SupabaseAuthProvider";
+import { useAuth } from "@/contexts/SupabaseAuthContext";
 
 export function DatabaseInitializeButton() {
   const [isInitializing, setIsInitializing] = useState(false);

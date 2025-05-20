@@ -9,6 +9,8 @@ const SupabaseAuthContext = createContext<AuthContextType | undefined>(undefined
 
 // Provider component
 export function SupabaseAuthProvider({ children }: { children: React.ReactNode }) {
+  console.log('Initializing auth provider...');
+  
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
     session: null,
@@ -22,7 +24,8 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
       try {
         // Get current session 
         const { data, error } = await supabase.auth.getSession();
-
+        console.log('Auth session initialized:', !!data.session);
+        
         if (error) {
           throw error;
         }

@@ -4,7 +4,7 @@ import { isInitialized, autoInitialize } from "@/utils/autoInitialize";
 import { Button } from "@/components/ui/button";
 import { Loader2, Database } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/providers/AuthProvider";
+import { useAuth } from "@/contexts/SupabaseAuthContext";
 import {
   Alert,
   AlertDescription,

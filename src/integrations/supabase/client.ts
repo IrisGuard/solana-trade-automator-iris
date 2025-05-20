@@ -1,4 +1,5 @@
 
+
 // Import Supabase client correctly - version 2.49.4 requires importing from @supabase/supabase-js directly
 import { createClient } from '@supabase/supabase-js';
 
@@ -39,7 +40,7 @@ export async function ensureAuthenticated() {
         // Create test account if login fails
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: 'test@example.com',
-          password: 'testpassword123'
+          password: 'test_password_123!@#'  // Using a stronger password to avoid "weak password" errors
         });
         
         if (signUpError) {
@@ -52,7 +53,7 @@ export async function ensureAuthenticated() {
         // Try logging in again
         const { error: loginError } = await supabase.auth.signInWithPassword({
           email: 'test@example.com',
-          password: 'testpassword123'
+          password: 'test_password_123!@#'
         });
         
         if (loginError) {

@@ -1,8 +1,8 @@
 
-import { useAuth as useProviderAuth } from '@/providers/AuthProvider';
+import { useAuth as useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 
-// This is now just a passthrough to the useAuth from AuthProvider
+// This is now just a passthrough to the useAuth from SupabaseAuthContext
 // to maintain compatibility with existing code
 export function useAuth() {
-  return useProviderAuth();
+  return useSupabaseAuth();
 }
