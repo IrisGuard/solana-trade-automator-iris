@@ -1,5 +1,5 @@
 
-// Import Supabase client correctly
+// Import Supabase client correctly - version 2.49.4 requires importing from createClient
 import { createClient } from '@supabase/supabase-js';
 
 // Hardcoded values for reliability - these are already public values
