@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { FallbackProps } from 'react-error-boundary';
 import { Button } from '@/components/ui/button';
@@ -16,17 +15,18 @@ import { sanitizeErrorObject } from '@/utils/errorTestUtils';
 export function WalletErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
   const [showHelp, setShowHelp] = React.useState(false);
   
-  // Make sure error is properly sanitized with all required properties including 'name'
+  // Make sure error is properly sanitized with all required properties
   const sanitizedError = sanitizeErrorObject(error);
+  const errorMessage = typeof sanitizedError.message === 'string' ? sanitizedError.message : String(sanitizedError.message || 'Unknown error');
   
   // Έλεγχος για συγκεκριμένα σφάλματα
-  const isSubstringError = sanitizedError.message.includes('substring is not a function');
-  const isPublicKeyError = sanitizedError.message.includes('Objects are not valid as a React child') && 
-                          sanitizedError.message.includes('PublicKey');
-  const isConnectionError = sanitizedError.message.includes('Failed to fetch') || 
-                           sanitizedError.message.includes('Network Error');
-  const isPermissionError = sanitizedError.message.includes('User rejected') || 
-                           sanitizedError.message.includes('permission');
+  const isSubstringError = errorMessage.includes('substring is not a function');
+  const isPublicKeyError = errorMessage.includes('Objects are not valid as a React child') && 
+                          errorMessage.includes('PublicKey');
+  const isConnectionError = errorMessage.includes('Failed to fetch') || 
+                           errorMessage.includes('Network Error');
+  const isPermissionError = errorMessage.includes('User rejected') || 
+                           errorMessage.includes('permission');
   
   // Προσδιορισμός του κατάλληλου μηνύματος σφάλματος
   const getErrorMessage = () => {
@@ -39,7 +39,7 @@ export function WalletErrorFallback({ error, resetErrorBoundary }: FallbackProps
     } else if (isPermissionError) {
       return 'Απορρίφθηκε η άδεια σύνδεσης με το πορτοφόλι';
     } else {
-      return sanitizedError.message;
+      return errorMessage;
     }
   };
 

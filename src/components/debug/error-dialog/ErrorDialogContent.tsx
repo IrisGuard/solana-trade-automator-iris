@@ -4,26 +4,33 @@ import { Button } from '@/components/ui/button';
 import { DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { sanitizeErrorObject } from '@/utils/errorTestUtils';
 
 interface ErrorDialogContentProps {
   error: {
-    message: string;
-    stack?: string;
-    timestamp?: string;
-    url?: string;
+    message?: string | unknown;
+    stack?: string | unknown;
+    timestamp?: string | unknown;
+    url?: string | unknown;
+    [key: string]: any;
   };
   onClose: () => void;
   errorCode?: string;
 }
 
 export function ErrorDialogContent({ error, onClose, errorCode }: ErrorDialogContentProps) {
+  // Ensure all error properties are strings to avoid React rendering objects directly
+  const safeError = sanitizeErrorObject(error);
+  
   // Format timestamp if available, otherwise use current time
-  const timestamp = error.timestamp ? new Date(String(error.timestamp)).toLocaleString() : new Date().toLocaleString();
+  const timestamp = typeof safeError.timestamp === 'string' ? 
+    new Date(safeError.timestamp).toLocaleString() : 
+    new Date().toLocaleString();
   
   // Ensure all values are strings
-  const stackTrace = typeof error.stack === 'string' ? error.stack : String(error.stack || 'No stack trace available');
-  const errorMessage = typeof error.message === 'string' ? error.message : String(error.message || 'Unknown error');
-  const errorUrl = typeof error.url === 'string' ? error.url : String(error.url || '');
+  const stackTrace = String(safeError.stack || 'No stack trace available');
+  const errorMessage = String(safeError.message || 'Unknown error');
+  const errorUrl = String(safeError.url || window.location.href);
   
   return (
     <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden">

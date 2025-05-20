@@ -16,19 +16,20 @@ export function sendErrorToChat(error: Error | unknown, options: { component?: s
     const sanitizedError = sanitizeErrorObject(error);
     
     // Create error detail object with string properties
+    // Make sure all values are strings to prevent React from trying to render objects
     const errorData = {
-      name: sanitizedError.name || 'Error',
-      message: sanitizedError.message,
-      stack: sanitizedError.stack || '',
-      timestamp: sanitizedError.timestamp || new Date().toISOString(),
-      url: sanitizedError.url || window.location.href,
-      component: options.component || 'unknown',
+      name: String(sanitizedError.name || 'Error'),
+      message: String(sanitizedError.message || 'Unknown error'),
+      stack: String(sanitizedError.stack || ''),
+      timestamp: String(sanitizedError.timestamp || new Date().toISOString()),
+      url: String(sanitizedError.url || window.location.href),
+      component: String(options.component || 'unknown'),
       details: options.details ? JSON.stringify(options.details) : undefined
     };
 
     // Send to chat system
     window.lovableChat.createErrorDialog(errorData);
   } catch (e) {
-    console.error("[sendErrorToChat] Failed to send error to chat:", e);
+    console.error("[sendErrorToChat] Failed to send error to chat:", sanitizeErrorObject(e));
   }
 }

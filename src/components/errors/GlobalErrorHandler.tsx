@@ -21,15 +21,15 @@ export function GlobalErrorHandler() {
         // Use getRecentErrors instead of getErrors to match implementation
         const allErrors = (errorCollector.getRecentErrors ? errorCollector.getRecentErrors() : errorCollector.getErrors()).map(e => {
           // Sanitize error objects before using them and ensure they have the 'name' property
-          const sanitizedError = e.error ? sanitizeErrorObject(e.error) : new Error('Unknown error');
+          const sanitizedError = e.error ? sanitizeErrorObject(e.error) : sanitizeErrorObject(new Error('Unknown error'));
           
           // Create a properly typed ErrorData object
           const typedErrorData: ErrorData = {
             id: `err_${e.timestamp || Date.now()}`,
             error: sanitizedError,
             timestamp: e.timestamp ? new Date(e.timestamp).toISOString() : new Date().toISOString(),
-            message: sanitizedError.message,
-            stack: sanitizedError.stack,
+            message: String(sanitizedError.message || 'Unknown error'),
+            stack: String(sanitizedError.stack || ''),
             component: e.data?.component || null,
             source: e.data?.source || 'client',
             url: window.location.href,
@@ -81,10 +81,10 @@ export function GlobalErrorHandler() {
     try {
       const supportMessage = `
         Error Report:
-        - Message: ${error.message || 'No message provided'}
-        - Component: ${error.component || 'Unknown'}
-        - Source: ${error.source || 'Unknown'}
-        - Timestamp: ${error.timestamp}
+        - Message: ${String(error.message || 'No message provided')}
+        - Component: ${String(error.component || 'Unknown')}
+        - Source: ${String(error.source || 'Unknown')}
+        - Timestamp: ${String(error.timestamp)}
       `;
       
       // Αποστολή του σφάλματος (για την προσομοίωση)
@@ -108,6 +108,17 @@ export function GlobalErrorHandler() {
 
   if (!lastError) return null;
 
+  // Make sure we properly stringify any potential object values before rendering
+  const errorMessage = typeof lastError.message === 'string' ? 
+    lastError.message : String(lastError.message || 'Unknown error');
+  
+  const componentName = typeof lastError.component === 'string' ? 
+    lastError.component : String(lastError.component || 'Unknown');
+    
+  const timestamp = typeof lastError.timestamp === 'string' ? 
+    new Date(lastError.timestamp).toLocaleTimeString() : 
+    new Date().toLocaleTimeString();
+
   return (
     <div className="fixed bottom-4 right-4 max-w-md z-50 animate-in fade-in slide-in-from-right">
       <div className="bg-destructive text-white p-4 rounded-md shadow-lg flex flex-col">
@@ -115,9 +126,9 @@ export function GlobalErrorHandler() {
           <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
           <div className="flex-1">
             <div className="font-semibold">Σφάλμα Εφαρμογής</div>
-            <div className="text-sm opacity-90">{lastError.message || 'Unknown error'}</div>
+            <div className="text-sm opacity-90">{errorMessage}</div>
             <div className="text-xs opacity-75 mt-1">
-              Στο: {lastError.component || 'Unknown'} | {new Date(lastError.timestamp).toLocaleTimeString()}
+              Στο: {componentName} | {timestamp}
             </div>
           </div>
         </div>

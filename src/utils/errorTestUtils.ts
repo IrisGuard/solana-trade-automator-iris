@@ -50,19 +50,34 @@ export function sanitizeErrorObject(error: any): Error & {
       sanitized[key] = value;
     } else if (typeof value === 'object') {
       try {
-        // Handle objects that might have fileName, lineNumber, columnNumber keys
-        if (value && typeof value === 'object' && ('fileName' in value || 'lineNumber' in value || 'columnNumber' in value)) {
+        // Special handling for objects with fileName, lineNumber, columnNumber
+        if (value && typeof value === 'object' && 
+            ('fileName' in value || 'lineNumber' in value || 'columnNumber' in value)) {
           const objDetails = [];
           if ('fileName' in value) objDetails.push(`file: ${String(value.fileName)}`);
           if ('lineNumber' in value) objDetails.push(`line: ${String(value.lineNumber)}`);
           if ('columnNumber' in value) objDetails.push(`column: ${String(value.columnNumber)}`);
           sanitized[key] = objDetails.join(', ');
+        } else if (Array.isArray(value)) {
+          // Handle arrays by converting each item to string
+          sanitized[key] = value.map(item => 
+            typeof item === 'object' ? JSON.stringify(item) : String(item)
+          ).join(', ');
         } else {
-          sanitized[key] = JSON.stringify(value, null, 2);
+          // Try to stringify other objects
+          try {
+            sanitized[key] = JSON.stringify(value);
+          } catch (e) {
+            sanitized[key] = `[Complex ${key} object]`;
+          }
         }
       } catch (e) {
         sanitized[key] = `[Complex ${key} object]`;
       }
+    } else if (typeof value === 'function') {
+      sanitized[key] = `[Function: ${value.name || 'anonymous'}]`;
+    } else if (typeof value === 'symbol') {
+      sanitized[key] = value.toString();
     } else {
       sanitized[key] = String(value);
     }
