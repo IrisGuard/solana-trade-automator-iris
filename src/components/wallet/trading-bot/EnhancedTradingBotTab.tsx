@@ -38,15 +38,19 @@ export function EnhancedTradingBotTab() {
   } as LocalTradingBotConfig;
 
   // Process tokens to ensure they match the expected Token type from @/types/wallet
-  const typedTokens = tokens.map(token => ({
-    address: token.address || '',
-    symbol: token.symbol || '',
-    name: token.name || '',
-    amount: Number(token.amount || 0), // Convert to number and ensure it's never undefined
-    decimals: token.decimals || 0,
-    mint: token.mint || token.address || '',
-    logo: token.logo
-  } as Token));
+  // Using a more explicit type conversion to ensure proper type compatibility
+  const typedTokens = tokens.map(token => {
+    const processedToken: Token = {
+      address: token.address || '',
+      symbol: token.symbol || '',
+      name: token.name || '',
+      amount: Number(token.amount || 0), // Convert to number and ensure it's never undefined
+      decimals: token.decimals || 0,
+      mint: token.mint || token.address || '',
+      logo: token.logo
+    };
+    return processedToken;
+  });
 
   return (
     <Tabs defaultValue="trading">
