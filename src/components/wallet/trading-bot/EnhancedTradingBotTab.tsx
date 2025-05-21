@@ -37,19 +37,17 @@ export function EnhancedTradingBotTab() {
     strategy: config.strategy as "grid" | "dca" | "momentum" | "simple" | "advanced" | "custom"
   } as LocalTradingBotConfig;
 
-  // Create a new array of tokens with the correct type structure that satisfies the Token type
-  // from @/types/wallet where amount is required and must be a number
-  const typedTokens = tokens.map(token => {
-    return {
-      address: token.address || '',
-      symbol: token.symbol || '',
-      name: token.name || '',
-      amount: typeof token.amount === 'number' ? token.amount : Number(token.amount || 0),
-      decimals: token.decimals || 0,
-      mint: token.mint || token.address || '',
-      logo: token.logo
-    } satisfies Token; // Using satisfies ensures the type is correct
-  });
+  // Create a new array of tokens with the correct type structure
+  // Ensure each token has all the required properties from Token type
+  const typedTokens = tokens.map(token => ({
+    address: token.address || '',
+    symbol: token.symbol || '',
+    name: token.name || '',
+    amount: typeof token.amount === 'number' ? token.amount : Number(token.amount || 0), // Ensure amount is a number and not undefined
+    decimals: token.decimals || 0,
+    mint: token.mint || token.address || '',
+    logo: token.logo
+  })) as Token[]; // Use direct type assertion instead of satisfies to ensure compatibility
 
   return (
     <Tabs defaultValue="trading">
