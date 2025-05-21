@@ -147,10 +147,15 @@ try {
                       }; 
                     };
   
-  // Create safe createElement reference - Fix type issue here by returning React.ReactNode
+  // Create safe createElement reference - Fix ReactNode type issue
   const createElement = React.createElement || React['createElement'] || 
-                       function(type, props, ...children) { 
-                         return React.createElement ? React.createElement(type, props, ...children) : type;
+                       function(type: any, props: any, ...children: any[]) { 
+                         // Return a proper React element that satisfies ReactNode
+                         if (React.createElement) {
+                           return React.createElement(type, props, ...children);
+                         }
+                         // Return a minimal valid ReactNode as fallback
+                         return type as React.ReactNode;
                        };
   
   // Create safe StrictMode reference
