@@ -7,8 +7,44 @@
 // Import React directly to get accurate types and implementations
 import * as React from 'react';
 
-// Import from our bridge
-import {
+// Access React hooks via the hooks object in React 18.3.1
+const reactHooks = React.hooks || {};
+
+// Create hooks with fallbacks
+const hooksWithFallbacks = {
+  useState: reactHooks.useState || function useState(initialState) { 
+    return [typeof initialState === 'function' ? initialState() : initialState, () => {}]; 
+  },
+  useEffect: reactHooks.useEffect || function useEffect() {},
+  useContext: reactHooks.useContext || function useContext() { return undefined; },
+  useReducer: reactHooks.useReducer || function useReducer(reducer, state) { return [state, () => {}]; },
+  useRef: reactHooks.useRef || function useRef(value) { return {current: value}; },
+  useCallback: reactHooks.useCallback || function useCallback(fn) { return fn; },
+  useMemo: reactHooks.useMemo || function useMemo(fn) { return fn(); },
+  useLayoutEffect: reactHooks.useLayoutEffect || function useLayoutEffect() {},
+  useImperativeHandle: reactHooks.useImperativeHandle || function useImperativeHandle() {},
+  useDebugValue: reactHooks.useDebugValue || function useDebugValue() {},
+  useId: reactHooks.useId || function useId() { return Math.random().toString(36).slice(2); }
+};
+
+// Core React APIs with fallbacks
+const coreApis = {
+  Fragment: React.Fragment || Symbol('React.Fragment'),
+  createElement: React.createElement,
+  createContext: React.createContext,
+  forwardRef: React.forwardRef,
+  memo: React.memo
+};
+
+// JSX runtime functions
+const jsxRuntime = {
+  jsx: React.createElement,
+  jsxs: React.createElement,
+  jsxDEV: React.createElement
+};
+
+// Export hooks
+export const {
   useState,
   useEffect,
   useRef,
@@ -19,44 +55,24 @@ import {
   useLayoutEffect,
   useImperativeHandle,
   useDebugValue,
-  useId,
+  useId
+} = hooksWithFallbacks;
+
+// Export core React functions
+export const {
   Fragment,
   createElement,
   createContext,
   forwardRef,
   memo
-} from '../react-18-bridge';
+} = coreApis;
 
-// JSX runtime functions
-import { jsx, jsxs, jsxDEV } from '../jsx-runtime-bridge';
-
-// Export everything
-export {
-  // Hooks
-  useState,
-  useEffect,
-  useRef,
-  useContext,
-  useReducer,
-  useCallback,
-  useMemo,
-  useLayoutEffect,
-  useImperativeHandle,
-  useDebugValue,
-  useId,
-  
-  // Core React functions
-  Fragment,
-  createElement,
-  createContext,
-  forwardRef,
-  memo,
-  
-  // JSX runtime
+// Export JSX runtime
+export const {
   jsx,
   jsxs,
   jsxDEV
-};
+} = jsxRuntime;
 
 /**
  * Ensures React exports are patched in the global scope
@@ -69,74 +85,25 @@ export function patchGlobalReact() {
       window.React = React;
     }
     
-    // Apply all exports as a flat object to window.React
-    const exports = {
-      // Core APIs
-      Fragment: Fragment || React.Fragment,
-      createElement: createElement || React.createElement,
-      createContext: createContext || React.createContext,
-      forwardRef: forwardRef || React.forwardRef,
-      memo: memo || React.memo,
-      
-      // Hooks
-      useState: useState || React.useState,
-      useEffect: useEffect || React.useEffect,
-      useContext: useContext || React.useContext,
-      useRef: useRef || React.useRef,
-      useReducer: useReducer || React.useReducer,
-      useCallback: useCallback || React.useCallback,
-      useMemo: useMemo || React.useMemo,
-      useLayoutEffect: useLayoutEffect || React.useLayoutEffect,
-      useImperativeHandle: useImperativeHandle || React.useImperativeHandle,
-      useDebugValue: useDebugValue || React.useDebugValue,
-      useId: useId || React.useId,
-      
-      // JSX runtime
-      jsx: jsx,
-      jsxs: jsxs,
-      jsxDEV: jsxDEV,
-      
-      // Make sure Children is properly implemented
-      Children: React.Children || {
-        map: function mapChildren(children, fn, context) {
-          if (!children) return null;
-          return Array.isArray(children) 
-            ? children.map(child => fn.call(context || null, child)) 
-            : [fn.call(context || null, children)];
-        },
-        forEach: function forEachChildren(children, fn, context) {
-          if (!children) return null;
-          if (Array.isArray(children)) {
-            children.forEach(child => fn.call(context || null, child));
-          } else {
-            fn.call(context || null, children);
-          }
-          return undefined;
-        },
-        count: function countChildren(children) {
-          if (!children) return 0;
-          return Array.isArray(children) ? children.length : 1;
-        },
-        only: function onlyChild(children) {
-          if (Array.isArray(children)) {
-            if (children.length !== 1) {
-              throw new Error('Children.only expected to receive a single React element child.');
-            }
-            return children[0];
-          }
-          return children;
-        },
-        toArray: function toArrayChildren(children) {
-          if (!children) return [];
-          return Array.isArray(children) ? children : [children];
-        }
-      }
+    // Combine all exports
+    const allExports = {
+      ...hooksWithFallbacks,
+      ...coreApis,
+      ...jsxRuntime
     };
     
     // Apply all exports to window.React
-    Object.entries(exports).forEach(([name, fn]) => {
-      if (fn && !window.React[name]) {
-        window.React[name] = fn;
+    Object.entries(allExports).forEach(([name, fn]) => {
+      if (!window.React[name]) {
+        try {
+          Object.defineProperty(window.React, name, {
+            value: fn,
+            configurable: true,
+            writable: true
+          });
+        } catch (e) {
+          console.warn(`Failed to patch ${name} on global React: ${e.message}`);
+        }
       }
     });
     

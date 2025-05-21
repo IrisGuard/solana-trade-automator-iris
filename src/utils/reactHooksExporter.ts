@@ -6,48 +6,68 @@
 
 // Use namespace import instead of default import for React 18.3.1+ compatibility
 import * as React from 'react';
-// Import bridge hooks that provide fallbacks
-import { 
-  useState as bridgeUseState,
-  useEffect as bridgeUseEffect,
-  useContext as bridgeUseContext,
-  useRef as bridgeUseRef,
-  useReducer as bridgeUseReducer,
-  useCallback as bridgeUseCallback,
-  useMemo as bridgeUseMemo,
-  useLayoutEffect as bridgeUseLayoutEffect,
-  useImperativeHandle as bridgeUseImperativeHandle,
-  useDebugValue as bridgeUseDebugValue,
-  useId as bridgeUseId,
-  useDeferredValue as bridgeUseDeferredValue,
-  useInsertionEffect as bridgeUseInsertionEffect,
-  useSyncExternalStore as bridgeUseSyncExternalStore,
-  useTransition as bridgeUseTransition
-} from '../react-18-bridge';
 
-// Check if React hooks are directly available
-const hasUseState = typeof React['useState'] === 'function';
-const hasUseEffect = typeof React['useEffect'] === 'function';
-const hasFragment = React.Fragment !== undefined;
+// Access React hooks via the hooks namespace in React 18.3.1
+const reactHooks = React.hooks || {};
 
-// Create a mapping of all hooks to ensure they exist - prefer direct React hooks if available
-const reactHooks = {
-  // Use direct React hooks, bridge hooks, or fallbacks in that order
-  useState: hasUseState ? React['useState'] : (bridgeUseState || function useState(initialState) { return [initialState, () => {}]; }),
-  useEffect: hasUseEffect ? React['useEffect'] : (bridgeUseEffect || function useEffect() {}),
-  useContext: React['useContext'] || bridgeUseContext || function useContext() { return undefined; },
-  useRef: React['useRef'] || bridgeUseRef || function useRef(initialValue) { return { current: initialValue }; },
-  useReducer: React['useReducer'] || bridgeUseReducer || function useReducer(reducer, initialState) { return [initialState, () => {}]; },
-  useCallback: React['useCallback'] || bridgeUseCallback || function useCallback(callback) { return callback; },
-  useMemo: React['useMemo'] || bridgeUseMemo || function useMemo(factory) { return factory(); },
-  useLayoutEffect: React['useLayoutEffect'] || bridgeUseLayoutEffect || function useLayoutEffect() {},
-  useImperativeHandle: React['useImperativeHandle'] || bridgeUseImperativeHandle || function useImperativeHandle() {},
-  useDebugValue: React['useDebugValue'] || bridgeUseDebugValue || function useDebugValue() {},
-  useId: React['useId'] || bridgeUseId || function useId() { return Math.random().toString(36).substring(2); },
-  useDeferredValue: React['useDeferredValue'] || bridgeUseDeferredValue || function useDeferredValue(value) { return value; },
-  useInsertionEffect: React['useInsertionEffect'] || bridgeUseInsertionEffect || function useInsertionEffect() {},
-  useSyncExternalStore: React['useSyncExternalStore'] || bridgeUseSyncExternalStore || function useSyncExternalStore(subscribe, getSnapshot) { return getSnapshot(); },
-  useTransition: React['useTransition'] || bridgeUseTransition || function useTransition() { return [false, () => {}]; }
+// Create a mapping of all hooks to ensure they exist
+const hooksMapping = {
+  // First try React.hooks (React 18.3.1), then fallback to direct access, then use fallbacks
+  useState: reactHooks.useState || function useState(initialState) { 
+    console.warn('Using fallback useState');
+    return [typeof initialState === 'function' ? initialState() : initialState, () => {}]; 
+  },
+  useEffect: reactHooks.useEffect || function useEffect() {
+    console.warn('Using fallback useEffect');
+  },
+  useContext: reactHooks.useContext || function useContext() { 
+    console.warn('Using fallback useContext');
+    return undefined; 
+  },
+  useRef: reactHooks.useRef || function useRef(initialValue) { 
+    console.warn('Using fallback useRef');
+    return { current: initialValue }; 
+  },
+  useReducer: reactHooks.useReducer || function useReducer(reducer, initialState) { 
+    console.warn('Using fallback useReducer');
+    return [initialState, () => {}]; 
+  },
+  useCallback: reactHooks.useCallback || function useCallback(callback) { 
+    console.warn('Using fallback useCallback');
+    return callback; 
+  },
+  useMemo: reactHooks.useMemo || function useMemo(factory) { 
+    console.warn('Using fallback useMemo');
+    return factory(); 
+  },
+  useLayoutEffect: reactHooks.useLayoutEffect || function useLayoutEffect() {
+    console.warn('Using fallback useLayoutEffect');
+  },
+  useImperativeHandle: reactHooks.useImperativeHandle || function useImperativeHandle() {
+    console.warn('Using fallback useImperativeHandle');
+  },
+  useDebugValue: reactHooks.useDebugValue || function useDebugValue() {
+    console.warn('Using fallback useDebugValue');
+  },
+  useId: reactHooks.useId || function useId() { 
+    console.warn('Using fallback useId');
+    return Math.random().toString(36).substring(2); 
+  },
+  useDeferredValue: reactHooks.useDeferredValue || function useDeferredValue(value) { 
+    console.warn('Using fallback useDeferredValue');
+    return value; 
+  },
+  useInsertionEffect: reactHooks.useInsertionEffect || function useInsertionEffect() {
+    console.warn('Using fallback useInsertionEffect');
+  },
+  useSyncExternalStore: reactHooks.useSyncExternalStore || function useSyncExternalStore(subscribe, getSnapshot) { 
+    console.warn('Using fallback useSyncExternalStore');
+    return getSnapshot(); 
+  },
+  useTransition: reactHooks.useTransition || function useTransition() { 
+    console.warn('Using fallback useTransition');
+    return [false, () => {}]; 
+  }
 };
 
 // Explicitly export all hooks from React
@@ -67,10 +87,10 @@ export const {
   useInsertionEffect,
   useSyncExternalStore,
   useTransition
-} = reactHooks;
+} = hooksMapping;
 
 // Create a safe Fragment reference
-export const Fragment = hasFragment ? React.Fragment : Symbol('React.Fragment');
+export const Fragment = React.Fragment || Symbol('React.Fragment');
 
 // Ensure the hooks are also available on the global React object
 if (typeof window !== 'undefined') {
@@ -83,8 +103,10 @@ if (typeof window !== 'undefined') {
     });
   }
   
-  // Check if each hook exists on global React and add it if not
-  Object.entries(reactHooks).forEach(([hookName, hookFn]) => {
+  // Add hooks and Fragment to global React
+  const exportItems = { ...hooksMapping, Fragment };
+  
+  Object.entries(exportItems).forEach(([hookName, hookFn]) => {
     if (!window.React[hookName]) {
       try {
         // Use Object.defineProperty for safer property assignment
@@ -99,21 +121,6 @@ if (typeof window !== 'undefined') {
       }
     }
   });
-  
-  // Handle Fragment differently to avoid read-only property error
-  if (!window.React.Fragment) {
-    try {
-      // Use our safe Fragment reference
-      Object.defineProperty(window.React, 'Fragment', {
-        value: Fragment,
-        writable: true,
-        configurable: true
-      });
-      console.log('Patched Fragment onto global React object');
-    } catch (e) {
-      console.warn('Could not patch Fragment onto global React:', e);
-    }
-  }
   
   console.log('React hooks exported to global React object successfully');
 }

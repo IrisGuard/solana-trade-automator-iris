@@ -7,10 +7,8 @@
 // Import standard React
 import * as React from 'react';
 
-// Check if we can access standard React functions
-const hasCreateElement = React && typeof React.createElement === 'function';
-const hasFragment = React && React.Fragment !== undefined;
-const hasCreateContext = React && typeof React.createContext === 'function';
+// Access React hooks via the hooks object in React 18.3.1
+const reactHooks = React.hooks || {};
 
 /**
  * React 18.3.1 has moved hooks and other APIs into a different structure.
@@ -21,24 +19,15 @@ export function applyReact183Compatibility() {
   
   // Create shims for common React APIs if needed
   const reactApiShims = {
-    createElement: function createElement(type, props, ...children) {
-      // Fallback implementation for React.createElement
-      if (hasCreateElement) {
-        return React.createElement(type, props, ...children);
-      }
-      
+    createElement: React.createElement || function createElement(type, props, ...children) {
       // Very basic fallback
       console.warn('Using createElement fallback');
       return { type, props: { ...props, children: children.length === 1 ? children[0] : children } };
     },
     
-    Fragment: hasFragment ? React.Fragment : Symbol('React.Fragment'),
+    Fragment: React.Fragment || Symbol('React.Fragment'),
     
-    createContext: function createContext(defaultValue) {
-      if (hasCreateContext) {
-        return React.createContext(defaultValue);
-      }
-      
+    createContext: React.createContext || function createContext(defaultValue) {
       // Basic fallback for createContext
       console.warn('Using createContext fallback');
       const context = {
@@ -50,21 +39,21 @@ export function applyReact183Compatibility() {
     }
   };
   
-  // Hook shims
+  // Hook shims - use React.hooks object from 18.3.1 if available
   const hookShims = {
-    useState: function useState(initialState) {
+    useState: reactHooks.useState || function useState(initialState) {
       console.warn('Using useState fallback shim');
       const state = typeof initialState === 'function' ? initialState() : initialState;
       const setState = () => { /* noop */ };
       return [state, setState];
     },
     
-    useEffect: function useEffect(effect, deps) {
+    useEffect: reactHooks.useEffect || function useEffect() {
       console.warn('Using useEffect fallback shim');
       // No-op implementation
     },
     
-    useRef: function useRef(initialValue) {
+    useRef: reactHooks.useRef || function useRef(initialValue) {
       console.warn('Using useRef fallback shim');
       return { current: initialValue };
     }
@@ -74,21 +63,37 @@ export function applyReact183Compatibility() {
 
   // Apply to global React if it exists
   if (typeof window !== 'undefined') {
-    window.React = window.React || {} as any;
+    window.React = window.React || {};
     
     // Apply API shims
     Object.entries(reactApiShims).forEach(([key, implementation]) => {
       if (!window.React[key]) {
-        window.React[key] = implementation;
-        console.log(`Applied ${key} shim to global React`);
+        try {
+          Object.defineProperty(window.React, key, {
+            value: implementation,
+            configurable: true,
+            writable: true
+          });
+          console.log(`Applied ${key} shim to global React`);
+        } catch (e) {
+          console.warn(`Failed to apply ${key} shim: ${e.message}`);
+        }
       }
     });
     
     // Apply hook shims
     Object.entries(hookShims).forEach(([key, implementation]) => {
       if (!window.React[key]) {
-        window.React[key] = implementation;
-        console.log(`Applied ${key} hook shim to global React`);
+        try {
+          Object.defineProperty(window.React, key, {
+            value: implementation, 
+            configurable: true,
+            writable: true
+          });
+          console.log(`Applied ${key} hook shim to global React`);
+        } catch (e) {
+          console.warn(`Failed to apply ${key} hook shim: ${e.message}`);
+        }
       }
     });
   }

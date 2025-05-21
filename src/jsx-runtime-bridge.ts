@@ -5,7 +5,7 @@
  */
 import * as React from 'react';
 
-// Get a reference to createElement for JSX transformation
+// Access createElement
 const createElement = React.createElement;
 
 // JSX runtime functions that use createElement
