@@ -8,7 +8,7 @@ import { sanitizeErrorObject } from '@/utils/errorTestUtils';
 declare global {
   interface Window {
     lovableChat?: {
-      createErrorDialog?: (errorData: Record<string, string>) => void;
+      createErrorDialog?: (errorData: any) => void;
       clearErrors?: () => void;
       [key: string]: any;
     };
