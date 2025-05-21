@@ -59,9 +59,9 @@ if (typeof window !== 'undefined') {
     Fragment: React.Fragment
   };
   
-  // Create window.React if it doesn't exist
+  // Create window.React if it doesn't exist - use full React object
   if (!window.React) {
-    window.React = {...React};
+    window.React = React;
   }
   
   // Add all required hooks to window.React

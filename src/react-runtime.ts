@@ -36,7 +36,17 @@ const core = {
   createRef: React['createRef'],
   cloneElement: React['cloneElement'],
   isValidElement: React['isValidElement'],
-  createFactory: React['createFactory']
+  createFactory: React['createFactory'],
+  // Add the missing properties causing TypeScript errors
+  lazy: React['lazy'],
+  startTransition: React['startTransition'],
+  act: React['act'],
+  StrictMode: React['StrictMode'],
+  Suspense: React['Suspense'],
+  SuspenseList: React['SuspenseList'],
+  Component: React['Component'],
+  PureComponent: React['PureComponent'],
+  version: React['version']
 };
 
 // JSX runtime functions - only define once to avoid redeclaration
@@ -75,7 +85,16 @@ export const {
   createRef,
   cloneElement,
   isValidElement,
-  createFactory
+  createFactory,
+  lazy,
+  startTransition,
+  act,
+  StrictMode,
+  Suspense,
+  SuspenseList,
+  Component,
+  PureComponent,
+  version
 } = core;
 
 // Export JSX runtime functions
@@ -87,9 +106,10 @@ export const {
 
 // Patch global React object if in browser
 if (typeof window !== 'undefined') {
-  window.React = window.React || {};
+  // Instead of creating an empty object, use the full React object as a base
+  window.React = window.React || React;
   
-  // Apply all hooks
+  // Apply all hooks and core methods if they're missing
   Object.entries({...hooks, ...core, ...jsxRuntime}).forEach(([key, value]) => {
     if (value && !window.React[key]) {
       try {
