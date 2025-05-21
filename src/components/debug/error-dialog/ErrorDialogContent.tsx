@@ -22,7 +22,7 @@ export function ErrorDialogContent({ error, onClose, errorCode }: ErrorDialogCon
   // Ensure all error properties are strings to avoid React rendering objects directly
   const safeError = sanitizeErrorObject(error);
   
-  // Format timestamp if available, otherwise use current time
+  // Safe access to timestamp, with default current time if not available
   const timestamp = typeof safeError.timestamp === 'string' ? 
     new Date(safeError.timestamp).toLocaleString() : 
     new Date().toLocaleString();

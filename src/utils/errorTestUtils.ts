@@ -149,11 +149,10 @@ export function checkReactEnvironment(): Record<string, unknown> {
       hasJsxs: typeof window.React?.jsxs === 'function',
       hasCreateElement: typeof window.React?.createElement === 'function',
       hasUseState: typeof window.React?.useState === 'function',
-      // Safely check document mode
-      // document.documentMode is an IE-specific property
+      // Safely check document mode with type check to avoid TS errors
       documentMode: typeof document !== 'undefined' && 
                   'documentMode' in document ? 
-                  document['documentMode'] : undefined,
+                  (document as any).documentMode : undefined,
       userAgent: navigator.userAgent
     };
   } catch (e) {

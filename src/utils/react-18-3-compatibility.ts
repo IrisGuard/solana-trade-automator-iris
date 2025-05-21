@@ -5,7 +5,7 @@
  */
 
 // Import standard React
-import * as React from 'react';
+import React from 'react';
 
 /**
  * React 18.3.1 has moved hooks and other APIs into a different structure.
@@ -16,7 +16,7 @@ export function applyReact183Compatibility() {
   
   // Create shims for common React APIs if needed
   const reactApiShims = {
-    createElement: function createElement(type: any, props: any, ...children: any[]) {
+    createElement: function createElement(type, props, ...children) {
       // Fallback implementation for React.createElement
       if (typeof React.createElement === 'function') {
         return React.createElement(type, props, ...children);
@@ -29,7 +29,7 @@ export function applyReact183Compatibility() {
     
     Fragment: React.Fragment || Symbol('React.Fragment'),
     
-    createContext: function createContext(defaultValue: any) {
+    createContext: function createContext(defaultValue) {
       if (typeof React.createContext === 'function') {
         return React.createContext(defaultValue);
       }
@@ -37,8 +37,8 @@ export function applyReact183Compatibility() {
       // Basic fallback for createContext
       console.warn('Using createContext fallback');
       const context = {
-        Provider: ({ value, children }: { value: any, children: any }) => children,
-        Consumer: ({ children }: { children: (value: any) => any }) => children(defaultValue),
+        Provider: ({ value, children }) => children,
+        Consumer: ({ children }) => children(defaultValue),
         _currentValue: defaultValue
       };
       return context;
@@ -47,19 +47,19 @@ export function applyReact183Compatibility() {
   
   // Hook shims
   const hookShims = {
-    useState: function useState<T>(initialState: T | (() => T)): [T, (value: T | ((prev: T) => T)) => void] {
+    useState: function useState(initialState) {
       console.warn('Using useState fallback shim');
-      const state = typeof initialState === 'function' ? (initialState as () => T)() : initialState;
-      const setState = (_: T | ((prev: T) => T)) => { /* noop */ };
+      const state = typeof initialState === 'function' ? initialState() : initialState;
+      const setState = () => { /* noop */ };
       return [state, setState];
     },
     
-    useEffect: function useEffect(effect: () => void | (() => void), deps?: any[]) {
+    useEffect: function useEffect(effect, deps) {
       console.warn('Using useEffect fallback shim');
       // No-op implementation
     },
     
-    useRef: function useRef<T>(initialValue: T): { current: T } {
+    useRef: function useRef(initialValue) {
       console.warn('Using useRef fallback shim');
       return { current: initialValue };
     }

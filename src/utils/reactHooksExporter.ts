@@ -5,7 +5,7 @@
  */
 
 // Use namespace import instead of default import for React 18.3.1+ compatibility
-import * as React from 'react';
+import React from 'react';
 import { 
   useState as bridgeUseState,
   useEffect as bridgeUseEffect,
@@ -27,21 +27,21 @@ import {
 // Create a mapping of all hooks to ensure they exist
 const reactHooks = {
   // Use bridge hooks or fallbacks
-  useState: bridgeUseState,
-  useEffect: bridgeUseEffect,
-  useContext: bridgeUseContext,
-  useRef: bridgeUseRef,
-  useReducer: bridgeUseReducer,
-  useCallback: bridgeUseCallback,
-  useMemo: bridgeUseMemo,
-  useLayoutEffect: bridgeUseLayoutEffect,
-  useImperativeHandle: bridgeUseImperativeHandle,
-  useDebugValue: bridgeUseDebugValue,
-  useId: bridgeUseId,
-  useDeferredValue: bridgeUseDeferredValue,
-  useInsertionEffect: bridgeUseInsertionEffect,
-  useSyncExternalStore: bridgeUseSyncExternalStore,
-  useTransition: bridgeUseTransition
+  useState: bridgeUseState || React.useState || function useState(initialState) { return [initialState, () => {}]; },
+  useEffect: bridgeUseEffect || React.useEffect || function useEffect() {},
+  useContext: bridgeUseContext || React.useContext || function useContext() { return undefined; },
+  useRef: bridgeUseRef || React.useRef || function useRef(initialValue) { return { current: initialValue }; },
+  useReducer: bridgeUseReducer || React.useReducer || function useReducer(reducer, initialState) { return [initialState, () => {}]; },
+  useCallback: bridgeUseCallback || React.useCallback || function useCallback(callback) { return callback; },
+  useMemo: bridgeUseMemo || React.useMemo || function useMemo(factory) { return factory(); },
+  useLayoutEffect: bridgeUseLayoutEffect || React.useLayoutEffect || function useLayoutEffect() {},
+  useImperativeHandle: bridgeUseImperativeHandle || React.useImperativeHandle || function useImperativeHandle() {},
+  useDebugValue: bridgeUseDebugValue || React.useDebugValue || function useDebugValue() {},
+  useId: bridgeUseId || React.useId || function useId() { return Math.random().toString(36).substring(2); },
+  useDeferredValue: bridgeUseDeferredValue || React.useDeferredValue || function useDeferredValue(value) { return value; },
+  useInsertionEffect: bridgeUseInsertionEffect || React.useInsertionEffect || function useInsertionEffect() {},
+  useSyncExternalStore: bridgeUseSyncExternalStore || React.useSyncExternalStore || function useSyncExternalStore(subscribe, getSnapshot) { return getSnapshot(); },
+  useTransition: bridgeUseTransition || React.useTransition || function useTransition() { return [false, () => {}]; }
 };
 
 // Explicitly export all hooks from React
@@ -91,27 +91,10 @@ if (typeof window !== 'undefined') {
     }
   });
   
-  // Export JSX runtime functions from bridge to global React
-  const jsxFunctions = {
-    jsx: bridgeUseState,
-    jsxs: bridgeUseEffect,
-    Fragment: React.Fragment
-  };
-  
-  Object.entries(jsxFunctions).forEach(([fnName, fn]) => {
-    if (!window.React[fnName]) {
-      try {
-        Object.defineProperty(window.React, fnName, {
-          value: fn,
-          writable: true,
-          configurable: true
-        });
-        console.log(`Patched ${fnName} onto global React object`);
-      } catch (e) {
-        console.warn(`Could not patch ${fnName} onto global React:`, e);
-      }
-    }
-  });
+  // Export fragment symbol
+  if (!window.React.Fragment) {
+    window.React.Fragment = Symbol('React.Fragment');
+  }
   
   console.log('React hooks exported to global React object successfully');
 }

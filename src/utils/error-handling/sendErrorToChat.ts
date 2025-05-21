@@ -21,6 +21,7 @@ export function sendErrorToChat(error: Error | unknown, options: { component?: s
       name: String(sanitizedError.name || 'Error'),
       message: String(sanitizedError.message || 'Unknown error'),
       stack: String(sanitizedError.stack || ''),
+      // Safe access to custom properties added by sanitizeErrorObject
       timestamp: String(sanitizedError.timestamp || new Date().toISOString()),
       url: String(sanitizedError.url || window.location.href),
       component: String(options.component || 'unknown'),

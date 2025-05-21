@@ -5,13 +5,12 @@
  * This file creates compatibility bridges for React 18.3.1 which has changed
  * how hooks and JSX functions are exported
  */
-import * as React from 'react';
-import './jsx-runtime-bridge';
+import React from 'react';
 
 // Create a version check that doesn't rely on the version export
 console.log('React bridge loading - ensuring compatibility with React 18.3.1');
 
-// Create hooks with safe fallbacks using React as a namespace
+// Create hooks with safe fallbacks
 const createHook = (name, fallbackFn) => {
   // Try to access the hook from React directly
   return React[name] || // Direct access
@@ -35,31 +34,26 @@ export const useInsertionEffect = createHook('useInsertionEffect', () => {});
 export const useSyncExternalStore = createHook('useSyncExternalStore', (subscribe, getSnapshot) => getSnapshot());
 export const useTransition = createHook('useTransition', () => [false, () => {}]);
 
-// Create JSX runtime function exports
-export const jsx = React.jsx || ((type, props) => React['createElement'](type, props));
-export const jsxs = React.jsxs || ((type, props) => React['createElement'](type, props));
+// Create JSX runtime function exports - use React.createElement directly as fallback
+export const jsx = React.createElement;
+export const jsxs = React.createElement;
 export const Fragment = React.Fragment || Symbol('React.Fragment');
-export const createElement = React['createElement'] || ((type, props, ...children) => ({ type, props: { ...props, children } }));
-export const createContext = React['createContext'] || ((defaultValue) => ({ Provider: Fragment, Consumer: Fragment, _currentValue: defaultValue }));
-export const forwardRef = React['forwardRef'] || ((render) => render);
-export const memo = React['memo'] || ((component) => component);
+export const createElement = React.createElement;
+export const createContext = React.createContext;
+export const forwardRef = React.forwardRef;
+export const memo = React.memo;
 
 // Apply these to the global React object
 if (typeof window !== 'undefined') {
-  // Initialize window.React with the React object itself, not an empty object
-  // This fixes the type error by ensuring it has all required properties
+  // Initialize window.React with the React object itself
   window.React = window.React || React;
-  
-  // Apply JSX functions
-  Object.assign(window.React, {
-    jsx, jsxs, Fragment, createElement, createContext, forwardRef, memo
-  });
   
   // Apply hooks
   const hooks = {
     useState, useEffect, useContext, useReducer, useRef, useMemo, useCallback,
     useLayoutEffect, useDebugValue, useImperativeHandle, useId, useDeferredValue,
-    useInsertionEffect, useSyncExternalStore, useTransition
+    useInsertionEffect, useSyncExternalStore, useTransition,
+    Fragment, createElement, createContext, forwardRef, memo
   };
   
   Object.entries(hooks).forEach(([name, fn]) => {
