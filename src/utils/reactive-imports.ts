@@ -63,29 +63,57 @@ export function patchGlobalReact() {
   if (typeof window !== 'undefined') {
     // Create a starter React object with required props if needed
     if (!window.React) {
-      // Start with a minimal set of React functions that must exist
-      window.React = {
-        createElement,
-        Fragment,
-        useState,
-        useEffect,
-        useContext,
-        useRef,
-        useReducer,
-        useCallback,
-        useMemo,
-        useLayoutEffect,
-        createContext,
-        forwardRef,
-        memo,
-        // Provide other essential properties
+      // Import React directly to ensure we have the correct types
+      const React = require('react');
+      
+      // Initialize with React itself or create a minimal compatible object
+      window.React = React || {
+        // These must be correctly typed functions, not just any functions
         version: '18.3.1',
+        // Use the actual imported functions when available
+        createElement: createElement || React.createElement,
+        Fragment: Fragment || React.Fragment,
+        useState: useState || React.useState,
+        useEffect: useEffect || React.useEffect,
+        useContext: useContext || React.useContext,
+        useRef: useRef || React.useRef,
+        useReducer: useReducer || React.useReducer,
+        useCallback: useCallback || React.useCallback,
+        useMemo: useMemo || React.useMemo,
+        useLayoutEffect: useLayoutEffect || React.useLayoutEffect,
+        createContext: createContext || React.createContext,
+        forwardRef: forwardRef || React.forwardRef,
+        memo: memo || React.memo,
         Children: {
-          map: (children, fn) => Array.isArray(children) ? children.map(fn) : (children ? [fn(children)] : []),
-          forEach: (children, fn) => Array.isArray(children) ? children.forEach(fn) : (children ? fn(children) : null),
-          count: (children) => children ? (Array.isArray(children) ? children.length : 1) : 0,
-          only: (children) => Array.isArray(children) ? (children.length === 1 ? children[0] : new Error('Children.only expected to receive a single React element child.')) : children,
-          toArray: (children) => Array.isArray(children) ? children : (children ? [children] : [])
+          map: function mapChildren(children, fn) {
+            if (!children) return null;
+            return Array.isArray(children) 
+              ? children.map(fn) 
+              : [fn(children)];
+          },
+          forEach: function forEachChildren(children, fn) {
+            if (!children) return null;
+            return Array.isArray(children) 
+              ? children.forEach(fn) 
+              : fn(children);
+          },
+          count: function countChildren(children) {
+            if (!children) return 0;
+            return Array.isArray(children) ? children.length : 1;
+          },
+          only: function onlyChild(children) {
+            if (Array.isArray(children)) {
+              if (children.length !== 1) {
+                throw new Error('Children.only expected to receive a single React element child.');
+              }
+              return children[0];
+            }
+            return children;
+          },
+          toArray: function toArrayChildren(children) {
+            if (!children) return [];
+            return Array.isArray(children) ? children : [children];
+          }
         }
       };
     }
