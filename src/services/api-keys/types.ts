@@ -1,18 +1,23 @@
 
-export interface ApiKeyEntry {
-  id?: string;
-  user_id: string;
+export interface ApiKey {
+  id: string;
   name: string;
   service: string;
   key_value: string;
-  status: 'active' | 'expired' | 'revoked' | 'failing';
-  created_at: string;
+  status: string;
+  user_id: string;
   description?: string;
-  is_encrypted: boolean;
+  created_at?: string;
 }
 
-export interface ApiKeyWithState extends ApiKeyEntry {
-  isVisible: boolean;
-  isWorking: boolean;
-  isTesting: boolean;
+export interface ApiService {
+  id: string;
+  name: string;
+  endpoint: string;
+  description?: string;
+  isActive: boolean;
+}
+
+export interface ApiKeyEntry extends ApiKey {
+  // Add additional properties needed for API Key entries
 }

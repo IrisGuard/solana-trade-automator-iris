@@ -9,10 +9,10 @@ import { Plus } from 'lucide-react';
 export function ApiKeysSection() {
   const { 
     apiKeys, 
-    loading, 
+    isLoading,
     copiedKeyId,
     visibleKeyIds,
-    fetchApiKeys,
+    loadApiKeys,
     handleCopy,
     handleAddNewKey,
     toggleKeyVisibility 
@@ -54,7 +54,7 @@ export function ApiKeysSection() {
           onToggleVisibility={toggleKeyVisibility}
           onCopy={handleCopy}
           copiedKeyId={copiedKeyId}
-          isLoading={loading} 
+          isLoading={isLoading} 
         />
       </CardContent>
     </Card>

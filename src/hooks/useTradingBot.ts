@@ -1,150 +1,119 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { Token } from '@/types/wallet';
-import { TradingBotConfig, TradingOrder } from './trading-bot/types';
-import { toast } from 'sonner';
-import { v4 as uuidv4 } from 'uuid';
 
-// Default configuration
-const DEFAULT_CONFIG: TradingBotConfig = {
-  selectedToken: null,
-  buyThreshold: 3,
-  sellThreshold: 5,
-  tradeAmount: 10,
-  stopLoss: 10,
-  takeProfit: 15,
-  strategy: 'grid', // Fixed from 'simple' to 'grid'
-  autoReinvest: false,
-  maxBudget: 100,
-  trailingStop: false,
-  autoRebalance: false
-};
+interface Token {
+  address: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+  logo?: string;
+  balance?: number;
+  price?: number;
+}
 
-export function useTradingBot(tokens?: Token[]) {
-  const [config, setConfig] = useState<TradingBotConfig>(DEFAULT_CONFIG);
+interface TradingBotConfig {
+  strategy: string;
+  tokenAddress: string;
+  targetPrice: number;
+  stopLoss: number;
+  leverage: number;
+  tradeAmount: number;
+  isActive: boolean;
+  interval: string;
+}
+
+interface TradingOrder {
+  id: string;
+  tokenSymbol: string;
+  type: 'buy' | 'sell';
+  amount: number;
+  price: number;
+  status: 'pending' | 'executed' | 'cancelled';
+  timestamp: string;
+}
+
+export function useTradingBot(tokens: Token[] = []) {
+  const [config, setConfig] = useState<TradingBotConfig>({
+    strategy: 'momentum',
+    tokenAddress: '',
+    targetPrice: 0,
+    stopLoss: 0,
+    leverage: 1,
+    tradeAmount: 0.1,
+    isActive: false,
+    interval: '1h'
+  });
+  
   const [botStatus, setBotStatus] = useState<'idle' | 'running' | 'paused'>('idle');
-  const [selectedToken, setSelectedToken] = useState<Token | null>(null);
-  const [selectedTokenPrice, setSelectedTokenPrice] = useState<{ price: number; priceChange24h: number } | null>(null);
+  const [selectedToken, setSelectedToken] = useState<string | null>(null);
+  const [selectedTokenPrice, setSelectedTokenPrice] = useState<number | null>(null);
+  const [selectedTokenDetails, setSelectedTokenDetails] = useState<Token | null>(null);
   const [activeOrders, setActiveOrders] = useState<TradingOrder[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedTokenDetails, setSelectedTokenDetails] = useState<Token | null>(null);
-  const availableTokens = tokens || [];
   
-  // Update the config
+  // Update config
   const updateConfig = useCallback((newConfig: Partial<TradingBotConfig>) => {
     setConfig(prev => ({ ...prev, ...newConfig }));
   }, []);
   
-  // Select token for trading
-  const selectToken = useCallback(async (tokenAddress: string | null) => {
-    if (!tokenAddress) {
-      setSelectedToken(null);
-      setSelectedTokenDetails(null);
-      updateConfig({ selectedToken: null });
-      return;
-    }
-    
-    const token = availableTokens.find(t => t.address === tokenAddress);
+  // Select token
+  const selectToken = useCallback((tokenAddress: string) => {
+    setSelectedToken(tokenAddress);
+    const token = tokens.find(t => t.address === tokenAddress);
     if (token) {
-      setSelectedToken(token);
       setSelectedTokenDetails(token);
-      updateConfig({ selectedToken: tokenAddress });
-      
-      // Simulate getting price data
-      setSelectedTokenPrice({
-        price: 10 + Math.random() * 90,
-        priceChange24h: -10 + Math.random() * 20
-      });
+      setSelectedTokenPrice(token.price || 0);
     }
-  }, [availableTokens, updateConfig]);
+  }, [tokens]);
   
-  // Start the bot
+  // Start bot
   const startBot = useCallback(() => {
-    if (!config.selectedToken) {
-      toast.error('Please select a token first');
-      return false;
-    }
-    
+    if (!selectedToken) return false;
     setIsLoading(true);
     
-    // Simulate API call
+    // Simulate API request
     setTimeout(() => {
       setBotStatus('running');
-      toast.success('Bot started successfully');
-      
-      // Create demo orders
-      const stopLossPrice = selectedTokenPrice ? selectedTokenPrice.price * (1 - config.stopLoss / 100) : 0;
-      const takeProfitPrice = selectedTokenPrice ? selectedTokenPrice.price * (1 + config.takeProfit / 100) : 0;
-      
-      const newOrders: TradingOrder[] = [
-        {
-          id: uuidv4(),
-          type: 'stop-loss',
-          tokenSymbol: selectedToken?.symbol || '',
-          amount: config.tradeAmount,
-          price: parseFloat(stopLossPrice.toFixed(4)),
-          status: 'open',
-          createdAt: new Date().toISOString(),
-          token: selectedToken?.symbol || ''
-        },
-        {
-          id: uuidv4(),
-          type: 'take-profit',
-          tokenSymbol: selectedToken?.symbol || '',
-          amount: config.tradeAmount,
-          price: parseFloat(takeProfitPrice.toFixed(4)),
-          status: 'open',
-          createdAt: new Date().toISOString(),
-          token: selectedToken?.symbol || ''
-        }
-      ];
-      
-      setActiveOrders(newOrders);
+      updateConfig({ isActive: true });
       setIsLoading(false);
     }, 1500);
     
     return true;
-  }, [config, selectedToken, selectedTokenPrice]);
+  }, [selectedToken, updateConfig]);
   
-  // Pause the bot
+  // Pause bot
   const pauseBot = useCallback(() => {
     setIsLoading(true);
     
-    // Simulate API call
+    // Simulate API request
     setTimeout(() => {
       setBotStatus('paused');
-      toast.success('Bot paused');
       setIsLoading(false);
     }, 1000);
     
     return true;
   }, []);
   
-  // Stop the bot
+  // Stop bot
   const stopBot = useCallback(() => {
     setIsLoading(true);
     
-    // Simulate API call
+    // Simulate API request
     setTimeout(() => {
       setBotStatus('idle');
-      setActiveOrders([]);
-      toast.success('Bot stopped');
+      updateConfig({ isActive: false });
       setIsLoading(false);
     }, 1000);
     
     return true;
-  }, []);
+  }, [updateConfig]);
   
-  // Effect to update selected token when tokens change
+  // Initialize with first token if available
   useEffect(() => {
-    if (config.selectedToken && availableTokens.length > 0) {
-      const token = availableTokens.find(t => t.address === config.selectedToken);
-      if (token) {
-        setSelectedToken(token);
-        setSelectedTokenDetails(token);
-      }
+    if (!selectedToken && tokens.length > 0) {
+      selectToken(tokens[0].address);
     }
-  }, [availableTokens, config.selectedToken]);
+  }, [tokens, selectedToken, selectToken]);
   
   return {
     config,
@@ -152,13 +121,12 @@ export function useTradingBot(tokens?: Token[]) {
     botStatus,
     selectedToken,
     selectedTokenPrice,
+    selectedTokenDetails,
     activeOrders,
     isLoading,
     selectToken,
     startBot,
     pauseBot,
-    stopBot,
-    selectedTokenDetails,
-    tokens: availableTokens
+    stopBot
   };
 }

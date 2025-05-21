@@ -1,156 +1,57 @@
 
-import React, { useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useWalletConnection } from "@/hooks/useWalletConnection";
-import { WalletOverview } from "@/components/wallet/WalletOverview";
-import { TokensTab } from "@/components/wallet/TokensTab";
-import { EnhancedTradingBotTab } from "@/components/wallet/trading-bot/EnhancedTradingBotTab";
-import { MakerBotTab } from "@/components/wallet/MakerBotTab";
-import { ApiVaultTab } from "@/components/wallet/ApiVaultTab";
-import { SimulationTab } from "@/components/wallet/SimulationTab";
-import { SwapTab } from "@/components/wallet/SwapTab";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { AppNavigation } from "@/components/navigation/AppNavigation";
-import { GradientCard } from "@/components/ui/gradient-card";
-import { HeliusSyncComponent } from "@/components/wallet/HeliusSyncComponent";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import React, { useEffect } from 'react';
+import { useWalletConnection } from '@/hooks/useWalletConnection';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SwapTab } from '@/components/wallet/SwapTab';
+import { TokensTab } from '@/components/wallet/TokensTab';
+import { TransactionHistory } from '@/components/wallet/TransactionHistory';
+import { TradingBotTab } from '@/components/wallet/TradingBotTab';
+import { WalletOverview } from '@/components/wallet/WalletOverview';
+import { ApiVaultTab } from '@/components/wallet/ApiVaultTab';
 
-export default function WalletPage() {
-  const {
+export default function Wallet() {
+  const { 
     isConnected,
     walletAddress,
     solBalance,
     tokens,
     tokenPrices,
-    isLoadingTokens,
-    error,
-    connectWallet,
-    disconnectWallet,
-    refreshWalletData,
-    selectTokenForTrading,
-    isPhantomInstalled
+    isLoadingTokens
   } = useWalletConnection();
-
-  // Default tab
-  const [activeTab, setActiveTab] = React.useState("overview");
-
-  // Handle HeliusSyncComponent callback
-  const handleHeliusSync = () => {
-    if (isConnected && walletAddress) {
-      refreshWalletData(walletAddress);
+  
+  useEffect(() => {
+    // Check if wallet is connected on initial load
+    if (isConnected) {
+      console.log("Wallet connected on Wallet page:", walletAddress);
     }
-  };
-
+  }, [isConnected, walletAddress]);
+  
   return (
-    <div className="space-y-6">
-      <PageHeader 
-        title="Wallet & Trading Bot"
-        description="Διαχειριστείτε το πορτοφόλι σας και τα trading bots"
-        breadcrumbs={[{ label: "Wallet" }]}
-        variant="purple"
-        actions={
-          <div className="flex gap-2">
-            {isConnected && (
-              <HeliusSyncComponent onSync={handleHeliusSync} />
-            )}
-            {isConnected ? (
-              <Button variant="outline" onClick={disconnectWallet}>
-                Αποσύνδεση
-              </Button>
-            ) : (
-              <Button onClick={connectWallet}>
-                Σύνδεση Πορτοφολιού
-              </Button>
-            )}
-          </div>
-        }
+    <div className="container py-6 space-y-6">
+      <WalletOverview 
+        isConnected={isConnected}
+        walletAddress={walletAddress}
+        solBalance={solBalance}
+        tokenCount={tokens?.length || 0}
       />
       
-      {/* Quick Navigation */}
-      <div className="mb-6">
-        <AppNavigation variant="colorful" />
-      </div>
-
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <GradientCard variant="purple">
-        <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-2 md:grid-cols-7 w-full">
-            <TabsTrigger value="overview" className="text-sm">Επισκόπηση</TabsTrigger>
-            <TabsTrigger value="tokens" className="text-sm">Tokens</TabsTrigger>
-            <TabsTrigger value="swap" className="text-sm">Swap</TabsTrigger>
-            <TabsTrigger value="trading-bot" className="text-sm">Trading Bot</TabsTrigger>
-            <TabsTrigger value="maker-bot" className="text-sm">Maker Bot</TabsTrigger>
-            <TabsTrigger value="api-vault" className="text-sm">API Vault</TabsTrigger>
-            <TabsTrigger value="simulation" className="text-sm">Προσομοίωση</TabsTrigger>
-          </TabsList>
-
-          <WalletOverview 
-            isConnected={isConnected}
-            walletAddress={walletAddress}
-            solBalance={solBalance}
-            handleConnectWallet={connectWallet}
-            handleDisconnectWallet={disconnectWallet}
-          />
-
-          <TokensTab 
-            isConnected={isConnected}
-            tokenBalance={tokens && tokens.length > 0 ? tokens[0].amount : 0}
-            solBalance={solBalance}
-            handleConnectWallet={connectWallet}
-          />
-          
-          <SwapTab isConnected={isConnected} />
-
-          <EnhancedTradingBotTab />
-
-          <MakerBotTab 
-            isConnected={isConnected}
-          />
-
-          <ApiVaultTab />
-
-          <SimulationTab />
-        </Tabs>
-      </GradientCard>
-      
-      {/* Features description cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-        <GradientCard variant="blue">
-          <div className="p-4 text-center">
-            <h3 className="text-xl font-bold mb-2">Διαχείριση Tokens</h3>
-            <p className="text-muted-foreground mb-4">
-              Διαχειριστείτε τα tokens σας στο Solana blockchain με ασφάλεια και ευκολία.
-            </p>
-          </div>
-        </GradientCard>
+      <Tabs defaultValue="tokens">
+        <TabsList className="grid grid-cols-5">
+          <TabsTrigger value="tokens">Tokens</TabsTrigger>
+          <TabsTrigger value="swap">Swap</TabsTrigger>
+          <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          <TabsTrigger value="trading-bot">Trading Bot</TabsTrigger>
+          <TabsTrigger value="api-vault">API Vault</TabsTrigger>
+        </TabsList>
         
-        <GradientCard variant="green">
-          <div className="p-4 text-center">
-            <h3 className="text-xl font-bold mb-2">Αυτοματοποιημένο Trading</h3>
-            <p className="text-muted-foreground mb-4">
-              Ρυθμίστε το Trading Bot για αυτόματες συναλλαγές βάσει των προτιμήσεών σας.
-            </p>
-          </div>
-        </GradientCard>
-        
-        <GradientCard variant="amber">
-          <div className="p-4 text-center">
-            <h3 className="text-xl font-bold mb-2">Price Boost Protection</h3>
-            <p className="text-muted-foreground mb-4">
-              Προστατέψτε τις επενδύσεις σας από απότομες πτώσεις στην αγορά.
-            </p>
-          </div>
-        </GradientCard>
-      </div>
+        <TokensTab />
+        <SwapTab />
+        <TabsContent value="transactions">
+          <TransactionHistory />
+        </TabsContent>
+        <TradingBotTab />
+        <ApiVaultTab />
+      </Tabs>
     </div>
   );
 }

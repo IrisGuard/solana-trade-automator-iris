@@ -1,6 +1,6 @@
 
 import React from 'react';
-import * as RuntimeBridge from '../react-runtime';
+import * as ReactHooks from 'react';
 
 // Helper function to safely define a property if it doesn't exist
 const safelyDefineProperty = (obj, prop, value) => {
@@ -27,34 +27,34 @@ export function ensureReactCompatibility(): void {
         console.log('Created window.React from React module');
       }
       
-      // Use our runtime bridge exports for JSX functions
+      // Use JSX functions from React
       const jsxFunctions = {
-        jsx: RuntimeBridge.jsx,
-        jsxs: RuntimeBridge.jsxs,
-        jsxDEV: RuntimeBridge.jsxDEV
+        jsx: React.createElement, 
+        jsxs: React.createElement,
+        jsxDEV: React.createElement
       };
       
       Object.entries(jsxFunctions).forEach(([key, value]) => {
         safelyDefineProperty(window.React, key, value);
       });
       
-      // Make sure all essential React functions are available from our bridge
+      // Make sure all essential React functions are available
       const essentialReactFunctions = {
-        createElement: RuntimeBridge.createElement,
-        createContext: RuntimeBridge.createContext,
-        Fragment: RuntimeBridge.Fragment,
-        useState: RuntimeBridge.useState,
-        useEffect: RuntimeBridge.useEffect,
-        useContext: RuntimeBridge.useContext,
-        useRef: RuntimeBridge.useRef,
-        useReducer: RuntimeBridge.useReducer,
-        useCallback: RuntimeBridge.useCallback,
-        useMemo: RuntimeBridge.useMemo,
-        useLayoutEffect: RuntimeBridge.useLayoutEffect,
-        useImperativeHandle: RuntimeBridge.useImperativeHandle,
-        useDebugValue: RuntimeBridge.useDebugValue,
-        useId: RuntimeBridge.useId,
-        Children: RuntimeBridge.Children
+        createElement: React.createElement,
+        createContext: React.createContext,
+        Fragment: React.Fragment,
+        useState: React.useState,
+        useEffect: React.useEffect,
+        useContext: React.useContext,
+        useRef: React.useRef,
+        useReducer: React.useReducer,
+        useCallback: React.useCallback,
+        useMemo: React.useMemo,
+        useLayoutEffect: React.useLayoutEffect,
+        useImperativeHandle: React.useImperativeHandle,
+        useDebugValue: React.useDebugValue,
+        useId: React.useId,
+        Children: React.Children
       };
       
       // Apply essential functions safely

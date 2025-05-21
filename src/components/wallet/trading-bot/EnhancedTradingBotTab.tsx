@@ -26,6 +26,7 @@ export function EnhancedTradingBotTab() {
   } = useTradingBot(tokens);
 
   // Convert botStatus to the expected type for EnhancedPanel
+  // Fix the comparison by checking if botStatus === 'error' and using a ternary operator
   const normalizedBotStatus = botStatus === 'error' ? 'idle' : botStatus;
 
   return (

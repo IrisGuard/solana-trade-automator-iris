@@ -8,30 +8,42 @@ import React, {
   useRef,
   useContext,
   createContext,
-  useReducer
+  useReducer,
+  useLayoutEffect,
+  useId,
+  createElement,
+  Fragment,
+  Children
 } from 'react';
 
 let _React: any = React;
 
-export const useStateShim = (initialState: unknown) => useState(initialState);
-export const useEffectShim = (effect: () => void | (() => void), deps?: readonly unknown[]) => useEffect(effect, deps);
-export const useCallbackShim = (callback: (...args: unknown[]) => unknown, deps?: readonly unknown[]) => useCallback(callback, deps);
-export const useMemoShim = (factory: () => unknown, deps?: readonly unknown[]) => useMemo(factory, deps);
-export const useRefShim = (initialValue: unknown) => useRef(initialValue);
-export const useContextShim = (context: React.Context<unknown>) => useContext(context);
-export const useReducerShim = (reducer: (state: unknown, action: unknown) => unknown, initialState: unknown) => useReducer(reducer, initialState);
-export const createContextShim = (defaultValue: unknown) => createContext(defaultValue);
+// JSX Runtime functions
+export const jsx = React.createElement || createElement;
+export const jsxs = React.createElement || createElement;
+export const jsxDEV = React.createElement || createElement;
+export const jsxsDEV = React.createElement || createElement;
 
 // For compatibility with older code
 export {
-  useState as useState,
-  useEffect as useEffect,
-  useCallback as useCallback,
-  useMemo as useMemo,
-  useRef as useRef,
-  useContext as useContext,
-  useReducer as useReducer,
-  createContext as createContext
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  useContext,
+  useReducer,
+  useLayoutEffect,
+  useId,
+  createContext,
+  createElement,
+  Fragment,
+  Children
 };
+
+// Additional hooks that might be needed
+export const useImperativeHandle = React.useImperativeHandle;
+export const useDebugValue = React.useDebugValue;
+export const Profiler = React.Profiler || (() => null);
 
 export default _React;
