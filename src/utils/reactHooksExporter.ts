@@ -5,7 +5,7 @@
  */
 
 // Use namespace import instead of default import for React 18.3.1+ compatibility
-import React from 'react';
+import * as React from 'react';
 import { 
   useState as bridgeUseState,
   useEffect as bridgeUseEffect,

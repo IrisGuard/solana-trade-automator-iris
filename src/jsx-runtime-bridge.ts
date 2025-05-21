@@ -2,7 +2,7 @@
 /**
  * This file provides bridge functions for React JSX runtime with React 18.3.1
  */
-import React from 'react';
+import * as React from 'react';
 
 // In React 18.3.1, JSX runtime functions are no longer exported from 'react'
 // They are available from specific modules

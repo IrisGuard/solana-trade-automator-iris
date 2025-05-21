@@ -5,7 +5,7 @@
  */
 
 // Import standard React
-import React from 'react';
+import * as React from 'react';
 
 /**
  * React 18.3.1 has moved hooks and other APIs into a different structure.

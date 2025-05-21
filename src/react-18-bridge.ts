@@ -5,7 +5,7 @@
  * This file creates compatibility bridges for React 18.3.1 which has changed
  * how hooks and JSX functions are exported
  */
-import React from 'react';
+import * as React from 'react';
 
 // Create a version check that doesn't rely on the version export
 console.log('React bridge loading - ensuring compatibility with React 18.3.1');
@@ -65,5 +65,5 @@ if (typeof window !== 'undefined') {
   console.log('[React 18.3.1] Bridge initialized successfully');
 }
 
-// Export the entire React object
+// Export the React namespace as default
 export default React;

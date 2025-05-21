@@ -84,9 +84,8 @@ export function checkRouterHooksAvailable() {
 
 // Patch window.React if available to ensure React Router can find hooks
 if (typeof window !== 'undefined' && window.React) {
-  // Add hooks to the global React object
   const hooksToAdd = {
-    useState,
+    useState, 
     useEffect, 
     useRef, 
     useContext,
@@ -94,8 +93,8 @@ if (typeof window !== 'undefined' && window.React) {
     useMemo,
     useReducer,
     useLayoutEffect,
-    useDebugValue,
     useImperativeHandle,
+    useDebugValue,
     useId,
     useDeferredValue,
     useInsertionEffect,
