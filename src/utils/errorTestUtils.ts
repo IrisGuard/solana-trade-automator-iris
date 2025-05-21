@@ -50,7 +50,7 @@ export function sanitizeErrorObject(error: any): Error & {
       sanitized[key] = value;
     } else if (typeof value === 'object') {
       try {
-        // Special handling for objects with fileName, lineNumber, columnNumber
+        // Special case for error location info objects
         if (value && typeof value === 'object' && 
             ('fileName' in value || 'lineNumber' in value || 'columnNumber' in value)) {
           const objDetails = [];

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { FallbackProps } from 'react-error-boundary';
 import { Button } from '@/components/ui/button';
@@ -15,9 +16,9 @@ import { sanitizeErrorObject } from '@/utils/errorTestUtils';
 export function WalletErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
   const [showHelp, setShowHelp] = React.useState(false);
   
-  // Make sure error is properly sanitized with all required properties
+  // Ensure the error object is properly sanitized with all properties as strings
   const sanitizedError = sanitizeErrorObject(error);
-  const errorMessage = typeof sanitizedError.message === 'string' ? sanitizedError.message : String(sanitizedError.message || 'Unknown error');
+  const errorMessage = String(sanitizedError.message || 'Unknown error');
   
   // Έλεγχος για συγκεκριμένα σφάλματα
   const isSubstringError = errorMessage.includes('substring is not a function');
