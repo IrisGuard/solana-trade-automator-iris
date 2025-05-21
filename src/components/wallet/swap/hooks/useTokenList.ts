@@ -4,7 +4,7 @@ import { Token } from "@/types/wallet";
 import { COMMON_TOKEN_LIST } from "../types";
 
 export function useTokenList(tokens: Token[] | null | undefined) {
-  const [availableTokens, setAvailableTokens] = useState<Token[]>([]);
+  const [availableTokens, setAvailableTokens] = useState([]);
 
   useEffect(() => {
     if (tokens && tokens.length > 0) {

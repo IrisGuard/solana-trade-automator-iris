@@ -15,6 +15,9 @@ export function JupiterSwapForm() {
   const { walletAddress, isConnected, connectWallet, tokens } = useWalletConnection();
   const availableTokens = useTokenList(tokens);
   
+  // Default slippage of 0.5%
+  const defaultSlippage = 0.5;
+  
   const {
     swapState,
     inputToken,
@@ -25,14 +28,15 @@ export function JupiterSwapForm() {
     updateInputMint,
     updateOutputMint,
     updateInputAmount
-  } = useJupiterSwap({ 
-    walletAddress, 
-    isConnected, 
-    availableTokens 
-  });
+  } = useJupiterSwap(
+    tokens?.find(t => t.address === swapState?.inputMint) || null,
+    tokens?.find(t => t.address === swapState?.outputMint) || null,
+    parseFloat(swapState?.inputAmount || "0"),
+    defaultSlippage
+  );
 
-  const inputTokenBalance = tokens?.find(t => t.address === swapState.inputMint)?.amount || 0;
-  const outputTokenBalance = tokens?.find(t => t.address === swapState.outputMint)?.amount || 0;
+  const inputTokenBalance = tokens?.find(t => t.address === swapState?.inputMint)?.amount || 0;
+  const outputTokenBalance = tokens?.find(t => t.address === swapState?.outputMint)?.amount || 0;
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -50,13 +54,13 @@ export function JupiterSwapForm() {
             <SwapInputPanel
               label="From"
               tokens={availableTokens}
-              tokenMint={swapState.inputMint}
-              amount={swapState.inputAmount}
+              tokenMint={swapState?.inputMint || ""}
+              amount={swapState?.inputAmount || ""}
               onTokenChange={updateInputMint}
               onAmountChange={updateInputAmount}
-              disabled={swapState.isLoading || swapState.swapStatus === 'loading'}
+              disabled={swapState?.isLoading || swapState?.swapStatus === 'loading'}
               balance={inputTokenBalance}
-              tokenInfo={inputToken}
+              tokenInfo={inputToken || { symbol: "", name: "", mint: "" }}
             />
 
             <div className="flex justify-center">
@@ -64,7 +68,7 @@ export function JupiterSwapForm() {
                 variant="ghost" 
                 size="icon"
                 onClick={swapTokens}
-                disabled={swapState.isLoading || swapState.swapStatus === 'loading'}
+                disabled={swapState?.isLoading || swapState?.swapStatus === 'loading'}
               >
                 <ArrowDown />
               </Button>
@@ -73,27 +77,27 @@ export function JupiterSwapForm() {
             <SwapInputPanel
               label="To"
               tokens={availableTokens}
-              tokenMint={swapState.outputMint}
-              amount={swapState.outputAmount}
+              tokenMint={swapState?.outputMint || ""}
+              amount={swapState?.outputAmount || ""}
               onTokenChange={updateOutputMint}
-              disabled={swapState.isLoading || swapState.swapStatus === 'loading'}
+              disabled={swapState?.isLoading || swapState?.swapStatus === 'loading'}
               readOnly={true}
-              excludeToken={swapState.inputMint}
+              excludeToken={swapState?.inputMint}
               balance={outputTokenBalance}
-              tokenInfo={outputToken}
+              tokenInfo={outputToken || { symbol: "", name: "", mint: "" }}
             />
 
-            {swapState.quoteResponse && (
+            {swapState?.quoteResponse && (
               <SwapQuote
-                inputToken={inputToken}
-                outputToken={outputToken}
-                outputAmount={swapState.outputAmount}
-                inputAmount={swapState.inputAmount}
-                priceImpact={swapState.priceImpact}
+                inputToken={inputToken || { symbol: "", name: "", mint: "" }}
+                outputToken={outputToken || { symbol: "", name: "", mint: "" }}
+                outputAmount={parseFloat(swapState?.outputAmount || "0")}
+                inputAmount={parseFloat(swapState?.inputAmount || "0")}
+                priceImpact={swapState?.priceImpact || "0%"}
               />
             )}
 
-            {swapState.swapStatus === 'error' && (
+            {swapState?.swapStatus === 'error' && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
@@ -103,9 +107,9 @@ export function JupiterSwapForm() {
             )}
 
             <SwapActions
-              isLoading={swapState.isLoading}
-              swapStatus={swapState.swapStatus}
-              hasQuote={!!swapState.quoteResponse}
+              isLoading={swapState?.isLoading || false}
+              swapStatus={swapState?.swapStatus || 'idle'}
+              hasQuote={!!swapState?.quoteResponse}
               onGetQuote={getQuote}
               onSwap={executeSwap}
             />

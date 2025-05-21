@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from '../../react-runtime';
 import { isPhantomInstalled, connectPhantomWallet, disconnectPhantomWallet } from '@/utils/phantomWallet';
 import { toast } from 'sonner';
@@ -6,7 +7,7 @@ export function useWalletAddress() {
   const [walletAddress, setWalletAddress] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   // Connect wallet function
   const connectWallet = useCallback(async () => {

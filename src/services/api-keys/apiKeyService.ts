@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ApiKeyEntry, ApiKeyWithState } from './types';
 import { errorCollector } from '@/utils/error-handling/collector';
@@ -297,6 +298,19 @@ export class ApiKeyService {
       return keys[randomIndex];
     } catch (error) {
       console.error(`Error getting random ${service} key:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Get a specific API key by service name
+   */
+  static async getApiKeyByService(service: string): Promise<string | null> {
+    try {
+      const keys = await this.getServiceKeys(service);
+      return keys.length > 0 ? keys[0] : null;
+    } catch (error) {
+      console.error(`Error getting ${service} API key:`, error);
       return null;
     }
   }

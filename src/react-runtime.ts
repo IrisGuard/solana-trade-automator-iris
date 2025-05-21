@@ -73,12 +73,14 @@ const fallbackCore = {
     console.warn('Using createElement fallback');
     return { type, props: { ...props, children: children.length === 1 ? children[0] : children } };
   },
-  createContext: React.createContext || function createContext(defaultValue) {
+  createContext: React.createContext || function createContext(defaultValue, calculateChangedBits) {
     console.warn('Using createContext fallback');
     return {
       Provider: ({ value, children }) => children,
       Consumer: ({ children }) => children(defaultValue),
-      _currentValue: defaultValue
+      _currentValue: defaultValue,
+      _currentChangedBits: 0,
+      calculateChangedBits: calculateChangedBits || (() => 0)
     };
   },
   Fragment: React.Fragment || Symbol('React.Fragment'),
@@ -150,11 +152,7 @@ const fallbackCore = {
     console.warn('Using Suspense fallback');
     return children;
   },
-  // Fix: Remove SuspenseList since it doesn't exist in React 18.3.1
-  // SuspenseList: React.SuspenseList || function SuspenseList({ children }) {
-  //   console.warn('Using SuspenseList fallback');
-  //   return children;
-  // },
+  // Remove SuspenseList since it doesn't exist in React 18.3.1
   Component: React.Component || class Component {},
   PureComponent: React.PureComponent || class PureComponent {},
   version: React.version || '18.3.1',
@@ -208,8 +206,7 @@ const core = {
   act: React.act || fallbackCore.act,
   StrictMode: React.StrictMode || fallbackCore.StrictMode,
   Suspense: React.Suspense || fallbackCore.Suspense,
-  // Fix: Remove SuspenseList
-  // SuspenseList: React.SuspenseList || fallbackCore.SuspenseList,
+  // Remove SuspenseList
   Component: React.Component || fallbackCore.Component,
   PureComponent: React.PureComponent || fallbackCore.PureComponent,
   version: React.version || fallbackCore.version,
@@ -277,9 +274,9 @@ export const {
 
 // Patch global React object if in browser
 if (typeof window !== 'undefined') {
-  // Create a new React object with all our exports, not just an empty object
+  // Make sure window.React exists
   if (!window.React) {
-    window.React = { ...React };  // Start with all existing React properties
+    window.React = React || {};
   }
   
   // Apply all hooks and core methods
