@@ -62,7 +62,9 @@ export {
 export function patchGlobalReact() {
   if (typeof window !== 'undefined') {
     // Create window.React if needed
-    window.React = window.React || {};
+    if (!window.React) {
+      window.React = {};
+    }
     
     // Patch all exports
     const exports = {
