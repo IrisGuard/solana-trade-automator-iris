@@ -1,6 +1,16 @@
 
 // Export React hooks for compatibility
-import { useState, useEffect, useCallback, useMemo, useRef, useContext, useReducer } from 'react';
+import { 
+  useState, 
+  useEffect, 
+  useCallback, 
+  useMemo, 
+  useRef, 
+  useContext, 
+  useReducer,
+  useLayoutEffect,
+  useId
+} from 'react';
 
 // Re-export core React hooks
 export {
@@ -10,7 +20,9 @@ export {
   useMemo,
   useRef,
   useContext,
-  useReducer
+  useReducer,
+  useLayoutEffect,
+  useId
 };
 
 // Create custom hook shims if needed here in the future

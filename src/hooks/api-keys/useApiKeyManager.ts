@@ -8,6 +8,8 @@ export function useApiKeyManager() {
   const [apiKeys, setApiKeys] = useState<ApiKeyEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [visibleKeyIds, setVisibleKeyIds] = useState<string[]>([]);
+  const [copiedKeyId, setCopiedKeyId] = useState<string | null>(null);
   
   // Add API Key
   const addApiKey = useCallback((keyData: Omit<ApiKeyEntry, 'id' | 'created_at' | 'is_encrypted'>) => {
@@ -43,13 +45,68 @@ export function useApiKeyManager() {
     toast.success('API Key removed successfully');
   }, []);
   
+  // Toggle key visibility
+  const toggleKeyVisibility = useCallback((id: string) => {
+    setVisibleKeyIds(prev => 
+      prev.includes(id) 
+        ? prev.filter(keyId => keyId !== id) 
+        : [...prev, id]
+    );
+  }, []);
+  
+  // Handle copy to clipboard
+  const handleCopy = useCallback((id: string, value: string) => {
+    navigator.clipboard.writeText(value).then(
+      () => {
+        setCopiedKeyId(id);
+        setTimeout(() => setCopiedKeyId(null), 3000);
+        toast.success('API key copied to clipboard');
+      },
+      () => {
+        toast.error('Failed to copy API key');
+      }
+    );
+  }, []);
+  
+  // Fetch API keys
+  const fetchApiKeys = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Here you would normally fetch from an API
+      // Mock fetch for demo purposes
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Leave existing keys in place for now since we're mocking
+      setIsLoading(false);
+    } catch (err) {
+      console.error('Error fetching API keys:', err);
+      setError(err instanceof Error ? err.message : String(err));
+      setIsLoading(false);
+    }
+  }, []);
+  
+  // Load API keys
+  const loadApiKeys = useCallback(async () => {
+    await fetchApiKeys();
+  }, [fetchApiKeys]);
+  
   return {
     apiKeys,
     isLoading,
+    loading: isLoading, // Alias for backward compatibility
     error,
+    visibleKeyIds,
+    copiedKeyId,
     addApiKey,
     updateApiKey,
     deleteApiKey,
+    toggleKeyVisibility,
+    handleCopy,
+    fetchApiKeys,
+    loadApiKeys,
+    handleAddNewKey: addApiKey, // Alias for backward compatibility
     setIsLoading,
     setError
   };

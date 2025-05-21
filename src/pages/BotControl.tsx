@@ -15,13 +15,13 @@ import { HeliusSyncComponent } from "@/components/wallet/HeliusSyncComponent";
 
 export default function BotControlPage() {
   const [activeTab, setActiveTab] = useState<string>("settings");
-  const tradingBotState = useTradingBot();
-  const { isConnected, refreshWalletData, walletAddress } = useWalletConnection();
+  const { isConnected, refreshWalletData, walletAddress, tokens } = useWalletConnection();
+  const tradingBotState = useTradingBot(tokens);
 
   // Handle HeliusSync callback
   const handleHeliusSync = () => {
     if (isConnected && walletAddress) {
-      refreshWalletData(walletAddress);
+      refreshWalletData();
     }
   };
 

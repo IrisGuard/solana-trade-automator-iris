@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from './react-compatibility';
+import { useState, useEffect, useCallback } from 'react';
 import { Token } from '@/types/wallet';
 import { TradingBotConfig, TradingOrder } from './trading-bot/types';
 import { toast } from 'sonner';
@@ -20,13 +20,15 @@ const DEFAULT_CONFIG: TradingBotConfig = {
   autoRebalance: false
 };
 
-export function useTradingBot(tokens: Token[]) {
+export function useTradingBot(tokens?: Token[]) {
   const [config, setConfig] = useState<TradingBotConfig>(DEFAULT_CONFIG);
   const [botStatus, setBotStatus] = useState<'idle' | 'running' | 'paused'>('idle');
   const [selectedToken, setSelectedToken] = useState<Token | null>(null);
   const [selectedTokenPrice, setSelectedTokenPrice] = useState<{ price: number; priceChange24h: number } | null>(null);
   const [activeOrders, setActiveOrders] = useState<TradingOrder[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedTokenDetails, setSelectedTokenDetails] = useState<Token | null>(null);
+  const availableTokens = tokens || [];
   
   // Update the config
   const updateConfig = useCallback((newConfig: Partial<TradingBotConfig>) => {
@@ -37,13 +39,15 @@ export function useTradingBot(tokens: Token[]) {
   const selectToken = useCallback(async (tokenAddress: string | null) => {
     if (!tokenAddress) {
       setSelectedToken(null);
+      setSelectedTokenDetails(null);
       updateConfig({ selectedToken: null });
       return;
     }
     
-    const token = tokens.find(t => t.address === tokenAddress);
+    const token = availableTokens.find(t => t.address === tokenAddress);
     if (token) {
       setSelectedToken(token);
+      setSelectedTokenDetails(token);
       updateConfig({ selectedToken: tokenAddress });
       
       // Simulate getting price data
@@ -52,7 +56,7 @@ export function useTradingBot(tokens: Token[]) {
         priceChange24h: -10 + Math.random() * 20
       });
     }
-  }, [tokens, updateConfig]);
+  }, [availableTokens, updateConfig]);
   
   // Start the bot
   const startBot = useCallback(() => {
@@ -133,13 +137,14 @@ export function useTradingBot(tokens: Token[]) {
   
   // Effect to update selected token when tokens change
   useEffect(() => {
-    if (config.selectedToken) {
-      const token = tokens.find(t => t.address === config.selectedToken);
+    if (config.selectedToken && availableTokens.length > 0) {
+      const token = availableTokens.find(t => t.address === config.selectedToken);
       if (token) {
         setSelectedToken(token);
+        setSelectedTokenDetails(token);
       }
     }
-  }, [tokens, config.selectedToken]);
+  }, [availableTokens, config.selectedToken]);
   
   return {
     config,
@@ -152,6 +157,8 @@ export function useTradingBot(tokens: Token[]) {
     selectToken,
     startBot,
     pauseBot,
-    stopBot
+    stopBot,
+    selectedTokenDetails,
+    tokens: availableTokens
   };
 }

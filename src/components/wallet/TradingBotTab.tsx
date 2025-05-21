@@ -7,8 +7,8 @@ import { TradingBotContent } from "./trading-bot/TradingBotContent";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
 
 export function TradingBotTab() {
-  const { isConnected } = useWalletConnection();
-  const tradingBotState = useTradingBot();
+  const { isConnected, tokens } = useWalletConnection();
+  const tradingBotState = useTradingBot(tokens);
   
   const [tab, setTab] = useState("settings");
   

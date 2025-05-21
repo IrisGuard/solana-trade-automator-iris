@@ -120,6 +120,14 @@ export function useWalletConnection() {
       setIsLoadingTokens(false);
     }
   }, [loadSolBalance]);
+
+  // Refresh wallet data function
+  const refreshWalletData = useCallback(() => {
+    if (walletAddress) {
+      return loadWalletData(walletAddress);
+    }
+    return Promise.resolve(false);
+  }, [walletAddress, loadWalletData]);
   
   // Select token for trading
   const selectTokenForTrading = useCallback((tokenAddress: string): Token | null => {
@@ -150,6 +158,7 @@ export function useWalletConnection() {
     connectWallet,
     disconnectWallet,
     loadWalletData,
+    refreshWalletData,
     selectTokenForTrading,
     isPhantomInstalled: true // Mock value
   };

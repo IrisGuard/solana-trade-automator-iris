@@ -7,9 +7,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { EnhancedPanel } from "./EnhancedPanel";
 import { EnhancedStatusPanel } from "./EnhancedStatusPanel";
+import { useWalletConnection } from "@/hooks/useWalletConnection";
 
 export function EnhancedTradingBotTab() {
   const { connected } = useWallet();
+  const { tokens } = useWalletConnection();
   const {
     config,
     updateConfig,
@@ -20,9 +22,8 @@ export function EnhancedTradingBotTab() {
     botStatus,
     activeOrders,
     selectedTokenPrice,
-    selectedTokenDetails,
-    tokens
-  } = useTradingBot();
+    selectedTokenDetails
+  } = useTradingBot(tokens);
 
   // Convert botStatus to the expected type for EnhancedPanel
   const normalizedBotStatus = botStatus === 'error' ? 'idle' : botStatus;
