@@ -37,16 +37,19 @@ export function EnhancedTradingBotTab() {
     strategy: config.strategy as "grid" | "dca" | "momentum" | "simple" | "advanced" | "custom"
   } as LocalTradingBotConfig;
 
-  // Ensure tokens have the required properties and match the expected Token type
-  const typedTokens = tokens.map(token => ({
-    address: token.address || '',
-    symbol: token.symbol || '',
-    name: token.name || '',
-    amount: token.amount || 0,
-    decimals: token.decimals || 0,
-    mint: token.mint || token.address || '',
-    logo: token.logo
-  })) as Token[];
+  // Ensure tokens have the required properties and match the expected Token type from /types/wallet
+  const typedTokens = tokens.map(token => {
+    // Explicitly create a new object with all required properties
+    return {
+      address: token.address || '',
+      symbol: token.symbol || '',
+      name: token.name || '',
+      amount: typeof token.amount === 'number' ? token.amount : 0, // Ensure amount is always a number
+      decimals: token.decimals || 0,
+      mint: token.mint || token.address || '',
+      logo: token.logo
+    } satisfies Token; // Use satisfies to ensure type compatibility
+  });
 
   return (
     <Tabs defaultValue="trading">
