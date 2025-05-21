@@ -8,6 +8,7 @@ export interface ApiKey {
   user_id: string;
   description?: string;
   created_at?: string;
+  is_encrypted?: boolean;
 }
 
 export interface ApiService {
@@ -16,8 +17,16 @@ export interface ApiService {
   endpoint: string;
   description?: string;
   isActive: boolean;
+  documentationUrl?: string;
+  apiKeyUrl?: string;
 }
 
 export interface ApiKeyEntry extends ApiKey {
   // Add additional properties needed for API Key entries
+}
+
+export interface ApiKeyWithState extends ApiKey {
+  isVisible?: boolean;
+  isWorking?: boolean;
+  isTesting?: boolean;
 }

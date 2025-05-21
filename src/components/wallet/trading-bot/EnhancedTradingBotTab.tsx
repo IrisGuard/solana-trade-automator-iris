@@ -26,7 +26,7 @@ export function EnhancedTradingBotTab() {
   } = useTradingBot(tokens);
 
   // Convert botStatus to the expected type for EnhancedPanel
-  // Fix the comparison by checking if botStatus === 'error' and using a ternary operator
+  // We now support 'error' in the botStatus type
   const normalizedBotStatus = botStatus === 'error' ? 'idle' : botStatus;
 
   return (
@@ -46,7 +46,7 @@ export function EnhancedTradingBotTab() {
                 <EnhancedPanel
                   config={config}
                   updateConfig={updateConfig}
-                  selectToken={selectToken}
+                  selectToken={async (tokenAddr) => selectToken(tokenAddr || '')}
                   selectedTokenPrice={selectedTokenPrice}
                   selectedTokenDetails={selectedTokenDetails}
                   tokens={tokens}
@@ -59,7 +59,7 @@ export function EnhancedTradingBotTab() {
               
               <EnhancedStatusPanel 
                 botStatus={normalizedBotStatus}
-                selectedTokenDetails={selectedTokenDetails}
+                selectedTokenDetails={selectedTokenDetails || undefined}
                 selectedTokenPrice={selectedTokenPrice}
                 activeOrders={activeOrders}
               />

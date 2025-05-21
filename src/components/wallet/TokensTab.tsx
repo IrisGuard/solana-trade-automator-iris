@@ -12,10 +12,10 @@ interface TokensTabProps {
 }
 
 export function TokensTab({
-  isConnected,
-  tokenBalance,
-  solBalance,
-  handleConnectWallet
+  isConnected = false,
+  tokenBalance = 0,
+  solBalance = 0,
+  handleConnectWallet = () => {}
 }: TokensTabProps) {
   return (
     <TabsContent value="tokens" className="space-y-4">

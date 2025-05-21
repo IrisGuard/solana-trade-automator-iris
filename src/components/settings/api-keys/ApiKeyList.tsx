@@ -1,22 +1,9 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { ApiKeyWithState } from '@/services/api-keys/types';
 
-export interface ApiKeyWithState {
-  id: string;
-  name: string;
-  service: string;
-  key_value: string;
-  status: string;
-  user_id: string;
-  description?: string;
-  isVisible?: boolean;
-  isWorking?: boolean;
-  isTesting?: boolean;
-  created_at?: string;
-}
-
-interface ApiKeyListProps {
+export interface ApiKeyListProps {
   apiKeys: ApiKeyWithState[];
   onToggleVisibility?: (id: string) => void;
   onCopy?: (id: string) => void;

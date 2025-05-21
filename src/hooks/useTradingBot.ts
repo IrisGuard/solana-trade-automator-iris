@@ -9,6 +9,8 @@ interface Token {
   logo?: string;
   balance?: number;
   price?: number;
+  amount?: number;
+  mint?: string;
 }
 
 interface TradingBotConfig {
@@ -20,6 +22,11 @@ interface TradingBotConfig {
   tradeAmount: number;
   isActive: boolean;
   interval: string;
+  selectedToken: string | null;
+  buyThreshold: number;
+  sellThreshold: number;
+  takeProfit: number;
+  autoReinvest: boolean;
 }
 
 interface TradingOrder {
@@ -41,10 +48,15 @@ export function useTradingBot(tokens: Token[] = []) {
     leverage: 1,
     tradeAmount: 0.1,
     isActive: false,
-    interval: '1h'
+    interval: '1h',
+    selectedToken: null,
+    buyThreshold: 5,
+    sellThreshold: 5,
+    takeProfit: 10,
+    autoReinvest: false
   });
   
-  const [botStatus, setBotStatus] = useState<'idle' | 'running' | 'paused'>('idle');
+  const [botStatus, setBotStatus] = useState<'idle' | 'running' | 'paused' | 'error'>('idle');
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
   const [selectedTokenPrice, setSelectedTokenPrice] = useState<number | null>(null);
   const [selectedTokenDetails, setSelectedTokenDetails] = useState<Token | null>(null);
@@ -57,13 +69,14 @@ export function useTradingBot(tokens: Token[] = []) {
   }, []);
   
   // Select token
-  const selectToken = useCallback((tokenAddress: string) => {
+  const selectToken = useCallback(async (tokenAddress: string) => {
     setSelectedToken(tokenAddress);
     const token = tokens.find(t => t.address === tokenAddress);
     if (token) {
       setSelectedTokenDetails(token);
       setSelectedTokenPrice(token.price || 0);
     }
+    return Promise.resolve();
   }, [tokens]);
   
   // Start bot

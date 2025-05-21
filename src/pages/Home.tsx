@@ -13,6 +13,7 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 export default function Home() {
   const { 
     isConnected,
+    isConnecting,
     walletAddress,
     tokens,
     tokenPrices,
@@ -40,12 +41,15 @@ export default function Home() {
       {/* Dynamic Content Based on Wallet Connection Status */}
       {isConnected ? (
         <WalletConnectedContent 
+          walletAddress={walletAddress || ''}
           tokens={tokens}
           tokenPrices={tokenPrices}
           isLoadingTokens={isLoadingTokens}
         />
       ) : (
-        <WalletDisconnectedContent />
+        <WalletDisconnectedContent 
+          isConnecting={isConnecting}
+        />
       )}
       
       {/* Standard Marketing Sections */}

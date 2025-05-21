@@ -1,121 +1,66 @@
 
-import { toast } from "sonner";
-import { ApiKeyEntry, ApiKeyWithState } from "./types";
+import { ApiKey, ApiKeyEntry, ApiKeyWithState } from './types';
 
-/**
- * Service for managing API keys
- */
 export class ApiKeyService {
-  /**
-   * Retrieve a random API key for the given service
-   */
-  static async getRandomServiceKey(serviceName: string): Promise<string | null> {
-    try {
-      // In a real implementation, this would fetch from a database or local storage
-      console.log(`Getting random API key for ${serviceName}`);
-      
-      // For demo purposes, return a mock key
-      if (serviceName === "jupiter") {
-        return "jupiter_demo_key";
-      }
-      
-      if (serviceName === "raydium") {
-        return "raydium_demo_key";
-      }
-      
-      return null;
-    } catch (error) {
-      console.error(`Error getting API key for ${serviceName}:`, error);
-      return null;
-    }
-  }
-
-  /**
-   * Check if an API key exists for the given service
-   */
-  static async hasServiceKey(serviceName: string): Promise<boolean> {
-    const key = await this.getRandomServiceKey(serviceName);
-    return key !== null;
-  }
-
-  /**
-   * Fetch all API keys for a user
-   */
   static async fetchUserApiKeys(userId: string): Promise<ApiKeyWithState[]> {
-    try {
-      console.log(`Fetching API keys for user: ${userId}`);
-      // Mock implementation - in a real app, this would fetch from a database
-      return [];
-    } catch (error) {
-      console.error('Error fetching user API keys:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Save an API key
-   */
-  static async saveApiKey(key: ApiKeyEntry): Promise<ApiKeyWithState | null> {
-    try {
-      console.log('Saving API key:', key.name);
-      // Mock implementation - in a real app, this would save to a database
-      return {
-        ...key,
-        id: key.id || `new-key-${Date.now()}`,
-        created_at: key.created_at || new Date().toISOString(),
+    // Mock implementation for demo purposes
+    return [
+      {
+        id: '1',
+        user_id: userId,
+        name: 'Helius API Key',
+        service: 'helius',
+        key_value: 'hl_b865d0a3c9884e80a7a8af66f9846154',
+        status: 'active',
+        created_at: new Date().toISOString(),
+        description: 'Main Helius API key for RPC calls',
+        is_encrypted: false,
         isVisible: false,
         isWorking: true,
         isTesting: false
-      };
-    } catch (error) {
-      console.error('Error saving API key:', error);
-      return null;
-    }
+      },
+      {
+        id: '2',
+        user_id: userId,
+        name: 'Jupiter API Key',
+        service: 'jupiter',
+        key_value: 'jp_4db7c1e98f5a4b01b2e9fcde3a9d7e27',
+        status: 'active',
+        created_at: new Date().toISOString(),
+        description: 'Jupiter Swap API access',
+        is_encrypted: true,
+        isVisible: false,
+        isWorking: true,
+        isTesting: false
+      }
+    ];
   }
-
-  /**
-   * Delete an API key
-   */
+  
+  static async saveApiKey(apiKey: ApiKeyEntry): Promise<ApiKeyEntry> {
+    // Mock implementation for demo purposes
+    console.log('Saving API key:', apiKey);
+    return {
+      ...apiKey,
+      created_at: apiKey.created_at || new Date().toISOString(),
+      id: apiKey.id || Math.random().toString(36).substring(2, 9)
+    };
+  }
+  
   static async deleteApiKey(keyId: string, userId: string): Promise<boolean> {
-    try {
-      console.log(`Deleting API key ${keyId} for user ${userId}`);
-      // Mock implementation - in a real app, this would delete from a database
-      return true;
-    } catch (error) {
-      console.error('Error deleting API key:', error);
-      return false;
-    }
+    // Mock implementation for demo purposes
+    console.log(`Deleting API key ${keyId} for user ${userId}`);
+    return true;
   }
-
-  /**
-   * Test if an API key is valid
-   */
-  static async testApiKey(service: string, key: string): Promise<boolean> {
-    try {
-      console.log(`Testing ${service} API key`);
-      // Mock implementation - in a real app, this would perform a real test
-      return true;
-    } catch (error) {
-      console.error(`Error testing ${service} API key:`, error);
-      return false;
-    }
+  
+  static async testApiKey(service: string, keyValue: string): Promise<boolean> {
+    // Mock implementation for demo purposes
+    console.log(`Testing ${service} API key: ${keyValue.substring(0, 5)}...`);
+    return Math.random() > 0.2; // 80% chance of success
   }
-
-  /**
-   * Update the status of an API key
-   */
-  static async updateKeyStatus(
-    keyId: string, 
-    userId: string, 
-    status: 'active' | 'expired' | 'revoked' | 'failing'
-  ): Promise<boolean> {
-    try {
-      console.log(`Updating API key ${keyId} status to ${status}`);
-      // Mock implementation - in a real app, this would update the database
-      return true;
-    } catch (error) {
-      console.error('Error updating API key status:', error);
-      return false;
-    }
+  
+  static async updateKeyStatus(keyId: string, userId: string, status: string): Promise<boolean> {
+    // Mock implementation for demo purposes
+    console.log(`Updating API key ${keyId} status to ${status}`);
+    return true;
   }
 }

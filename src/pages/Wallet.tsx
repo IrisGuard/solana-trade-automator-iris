@@ -16,7 +16,9 @@ export default function Wallet() {
     solBalance,
     tokens,
     tokenPrices,
-    isLoadingTokens
+    isLoadingTokens,
+    connectWallet,
+    disconnectWallet
   } = useWalletConnection();
   
   useEffect(() => {
@@ -30,9 +32,10 @@ export default function Wallet() {
     <div className="container py-6 space-y-6">
       <WalletOverview 
         isConnected={isConnected}
-        walletAddress={walletAddress}
-        solBalance={solBalance}
-        tokenCount={tokens?.length || 0}
+        walletAddress={walletAddress || ''}
+        solBalance={solBalance || 0}
+        handleConnectWallet={connectWallet}
+        handleDisconnectWallet={disconnectWallet}
       />
       
       <Tabs defaultValue="tokens">
@@ -44,7 +47,12 @@ export default function Wallet() {
           <TabsTrigger value="api-vault">API Vault</TabsTrigger>
         </TabsList>
         
-        <TokensTab />
+        <TokensTab 
+          isConnected={isConnected}
+          tokenBalance={tokens?.length ? tokens[0].amount || 0 : 0}
+          solBalance={solBalance || 0}
+          handleConnectWallet={connectWallet}
+        />
         <SwapTab />
         <TabsContent value="transactions">
           <TransactionHistory />
