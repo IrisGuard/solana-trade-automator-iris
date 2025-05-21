@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from '../../react-runtime';
 import { Token } from '@/types/wallet';
 import { TokenPrices } from '@/services/solana/price/types';
 import { getWalletTokens } from '@/services/wallet/tokenService';
@@ -70,7 +70,6 @@ export function useWalletData() {
             prices[token.address] = {
               price: Math.random() * 100,
               priceChange24h: (Math.random() * 20) - 10
-              // Remove lastUpdated field as it's not in the type
             };
           });
           
@@ -89,7 +88,7 @@ export function useWalletData() {
         setTokens([]);
       }
     } catch (err: any) {
-      console.error('Error loading wallet data:', err);
+      console.error('Loading wallet data error:', err);
       reportError(err);
       toast.error('Σφάλμα φόρτωσης δεδομένων πορτοφολιού');
     } finally {

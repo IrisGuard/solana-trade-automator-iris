@@ -1,6 +1,6 @@
 
 // Import React 18.3.1 compatibility layer first - this is most critical
-import './react-compatibility';
+import './react-runtime';
 
 // Import polyfills and patches
 import './polyfills';
@@ -24,36 +24,6 @@ try {
   console.log('[App] React version:', React['version'] || 'unknown (using compatibility mode)');
 } catch (e) {
   console.log('[App] React version: unknown (error accessing version)');
-}
-
-// Diagnose React exports - enhanced with more detail and error handling
-try {
-  console.log('[App] React exports check:', {
-    // Use safe property access
-    createElement: typeof (React['createElement']),
-    useState: typeof (React['useState']),
-    useRef: typeof (React['useRef']),
-    useEffect: typeof (React['useEffect']),
-    jsx: typeof (React['jsx']),
-    Fragment: typeof (React['Fragment']),
-    // Check if hooks exist on React
-    hooks: {
-      useState: typeof (React['useState']) === 'function',
-      useEffect: typeof (React['useEffect']) === 'function',
-      useRef: typeof (React['useRef']) === 'function',
-      useContext: typeof (React['useContext']) === 'function'
-    },
-    // Check if global React exists
-    globalReact: typeof window !== 'undefined' && !!window.React,
-    // Check if hooks exist on global React
-    globalHooks: typeof window !== 'undefined' && window.React ? {
-      useState: typeof (window.React['useState']) === 'function',
-      useEffect: typeof (window.React['useEffect']) === 'function',
-      useRef: typeof (window.React['useRef']) === 'function'
-    } : 'Not available'
-  });
-} catch (e) {
-  console.error('[App] Error checking React exports:', e);
 }
 
 // Create initial backup if none exists
@@ -82,26 +52,16 @@ try {
     throw new Error('Root element not found');
   }
   
-  // Create safe createElement reference that returns a valid ReactNode
-  const createElement = React['createElement'] || function(type: any, props: any, ...children: any[]) { 
-    console.warn('Using createElement fallback');
-    // Use React.Fragment directly from our namespace import
-    return React.Fragment ? React.createElement(React.Fragment, null, ...children) : children[0];
+  // Create root using our compatibility layer
+  const createRoot = ReactDOM.createRoot;
+  
+  // Use our safe createElement function
+  const createElement = React['createElement'] || window.React['createElement'] || function(type: any, props: any, ...children: any[]) { 
+    return { type, props: { ...props, children } };
   };
   
-  // Use the createRoot function with fallback
-  const createRoot = ReactDOM.createRoot || ReactDOM['createRoot'] || 
-                    function(container) { 
-                      console.warn('Using createRoot fallback'); 
-                      return { 
-                        render: (element) => { 
-                          console.log('Fallback render called'); 
-                        } 
-                      }; 
-                    };
-  
-  // Create safe StrictMode reference
-  const StrictMode = React.StrictMode || React['StrictMode'] || React.Fragment || 'div';
+  // Get StrictMode safely
+  const StrictMode = React['StrictMode'] || React['Fragment'] || 'div';
   
   // Render app with proper error handling
   try {

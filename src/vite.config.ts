@@ -19,19 +19,24 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         // Use options that are actually supported by the SWC React plugin
         tsDecorators: true,
         // Use our custom JSX runtime with hooks
-        jsxImportSource: "react",
+        jsxImportSource: undefined, // Let React 18.3.1 handle JSX runtime
       }),
       mode === 'development' && componentTagger(),
     ].filter(Boolean) as PluginOption[],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
-        // Fix JSX runtime issue with CORRECT absolute paths
+        // Fix JSX runtime issue by pointing to our custom bridge
         'react/jsx-runtime': path.resolve(__dirname, "./src/jsx-runtime-bridge.ts"),
         'react/jsx-dev-runtime': path.resolve(__dirname, "./src/jsx-runtime-bridge.ts"),
+        
+        // Create alias for the react-runtime bridge
+        'react-runtime': path.resolve(__dirname, "./src/react-runtime.ts"),
+        
         // Add explicit references to React hooks modules
         'react-router-dom': path.resolve(__dirname, "./node_modules/react-router-dom"),
         'react': path.resolve(__dirname, "./node_modules/react"),
+        
         // Fix polyfill path issues - explicitly map each required polyfill
         buffer: 'buffer/',
         // Fix the process polyfill path - important change
@@ -76,13 +81,15 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         '@solana/spl-token',
         '@solana/wallet-adapter-base',
         '@solana/wallet-adapter-react',
-        // Make sure React and React Router are included in optimizations
+        // Make sure React and React Router are optimized
         'react',
         'react-dom',
         'react-router-dom',
         // Include specific hooks that are causing issues
         'react/jsx-runtime',
-        'react/jsx-dev-runtime'
+        'react/jsx-dev-runtime',
+        // Include our runtime bridge
+        './src/react-runtime'
       ],
       // Force optimization of problematic dependencies
       force: true,
@@ -100,7 +107,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
           // Enable rollup polyfills plugin
           rollupNodePolyFill() as any,
         ],
-        // IMPORTANT: Remove React from external to ensure proper bundling
+        // Remove React from external to ensure proper bundling
         external: ['process/browser'],
         onwarn(warning, warn) {
           if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
@@ -111,7 +118,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         // Ensure React Router has access to React hooks
         output: {
           manualChunks: {
-            'react-vendor': ['react', 'react-dom'],
+            'react-vendor': ['react', 'react-dom', './src/react-runtime'],
             'react-router': ['react-router-dom'],
           },
         },

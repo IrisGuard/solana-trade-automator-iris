@@ -26,34 +26,34 @@ export function ensureReactCompatibility(): void {
         console.log('Created window.React from React module');
       }
       
-      // Safely add JSX runtime functions
+      // Access React methods with safe property access
       const jsxFunctions = {
-        jsx: React.createElement || function(){},
-        jsxs: React.createElement || function(){},
-        jsxDEV: React.createElement || function(){}
+        jsx: React['jsx'] || React['createElement'] || function(){},
+        jsxs: React['jsxs'] || React['createElement'] || function(){},
+        jsxDEV: React['jsxDEV'] || React['createElement'] || function(){}
       };
       
       Object.entries(jsxFunctions).forEach(([key, value]) => {
         safelyDefineProperty(window.React, key, value);
       });
       
-      // Make sure all essential React functions are available
+      // Make sure all essential React functions are available using safe property access
       const essentialReactFunctions = {
-        createElement: React.createElement || function(){},
-        createContext: React.createContext || function(){},
-        Fragment: React.Fragment || Symbol('Fragment'),
-        useState: React.useState || function(){},
-        useEffect: React.useEffect || function(){},
-        useContext: React.useContext || function(){},
-        useRef: React.useRef || function(){},
-        useReducer: React.useReducer || function(){},
-        useCallback: React.useCallback || function(){},
-        useMemo: React.useMemo || function(){},
-        useLayoutEffect: React.useLayoutEffect || function(){},
-        useImperativeHandle: React.useImperativeHandle || function(){},
-        useDebugValue: React.useDebugValue || function(){},
-        useId: React.useId || function(){},
-        Children: React.Children || {}
+        createElement: React['createElement'] || function(){},
+        createContext: React['createContext'] || function(){},
+        Fragment: React['Fragment'] || Symbol('Fragment'),
+        useState: React['useState'] || function(){ return [undefined, () => {}]; },
+        useEffect: React['useEffect'] || function(){},
+        useContext: React['useContext'] || function(){},
+        useRef: React['useRef'] || function(){ return { current: null }; },
+        useReducer: React['useReducer'] || function(){ return [undefined, () => {}]; },
+        useCallback: React['useCallback'] || function(cb){ return cb; },
+        useMemo: React['useMemo'] || function(fn){ return fn(); },
+        useLayoutEffect: React['useLayoutEffect'] || function(){},
+        useImperativeHandle: React['useImperativeHandle'] || function(){},
+        useDebugValue: React['useDebugValue'] || function(){},
+        useId: React['useId'] || function(){ return Math.random().toString(36).slice(2); },
+        Children: React['Children'] || {}
       };
       
       // Apply essential functions safely

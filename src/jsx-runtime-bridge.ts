@@ -4,7 +4,12 @@
  * with various React versions including React 18.3.1
  */
 import * as React from 'react';
-import { createElement, Fragment, jsx, jsxs, jsxDEV } from './react-compatibility';
+import { createElement, Fragment } from './react-runtime';
+
+// Get JSX runtime functions directly from React or use createElement as fallback
+const jsx = React['jsx'] || createElement;
+const jsxs = React['jsxs'] || createElement;
+const jsxDEV = React['jsxDEV'] || createElement;
 
 // Export all the functions
 export {

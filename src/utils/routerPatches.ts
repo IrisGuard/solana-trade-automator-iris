@@ -5,7 +5,7 @@ import * as React from 'react';
 declare global {
   interface Window {
     // Using proper typing for React to avoid conflicts
-    React: typeof React;
+    React: any;
     patchedReactRouter?: boolean;
   }
 }
@@ -17,15 +17,15 @@ export function ensureRouterCompatibility(): void {
       // Ensure we have a complete React object
       window.React = window.React || Object.create(React);
       
-      // Ensure all essential React functions are available
+      // Access methods using safe property access
       const essentialFunctions = {
-        createElement: React.createElement || function() {},
-        createContext: React.createContext || function() {},
-        Fragment: React.Fragment || Symbol('Fragment'),
-        useState: React.useState || function() { return [undefined, () => {}]; },
-        useEffect: React.useEffect || function() {},
-        useContext: React.useContext || function() {},
-        useRef: React.useRef || function() { return { current: null }; }
+        createElement: React['createElement'] || function() {},
+        createContext: React['createContext'] || function() {},
+        Fragment: React['Fragment'] || Symbol('Fragment'),
+        useState: React['useState'] || function() { return [undefined, () => {}]; },
+        useEffect: React['useEffect'] || function() {},
+        useContext: React['useContext'] || function() {},
+        useRef: React['useRef'] || function() { return { current: null }; }
       };
       
       // Apply them to window.React
