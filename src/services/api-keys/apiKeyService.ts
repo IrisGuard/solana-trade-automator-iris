@@ -1,4 +1,3 @@
-
 import { ApiKey, ApiKeyEntry, ApiKeyWithState } from './types';
 
 export class ApiKeyService {
@@ -62,5 +61,18 @@ export class ApiKeyService {
     // Mock implementation for demo purposes
     console.log(`Updating API key ${keyId} status to ${status}`);
     return true;
+  }
+  
+  // Add missing method for getRandomServiceKey
+  static async getRandomServiceKey(service: string): Promise<string | null> {
+    console.log(`Getting random ${service} API key`);
+    // Mock implementation - return a fake key
+    if (service === 'jupiter') {
+      return 'jp_mock_key_for_testing';
+    }
+    if (service === 'helius') {
+      return 'hl_mock_key_for_testing';
+    }
+    return null;
   }
 }

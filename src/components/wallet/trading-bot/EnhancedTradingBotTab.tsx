@@ -8,6 +8,7 @@ import { AlertCircle } from "lucide-react";
 import { EnhancedPanel } from "./EnhancedPanel";
 import { EnhancedStatusPanel } from "./EnhancedStatusPanel";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
+import { TradingBotConfig as LocalTradingBotConfig } from "@/hooks/trading-bot/types";
 
 export function EnhancedTradingBotTab() {
   const { connected } = useWallet();
@@ -29,6 +30,18 @@ export function EnhancedTradingBotTab() {
   // We now support 'error' in the botStatus type
   const normalizedBotStatus = botStatus === 'error' ? 'idle' : botStatus;
 
+  // Cast config to the correct type for EnhancedPanel which expects different strategy type
+  const typedConfig = {
+    ...config,
+    strategy: config.strategy as "grid" | "dca" | "momentum" | "simple" | "advanced" | "custom"
+  } as LocalTradingBotConfig;
+
+  // Ensure tokens have the required properties
+  const typedTokens = tokens.map(token => ({
+    ...token,
+    amount: token.amount || 0
+  }));
+
   return (
     <Tabs defaultValue="trading">
       <TabsContent value="trading">
@@ -44,12 +57,12 @@ export function EnhancedTradingBotTab() {
             <div className="grid gap-4 md:grid-cols-2 mb-6">
               <div className="space-y-4">
                 <EnhancedPanel
-                  config={config}
+                  config={typedConfig}
                   updateConfig={updateConfig}
                   selectToken={async (tokenAddr) => selectToken(tokenAddr || '')}
                   selectedTokenPrice={selectedTokenPrice}
                   selectedTokenDetails={selectedTokenDetails}
-                  tokens={tokens}
+                  tokens={typedTokens}
                   isLoading={isLoading}
                   botStatus={normalizedBotStatus}
                   startBot={startBot}

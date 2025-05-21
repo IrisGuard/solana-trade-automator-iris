@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
+import { BotStatus } from './trading-bot/types';
 
 interface Token {
   address: string;
@@ -56,7 +57,7 @@ export function useTradingBot(tokens: Token[] = []) {
     autoReinvest: false
   });
   
-  const [botStatus, setBotStatus] = useState<'idle' | 'running' | 'paused' | 'error'>('idle');
+  const [botStatus, setBotStatus] = useState<BotStatus>('idle');
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
   const [selectedTokenPrice, setSelectedTokenPrice] = useState<number | null>(null);
   const [selectedTokenDetails, setSelectedTokenDetails] = useState<Token | null>(null);
