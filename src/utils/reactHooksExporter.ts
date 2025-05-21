@@ -6,64 +6,42 @@
 
 // Use namespace import instead of default import for React 18.3.1+ compatibility
 import * as React from 'react';
+import { 
+  useState as bridgeUseState,
+  useEffect as bridgeUseEffect,
+  useContext as bridgeUseContext,
+  useRef as bridgeUseRef,
+  useReducer as bridgeUseReducer,
+  useCallback as bridgeUseCallback,
+  useMemo as bridgeUseMemo,
+  useLayoutEffect as bridgeUseLayoutEffect,
+  useImperativeHandle as bridgeUseImperativeHandle,
+  useDebugValue as bridgeUseDebugValue,
+  useId as bridgeUseId,
+  useDeferredValue as bridgeUseDeferredValue,
+  useInsertionEffect as bridgeUseInsertionEffect,
+  useSyncExternalStore as bridgeUseSyncExternalStore,
+  useTransition as bridgeUseTransition
+} from '../react-18-bridge';
 
 // Create a mapping of all hooks to ensure they exist
 const reactHooks = {
-  useState: React.useState || function useState(initialState) { 
-    console.warn('useState fallback used'); 
-    return [initialState, () => {}]; 
-  },
-  useEffect: React.useEffect || function useEffect(effect, deps) { 
-    console.warn('useEffect fallback used'); 
-  },
-  useContext: React.useContext || function useContext(context) { 
-    console.warn('useContext fallback used'); 
-    return undefined; 
-  },
-  useRef: React.useRef || function useRef(initialValue) { 
-    console.warn('useRef fallback used'); 
-    return { current: initialValue }; 
-  },
-  useReducer: React.useReducer || function useReducer(reducer, initialState) { 
-    console.warn('useReducer fallback used'); 
-    return [initialState, () => {}]; 
-  },
-  useCallback: React.useCallback || function useCallback(callback, deps) { 
-    console.warn('useCallback fallback used'); 
-    return callback; 
-  },
-  useMemo: React.useMemo || function useMemo(factory, deps) { 
-    console.warn('useMemo fallback used'); 
-    return factory(); 
-  },
-  useLayoutEffect: React.useLayoutEffect || function useLayoutEffect(effect, deps) { 
-    console.warn('useLayoutEffect fallback used'); 
-  },
-  useImperativeHandle: React.useImperativeHandle || function useImperativeHandle(ref, createHandle, deps) { 
-    console.warn('useImperativeHandle fallback used'); 
-  },
-  useDebugValue: React.useDebugValue || function useDebugValue(value) { 
-    console.warn('useDebugValue fallback used'); 
-  },
-  useId: React.useId || function useId() { 
-    console.warn('useId fallback used'); 
-    return Math.random().toString(36).substr(2, 9); 
-  },
-  useDeferredValue: React.useDeferredValue || function useDeferredValue(value) { 
-    console.warn('useDeferredValue fallback used'); 
-    return value; 
-  },
-  useInsertionEffect: React.useInsertionEffect || function useInsertionEffect(effect, deps) { 
-    console.warn('useInsertionEffect fallback used'); 
-  },
-  useSyncExternalStore: React.useSyncExternalStore || function useSyncExternalStore(subscribe, getSnapshot) {
-    console.warn('useSyncExternalStore fallback used'); 
-    return getSnapshot(); 
-  },
-  useTransition: React.useTransition || function useTransition() { 
-    console.warn('useTransition fallback used'); 
-    return [false, () => {}]; 
-  }
+  // Use bridge hooks or fallbacks
+  useState: bridgeUseState,
+  useEffect: bridgeUseEffect,
+  useContext: bridgeUseContext,
+  useRef: bridgeUseRef,
+  useReducer: bridgeUseReducer,
+  useCallback: bridgeUseCallback,
+  useMemo: bridgeUseMemo,
+  useLayoutEffect: bridgeUseLayoutEffect,
+  useImperativeHandle: bridgeUseImperativeHandle,
+  useDebugValue: bridgeUseDebugValue,
+  useId: bridgeUseId,
+  useDeferredValue: bridgeUseDeferredValue,
+  useInsertionEffect: bridgeUseInsertionEffect,
+  useSyncExternalStore: bridgeUseSyncExternalStore,
+  useTransition: bridgeUseTransition
 };
 
 // Explicitly export all hooks from React
@@ -113,10 +91,10 @@ if (typeof window !== 'undefined') {
     }
   });
   
-  // Export JSX runtime functions to global React
+  // Export JSX runtime functions from bridge to global React
   const jsxFunctions = {
-    jsx: React.jsx || React.createElement,
-    jsxs: React.jsxs || React.createElement,
+    jsx: bridgeUseState,
+    jsxs: bridgeUseEffect,
     Fragment: React.Fragment
   };
   
