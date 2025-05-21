@@ -1,5 +1,5 @@
 
-import { useEffect } from '../react-compatibility';
+import { useEffect } from '../../react-compatibility';
 
 /**
  * Hook to periodically refresh wallet data

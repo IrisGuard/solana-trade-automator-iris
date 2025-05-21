@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from '../react-compatibility';
+import { useState, useCallback } from '../../react-compatibility';
 import { isPhantomInstalled, connectPhantomWallet, disconnectPhantomWallet } from '@/utils/phantomWallet';
 import { toast } from 'sonner';
 

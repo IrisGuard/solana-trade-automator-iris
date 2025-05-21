@@ -1,5 +1,5 @@
 
-import { useEffect, useCallback } from '../react-compatibility';
+import { useEffect, useCallback } from '../../react-compatibility';
 import { isPhantomInstalled, connectPhantomWallet } from '@/utils/phantomWallet';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 
