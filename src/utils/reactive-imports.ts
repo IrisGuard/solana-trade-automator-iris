@@ -61,12 +61,36 @@ export {
  */
 export function patchGlobalReact() {
   if (typeof window !== 'undefined') {
-    // Create window.React if needed
+    // Create a starter React object with required props if needed
     if (!window.React) {
-      window.React = {};
+      // Start with a minimal set of React functions that must exist
+      window.React = {
+        createElement,
+        Fragment,
+        useState,
+        useEffect,
+        useContext,
+        useRef,
+        useReducer,
+        useCallback,
+        useMemo,
+        useLayoutEffect,
+        createContext,
+        forwardRef,
+        memo,
+        // Provide other essential properties
+        version: '18.3.1',
+        Children: {
+          map: (children, fn) => Array.isArray(children) ? children.map(fn) : (children ? [fn(children)] : []),
+          forEach: (children, fn) => Array.isArray(children) ? children.forEach(fn) : (children ? fn(children) : null),
+          count: (children) => children ? (Array.isArray(children) ? children.length : 1) : 0,
+          only: (children) => Array.isArray(children) ? (children.length === 1 ? children[0] : new Error('Children.only expected to receive a single React element child.')) : children,
+          toArray: (children) => Array.isArray(children) ? children : (children ? [children] : [])
+        }
+      };
     }
     
-    // Patch all exports
+    // Apply all exports
     const exports = {
       useState,
       useEffect,
