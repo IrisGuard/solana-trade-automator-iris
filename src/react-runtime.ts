@@ -32,11 +32,15 @@ const core = {
   Fragment: React['Fragment'],
   forwardRef: React['forwardRef'],
   memo: React['memo'],
-  Children: React['Children']
+  Children: React['Children'],
+  createRef: React['createRef'],
+  cloneElement: React['cloneElement'],
+  isValidElement: React['isValidElement'],
+  createFactory: React['createFactory']
 };
 
-// JSX runtime functions
-const jsx = {
+// JSX runtime functions - only define once to avoid redeclaration
+const jsxRuntime = {
   jsx: React['jsx'] || React['createElement'],
   jsxs: React['jsxs'] || React['createElement'],
   jsxDEV: React['jsxDEV'] || React['createElement']
@@ -67,21 +71,26 @@ export const {
   Fragment,
   forwardRef,
   memo,
-  Children
+  Children,
+  createRef,
+  cloneElement,
+  isValidElement,
+  createFactory
 } = core;
 
+// Export JSX runtime functions
 export const {
   jsx,
   jsxs,
   jsxDEV
-} = jsx;
+} = jsxRuntime;
 
 // Patch global React object if in browser
 if (typeof window !== 'undefined') {
   window.React = window.React || {};
   
   // Apply all hooks
-  Object.entries({...hooks, ...core, ...jsx}).forEach(([key, value]) => {
+  Object.entries({...hooks, ...core, ...jsxRuntime}).forEach(([key, value]) => {
     if (value && !window.React[key]) {
       try {
         window.React[key] = value;

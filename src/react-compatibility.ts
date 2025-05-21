@@ -8,6 +8,7 @@
 
 // Import our central runtime bridge first
 import * as RuntimeBridge from './react-runtime';
+import * as React from 'react';
 
 // Re-export everything from the runtime bridge
 export const {
@@ -46,7 +47,7 @@ export function patchReact(): void {
   
   if (typeof window !== 'undefined') {
     // Ensure React global object exists
-    window.React = window.React || RuntimeBridge;
+    window.React = window.React || {...React};
     
     // Apply all exports to window.React
     Object.entries(RuntimeBridge).forEach(([name, implementation]) => {
@@ -67,4 +68,4 @@ export function patchReact(): void {
 patchReact();
 
 // Export the React namespace for backward compatibility
-export default RuntimeBridge;
+export default React;

@@ -61,7 +61,7 @@ if (typeof window !== 'undefined') {
   
   // Create window.React if it doesn't exist
   if (!window.React) {
-    window.React = {};
+    window.React = {...React};
   }
   
   // Add all required hooks to window.React

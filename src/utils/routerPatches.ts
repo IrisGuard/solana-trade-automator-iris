@@ -1,11 +1,11 @@
 
 import * as React from 'react';
 
-// Define types for the window object without conflict
+// Define types for the window object to avoid conflicts
 declare global {
   interface Window {
-    // Using proper typing for React to avoid conflicts
-    React: any;
+    // Using proper typing for React
+    React: typeof React;
     patchedReactRouter?: boolean;
   }
 }
@@ -15,7 +15,7 @@ export function ensureRouterCompatibility(): void {
   if (typeof window !== 'undefined') {
     try {
       // Ensure we have a complete React object
-      window.React = window.React || Object.create(React);
+      window.React = window.React || {...React};
       
       // Access methods using safe property access
       const essentialFunctions = {

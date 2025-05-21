@@ -52,31 +52,31 @@ try {
     throw new Error('Root element not found');
   }
   
-  // Create root using our compatibility layer
+  // Create root using ReactDOM
   const createRoot = ReactDOM.createRoot;
-  
-  // Use our safe createElement function
-  const createElement = React['createElement'] || window.React['createElement'] || function(type: any, props: any, ...children: any[]) { 
-    return { type, props: { ...props, children } };
-  };
   
   // Get StrictMode safely
   const StrictMode = React['StrictMode'] || React['Fragment'] || 'div';
   
   // Render app with proper error handling
   try {
-    createRoot(rootElement).render(
-      createElement(StrictMode, null,
-        createElement(App, null)
+    const root = createRoot(rootElement);
+    
+    // Use proper JSX creation via React.createElement
+    root.render(
+      React.createElement(StrictMode, null,
+        React.createElement(App)
       )
     );
+    
     console.log('[App] React application initialized successfully');
   } catch (renderError) {
     console.error('[App] Error during render:', renderError);
     // Try alternative rendering approach
     try {
       console.log('[App] Attempting alternative render method...');
-      createRoot(rootElement).render(createElement(App, null));
+      const root = createRoot(rootElement);
+      root.render(React.createElement(App));
     } catch (fallbackError) {
       console.error('[App] Alternative render failed:', fallbackError);
     }
