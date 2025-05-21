@@ -73,7 +73,7 @@ const fallbackCore = {
     console.warn('Using createElement fallback');
     return { type, props: { ...props, children: children.length === 1 ? children[0] : children } };
   },
-  createContext: React.createContext || function createContext(defaultValue) {
+  createContext: React.createContext || function createContext(defaultValue, calculateChangedBits) {
     console.warn('Using createContext fallback');
     return {
       Provider: ({ value, children }) => children,

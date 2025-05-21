@@ -1,110 +1,62 @@
-
-import { useState, useCallback } from '../react-compatibility';
+import { useState, useEffect, useCallback, useRef } from '../../react-compatibility';
 import { toast } from 'sonner';
-import { BotStatus, BotActionStatus, TradingBotConfig } from './types';
+import { TradingBotConfig, BotStatus, TradingOrder } from "./types";
 
-export function useBotActions() {
-  const [botStatus, setBotStatus] = useState('idle');
-  const [activeBots, setActiveBots] = useState([]);
+export function useBotActions(config: TradingBotConfig) {
+  const [botStatus, setBotStatus] = useState<BotStatus>('idle');
   const [isLoading, setIsLoading] = useState(false);
-  const [currentBot, setCurrentBot] = useState(null);
-  const [actionStatus, setActionStatus] = useState('idle');
-  const [config, setConfig] = useState({
-    buyThreshold: 0.02,
-    sellThreshold: 0.03,
-    stopLoss: 0.05,
-    tradeAmount: 100,
-    maxOrdersPerDay: 5,
-    selectedToken: null,
-    interval: 'minute',
-    strategy: 'trend',
-  });
+  const [activeOrders, setActiveOrders] = useState<TradingOrder[]>([]);
+  const intervalRef = useRef<number | null>(null);
 
-  // Update configuration with partial changes
-  const updateConfig = useCallback((updates) => {
-    setConfig(prevConfig => ({
-      ...prevConfig,
-      ...updates
-    }));
-    
-    toast.success("Bot configuration updated", {
-      description: "Your changes have been saved"
+  const startBot = useCallback(() => {
+    setIsLoading(true);
+    setBotStatus('running');
+    toast.success('Trading bot started!');
+
+    // Simulate placing orders every 10 seconds
+    intervalRef.current = window.setInterval(() => {
+      const newOrder: TradingOrder = {
+        id: Date.now().toString(),
+        type: Math.random() > 0.5 ? 'buy' : 'sell',
+        tokenSymbol: config.selectedToken || 'DEMO',
+        amount: config.tradeAmount,
+        price: Math.random() * 100,
+        status: 'open',
+        createdAt: new Date().toISOString(),
+      };
+      setActiveOrders(prevOrders => [...prevOrders, newOrder]);
+      toast.info(`New order placed: ${newOrder.type} ${newOrder.amount} ${newOrder.tokenSymbol} at ${newOrder.price}`);
+    }, 10000);
+
+    setIsLoading(false);
+  }, [config]);
+
+  const stopBot = useCallback(() => {
+    setIsLoading(true);
+    setBotStatus('idle');
+    toast.info('Trading bot stopped.');
+
+    // Clear the interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+    // Cancel all active orders
+    setActiveOrders(prevOrders => {
+      const cancelledOrders = prevOrders.map(order => ({ ...order, status: 'cancelled' }));
+      toast.warning('All active orders cancelled.');
+      return cancelledOrders;
     });
-  }, []);
 
-  // Select a token for trading
-  const selectToken = useCallback(async (tokenAddress) => {
-    setIsLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
-      updateConfig({ selectedToken: tokenAddress });
-      return true;
-    } catch (error) {
-      toast.error("Failed to select token");
-      console.error("Token selection error:", error);
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [updateConfig]);
-
-  // Start a trading bot
-  const startBot = useCallback(async () => {
-    if (!config.selectedToken) {
-      toast.error("Please select a token first");
-      return false;
-    }
-    
-    setIsLoading(true);
-    try {
-      setActionStatus('loading');
-      // Simulate starting bot
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setBotStatus('running');
-      setActionStatus('success');
-      toast.success("Trading bot started successfully");
-      return true;
-    } catch (error) {
-      setActionStatus('error');
-      toast.error("Failed to start trading bot");
-      console.error("Bot start error:", error);
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [config.selectedToken]);
-
-  // Stop a trading bot
-  const stopBot = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      setActionStatus('loading');
-      // Simulate stopping bot
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setBotStatus('idle');
-      setActionStatus('success');
-      toast.success("Trading bot stopped successfully");
-      return true;
-    } catch (error) {
-      setActionStatus('error');
-      toast.error("Failed to stop trading bot");
-      console.error("Bot stop error:", error);
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
+    setIsLoading(false);
   }, []);
 
   return {
     botStatus,
-    activeBots,
     isLoading,
-    currentBot,
-    actionStatus,
-    config,
-    updateConfig,
-    selectToken,
     startBot,
-    stopBot
+    stopBot,
+    activeOrders
   };
 }

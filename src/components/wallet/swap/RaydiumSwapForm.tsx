@@ -16,7 +16,11 @@ export function RaydiumSwapForm({ isConnected = false, connectWallet }: SwapForm
   const { walletAddress, tokens } = useWalletConnection();
   const availableTokens = useTokenList(tokens);
   
-  // Initialize hook first before using its returned state
+  // Create default token arguments
+  const defaultInputToken = tokens?.find(t => t.address === "sol1") || null;
+  const defaultOutputToken = tokens?.find(t => t.address === "usdc1") || null;
+  
+  // Initialize the hook with default values
   const {
     swapState,
     inputToken,
@@ -28,9 +32,9 @@ export function RaydiumSwapForm({ isConnected = false, connectWallet }: SwapForm
     updateOutputMint,
     updateInputAmount
   } = useRaydiumSwap(
-    tokens?.find(t => t.address === swapState?.inputMint) || null,
-    tokens?.find(t => t.address === swapState?.outputMint) || null,
-    parseFloat(swapState?.inputAmount || "0")
+    defaultInputToken,
+    defaultOutputToken,
+    0
   );
 
   const inputTokenBalance = tokens?.find(t => t.address === swapState?.inputMint)?.amount || 0;
@@ -117,7 +121,7 @@ export function RaydiumSwapForm({ isConnected = false, connectWallet }: SwapForm
 
         <SwapActions 
           isLoading={swapState?.isLoading || false}
-          swapStatus={swapState?.swapStatus || 'idle'}
+          swapStatus={(swapState?.swapStatus as "idle" | "loading" | "success" | "error") || "idle"}
           hasQuote={!!swapState?.quoteResponse}
           onGetQuote={getQuote}
           onSwap={executeSwap}

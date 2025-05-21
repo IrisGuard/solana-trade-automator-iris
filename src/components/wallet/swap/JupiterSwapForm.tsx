@@ -18,6 +18,7 @@ export function JupiterSwapForm() {
   // Default slippage of 0.5%
   const defaultSlippage = 0.5;
   
+  // Initialize the swap hook first
   const {
     swapState,
     inputToken,
@@ -29,9 +30,9 @@ export function JupiterSwapForm() {
     updateOutputMint,
     updateInputAmount
   } = useJupiterSwap(
-    tokens?.find(t => t.address === swapState?.inputMint) || null,
-    tokens?.find(t => t.address === swapState?.outputMint) || null,
-    parseFloat(swapState?.inputAmount || "0"),
+    tokens?.find(t => t.address === "sol1") || null, 
+    tokens?.find(t => t.address === "usdc1") || null,
+    0,
     defaultSlippage
   );
 
@@ -108,7 +109,7 @@ export function JupiterSwapForm() {
 
             <SwapActions
               isLoading={swapState?.isLoading || false}
-              swapStatus={swapState?.swapStatus || 'idle'}
+              swapStatus={(swapState?.swapStatus as "idle" | "loading" | "success" | "error") || "idle"}
               hasQuote={!!swapState?.quoteResponse}
               onGetQuote={getQuote}
               onSwap={executeSwap}

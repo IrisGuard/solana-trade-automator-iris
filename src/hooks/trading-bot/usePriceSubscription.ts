@@ -1,85 +1,63 @@
+import { useState, useEffect, useCallback } from '../../react-compatibility';
+import { Token } from '@/types/wallet';
 
-import { useState, useEffect } from '../../react-compatibility';
-import { toast } from 'sonner';
-
-// Define the TokenPriceInfo type to include all necessary properties
-export interface TokenPriceInfo {
+interface TokenPriceData {
   price: number;
   change24h: number;
-  highPrice24h?: number; 
-  lowPrice24h?: number;
-  volume24h?: number;
-  marketCap?: number;
-  lastUpdated?: Date;
+  volume24h: number;
+  marketCap: number;
 }
 
-export const usePriceSubscription = (tokenAddress: string | null) => {
-  const [priceInfo, setPriceInfo] = useState<TokenPriceInfo>({
-    price: 0,
-    change24h: 0,
-  });
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [error, setError] = useState(null);
-  const [lastUpdate, setLastUpdate] = useState(null);
-
-  useEffect(() => {
-    if (!tokenAddress) return;
-
-    // Simulate price subscription
-    let intervalId;
+export function usePriceSubscription(tokenAddress: string | null) {
+  const [priceData, setPriceData] = useState<TokenPriceData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const fetchPrice = useCallback(async () => {
+    if (!tokenAddress) {
+      setError('No token address provided');
+      return;
+    }
     
-    const setupPriceUpdates = () => {
-      // Initial update
-      updatePrice();
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Mock price data - replace with actual API call
+      const mockPrice = Math.random() * 100;
+      const mockChange = Math.random() * 20 - 10;
       
-      // Subscribe to price updates
-      intervalId = setInterval(() => {
-        updatePrice();
-      }, 10000); // Update every 10 seconds
-      
-      setIsSubscribed(true);
-    };
-    
-    const updatePrice = () => {
-      try {
-        // Generate random price changes to simulate real updates
-        const basePrice = 100; // Base price for all tokens
-        const variance = Math.random() * 10 - 5; // Random variance between -5 and +5
-        const newPrice = basePrice + variance;
-        const change = ((newPrice - basePrice) / basePrice) * 100;
-        
-        // Update with valid properties for our TokenPriceInfo type
-        setPriceInfo({
-          price: newPrice,
-          change24h: change,
-          highPrice24h: newPrice + (Math.random() * 5),
-          lowPrice24h: newPrice - (Math.random() * 5),
-          volume24h: 1000000 + (Math.random() * 500000),
-          marketCap: 100000000 + (Math.random() * 10000000),
-          lastUpdated: new Date(),
-        });
-        
-        setLastUpdate(new Date());
-        setError(null);
-      } catch (err) {
-        setError(err as Error);
-        toast.error('Failed to update token price');
-        console.error('Price subscription error:', err);
-      }
-    };
-    
-    setupPriceUpdates();
-    
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-      setIsSubscribed(false);
-    };
+      setPriceData({
+        price: mockPrice,
+        change24h: mockChange,
+        volume24h: Math.random() * 10000,
+        marketCap: Math.random() * 1000000
+      });
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch price data');
+      console.error('Error fetching price data:', err);
+    } finally {
+      setIsLoading(false);
+    }
   }, [tokenAddress]);
   
+  useEffect(() => {
+    if (tokenAddress) {
+      fetchPrice();
+      
+      // Mock interval - replace with actual subscription
+      const intervalId = setInterval(fetchPrice, 60000);
+      
+      return () => clearInterval(intervalId);
+    } else {
+      setPriceData(null);
+    }
+  }, [tokenAddress, fetchPrice]);
+
   return {
-    priceInfo,
-    isSubscribed,
+    priceData,
+    isLoading,
     error,
-    lastUpdate,
+    fetchPrice
   };
-};
+}
