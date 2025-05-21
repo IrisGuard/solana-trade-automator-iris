@@ -150,10 +150,11 @@ const fallbackCore = {
     console.warn('Using Suspense fallback');
     return children;
   },
-  SuspenseList: React.SuspenseList || function SuspenseList({ children }) {
-    console.warn('Using SuspenseList fallback');
-    return children;
-  },
+  // Fix: Remove SuspenseList since it doesn't exist in React 18.3.1
+  // SuspenseList: React.SuspenseList || function SuspenseList({ children }) {
+  //   console.warn('Using SuspenseList fallback');
+  //   return children;
+  // },
   Component: React.Component || class Component {},
   PureComponent: React.PureComponent || class PureComponent {},
   version: React.version || '18.3.1',
@@ -207,7 +208,8 @@ const core = {
   act: React.act || fallbackCore.act,
   StrictMode: React.StrictMode || fallbackCore.StrictMode,
   Suspense: React.Suspense || fallbackCore.Suspense,
-  SuspenseList: React.SuspenseList || fallbackCore.SuspenseList,
+  // Fix: Remove SuspenseList
+  // SuspenseList: React.SuspenseList || fallbackCore.SuspenseList,
   Component: React.Component || fallbackCore.Component,
   PureComponent: React.PureComponent || fallbackCore.PureComponent,
   version: React.version || fallbackCore.version,
@@ -258,7 +260,7 @@ export const {
   act,
   StrictMode,
   Suspense,
-  SuspenseList,
+  // Fix: Remove SuspenseList
   Component,
   PureComponent,
   version,
@@ -275,8 +277,10 @@ export const {
 
 // Patch global React object if in browser
 if (typeof window !== 'undefined') {
-  // Use the full React object as a base
-  window.React = window.React || {};
+  // Create a new React object with all our exports, not just an empty object
+  if (!window.React) {
+    window.React = { ...React };  // Start with all existing React properties
+  }
   
   // Apply all hooks and core methods
   const reactExports = {...hooks, ...core, ...jsxRuntime};

@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useRef } from '../../react-runtime';
 import { toast } from 'sonner';
 import { getSolBalance } from '@/services/solana/wallet';
@@ -9,12 +8,12 @@ import { useErrorReporting } from '@/hooks/useErrorReporting';
  */
 export function useWalletBalance() {
   // Αρχικοποίηση state εκτός της διαδρομής render
-  const [solBalance, setSolBalance] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [solBalance, setSolBalance] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const { reportError } = useErrorReporting();
   
   // Θα παρακολουθούμε τον χρόνο του τελευταίου αιτήματος
-  const lastBalanceRequest = useRef<number>(0);
+  const lastBalanceRequest = useRef(0);
   
   // Ελάχιστο διάστημα μεταξύ διαδοχικών αιτημάτων (10 δευτ)
   const MIN_REQUEST_INTERVAL = 10000;

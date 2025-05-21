@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from '../../react-compatibility';
 import { toast } from 'sonner';
 import { Bot, ActiveOrder, TradingBotConfig, TokenPriceInfo } from './types';
@@ -8,8 +9,8 @@ import { Bot, ActiveOrder, TradingBotConfig, TokenPriceInfo } from './types';
 export function useBotActions() {
   const [bots, setBots] = useState<Bot[]>([]);
   const [activeBot, setActiveBot] = useState<Bot | null>(null);
-  const [isCreating, setIsCreating] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [botStatus, setBotStatus] = useState<'running' | 'idle' | 'paused'>('idle');
   const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>([]);
   

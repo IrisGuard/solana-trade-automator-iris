@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from '../../react-runtime';
 import { Token } from '@/types/wallet';
 import { TokenPrices } from '@/services/solana/price/types';
@@ -12,7 +11,7 @@ export function useWalletData() {
   const [tokenPrices, setTokenPrices] = useState<TokenPrices>({});
   const [isLoadingTokens, setIsLoadingTokens] = useState(false);
   const { reportError } = useErrorReporting();
-  const [lastLoadTime, setLastLoadTime] = useState<number>(0);
+  const [lastLoadTime, setLastLoadTime] = useState(0);
 
   // Load wallet data
   const loadWalletData = useCallback(async (address: string) => {
