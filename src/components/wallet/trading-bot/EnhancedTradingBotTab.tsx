@@ -39,16 +39,17 @@ export function EnhancedTradingBotTab() {
 
   // Ensure tokens have the required properties and match the expected Token type from /types/wallet
   const typedTokens = tokens.map(token => {
-    // Explicitly create a new object with all required properties
-    return {
+    // Create a new token object that strictly conforms to the Token interface
+    const typedToken: Token = {
       address: token.address || '',
       symbol: token.symbol || '',
       name: token.name || '',
-      amount: typeof token.amount === 'number' ? token.amount : 0, // Ensure amount is always a number
+      amount: typeof token.amount === 'number' ? token.amount : 0,
       decimals: token.decimals || 0,
       mint: token.mint || token.address || '',
       logo: token.logo
-    } satisfies Token; // Use satisfies to ensure type compatibility
+    };
+    return typedToken;
   });
 
   return (
