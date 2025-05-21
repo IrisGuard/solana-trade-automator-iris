@@ -6,12 +6,12 @@
  */
 
 // Import our React runtime first
-import * as React from './react-runtime';
+import * as RuntimeBridge from './react-runtime';
 
 // Import React Router
 import * as ReactRouter from 'react-router-dom';
 
-// Re-export React hooks needed by React Router
+// Re-export React hooks needed by React Router from our runtime bridge
 export const {
   useState,
   useEffect,
@@ -22,7 +22,7 @@ export const {
   useReducer,
   useLayoutEffect,
   useId
-} = React;
+} = RuntimeBridge;
 
 // Re-export React Router hooks
 export const {
@@ -45,26 +45,26 @@ export const {
 if (typeof window !== 'undefined') {
   // Make sure all the hooks React Router needs are available
   const requiredHooks = {
-    useContext,
-    useState,
-    useEffect,
-    useRef,
-    useCallback,
-    useMemo,
-    useReducer,
-    useLayoutEffect,
-    useId,
-    createElement: React.createElement,
-    createContext: React.createContext,
-    Fragment: React.Fragment,
+    useContext: RuntimeBridge.useContext,
+    useState: RuntimeBridge.useState, 
+    useEffect: RuntimeBridge.useEffect,
+    useRef: RuntimeBridge.useRef,
+    useCallback: RuntimeBridge.useCallback,
+    useMemo: RuntimeBridge.useMemo,
+    useReducer: RuntimeBridge.useReducer,
+    useLayoutEffect: RuntimeBridge.useLayoutEffect,
+    useId: RuntimeBridge.useId,
+    createElement: RuntimeBridge.createElement,
+    createContext: RuntimeBridge.createContext,
+    Fragment: RuntimeBridge.Fragment,
     // Add missing properties that were causing TypeScript errors
-    Profiler: React.Profiler,
-    jsxsDEV: React.jsxsDEV
+    Profiler: RuntimeBridge.Profiler,
+    jsxsDEV: RuntimeBridge.jsxsDEV
   };
   
-  // Create window.React if it doesn't exist - use full React object
+  // Create window.React if it doesn't exist
   if (!window.React) {
-    window.React = React;
+    window.React = Object.create(RuntimeBridge);
   }
   
   // Add all required hooks to window.React
@@ -79,16 +79,16 @@ if (typeof window !== 'undefined') {
     }
   });
   
-  console.log('[RouterBridge] React Router compatibility bridge initialized');
+  console.log('[RouterBridge] React Router compatibility bridge initialized for React 18.3.1');
 }
 
 // Debug function to verify hooks are available
 export function debugRouterHooks() {
   return {
     reactHooks: {
-      useState: typeof React.useState === 'function',
-      useEffect: typeof React.useEffect === 'function',
-      useContext: typeof React.useContext === 'function'
+      useState: typeof RuntimeBridge.useState === 'function',
+      useEffect: typeof RuntimeBridge.useEffect === 'function',
+      useContext: typeof RuntimeBridge.useContext === 'function'
     },
     routerHooks: {
       useNavigate: typeof ReactRouter.useNavigate === 'function',
@@ -104,7 +104,7 @@ export function debugRouterHooks() {
 }
 
 // Export React for compatibility
-export { React };
+export { RuntimeBridge as React };
 
 // Export the router
 export { ReactRouter };

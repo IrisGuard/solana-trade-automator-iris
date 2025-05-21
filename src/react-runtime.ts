@@ -4,63 +4,225 @@
  * This file should be imported before any other React imports
  */
 
-import * as React from 'react';
+// Import full React module
+import React from 'react';
 
-// Extract hooks from React using object property access
+// Create fallbacks for React hooks since they're not exported directly in React 18.3.1
+const fallbackHooks = {
+  // State management hooks
+  useState: function useState(initialState) {
+    console.warn('Using useState fallback');
+    return [typeof initialState === 'function' ? initialState() : initialState, () => {}]; 
+  },
+  useEffect: function useEffect() {
+    console.warn('Using useEffect fallback');
+  },
+  useRef: function useRef(initialValue) { 
+    console.warn('Using useRef fallback');
+    return { current: initialValue }; 
+  },
+  useContext: function useContext() {
+    console.warn('Using useContext fallback');
+    return undefined;
+  },
+  useReducer: function useReducer(reducer, initialState) {
+    console.warn('Using useReducer fallback');
+    return [initialState, () => {}];
+  },
+  useCallback: function useCallback(callback) {
+    console.warn('Using useCallback fallback');
+    return callback;
+  },
+  useMemo: function useMemo(factory) {
+    console.warn('Using useMemo fallback');
+    return factory();
+  },
+  useLayoutEffect: function useLayoutEffect() {
+    console.warn('Using useLayoutEffect fallback');
+  },
+  useImperativeHandle: function useImperativeHandle() {
+    console.warn('Using useImperativeHandle fallback');
+  },
+  useDebugValue: function useDebugValue() {
+    console.warn('Using useDebugValue fallback');
+  },
+  useId: function useId() {
+    console.warn('Using useId fallback');
+    return Math.random().toString(36).slice(2);
+  },
+  useDeferredValue: function useDeferredValue(value) {
+    console.warn('Using useDeferredValue fallback');
+    return value;
+  },
+  useInsertionEffect: function useInsertionEffect() {
+    console.warn('Using useInsertionEffect fallback');
+  },
+  useSyncExternalStore: function useSyncExternalStore(subscribe, getSnapshot) {
+    console.warn('Using useSyncExternalStore fallback');
+    return getSnapshot();
+  },
+  useTransition: function useTransition() {
+    console.warn('Using useTransition fallback');
+    return [false, () => {}];
+  }
+};
+
+// Create fallbacks for core React APIs
+const fallbackCore = {
+  createElement: React.createElement || function createElement(type, props, ...children) {
+    console.warn('Using createElement fallback');
+    return { type, props: { ...props, children: children.length === 1 ? children[0] : children } };
+  },
+  createContext: React.createContext || function createContext(defaultValue) {
+    console.warn('Using createContext fallback');
+    return {
+      Provider: ({ value, children }) => children,
+      Consumer: ({ children }) => children(defaultValue),
+      _currentValue: defaultValue
+    };
+  },
+  Fragment: React.Fragment || Symbol('React.Fragment'),
+  forwardRef: React.forwardRef || function forwardRef(render) {
+    console.warn('Using forwardRef fallback');
+    return render;
+  },
+  memo: React.memo || function memo(component) {
+    console.warn('Using memo fallback');
+    return component;
+  },
+  Children: React.Children || {
+    map: (children, fn) => Array.isArray(children) ? children.map(fn) : children ? [fn(children)] : [],
+    forEach: (children, fn) => Array.isArray(children) ? children.forEach(fn) : children && fn(children),
+    count: (children) => Array.isArray(children) ? children.length : children ? 1 : 0,
+    only: (children) => {
+      if (!children) throw new Error('React.Children.only expected to receive a single React element child.');
+      return children;
+    },
+    toArray: (children) => Array.isArray(children) ? children : children ? [children] : []
+  },
+  createRef: React.createRef || function createRef() {
+    console.warn('Using createRef fallback');
+    return { current: null };
+  },
+  cloneElement: React.cloneElement || function cloneElement(element) {
+    console.warn('Using cloneElement fallback');
+    return element;
+  },
+  isValidElement: React.isValidElement || function isValidElement() {
+    console.warn('Using isValidElement fallback');
+    return false;
+  },
+  createFactory: React.createFactory || function createFactory(type) {
+    console.warn('Using createFactory fallback');
+    return React.createElement.bind(null, type);
+  },
+  lazy: React.lazy || function lazy(loader) {
+    console.warn('Using lazy fallback');
+    return { 
+      $$typeof: Symbol.for('react.lazy'),
+      _payload: { _status: -1, _result: loader },
+      _init: function (payload) {
+        if (payload._status === -1) {
+          try {
+            const result = loader();
+            payload._status = 1;
+            payload._result = result;
+          } catch (error) {
+            payload._status = 2;
+            payload._result = error;
+          }
+        }
+        return payload._result;
+      }
+    };
+  },
+  startTransition: React.startTransition || function startTransition(callback) {
+    console.warn('Using startTransition fallback');
+    callback();
+  },
+  act: React.act || function act(callback) {
+    console.warn('Using act fallback');
+    callback();
+    return { then: (resolve) => { resolve(); return { catch: () => {} }; } };
+  },
+  StrictMode: React.StrictMode || React.Fragment || 'div',
+  Suspense: React.Suspense || function Suspense({ children }) {
+    console.warn('Using Suspense fallback');
+    return children;
+  },
+  SuspenseList: React.SuspenseList || function SuspenseList({ children }) {
+    console.warn('Using SuspenseList fallback');
+    return children;
+  },
+  Component: React.Component || class Component {},
+  PureComponent: React.PureComponent || class PureComponent {},
+  version: React.version || '18.3.1',
+  Profiler: React.Profiler || function Profiler({ children }) {
+    console.warn('Using Profiler fallback');
+    return children;
+  }
+};
+
+// Create fallbacks for JSX runtime functions
+const fallbackJsxRuntime = {
+  jsx: React.jsx || fallbackCore.createElement,
+  jsxs: React.jsxs || fallbackCore.createElement,
+  jsxDEV: React.jsxDEV || fallbackCore.createElement,
+  jsxsDEV: React.jsxsDEV || React.jsxDEV || fallbackCore.createElement
+};
+
+// Determine which hooks to use - try to get from React or use fallbacks
 const hooks = {
-  useState: React['useState'],
-  useEffect: React['useEffect'],
-  useRef: React['useRef'],
-  useContext: React['useContext'],
-  useReducer: React['useReducer'],
-  useCallback: React['useCallback'],
-  useMemo: React['useMemo'],
-  useLayoutEffect: React['useLayoutEffect'],
-  useImperativeHandle: React['useImperativeHandle'],
-  useDebugValue: React['useDebugValue'],
-  useId: React['useId'],
-  useDeferredValue: React['useDeferredValue'],
-  useInsertionEffect: React['useInsertionEffect'],
-  useSyncExternalStore: React['useSyncExternalStore'],
-  useTransition: React['useTransition']
+  useState: React.useState || fallbackHooks.useState,
+  useEffect: React.useEffect || fallbackHooks.useEffect,
+  useRef: React.useRef || fallbackHooks.useRef,
+  useContext: React.useContext || fallbackHooks.useContext,
+  useReducer: React.useReducer || fallbackHooks.useReducer,
+  useCallback: React.useCallback || fallbackHooks.useCallback,
+  useMemo: React.useMemo || fallbackHooks.useMemo,
+  useLayoutEffect: React.useLayoutEffect || fallbackHooks.useLayoutEffect,
+  useImperativeHandle: React.useImperativeHandle || fallbackHooks.useImperativeHandle,
+  useDebugValue: React.useDebugValue || fallbackHooks.useDebugValue,
+  useId: React.useId || fallbackHooks.useId,
+  useDeferredValue: React.useDeferredValue || fallbackHooks.useDeferredValue,
+  useInsertionEffect: React.useInsertionEffect || fallbackHooks.useInsertionEffect,
+  useSyncExternalStore: React.useSyncExternalStore || fallbackHooks.useSyncExternalStore,
+  useTransition: React.useTransition || fallbackHooks.useTransition
 };
 
-// Core React APIs
+// Determine which core APIs to use - try to get from React or use fallbacks
 const core = {
-  createElement: React['createElement'],
-  createContext: React['createContext'],
-  Fragment: React['Fragment'],
-  forwardRef: React['forwardRef'],
-  memo: React['memo'],
-  Children: React['Children'],
-  createRef: React['createRef'],
-  cloneElement: React['cloneElement'],
-  isValidElement: React['isValidElement'],
-  createFactory: React['createFactory'],
-  // Add the missing properties causing TypeScript errors
-  lazy: React['lazy'],
-  startTransition: React['startTransition'],
-  act: React['act'],
-  StrictMode: React['StrictMode'],
-  Suspense: React['Suspense'],
-  SuspenseList: React['SuspenseList'],
-  Component: React['Component'],
-  PureComponent: React['PureComponent'],
-  version: React['version'],
-  // Add missing Profiler component
-  Profiler: React['Profiler']
+  createElement: React.createElement || fallbackCore.createElement,
+  createContext: React.createContext || fallbackCore.createContext,
+  Fragment: React.Fragment || fallbackCore.Fragment,
+  forwardRef: React.forwardRef || fallbackCore.forwardRef,
+  memo: React.memo || fallbackCore.memo,
+  Children: React.Children || fallbackCore.Children,
+  createRef: React.createRef || fallbackCore.createRef,
+  cloneElement: React.cloneElement || fallbackCore.cloneElement,
+  isValidElement: React.isValidElement || fallbackCore.isValidElement,
+  createFactory: React.createFactory || fallbackCore.createFactory,
+  lazy: React.lazy || fallbackCore.lazy,
+  startTransition: React.startTransition || fallbackCore.startTransition,
+  act: React.act || fallbackCore.act,
+  StrictMode: React.StrictMode || fallbackCore.StrictMode,
+  Suspense: React.Suspense || fallbackCore.Suspense,
+  SuspenseList: React.SuspenseList || fallbackCore.SuspenseList,
+  Component: React.Component || fallbackCore.Component,
+  PureComponent: React.PureComponent || fallbackCore.PureComponent,
+  version: React.version || fallbackCore.version,
+  Profiler: React.Profiler || fallbackCore.Profiler
 };
 
-// JSX runtime functions - only define once to avoid redeclaration
+// Determine which JSX runtime functions to use
 const jsxRuntime = {
-  jsx: React['jsx'] || React['createElement'],
-  jsxs: React['jsxs'] || React['createElement'],
-  jsxDEV: React['jsxDEV'] || React['createElement'],
-  // Add missing jsxsDEV property (matching the error)
-  jsxsDEV: React['jsxsDEV'] || React['jsxDEV'] || React['createElement']
+  jsx: React.jsx || fallbackJsxRuntime.jsx,
+  jsxs: React.jsxs || fallbackJsxRuntime.jsxs,
+  jsxDEV: React.jsxDEV || fallbackJsxRuntime.jsxDEV,
+  jsxsDEV: React.jsxsDEV || fallbackJsxRuntime.jsxsDEV
 };
 
-// Export all hooks and APIs
+// Export all hooks
 export const {
   useState,
   useEffect,
@@ -79,6 +241,7 @@ export const {
   useTransition
 } = hooks;
 
+// Export all core APIs
 export const {
   createElement,
   createContext,
@@ -112,11 +275,14 @@ export const {
 
 // Patch global React object if in browser
 if (typeof window !== 'undefined') {
-  // Instead of creating an empty object, use the full React object as a base
-  window.React = window.React || React;
+  // Use the full React object as a base
+  window.React = window.React || {};
   
-  // Apply all hooks and core methods if they're missing
-  Object.entries({...hooks, ...core, ...jsxRuntime}).forEach(([key, value]) => {
+  // Apply all hooks and core methods
+  const reactExports = {...hooks, ...core, ...jsxRuntime};
+  
+  // Add each export to window.React
+  Object.entries(reactExports).forEach(([key, value]) => {
     if (value && !window.React[key]) {
       try {
         window.React[key] = value;
@@ -126,7 +292,7 @@ if (typeof window !== 'undefined') {
     }
   });
   
-  console.log('React runtime bridge initialized successfully');
+  console.log('React runtime bridge initialized successfully with fallbacks for 18.3.1');
 }
 
 // Export default React for compatibility

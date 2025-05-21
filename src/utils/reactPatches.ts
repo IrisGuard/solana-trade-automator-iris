@@ -1,5 +1,6 @@
 
-import * as React from 'react';
+import React from 'react';
+import * as RuntimeBridge from '../react-runtime';
 
 // Helper function to safely define a property if it doesn't exist
 const safelyDefineProperty = (obj, prop, value) => {
@@ -26,34 +27,34 @@ export function ensureReactCompatibility(): void {
         console.log('Created window.React from React module');
       }
       
-      // Access React methods with safe property access
+      // Use our runtime bridge exports for JSX functions
       const jsxFunctions = {
-        jsx: React['jsx'] || React['createElement'] || function(){},
-        jsxs: React['jsxs'] || React['createElement'] || function(){},
-        jsxDEV: React['jsxDEV'] || React['createElement'] || function(){}
+        jsx: RuntimeBridge.jsx,
+        jsxs: RuntimeBridge.jsxs,
+        jsxDEV: RuntimeBridge.jsxDEV
       };
       
       Object.entries(jsxFunctions).forEach(([key, value]) => {
         safelyDefineProperty(window.React, key, value);
       });
       
-      // Make sure all essential React functions are available using safe property access
+      // Make sure all essential React functions are available from our bridge
       const essentialReactFunctions = {
-        createElement: React['createElement'] || function(){},
-        createContext: React['createContext'] || function(){},
-        Fragment: React['Fragment'] || Symbol('Fragment'),
-        useState: React['useState'] || function(){ return [undefined, () => {}]; },
-        useEffect: React['useEffect'] || function(){},
-        useContext: React['useContext'] || function(){},
-        useRef: React['useRef'] || function(){ return { current: null }; },
-        useReducer: React['useReducer'] || function(){ return [undefined, () => {}]; },
-        useCallback: React['useCallback'] || function(cb){ return cb; },
-        useMemo: React['useMemo'] || function(fn){ return fn(); },
-        useLayoutEffect: React['useLayoutEffect'] || function(){},
-        useImperativeHandle: React['useImperativeHandle'] || function(){},
-        useDebugValue: React['useDebugValue'] || function(){},
-        useId: React['useId'] || function(){ return Math.random().toString(36).slice(2); },
-        Children: React['Children'] || {}
+        createElement: RuntimeBridge.createElement,
+        createContext: RuntimeBridge.createContext,
+        Fragment: RuntimeBridge.Fragment,
+        useState: RuntimeBridge.useState,
+        useEffect: RuntimeBridge.useEffect,
+        useContext: RuntimeBridge.useContext,
+        useRef: RuntimeBridge.useRef,
+        useReducer: RuntimeBridge.useReducer,
+        useCallback: RuntimeBridge.useCallback,
+        useMemo: RuntimeBridge.useMemo,
+        useLayoutEffect: RuntimeBridge.useLayoutEffect,
+        useImperativeHandle: RuntimeBridge.useImperativeHandle,
+        useDebugValue: RuntimeBridge.useDebugValue,
+        useId: RuntimeBridge.useId,
+        Children: RuntimeBridge.Children
       };
       
       // Apply essential functions safely
@@ -62,7 +63,7 @@ export function ensureReactCompatibility(): void {
       });
       
       // Log success
-      console.log('React patches applied successfully');
+      console.log('React patches applied successfully with React 18.3.1 compatibility');
     } catch (error) {
       console.error('Error applying React patches:', error);
     }
