@@ -1,19 +1,20 @@
 
 import * as React from 'react';
 
-// Προσθήκη τύπων για το window object
+// Define types for the window object
 declare global {
   interface Window {
     React: typeof React;
-    patchedReactRouter: boolean;
+    // Make sure this declaration matches the one in other files
+    patchedReactRouter?: boolean; // Using optional modifier consistently
   }
 }
 
-// Εξαγωγή της συνάρτησης για εφαρμογή συμβατότητας με το React Router
+// Export the function for applying React Router compatibility
 export function ensureRouterCompatibility(): void {
   if (typeof window !== 'undefined') {
     try {
-      // Βεβαιώνουμε ότι έχουμε πλήρες React object
+      // Ensure we have a complete React object
       window.React = window.React || React;
       
       // Ensure all essential React functions are available
@@ -31,7 +32,7 @@ export function ensureRouterCompatibility(): void {
         }
       });
       
-      // Σημειώνουμε ότι έχουμε εφαρμόσει το router patch
+      // Mark that we've applied the router patch
       window.patchedReactRouter = true;
       
       console.log('React Router patches applied successfully');
@@ -41,5 +42,5 @@ export function ensureRouterCompatibility(): void {
   }
 }
 
-// Για συμβατότητα με παλαιότερες εκδόσεις κώδικα
+// For backwards compatibility with older code
 export default ensureRouterCompatibility;

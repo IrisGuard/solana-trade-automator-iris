@@ -42,7 +42,9 @@ export const memo = React.memo;
 
 // Apply these to the global React object
 if (typeof window !== 'undefined') {
-  window.React = window.React || {};
+  // Initialize window.React with the React object itself, not an empty object
+  // This fixes the type error by ensuring it has all required properties
+  window.React = window.React || React;
   
   // Apply JSX functions
   Object.assign(window.React, {
