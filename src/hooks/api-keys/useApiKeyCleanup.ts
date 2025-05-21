@@ -7,11 +7,7 @@ import { useAuth } from '@/contexts/SupabaseAuthContext';
 
 export function useApiKeyCleanup() {
   const [isRunning, setIsRunning] = useState(false);
-  const [results, setResults] = useState<{
-    checked: number;
-    valid: number;
-    removed: number;
-  }>({
+  const [results, setResults] = useState({
     checked: 0,
     valid: 0,
     removed: 0,

@@ -73,14 +73,13 @@ const fallbackCore = {
     console.warn('Using createElement fallback');
     return { type, props: { ...props, children: children.length === 1 ? children[0] : children } };
   },
-  createContext: React.createContext || function createContext(defaultValue, calculateChangedBits) {
+  createContext: React.createContext || function createContext(defaultValue) {
     console.warn('Using createContext fallback');
     return {
       Provider: ({ value, children }) => children,
       Consumer: ({ children }) => children(defaultValue),
       _currentValue: defaultValue,
-      _currentChangedBits: 0,
-      calculateChangedBits: calculateChangedBits || (() => 0)
+      _currentChangedBits: 0
     };
   },
   Fragment: React.Fragment || Symbol('React.Fragment'),
@@ -152,7 +151,6 @@ const fallbackCore = {
     console.warn('Using Suspense fallback');
     return children;
   },
-  // Remove SuspenseList since it doesn't exist in React 18.3.1
   Component: React.Component || class Component {},
   PureComponent: React.PureComponent || class PureComponent {},
   version: React.version || '18.3.1',
@@ -206,7 +204,6 @@ const core = {
   act: React.act || fallbackCore.act,
   StrictMode: React.StrictMode || fallbackCore.StrictMode,
   Suspense: React.Suspense || fallbackCore.Suspense,
-  // Remove SuspenseList
   Component: React.Component || fallbackCore.Component,
   PureComponent: React.PureComponent || fallbackCore.PureComponent,
   version: React.version || fallbackCore.version,
@@ -257,7 +254,6 @@ export const {
   act,
   StrictMode,
   Suspense,
-  // Fix: Remove SuspenseList
   Component,
   PureComponent,
   version,

@@ -16,6 +16,7 @@ export function RaydiumSwapForm({ isConnected = false, connectWallet }: SwapForm
   const { walletAddress, tokens } = useWalletConnection();
   const availableTokens = useTokenList(tokens);
   
+  // Initialize hook first before using its returned state
   const {
     swapState,
     inputToken,

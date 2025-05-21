@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 export interface TokenPriceInfo {
   price: number;
   change24h: number;
-  highPrice24h?: number; // Make this property optional
+  highPrice24h?: number; 
   lowPrice24h?: number;
   volume24h?: number;
   marketCap?: number;
@@ -19,14 +19,14 @@ export const usePriceSubscription = (tokenAddress: string | null) => {
     change24h: 0,
   });
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [error, setError] = useState(null);
+  const [lastUpdate, setLastUpdate] = useState(null);
 
   useEffect(() => {
     if (!tokenAddress) return;
 
     // Simulate price subscription
-    let intervalId: ReturnType<typeof setInterval>;
+    let intervalId;
     
     const setupPriceUpdates = () => {
       // Initial update

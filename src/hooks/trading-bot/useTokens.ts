@@ -5,7 +5,7 @@ import { Token } from '@/types/wallet';
 
 export function useTokens() {
   const { publicKey, connected } = useWallet();
-  const [tokens, setTokens] = useState<Token[]>([]);
+  const [tokens, setTokens] = useState([]);
   
   // Load available tokens
   useEffect(() => {
