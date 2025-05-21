@@ -6,37 +6,42 @@ export function ensureReactCompatibility(): void {
   if (typeof window !== 'undefined') {
     try {
       // Create a full copy of React in the window
-      window.React = window.React || Object.assign({}, React);
+      window.React = window.React || React;
       
-      // Explicitly patch jsx and jsxs functions if they don't exist
+      // Explicitly patch JSX runtime functions
       if (!window.React.jsx) {
-        Object.defineProperty(window.React, 'jsx', {
-          value: React.jsx || React.createElement,
-          writable: false,
-          configurable: true
-        });
+        window.React.jsx = React.createElement;
       }
       
       if (!window.React.jsxs) {
-        Object.defineProperty(window.React, 'jsxs', {
-          value: React.jsxs || React.createElement,
-          writable: false,
-          configurable: true
-        });
+        window.React.jsxs = React.createElement;
       }
       
-      // Explicitly add other important React exports
-      const reactExports = {
+      if (!window.React.jsxDEV) {
+        window.React.jsxDEV = React.createElement;
+      }
+      
+      // Make sure all essential React functions are available
+      const essentialReactFunctions = {
         createElement: React.createElement,
         createContext: React.createContext,
         Fragment: React.Fragment,
         useState: React.useState,
         useEffect: React.useEffect,
         useContext: React.useContext,
-        useRef: React.useRef
+        useRef: React.useRef,
+        useReducer: React.useReducer,
+        useCallback: React.useCallback,
+        useMemo: React.useMemo,
+        useLayoutEffect: React.useLayoutEffect,
+        useImperativeHandle: React.useImperativeHandle,
+        useDebugValue: React.useDebugValue,
+        useId: React.useId,
+        Children: React.Children
       };
       
-      Object.entries(reactExports).forEach(([key, value]) => {
+      // Apply essential functions
+      Object.entries(essentialReactFunctions).forEach(([key, value]) => {
         if (!window.React[key]) {
           window.React[key] = value;
         }
@@ -50,8 +55,8 @@ export function ensureReactCompatibility(): void {
   }
 }
 
-// Ensure the patch is applied automatically when the module is imported
+// Apply the patch immediately when imported
 ensureReactCompatibility();
 
-// For backwards compatibility with older code
+// Export for backwards compatibility
 export default ensureReactCompatibility;

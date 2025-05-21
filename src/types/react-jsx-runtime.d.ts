@@ -4,10 +4,10 @@ import * as React from 'react';
 // Extend the React namespace to include JSX runtime functions that match React 18.3.1
 declare module 'react' {
   // JSX runtime functions
-  export const jsx: any;
-  export const jsxs: any;
-  export const jsxDEV: any;
-  export const jsxsDEV: any;
+  export const jsx: typeof React.createElement;
+  export const jsxs: typeof React.createElement;
+  export const jsxDEV: typeof React.createElement;
+  export const jsxsDEV: typeof React.createElement;
   
   // React hooks that might not be available in the typings
   export const useState: typeof React.useState;
@@ -31,10 +31,10 @@ declare module 'react' {
 declare global {
   interface Window {
     React: typeof React & {
-      jsx: any;
-      jsxs: any;
-      jsxDEV: any;
-      jsxsDEV: any;
+      jsx: typeof React.createElement;
+      jsxs: typeof React.createElement;
+      jsxDEV: typeof React.createElement;
+      jsxsDEV: typeof React.createElement;
       useState?: typeof React.useState;
       useEffect?: typeof React.useEffect;
       useContext?: typeof React.useContext;

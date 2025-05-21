@@ -12,7 +12,7 @@ export function useErrorDialogInChat() {
     const handleLovableError = (event: CustomEvent) => {
       console.log('Λήφθηκε lovable-error event:', event.detail);
       
-      // Process and sanitize the error to ensure all properties are strings
+      // Always sanitize the error to ensure all properties are strings
       const processedError = sanitizeErrorObject(event.detail);
       
       // Προσθήκη του νέου σφάλματος στο array (διατηρώντας και τα προηγούμενα)
@@ -40,7 +40,7 @@ export function useErrorDialogInChat() {
     window.lovableChat.createErrorDialog = (errorData: any) => {
       console.log('Κλήση του createErrorDialog με δεδομένα:', errorData);
       
-      // Process and sanitize the error
+      // Always sanitize the error
       const processedError = sanitizeErrorObject(errorData);
       
       // Προσθήκη του νέου σφάλματος στο array (διατηρώντας και τα προηγούμενα)

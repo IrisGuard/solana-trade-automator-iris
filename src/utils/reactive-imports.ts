@@ -4,6 +4,9 @@
  * It provides a centralized place to import React features from
  */
 
+// Import React directly to get accurate types and implementations
+import * as React from 'react';
+
 // Import from our bridge
 import {
   useState,
@@ -63,88 +66,74 @@ export function patchGlobalReact() {
   if (typeof window !== 'undefined') {
     // Create a starter React object with required props if needed
     if (!window.React) {
-      // Import React directly to ensure we have the correct types
-      const React = require('react');
-      
-      // Initialize with React itself or create a minimal compatible object
-      window.React = React || {
-        // These must be correctly typed functions, not just any functions
-        version: '18.3.1',
-        // Use the actual imported functions when available
-        createElement: createElement || React.createElement,
-        Fragment: Fragment || React.Fragment,
-        useState: useState || React.useState,
-        useEffect: useEffect || React.useEffect,
-        useContext: useContext || React.useContext,
-        useRef: useRef || React.useRef,
-        useReducer: useReducer || React.useReducer,
-        useCallback: useCallback || React.useCallback,
-        useMemo: useMemo || React.useMemo,
-        useLayoutEffect: useLayoutEffect || React.useLayoutEffect,
-        createContext: createContext || React.createContext,
-        forwardRef: forwardRef || React.forwardRef,
-        memo: memo || React.memo,
-        Children: {
-          map: function mapChildren(children, fn, context) {
-            if (!children) return null;
-            return Array.isArray(children) 
-              ? children.map(child => fn.call(context || null, child)) 
-              : [fn.call(context || null, children)];
-          },
-          forEach: function forEachChildren(children, fn, context) {
-            if (!children) return null;
-            if (Array.isArray(children)) {
-              children.forEach(child => fn.call(context || null, child));
-            } else {
-              fn.call(context || null, children);
-            }
-            return undefined;
-          },
-          count: function countChildren(children) {
-            if (!children) return 0;
-            return Array.isArray(children) ? children.length : 1;
-          },
-          only: function onlyChild(children) {
-            if (Array.isArray(children)) {
-              if (children.length !== 1) {
-                throw new Error('Children.only expected to receive a single React element child.');
-              }
-              return children[0];
-            }
-            return children;
-          },
-          toArray: function toArrayChildren(children) {
-            if (!children) return [];
-            return Array.isArray(children) ? children : [children];
-          }
-        }
-      };
+      window.React = React;
     }
     
-    // Apply all exports
+    // Apply all exports as a flat object to window.React
     const exports = {
-      useState,
-      useEffect,
-      useRef,
-      useContext,
-      useReducer,
-      useCallback,
-      useMemo,
-      useLayoutEffect,
-      useImperativeHandle,
-      useDebugValue,
-      useId,
-      Fragment,
-      createElement,
-      createContext,
-      forwardRef,
-      memo,
-      jsx,
-      jsxs,
-      jsxDEV
+      // Core APIs
+      Fragment: Fragment || React.Fragment,
+      createElement: createElement || React.createElement,
+      createContext: createContext || React.createContext,
+      forwardRef: forwardRef || React.forwardRef,
+      memo: memo || React.memo,
+      
+      // Hooks
+      useState: useState || React.useState,
+      useEffect: useEffect || React.useEffect,
+      useContext: useContext || React.useContext,
+      useRef: useRef || React.useRef,
+      useReducer: useReducer || React.useReducer,
+      useCallback: useCallback || React.useCallback,
+      useMemo: useMemo || React.useMemo,
+      useLayoutEffect: useLayoutEffect || React.useLayoutEffect,
+      useImperativeHandle: useImperativeHandle || React.useImperativeHandle,
+      useDebugValue: useDebugValue || React.useDebugValue,
+      useId: useId || React.useId,
+      
+      // JSX runtime
+      jsx: jsx,
+      jsxs: jsxs,
+      jsxDEV: jsxDEV,
+      
+      // Make sure Children is properly implemented
+      Children: React.Children || {
+        map: function mapChildren(children, fn, context) {
+          if (!children) return null;
+          return Array.isArray(children) 
+            ? children.map(child => fn.call(context || null, child)) 
+            : [fn.call(context || null, children)];
+        },
+        forEach: function forEachChildren(children, fn, context) {
+          if (!children) return null;
+          if (Array.isArray(children)) {
+            children.forEach(child => fn.call(context || null, child));
+          } else {
+            fn.call(context || null, children);
+          }
+          return undefined;
+        },
+        count: function countChildren(children) {
+          if (!children) return 0;
+          return Array.isArray(children) ? children.length : 1;
+        },
+        only: function onlyChild(children) {
+          if (Array.isArray(children)) {
+            if (children.length !== 1) {
+              throw new Error('Children.only expected to receive a single React element child.');
+            }
+            return children[0];
+          }
+          return children;
+        },
+        toArray: function toArrayChildren(children) {
+          if (!children) return [];
+          return Array.isArray(children) ? children : [children];
+        }
+      }
     };
     
-    // Apply to global React
+    // Apply all exports to window.React
     Object.entries(exports).forEach(([name, fn]) => {
       if (fn && !window.React[name]) {
         window.React[name] = fn;

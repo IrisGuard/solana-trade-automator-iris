@@ -4,44 +4,29 @@
  */
 import * as React from 'react';
 
-// In React 18.3.1, JSX runtime functions are no longer exported from 'react'
-// They are available from specific modules
-const hasCreateElement = React && typeof React.createElement === 'function';
-const hasFragment = React && React.Fragment !== undefined;
+// Use direct imports from React
+const createElement = React.createElement;
+const Fragment = React.Fragment;
 
-const jsxRuntime = hasCreateElement ? 
-  { 
-    jsx: React.createElement,
-    jsxs: React.createElement,
-    Fragment: React.Fragment
-  } : 
-  // Use bracket notation to avoid TypeScript errors about missing exports
-  {
-    jsx: function jsx(type, props) {
-      return hasCreateElement ? React.createElement(type, props) : { type, props };
-    },
-    jsxs: function jsxs(type, props) { 
-      return hasCreateElement ? React.createElement(type, props) : { type, props };
-    },
-    Fragment: hasFragment ? React.Fragment : Symbol('Fragment')
-  };
+// Create jsx/jsxs functions that always use React.createElement
+export const jsx = function jsx(type, props, ...children) {
+  return createElement(type, props, ...children);
+};
 
-export const jsx = jsxRuntime.jsx;
-export const jsxs = jsxRuntime.jsxs;
-export const Fragment = hasFragment ? React.Fragment : jsxRuntime.Fragment;
+export const jsxs = function jsxs(type, props, ...children) {
+  return createElement(type, props, ...children);
+};
+
+export const Fragment = Fragment;
 
 // Also export these functions that might be used by the JSX transformer
 export const jsxDEV = jsx;
 export const jsxsDEV = jsxs;
 
-// Export createElement directly with safe fallback
-export const createElement = hasCreateElement ? React.createElement : function createElement(type, props, ...children) {
-  // Basic fallback implementation
-  console.warn('Using createElement fallback implementation');
-  return { type, props: { ...props, children } };
-};
+// Export createElement directly 
+export const createElement = createElement;
 
-// Re-export all React hooks with safe fallbacks
+// Re-export all React hooks
 export const useState = React.useState || ((initialState) => [initialState, () => {}]);
 export const useEffect = React.useEffect || (() => {});
 export const useContext = React.useContext || (() => undefined);

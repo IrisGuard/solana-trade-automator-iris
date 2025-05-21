@@ -7,49 +7,33 @@
  */
 import * as React from 'react';
 
-// Create a version check that doesn't rely on the version export
-console.log('React bridge loading - ensuring compatibility with React 18.3.1');
+// Use direct access to React functions
+export const useState = React.useState;
+export const useEffect = React.useEffect;
+export const useContext = React.useContext;
+export const useReducer = React.useReducer;
+export const useRef = React.useRef;
+export const useMemo = React.useMemo;
+export const useCallback = React.useCallback;
+export const useLayoutEffect = React.useLayoutEffect;
+export const useDebugValue = React.useDebugValue;
+export const useImperativeHandle = React.useImperativeHandle;
+export const useId = React.useId;
+export const useDeferredValue = React.useDeferredValue;
+export const useInsertionEffect = React.useInsertionEffect;
+export const useSyncExternalStore = React.useSyncExternalStore;
+export const useTransition = React.useTransition;
 
-// Create hooks with safe fallbacks
-const createHook = (hookName, fallbackFn) => {
-  // Try to access the hook directly from the React object
-  return React[hookName] || // Direct access if available
-         fallbackFn;        // Fallback implementation
-};
+// Core React functions
+export const Fragment = React.Fragment;
+export const createElement = React.createElement;
+export const createContext = React.createContext;
+export const forwardRef = React.forwardRef;
+export const memo = React.memo;
 
-// Create named exports for all React hooks
-export const useState = createHook('useState', (initialState) => [initialState, () => {}]);
-export const useEffect = createHook('useEffect', () => {});
-export const useContext = createHook('useContext', (context) => undefined);
-export const useReducer = createHook('useReducer', (reducer, initialState) => [initialState, () => {}]); 
-export const useRef = createHook('useRef', (initialValue) => ({ current: initialValue }));
-export const useMemo = createHook('useMemo', (factory) => factory());
-export const useCallback = createHook('useCallback', (callback) => callback);
-export const useLayoutEffect = createHook('useLayoutEffect', () => {});
-export const useDebugValue = createHook('useDebugValue', () => {});
-export const useImperativeHandle = createHook('useImperativeHandle', () => {});
-export const useId = createHook('useId', () => Math.random().toString(36).substring(2));
-export const useDeferredValue = createHook('useDeferredValue', (value) => value);
-export const useInsertionEffect = createHook('useInsertionEffect', () => {});
-export const useSyncExternalStore = createHook('useSyncExternalStore', (subscribe, getSnapshot) => getSnapshot());
-export const useTransition = createHook('useTransition', () => [false, () => {}]);
-
-// Create safe versions of React element creation functions
-// Use hasOwnProperty to safely check if the methods exist
-const hasCreateElement = React && typeof React.createElement === 'function';
-const hasFragment = React && React.Fragment !== undefined;
-const hasCreateContext = React && typeof React.createContext === 'function';
-const hasForwardRef = React && typeof React.forwardRef === 'function';
-const hasMemo = React && typeof React.memo === 'function';
-
-// Create JSX runtime function exports with fallbacks
-export const jsx = hasCreateElement ? React.createElement : ((type, props) => ({ type, props }));
-export const jsxs = hasCreateElement ? React.createElement : ((type, props) => ({ type, props }));
-export const Fragment = hasFragment ? React.Fragment : Symbol('React.Fragment');
-export const createElement = hasCreateElement ? React.createElement : ((type, props, ...children) => ({ type, props: { ...props, children } }));
-export const createContext = hasCreateContext ? React.createContext : ((defaultValue) => ({ Provider: ({ children }) => children, Consumer: ({ children }) => children(defaultValue), _currentValue: defaultValue }));
-export const forwardRef = hasForwardRef ? React.forwardRef : ((render) => render);
-export const memo = hasMemo ? React.memo : ((component) => component);
+// Create JSX runtime function exports that use createElement directly
+export const jsx = React.createElement;
+export const jsxs = React.createElement;
 
 // Apply these to the global React object
 if (typeof window !== 'undefined') {
