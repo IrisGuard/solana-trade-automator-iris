@@ -44,7 +44,7 @@ export function EnhancedTradingBotTab() {
     const amount = typeof token.amount === 'number' ? token.amount : Number(token.amount || 0);
     
     // Convert to the expected Token type with all required properties
-    const processedToken: Token = {
+    return {
       address: token.address || '',
       symbol: token.symbol || '',
       name: token.name || '',
@@ -52,8 +52,7 @@ export function EnhancedTradingBotTab() {
       decimals: token.decimals || 0,
       mint: token.mint || token.address || '',
       logo: token.logo
-    };
-    return processedToken;
+    } as Token;
   });
 
   return (
