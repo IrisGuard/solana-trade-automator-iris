@@ -1,7 +1,16 @@
 
-/**
- * This file serves as a compatibility layer to import React hooks and other APIs.
- * It imports from the react-runtime.ts file which provides fallbacks for React 18.3.1.
- */
-export * from './react-runtime';
-export { default } from './react-runtime';
+// Export React hooks for compatibility
+import { useState, useEffect, useCallback, useMemo, useRef, useContext, useReducer } from 'react';
+
+// Re-export core React hooks
+export {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  useContext,
+  useReducer
+};
+
+// Create custom hook shims if needed here in the future

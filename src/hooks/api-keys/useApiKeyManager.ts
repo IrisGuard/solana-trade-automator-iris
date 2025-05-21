@@ -1,152 +1,56 @@
-import { useState } from '../../react-compatibility';
-import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { errorCollector } from '@/utils/error-handling/collector';
+
+import { useState, useCallback } from '../../react-compatibility';
 import { ApiKeyEntry } from '@/services/api-keys/types';
+import { v4 as uuidv4 } from 'uuid';
+import { toast } from 'sonner';
 
-interface UseApiKeyManagerProps {
-  userId?: string;
-  onSuccess?: (key: ApiKeyEntry) => void;
-}
-
-export function useApiKeyManager({ userId, onSuccess }: UseApiKeyManagerProps = {}) {
-  const [isAdding, setIsAdding] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-
-  const addKey = async (
-    name: string, 
-    service: string, 
-    keyValue: string, 
-    description?: string
-  ): Promise<ApiKeyEntry | null> => {
-    if (!userId) {
-      toast.error('You need to be logged in to add API keys');
-      return null;
-    }
-    
-    setIsAdding(true);
-    
-    try {
-      const newKey: ApiKeyEntry = {
-        id: uuidv4(),
-        user_id: userId,
-        name,
-        service,
-        key_value: keyValue,
-        status: 'active',
-        created_at: new Date().toISOString(),
-        description
-      };
-      
-      const { error } = await supabase
-        .from('api_keys_storage')
-        .insert({
-          id: newKey.id,
-          user_id: newKey.user_id,
-          name: newKey.name,
-          service: newKey.service,
-          key_value: newKey.key_value,
-          status: newKey.status,
-          description: newKey.description
-        });
-      
-      if (error) throw error;
-      
-      toast.success('API key added successfully');
-      onSuccess?.(newKey);
-      return newKey;
-    } catch (err) {
-      console.error('Error adding API key:', err);
-      errorCollector.captureError(err instanceof Error ? err : new Error('Failed to add API key'), {
-        component: 'useApiKeyManager',
-        source: 'addKey',
-        details: { name, service }
-      });
-      toast.error('Failed to add API key');
-      return null;
-    } finally {
-      setIsAdding(false);
-    }
-  };
+export function useApiKeyManager() {
+  const [apiKeys, setApiKeys] = useState<ApiKeyEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  const updateKey = async (
-    keyId: string, 
-    updates: Partial<Omit<ApiKeyEntry, 'id' | 'created_at'>>
-  ): Promise<ApiKeyEntry | null> => {
-    if (!userId) {
-      toast.error('You need to be logged in to update API keys');
-      return null;
-    }
+  // Add API Key
+  const addApiKey = useCallback((keyData: Omit<ApiKeyEntry, 'id' | 'created_at' | 'is_encrypted'>) => {
+    const newKey: ApiKeyEntry = {
+      id: uuidv4(),
+      user_id: keyData.user_id,
+      name: keyData.name,
+      service: keyData.service,
+      key_value: keyData.key_value,
+      status: keyData.status || 'active',
+      created_at: new Date().toISOString(),
+      description: keyData.description || '',
+      is_encrypted: false // Default value
+    };
     
-    if (keyId.startsWith('demo-')) {
-      toast.error('Cannot update demo keys');
-      return null;
-    }
-    
-    setIsUpdating(true);
-    
-    try {
-      // Define valid status values as a type
-      const validStatuses = ['active', 'expired', 'revoked', 'failing'] as const;
-      type ValidStatus = typeof validStatuses[number];
-      
-      // Ensure status is one of the allowed values if it's being updated
-      if (updates.status !== undefined) {
-        // Check if the status is valid, if not default to 'active'
-        const isValidStatus = (status: string): status is ValidStatus => {
-          return validStatuses.includes(status as ValidStatus);
-        };
-        
-        if (!isValidStatus(updates.status)) {
-          updates.status = 'active';
-        }
-      }
-      
-      const { data, error } = await supabase
-        .from('api_keys_storage')
-        .update(updates)
-        .eq('id', keyId)
-        .eq('user_id', userId)
-        .select()
-        .single();
-        
-      if (error) throw error;
-      
-      toast.success('API key updated successfully');
-      
-      const updatedKey: ApiKeyEntry = {
-        id: data.id,
-        user_id: data.user_id,
-        name: data.name,
-        service: data.service,
-        key_value: data.key_value,
-        status: data.status as ApiKeyEntry['status'],
-        created_at: data.created_at,
-        description: data.description,
-        is_encrypted: data.is_encrypted
-      };
-      
-      onSuccess?.(updatedKey);
-      return updatedKey;
-    } catch (err) {
-      console.error('Error updating API key:', err);
-      errorCollector.captureError(err instanceof Error ? err : new Error('Failed to update API key'), {
-        component: 'useApiKeyManager',
-        source: 'updateKey',
-        details: { keyId }
-      });
-      toast.error('Failed to update API key');
-      return null;
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+    setApiKeys(prev => [...prev, newKey]);
+    toast.success('API Key added successfully');
+    return newKey;
+  }, []);
+  
+  // Update API Key
+  const updateApiKey = useCallback((id: string, updates: Partial<ApiKeyEntry>) => {
+    setApiKeys(prev => 
+      prev.map(key => 
+        key.id === id ? { ...key, ...updates } : key
+      )
+    );
+  }, []);
+  
+  // Delete API Key
+  const deleteApiKey = useCallback((id: string) => {
+    setApiKeys(prev => prev.filter(key => key.id !== id));
+    toast.success('API Key removed successfully');
+  }, []);
   
   return {
-    addKey,
-    updateKey,
-    isAdding,
-    isUpdating
+    apiKeys,
+    isLoading,
+    error,
+    addApiKey,
+    updateApiKey,
+    deleteApiKey,
+    setIsLoading,
+    setError
   };
 }

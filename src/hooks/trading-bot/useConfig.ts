@@ -1,19 +1,20 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from '../../react-compatibility';
 import { TradingBotConfig } from './types';
 
 const DEFAULT_CONFIG: TradingBotConfig = {
   selectedToken: null,
-  strategy: 'simple',
+  strategy: 'grid', // Changed from 'simple' to 'grid'
   tradeAmount: 10,
   buyThreshold: 1.0,
   sellThreshold: 2.0,
   stopLoss: 5.0,
   takeProfit: 10.0,
+  autoReinvest: false,
   maxBudget: 100,
-  autoRebalance: false,
   trailingStop: false,
-  enabledStrategies: { // Now properly typed
+  autoRebalance: false,
+  enabledStrategies: {
     dca: false,
     grid: false,
     momentum: false

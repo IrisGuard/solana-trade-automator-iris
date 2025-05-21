@@ -50,7 +50,7 @@ export function OrdersTab({ activeOrders }: OrdersTabProps) {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Token</p>
-                  <p className="font-medium">{order.token}</p>
+                  <p className="font-medium">{order.tokenSymbol}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Κατάσταση</p>

@@ -93,13 +93,13 @@ export function StatusCard({
               {activeOrders.map((order, index) => (
                 <div key={index} className="text-sm flex justify-between p-2 bg-muted rounded">
                   <span>
-                    {order.type === 'stop-loss' 
-                      ? 'Stop Loss' 
-                      : order.type === 'take-profit' 
-                        ? 'Take Profit' 
-                        : order.type === 'buy' 
-                          ? 'Αγορά' 
-                          : 'Πώληση'}
+                    {order.type === 'buy' 
+                      ? 'Αγορά' 
+                      : order.type === 'sell'
+                        ? 'Πώληση'
+                        : order.type === 'stop-loss'
+                          ? 'Stop Loss'
+                          : 'Take Profit'}
                   </span>
                   <span>${order.price.toFixed(4)}</span>
                 </div>

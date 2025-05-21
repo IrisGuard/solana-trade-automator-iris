@@ -6,6 +6,7 @@ export interface Token {
   amount: number;
   decimals: number;
   mint: string;
+  logo?: string;
 }
 
 export interface WalletBalance {
