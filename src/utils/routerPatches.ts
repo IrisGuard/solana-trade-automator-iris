@@ -1,6 +1,5 @@
 
 import * as React from 'react';
-import { createElement, createContext, Fragment, useState, useEffect, useContext, useRef } from '../react-compatibility';
 
 // Define types for the window object without conflict
 declare global {
@@ -16,23 +15,27 @@ export function ensureRouterCompatibility(): void {
   if (typeof window !== 'undefined') {
     try {
       // Ensure we have a complete React object
-      window.React = window.React || React;
+      window.React = window.React || Object.create(React);
       
       // Ensure all essential React functions are available
       const essentialFunctions = {
-        createElement,
-        createContext,
-        Fragment,
-        useState,
-        useEffect,
-        useContext,
-        useRef
+        createElement: React.createElement || function() {},
+        createContext: React.createContext || function() {},
+        Fragment: React.Fragment || Symbol('Fragment'),
+        useState: React.useState || function() { return [undefined, () => {}]; },
+        useEffect: React.useEffect || function() {},
+        useContext: React.useContext || function() {},
+        useRef: React.useRef || function() { return { current: null }; }
       };
       
       // Apply them to window.React
       Object.entries(essentialFunctions).forEach(([key, value]) => {
         if (!window.React[key]) {
-          window.React[key] = value;
+          try {
+            window.React[key] = value;
+          } catch (e) {
+            console.warn(`Could not assign ${key} to window.React: ${e.message}`);
+          }
         }
       });
       

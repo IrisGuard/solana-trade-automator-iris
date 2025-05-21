@@ -97,11 +97,7 @@ export const Fragment = React.Fragment || Symbol('React.Fragment');
 if (typeof window !== 'undefined') {
   // Create React on window if it doesn't exist
   if (!window.React) {
-    Object.defineProperty(window, 'React', { 
-      value: {}, 
-      writable: true, 
-      configurable: true 
-    });
+    window.React = {} as any;
   }
   
   // Add hooks and Fragment to global React
@@ -116,7 +112,6 @@ if (typeof window !== 'undefined') {
           writable: true,
           configurable: true
         });
-        console.log(`Patched ${hookName} onto global React object`);
       } catch (e) {
         console.warn(`Could not patch ${hookName} onto global React:`, e);
       }

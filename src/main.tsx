@@ -83,12 +83,11 @@ try {
   }
   
   // Create safe createElement reference that returns a valid ReactNode
-  const createElement = React.createElement || React['createElement'] || 
-                       function(type: any, props: any, ...children: any[]) { 
-                         console.warn('Using createElement fallback');
-                         // Use React.Fragment directly from our namespace import
-                         return React.Fragment ? React.createElement(React.Fragment, null, ...children) : children[0];
-                       };
+  const createElement = React['createElement'] || function(type: any, props: any, ...children: any[]) { 
+    console.warn('Using createElement fallback');
+    // Use React.Fragment directly from our namespace import
+    return React.Fragment ? React.createElement(React.Fragment, null, ...children) : children[0];
+  };
   
   // Use the createRoot function with fallback
   const createRoot = ReactDOM.createRoot || ReactDOM['createRoot'] || 
