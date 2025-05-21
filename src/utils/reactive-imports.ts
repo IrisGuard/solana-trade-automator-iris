@@ -85,17 +85,20 @@ export function patchGlobalReact() {
         forwardRef: forwardRef || React.forwardRef,
         memo: memo || React.memo,
         Children: {
-          map: function mapChildren(children, fn) {
+          map: function mapChildren(children, fn, context) {
             if (!children) return null;
             return Array.isArray(children) 
-              ? children.map(fn) 
-              : [fn(children)];
+              ? children.map(child => fn.call(context || null, child)) 
+              : [fn.call(context || null, children)];
           },
-          forEach: function forEachChildren(children, fn) {
+          forEach: function forEachChildren(children, fn, context) {
             if (!children) return null;
-            return Array.isArray(children) 
-              ? children.forEach(fn) 
-              : fn(children);
+            if (Array.isArray(children)) {
+              children.forEach(child => fn.call(context || null, child));
+            } else {
+              fn.call(context || null, children);
+            }
+            return undefined;
           },
           count: function countChildren(children) {
             if (!children) return 0;
