@@ -11,7 +11,7 @@ export function ensureReactCompatibility(): void {
       // Explicitly patch jsx and jsxs functions if they don't exist
       if (!window.React.jsx) {
         Object.defineProperty(window.React, 'jsx', {
-          value: React.createElement,
+          value: React.jsx || React.createElement,
           writable: false,
           configurable: true
         });
@@ -19,7 +19,7 @@ export function ensureReactCompatibility(): void {
       
       if (!window.React.jsxs) {
         Object.defineProperty(window.React, 'jsxs', {
-          value: React.createElement,
+          value: React.jsxs || React.createElement,
           writable: false,
           configurable: true
         });

@@ -1,5 +1,8 @@
 
-// Import React hooks exporter first - critical for React 18.3.1 compatibility
+// Import React 18.3.1 Bridge first
+import './react-18-bridge';
+
+// Import React hooks exporter next - critical for React 18.3.1 compatibility
 import './utils/reactHooksExporter';
 
 // Import JSX runtime bridge next

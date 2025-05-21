@@ -1,22 +1,23 @@
 
 /**
- * This file ensures React hooks are properly bridged between ESM and CommonJS modules
- * to fix compatibility issues with React Router DOM and React 18.3.1
+ * This file provides bridge functions for React Router hooks
+ * to ensure they can access React hooks properly with React 18.3.1
  */
 import * as React from 'react';
+import * as ReactRouter from 'react-router-dom';
 
-// Store all hooks in an object for programmatic access
+// First ensure React hooks are available through the namespace
 const hooks = {
   useState: React.useState,
   useEffect: React.useEffect,
+  useRef: React.useRef, 
   useContext: React.useContext,
-  useReducer: React.useReducer,
-  useRef: React.useRef,
-  useMemo: React.useMemo,
   useCallback: React.useCallback,
+  useMemo: React.useMemo,
+  useReducer: React.useReducer,
   useLayoutEffect: React.useLayoutEffect,
-  useDebugValue: React.useDebugValue,
   useImperativeHandle: React.useImperativeHandle,
+  useDebugValue: React.useDebugValue,
   useId: React.useId,
   useDeferredValue: React.useDeferredValue,
   useInsertionEffect: React.useInsertionEffect,
@@ -43,60 +44,53 @@ export const {
   useTransition
 } = hooks;
 
-// For browser environment, ensure global React object has hooks
-if (typeof window !== 'undefined') {
-  // Create React on window if it doesn't exist
-  if (!window.React) {
-    Object.defineProperty(window, 'React', { 
-      value: {}, 
-      writable: true, 
-      configurable: true 
-    });
-  }
-  
-  // Apply hooks to global React and log diagnostic info
-  Object.entries(hooks).forEach(([hookName, hookFn]) => {
-    if (!window.React[hookName]) {
-      try {
-        Object.defineProperty(window.React, hookName, {
-          value: hookFn,
-          writable: true,
-          configurable: true
-        });
-        console.log(`[ReactBridge] Bridged ${hookName} to global React`);
-      } catch (e) {
-        console.warn(`[ReactBridge] Failed to bridge ${hookName}:`, e);
-      }
+// Re-export React Router hooks with ensured React hooks access
+export const useNavigate = ReactRouter.useNavigate;
+export const useLocation = ReactRouter.useLocation;
+export const useParams = ReactRouter.useParams;
+export const useSearchParams = ReactRouter.useSearchParams;
+export const useRouteMatch = ReactRouter.useMatch;
+
+// Export other core router components
+export const {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  NavLink,
+  Navigate,
+  Outlet
+} = ReactRouter;
+
+// Create debug function
+export function checkRouterHooksAvailable() {
+  console.log({
+    hooksExported: {
+      useNavigate: typeof useNavigate === 'function',
+      useLocation: typeof useLocation === 'function',
+      useParams: typeof useParams === 'function',
+      useSearchParams: typeof useSearchParams === 'function'
+    },
+    reactHooksExported: {
+      useState: typeof React.useState === 'function',
+      useEffect: typeof React.useEffect === 'function',
+      useRef: typeof React.useRef === 'function'
+    },
+    originalReactExports: {
+      useState: typeof useState === 'function',
+      useEffect: typeof useEffect === 'function', 
+      useRef: typeof useRef === 'function'
     }
   });
-  
-  // JSX runtime functions
-  const jsxFunctions = {
-    createElement: React.createElement,
-    Fragment: React.Fragment,
-    jsx: React.createElement,
-    jsxs: React.createElement
-  };
-  
-  // Add createElement and other JSX functions if not present
-  Object.entries(jsxFunctions).forEach(([fnName, fn]) => {
-    if (!window.React[fnName]) {
-      try {
-        Object.defineProperty(window.React, fnName, {
-          value: fn,
-          writable: true,
-          configurable: true
-        });
-        console.log(`[ReactBridge] Added ${fnName} to global React`);
-      } catch (e) {
-        console.warn(`[ReactBridge] Failed to add ${fnName}:`, e);
-      }
-    }
-  });
-  
-  console.log('[ReactBridge] React hooks bridge initialization completed');
 }
 
-// Export React itself with all hooks attached
-const ReactWithHooks = {...React, ...hooks};
-export default ReactWithHooks;
+// Patch window.React if available to ensure React Router can find hooks
+if (typeof window !== 'undefined' && window.React) {
+  // Add hooks to the global React object
+  Object.entries(hooks).forEach(([hookName, hookFn]) => {
+    if (!window.React[hookName]) {
+      window.React[hookName] = hookFn;
+      console.log(`[RouterBridge] Added ${hookName} to global React`);
+    }
+  });
+}

@@ -2,7 +2,7 @@
 // Re-export React hooks and functions properly
 import * as React from 'react';
 
-// Create an object to hold all hook exports
+// Access React hooks directly from the namespace
 const reactHooks = {
   useState: React.useState,
   useEffect: React.useEffect,
@@ -27,9 +27,6 @@ export const {
   useEffect,
   useContext,
   useRef,
-  createContext,
-  forwardRef,
-  memo,
   useCallback,
   useMemo,
   useReducer,
@@ -40,15 +37,24 @@ export const {
   useDeferredValue,
   useInsertionEffect,
   useSyncExternalStore,
-  useTransition,
-  Fragment,
-  createElement
+  useTransition
+} = reactHooks;
+
+// Export other React functions
+export const {
+  createContext,
+  forwardRef,
+  memo,
+  Fragment
 } = React;
 
+// Export createElement directly
+export const createElement = React.createElement;
+
 // Provide JSX runtime functions
-export const jsx = React.createElement;
-export const jsxs = React.createElement;
-export const jsxDEV = React.createElement;
+export const jsx = React.jsx || React.createElement;
+export const jsxs = React.jsxs || React.createElement;
+export const jsxDEV = React.jsxDEV || React.createElement;
 
 // Apply hooks to global React for compatibility
 if (typeof window !== 'undefined') {
@@ -63,9 +69,9 @@ if (typeof window !== 'undefined') {
     memo: React.memo,
     Fragment: React.Fragment,
     createElement: React.createElement,
-    jsx: React.createElement,
-    jsxs: React.createElement,
-    jsxDEV: React.createElement
+    jsx: jsx,
+    jsxs: jsxs,
+    jsxDEV: jsxDEV
   };
   
   Object.entries(exportedItems).forEach(([key, value]) => {
