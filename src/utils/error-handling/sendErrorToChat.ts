@@ -9,6 +9,8 @@ declare global {
   interface Window {
     lovableChat?: {
       createErrorDialog?: (errorData: Record<string, string>) => void;
+      clearErrors?: () => void;
+      [key: string]: any;
     };
   }
 }

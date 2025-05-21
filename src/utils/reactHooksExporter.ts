@@ -94,9 +94,12 @@ if (typeof window !== 'undefined') {
   // Handle Fragment differently to avoid read-only property error
   if (!window.React.Fragment) {
     try {
+      // Create a new Fragment symbol if needed
+      const fragmentSymbol = React.Fragment || Symbol('React.Fragment');
+      
       // Try to define Fragment with proper configuration
       Object.defineProperty(window.React, 'Fragment', {
-        value: React.Fragment || Symbol('React.Fragment'),
+        value: fragmentSymbol,
         writable: true,
         configurable: true
       });

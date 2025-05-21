@@ -104,3 +104,26 @@ export function initProtectionSystem() {
     stopMonitoring
   };
 }
+
+/**
+ * Clear all collected errors from various error stores
+ */
+export function clearAllErrors() {
+  // Clear errors from localStorage if available
+  try {
+    localStorage.removeItem('app_console_logs');
+    localStorage.removeItem('app_errors');
+    
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('lovable-clear-errors'));
+    
+    // Clear any errors in lovableChat if available
+    if (window.lovableChat && window.lovableChat.clearErrors) {
+      window.lovableChat.clearErrors();
+    }
+    
+    console.log("All errors cleared successfully");
+  } catch (e) {
+    console.error("Error while clearing errors:", e);
+  }
+}
