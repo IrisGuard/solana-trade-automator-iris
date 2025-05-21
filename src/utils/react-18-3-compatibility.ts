@@ -38,9 +38,11 @@ export function applyReact183Compatibility() {
   
   // Hook shims - use direct access to hooks
   const hookShims = {
-    useState: React.useState || function useState(initialState) {
+    useState: React.useState || function useState<S>(initialState: S | (() => S)) {
       console.warn('Using useState fallback shim');
-      const state = typeof initialState === 'function' ? initialState() : initialState;
+      const state = typeof initialState === 'function' 
+        ? (initialState as () => S)() 
+        : initialState;
       const setState = () => { /* noop */ };
       return [state, setState];
     },

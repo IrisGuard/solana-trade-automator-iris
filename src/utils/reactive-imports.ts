@@ -9,8 +9,12 @@ import * as React from 'react';
 
 // Create hooks with fallbacks
 const hooksWithFallbacks = {
-  useState: React.useState || function useState(initialState) { 
-    return [typeof initialState === 'function' ? initialState() : initialState, () => {}]; 
+  useState: React.useState || function useState<S>(initialState: S | (() => S)) { 
+    console.warn('Using fallback useState');
+    const state = typeof initialState === 'function' 
+      ? (initialState as () => S)() 
+      : initialState;
+    return [state, () => {}]; 
   },
   useEffect: React.useEffect || function useEffect() {},
   useContext: React.useContext || function useContext() { return undefined; },

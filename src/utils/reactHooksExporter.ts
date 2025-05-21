@@ -10,9 +10,13 @@ import * as React from 'react';
 // Create a mapping of all hooks with fallbacks
 const hooksMapping = {
   // Try direct access to hooks, then use fallbacks
-  useState: React.useState || function useState(initialState) { 
+  useState: React.useState || function useState<S>(initialState: S | (() => S)) { 
     console.warn('Using fallback useState');
-    return [typeof initialState === 'function' ? initialState() : initialState, () => {}]; 
+    const state = typeof initialState === 'function' 
+      ? (initialState as () => S)() 
+      : initialState;
+    const setState = () => { /* noop */ };
+    return [state, setState];
   },
   useEffect: React.useEffect || function useEffect() {
     console.warn('Using fallback useEffect');
