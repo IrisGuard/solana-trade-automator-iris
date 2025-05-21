@@ -39,9 +39,9 @@ export function EnhancedTradingBotTab() {
 
   // Create a new array of tokens with the correct type structure that satisfies the Token type
   // from @/types/wallet where amount is required and must be a number
-  const typedTokens: Token[] = tokens.map(token => {
-    // Ensure every token object explicitly has all required properties
-    return {
+  const typedTokens = tokens.map(token => {
+    // Convert to the expected Token type with all required properties
+    const processedToken: Token = {
       address: token.address || '',
       symbol: token.symbol || '',
       name: token.name || '',
@@ -50,6 +50,7 @@ export function EnhancedTradingBotTab() {
       mint: token.mint || token.address || '',
       logo: token.logo
     };
+    return processedToken;
   });
 
   return (
