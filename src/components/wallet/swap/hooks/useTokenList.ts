@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "../../../../react-compatibility";
 import { Token } from "@/types/wallet";
 import { COMMON_TOKEN_LIST } from "../types";
 

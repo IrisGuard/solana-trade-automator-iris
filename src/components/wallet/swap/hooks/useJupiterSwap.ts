@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState } from "../../../../react-compatibility";
 import { toast } from "sonner";
 import { apiServices } from "@/services/solana/apiServices";
 import { transactionsService } from "@/services/transactionsService";

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import * as React from 'react';
 import { createElement, createContext, Fragment, useState, useEffect, useContext, useRef } from '../react-compatibility';
 
 // Define types for the window object without conflict

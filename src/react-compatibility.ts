@@ -6,11 +6,11 @@
  * which changes how hooks and other APIs are exported.
  */
 
-// Use internal object structure of React, not direct exports
-import React from 'react';
+// Import React with namespace import instead of default import
+import * as React from 'react';
 
 // Access to React internals
-const internalReact = React as any;
+const internalReact = React;
 
 // Define types for basic hooks for better TypeScript support
 type SetStateAction<S> = S | ((prevState: S) => S);
@@ -176,7 +176,7 @@ export function patchReact(): void {
   
   if (typeof window !== 'undefined') {
     // Ensure React global object exists
-    window.React = window.React || React;
+    window.React = window.React || internalReact;
     
     // Apply all our exported functions to the global React
     const exports = {
@@ -207,5 +207,5 @@ export function patchReact(): void {
 // Auto-patch when this file is imported
 patchReact();
 
-// Export the default React object
+// Export the React namespace for backward compatibility
 export default React;

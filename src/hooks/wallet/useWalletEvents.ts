@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect } from '../react-compatibility';
 import { registerPhantomEvents } from '@/utils/phantomWallet';
 
 /**

@@ -3,7 +3,7 @@
  * This file provides a bridge for JSX runtime functions to ensure compatibility
  * with various React versions including React 18.3.1
  */
-import React from 'react';
+import * as React from 'react';
 import { createElement, Fragment, jsx, jsxs, jsxDEV } from './react-compatibility';
 
 // Export all the functions

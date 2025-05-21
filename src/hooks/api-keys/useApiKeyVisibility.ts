@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from '../../react-compatibility';
+import { useState, useCallback } from '../react-compatibility';
 
 /**
  * Hook for managing API key visibility with utilities

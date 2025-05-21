@@ -5,8 +5,8 @@ import './react-compatibility';
 // Import polyfills and patches
 import './polyfills';
 
-// Important: Import React directly to ensure it's available
-import React from 'react';
+// Important: Import React with namespace import
+import * as React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
@@ -86,8 +86,8 @@ try {
   const createElement = React.createElement || React['createElement'] || 
                        function(type: any, props: any, ...children: any[]) { 
                          console.warn('Using createElement fallback');
-                         // Return a React Fragment with children as a valid ReactNode
-                         return React.createElement(React.Fragment, null, children);
+                         // Use React.Fragment directly from our namespace import
+                         return React.Fragment ? React.createElement(React.Fragment, null, ...children) : children[0];
                        };
   
   // Use the createRoot function with fallback
