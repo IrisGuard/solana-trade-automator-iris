@@ -91,9 +91,19 @@ if (typeof window !== 'undefined') {
     }
   });
   
-  // Export fragment symbol
+  // Handle Fragment differently to avoid read-only property error
   if (!window.React.Fragment) {
-    window.React.Fragment = Symbol('React.Fragment');
+    try {
+      // Try to define Fragment with proper configuration
+      Object.defineProperty(window.React, 'Fragment', {
+        value: React.Fragment || Symbol('React.Fragment'),
+        writable: true,
+        configurable: true
+      });
+      console.log('Patched Fragment onto global React object');
+    } catch (e) {
+      console.warn('Could not patch Fragment onto global React:', e);
+    }
   }
   
   console.log('React hooks exported to global React object successfully');

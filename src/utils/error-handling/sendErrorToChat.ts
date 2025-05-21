@@ -4,6 +4,15 @@
  */
 import { sanitizeErrorObject } from '@/utils/errorTestUtils';
 
+// Define a window interface extension to ensure TypeScript understands lovableChat
+declare global {
+  interface Window {
+    lovableChat?: {
+      createErrorDialog?: (errorData: Record<string, string>) => void;
+    };
+  }
+}
+
 export function sendErrorToChat(error: Error | unknown, options: { component?: string; details?: Record<string, unknown> } = {}) {
   // Early return if window or lovableChat is not available
   if (!window.lovableChat || !window.lovableChat.createErrorDialog) {
