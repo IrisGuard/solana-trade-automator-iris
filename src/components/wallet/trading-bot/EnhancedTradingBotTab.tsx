@@ -9,6 +9,7 @@ import { EnhancedPanel } from "./EnhancedPanel";
 import { EnhancedStatusPanel } from "./EnhancedStatusPanel";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
 import { TradingBotConfig as LocalTradingBotConfig } from "@/hooks/trading-bot/types";
+import { Token as WalletToken } from "@/types/wallet";
 
 export function EnhancedTradingBotTab() {
   const { connected } = useWallet();
@@ -36,11 +37,16 @@ export function EnhancedTradingBotTab() {
     strategy: config.strategy as "grid" | "dca" | "momentum" | "simple" | "advanced" | "custom"
   } as LocalTradingBotConfig;
 
-  // Ensure tokens have the required properties
+  // Ensure tokens have the required properties and match the expected WalletToken type
   const typedTokens = tokens.map(token => ({
     ...token,
-    amount: token.amount || 0
-  }));
+    amount: token.amount || 0,
+    mint: token.mint || token.address || '',
+    address: token.address || '',
+    name: token.name || '',
+    symbol: token.symbol || '',
+    decimals: token.decimals || 0
+  })) as WalletToken[];
 
   return (
     <Tabs defaultValue="trading">
