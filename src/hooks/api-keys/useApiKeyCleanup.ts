@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState } from '../../react-compatibility';
 import { ApiIntegrationService } from '@/components/security/apiVault/ApiIntegrationService';
 import { ApiKey } from '@/components/security/apiVault/types';
 import { toast } from 'sonner';

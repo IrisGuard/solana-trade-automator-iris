@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from '../../../react-compatibility';
 import { toast } from 'sonner';
 
 // Define the TokenPriceInfo type to include all necessary properties

@@ -1,5 +1,4 @@
-
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from '../../react-compatibility';
 import { toast } from 'sonner';
 import { Bot, ActiveOrder, TradingBotConfig, TokenPriceInfo } from './types';
 

@@ -1,47 +1,19 @@
 
-// Import React 18.3.1 Bridge first - this is most critical
-import './react-18-bridge';
-
-// Import React 18.3.1 specific compatibility layer
-import './utils/react-18-3-compatibility';
-
-// Import JSX runtime bridge next
-import './jsx-runtime-bridge';
-
-// Import React hooks exporter next
-import './utils/reactHooksExporter';
-
-// Import router hooks bridge early
-import './utils/reactHooksBridge';
-import './utils/routerHooksBridge';
-
-// Import React fixes before React components
-import './react-exports-fix';
-import './lib/router-exports';
+// Import React 18.3.1 compatibility layer first - this is most critical
+import './react-compatibility';
 
 // Import polyfills and patches
 import './polyfills';
 
-// Apply DOM patches early
-import { applyAllDOMPatches } from './utils/domPatches';
-applyAllDOMPatches();
-
 // Important: Import React directly to ensure it's available
-import * as React from 'react';
-import * as ReactDOM from 'react-dom/client';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
 // Import site protection components
 import { SiteBackupService } from './utils/site-protection/SiteBackupService';
 import { SiteHealthMonitor } from './utils/error-handling/SiteHealthMonitor';
-import { routeDebugger } from './utils/routeDebugger';
-
-// Importing applyReact183Compatibility to ensure it's applied
-import { applyReact183Compatibility } from './utils/react-18-3-compatibility';
-
-// Apply React 18.3.1 compatibility
-applyReact183Compatibility();
 
 // Log startup diagnostics
 console.log('[App] Application starting up...');
@@ -110,31 +82,12 @@ try {
     throw new Error('Root element not found');
   }
   
-  // Manual React hook patching before rendering with enhanced safety
-  if (typeof window !== 'undefined' && window.React) {
-    const criticalHooks = ['useState', 'useEffect', 'useContext', 'useRef'];
-    criticalHooks.forEach(hookName => {
-      // Skip if hook already exists on window.React
-      if (!window.React[hookName]) {
-        try {
-          // Try to get the hook from React
-          const hookFn = React[hookName] || 
-                        // Fallbacks with warning
-                        function() { console.warn(`Using fallback for ${hookName}`); return hookName.includes('State') ? [null, () => {}] : undefined; };
-                        
-          // Add hook to window.React
-          Object.defineProperty(window.React, hookName, {
-            value: hookFn,
-            writable: true,
-            configurable: true
-          });
-          console.log(`[Manual patch] Added ${hookName} to window.React`);
-        } catch (e) {
-          console.warn(`[Manual patch] Failed to add ${hookName}:`, e);
-        }
-      }
-    });
-  }
+  // Create safe createElement reference
+  const createElement = React.createElement || React['createElement'] || 
+                       function(type, props, ...children) { 
+                         console.warn('Using createElement fallback');
+                         return { type, props: { ...props, children: children.length === 1 ? children[0] : children } };
+                       };
   
   // Use the createRoot function with fallback
   const createRoot = ReactDOM.createRoot || ReactDOM['createRoot'] || 
@@ -146,17 +99,6 @@ try {
                         } 
                       }; 
                     };
-  
-  // Create safe createElement reference - Fix ReactNode type issue
-  const createElement = React.createElement || React['createElement'] || 
-                       function(type: any, props: any, ...children: any[]) { 
-                         // Return a proper React element that satisfies ReactNode
-                         if (React.createElement) {
-                           return React.createElement(type, props, ...children);
-                         }
-                         // Return a minimal valid ReactNode as fallback
-                         return type as React.ReactNode;
-                       };
   
   // Create safe StrictMode reference
   const StrictMode = React.StrictMode || React['StrictMode'] || React.Fragment || 'div';

@@ -3,18 +3,8 @@
  * This file provides a bridge for JSX runtime functions to ensure compatibility
  * with various React versions including React 18.3.1
  */
-import * as React from 'react';
-
-// Access createElement
-const createElement = React.createElement;
-
-// JSX runtime functions that use createElement
-const jsx = createElement;
-const jsxs = createElement;
-const jsxDEV = createElement;
-
-// Export Fragment for JSX usage
-const Fragment = React.Fragment || Symbol('React.Fragment');
+import React from 'react';
+import { createElement, Fragment, jsx, jsxs, jsxDEV } from './react-compatibility';
 
 // Export all the functions
 export {
@@ -25,31 +15,7 @@ export {
 };
 
 // Log initialization
-console.log('JSX Runtime bridge initialized');
-
-// Apply to global React if available
-if (typeof window !== 'undefined' && window.React) {
-  // Helper function to safely define a property if it doesn't exist
-  const safelyDefineProperty = (obj, prop, value) => {
-    if (!obj[prop]) {
-      try {
-        Object.defineProperty(obj, prop, { 
-          value, 
-          configurable: true,
-          writable: true
-        });
-      } catch (e) {
-        console.warn(`Could not define ${prop} on React: ${e.message}`);
-      }
-    }
-  };
-  
-  // Apply JSX runtime functions
-  safelyDefineProperty(window.React, 'jsx', jsx);
-  safelyDefineProperty(window.React, 'jsxs', jsxs);
-  safelyDefineProperty(window.React, 'jsxDEV', jsxDEV);
-  safelyDefineProperty(window.React, 'Fragment', Fragment);
-}
+console.log('JSX Runtime bridge initialized using React compatibility layer');
 
 // Export default for compatibility
 export default {

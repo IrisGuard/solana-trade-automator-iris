@@ -1,10 +1,11 @@
 
-import * as React from 'react';
+import React from 'react';
+import { createElement, createContext, Fragment, useState, useEffect, useContext, useRef } from '../react-compatibility';
 
 // Define types for the window object
 declare global {
   interface Window {
-    React: typeof React;
+    React: any;
     // Using consistent declaration - checking other files, it seems this should be optional
     patchedReactRouter?: boolean;
   }
@@ -18,15 +19,18 @@ export function ensureRouterCompatibility(): void {
       window.React = window.React || React;
       
       // Ensure all essential React functions are available
-      Object.entries({
-        createElement: React.createElement,
-        createContext: React.createContext,
-        Fragment: React.Fragment,
-        useState: React.useState,
-        useEffect: React.useEffect,
-        useContext: React.useContext,
-        useRef: React.useRef
-      }).forEach(([key, value]) => {
+      const essentialFunctions = {
+        createElement,
+        createContext,
+        Fragment,
+        useState,
+        useEffect,
+        useContext,
+        useRef
+      };
+      
+      // Apply them to window.React
+      Object.entries(essentialFunctions).forEach(([key, value]) => {
         if (!window.React[key]) {
           window.React[key] = value;
         }
@@ -41,6 +45,9 @@ export function ensureRouterCompatibility(): void {
     }
   }
 }
+
+// Apply patch immediately when imported
+ensureRouterCompatibility();
 
 // For backwards compatibility with older code
 export default ensureRouterCompatibility;

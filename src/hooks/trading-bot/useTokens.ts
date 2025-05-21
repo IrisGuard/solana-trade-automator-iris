@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from '../../react-compatibility';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Token } from '@/types/wallet';
 

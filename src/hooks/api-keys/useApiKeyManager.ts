@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState } from '../../react-compatibility';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
