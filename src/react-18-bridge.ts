@@ -13,10 +13,9 @@ console.log('React bridge loading - ensuring compatibility with React 18.3.1');
 
 // Create hooks with safe fallbacks using React as a namespace
 const createHook = (name, fallbackFn) => {
-  // Try to access the hook from React in various ways
+  // Try to access the hook from React directly
   return React[name] || // Direct access
-         (React.unstable_modern?.hooks && React.unstable_modern.hooks[name]) || // Modern hooks object
-         fallbackFn; // Fallback implementation
+         fallbackFn;    // Fallback implementation
 };
 
 // Create named exports for all React hooks
@@ -49,7 +48,7 @@ export const memo = React['memo'] || ((component) => component);
 if (typeof window !== 'undefined') {
   // Initialize window.React with the React object itself, not an empty object
   // This fixes the type error by ensuring it has all required properties
-  window.React = window.React || Object.create(React);
+  window.React = window.React || React;
   
   // Apply JSX functions
   Object.assign(window.React, {

@@ -147,14 +147,14 @@ try {
                       }; 
                     };
   
-  // Create safe createElement reference
+  // Create safe createElement reference - Fix type issue here by returning React.ReactNode
   const createElement = React.createElement || React['createElement'] || 
                        function(type, props, ...children) { 
-                         return { type, props: { ...props, children: children.length === 1 ? children[0] : children } };
+                         return React.createElement ? React.createElement(type, props, ...children) : type;
                        };
   
   // Create safe StrictMode reference
-  const StrictMode = React.StrictMode || React['StrictMode'] || 'div';
+  const StrictMode = React.StrictMode || React['StrictMode'] || React.Fragment || 'div';
   
   // Render app with proper error handling
   try {

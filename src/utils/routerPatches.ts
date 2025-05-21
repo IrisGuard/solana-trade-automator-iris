@@ -5,8 +5,8 @@ import * as React from 'react';
 declare global {
   interface Window {
     React: typeof React;
-    // Make sure this declaration matches the one in other files
-    patchedReactRouter?: boolean; // Using optional modifier consistently
+    // Make sure this declaration is consistent
+    patchedReactRouter: boolean;
   }
 }
 
