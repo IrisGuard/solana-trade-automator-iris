@@ -75,72 +75,66 @@ export function useTradingBot(tokens: Token[] = []) {
     const token = tokens.find(t => t.address === tokenAddress);
     if (token) {
       setSelectedTokenDetails(token);
-      setSelectedTokenPrice(token.price || 0);
+      setSelectedTokenPrice(token.price || null);
+      updateConfig({ selectedToken: tokenAddress });
+      console.log("Selected token:", token);
     }
-    return Promise.resolve();
-  }, [tokens]);
+  }, [tokens, updateConfig]);
   
   // Start bot
   const startBot = useCallback(() => {
-    if (!selectedToken) return false;
+    if (!selectedToken) {
+      console.error("No token selected");
+      return;
+    }
+    
     setIsLoading(true);
     
-    // Simulate API request
+    // Simulate bot starting process
     setTimeout(() => {
       setBotStatus('running');
-      updateConfig({ isActive: true });
+      setConfig(prev => ({ ...prev, isActive: true }));
       setIsLoading(false);
+      
+      // Create some sample orders
+      const sampleOrders: TradingOrder[] = [
+        {
+          id: '1',
+          tokenSymbol: selectedTokenDetails?.symbol || 'Unknown',
+          type: 'buy',
+          amount: config.tradeAmount,
+          price: selectedTokenPrice || 0,
+          status: 'pending',
+          timestamp: new Date().toISOString()
+        }
+      ];
+      
+      setActiveOrders(sampleOrders);
     }, 1500);
-    
-    return true;
-  }, [selectedToken, updateConfig]);
-  
-  // Pause bot
-  const pauseBot = useCallback(() => {
-    setIsLoading(true);
-    
-    // Simulate API request
-    setTimeout(() => {
-      setBotStatus('paused');
-      setIsLoading(false);
-    }, 1000);
-    
-    return true;
-  }, []);
+  }, [selectedToken, selectedTokenDetails, selectedTokenPrice, config.tradeAmount]);
   
   // Stop bot
   const stopBot = useCallback(() => {
     setIsLoading(true);
     
-    // Simulate API request
+    // Simulate bot stopping process
     setTimeout(() => {
       setBotStatus('idle');
-      updateConfig({ isActive: false });
+      setConfig(prev => ({ ...prev, isActive: false }));
       setIsLoading(false);
     }, 1000);
-    
-    return true;
-  }, [updateConfig]);
-  
-  // Initialize with first token if available
-  useEffect(() => {
-    if (!selectedToken && tokens.length > 0) {
-      selectToken(tokens[0].address);
-    }
-  }, [tokens, selectedToken, selectToken]);
+  }, []);
   
   return {
     config,
     updateConfig,
-    botStatus,
-    selectedToken,
-    selectedTokenPrice,
-    selectedTokenDetails,
-    activeOrders,
-    isLoading,
     selectToken,
     startBot,
-    pauseBot,
-    stopBot
+    stopBot,
+    isLoading,
+    botStatus,
+    activeOrders,
+    selectedTokenPrice,
+    selectedTokenDetails
   };
 }
