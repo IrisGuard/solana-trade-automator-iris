@@ -82,11 +82,12 @@ try {
     throw new Error('Root element not found');
   }
   
-  // Create safe createElement reference
+  // Create safe createElement reference that returns a valid ReactNode
   const createElement = React.createElement || React['createElement'] || 
-                       function(type, props, ...children) { 
+                       function(type: any, props: any, ...children: any[]) { 
                          console.warn('Using createElement fallback');
-                         return { type, props: { ...props, children: children.length === 1 ? children[0] : children } };
+                         // Return a React Fragment with children as a valid ReactNode
+                         return React.createElement(React.Fragment, null, children);
                        };
   
   // Use the createRoot function with fallback

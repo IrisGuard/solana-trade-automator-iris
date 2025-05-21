@@ -2,11 +2,11 @@
 import React from 'react';
 import { createElement, createContext, Fragment, useState, useEffect, useContext, useRef } from '../react-compatibility';
 
-// Define types for the window object
+// Define types for the window object without conflict
 declare global {
   interface Window {
-    React: any;
-    // Using consistent declaration - checking other files, it seems this should be optional
+    // Using proper typing for React to avoid conflicts
+    React: typeof React;
     patchedReactRouter?: boolean;
   }
 }
