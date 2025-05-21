@@ -21,17 +21,15 @@ export function GlobalErrorHandler() {
         // Use getRecentErrors instead of getErrors to match implementation
         const allErrors = (errorCollector.getRecentErrors ? errorCollector.getRecentErrors() : errorCollector.getErrors()).map(e => {
           // Ensure error is an Error object with required properties
-          const sanitizedError = e.error instanceof Error 
-            ? sanitizeErrorObject(e.error)
-            : sanitizeErrorObject(new Error('Unknown error'));
+          const sanitizedError = sanitizeErrorObject(e.error instanceof Error ? e.error : new Error('Unknown error'));
           
           // Create a properly typed ErrorData object
           const typedErrorData: ErrorData = {
             id: `err_${e.timestamp || Date.now()}`,
             error: sanitizedError,
             timestamp: e.timestamp ? new Date(e.timestamp).toISOString() : new Date().toISOString(),
-            message: String(sanitizedError.message || 'Unknown error'),
-            stack: String(sanitizedError.stack || ''),
+            message: sanitizedError.message,
+            stack: sanitizedError.stack,
             component: e.data?.component || null,
             source: e.data?.source || 'client',
             url: window.location.href,

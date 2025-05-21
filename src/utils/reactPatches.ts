@@ -5,42 +5,28 @@ import * as React from 'react';
 export function ensureReactCompatibility(): void {
   if (typeof window !== 'undefined') {
     try {
-      // Create a full copy of React in the window
-      window.React = window.React || React;
-      
-      // Explicitly patch JSX runtime functions using Object.defineProperty
-      if (!window.React.jsx) {
-        try {
-          Object.defineProperty(window.React, 'jsx', {
-            value: React.createElement,
-            configurable: true
-          });
-        } catch (e) {
-          console.warn('Could not define jsx on window.React', e);
-        }
+      // Create a full copy of React in the window if it doesn't exist
+      if (!window.React) {
+        window.React = Object.create(React);
+        console.log('Created window.React from React module');
       }
       
-      if (!window.React.jsxs) {
-        try {
-          Object.defineProperty(window.React, 'jsxs', {
-            value: React.createElement,
-            configurable: true
-          });
-        } catch (e) {
-          console.warn('Could not define jsxs on window.React', e);
-        }
-      }
+      // Safely add JSX runtime functions
+      const jsxFunctions = {
+        jsx: React.createElement,
+        jsxs: React.createElement,
+        jsxDEV: React.createElement
+      };
       
-      if (!window.React.jsxDEV) {
+      Object.entries(jsxFunctions).forEach(([key, value]) => {
         try {
-          Object.defineProperty(window.React, 'jsxDEV', {
-            value: React.createElement,
-            configurable: true
-          });
+          if (!window.React[key]) {
+            window.React[key] = value;
+          }
         } catch (e) {
-          console.warn('Could not define jsxDEV on window.React', e);
+          console.warn(`Could not define ${key} on window.React`, e);
         }
-      }
+      });
       
       // Make sure all essential React functions are available
       const essentialReactFunctions = {
@@ -61,17 +47,14 @@ export function ensureReactCompatibility(): void {
         Children: React.Children
       };
       
-      // Apply essential functions
+      // Apply essential functions safely
       Object.entries(essentialReactFunctions).forEach(([key, value]) => {
-        if (!window.React[key]) {
-          try {
-            Object.defineProperty(window.React, key, {
-              value,
-              configurable: true
-            });
-          } catch (e) {
-            console.warn(`Could not define ${key} on window.React`, e);
+        try {
+          if (!window.React[key]) {
+            window.React[key] = value;
           }
+        } catch (e) {
+          console.warn(`Could not define ${key} on window.React`, e);
         }
       });
       

@@ -26,24 +26,22 @@ export function sanitizeErrorObject(error: unknown): Error & Record<string, stri
   // First convert to a proper Error object if it isn't already
   const errorObj = error instanceof Error ? error : new Error(String(error));
   
-  // Create a safe copy with string properties
-  const safeError: Error & Record<string, string> = Object.assign(
-    new Error(String(errorObj.message || 'Unknown error')), 
-    {
-      name: String(errorObj.name || 'Error'),
-      message: String(errorObj.message || 'Unknown error'),
-      stack: String(errorObj.stack || '')
-    }
-  );
+  // Create a safe copy as Record<string, string>
+  const safeError = Object.create(Object.getPrototypeOf(errorObj)) as Error & Record<string, string>;
+  
+  // Copy standard Error properties
+  safeError.name = String(errorObj.name || 'Error');
+  safeError.message = String(errorObj.message || 'Unknown error');
+  safeError.stack = String(errorObj.stack || '');
   
   // Add timestamp if not present
-  if (!('timestamp' in safeError)) {
-    safeError.timestamp = new Date().toISOString();
-  }
+  safeError.timestamp = new Date().toISOString();
 
   // Add URL information
-  if (!('url' in safeError) && typeof window !== 'undefined') {
+  if (typeof window !== 'undefined') {
     safeError.url = window.location.href;
+  } else {
+    safeError.url = 'unknown';
   }
 
   // Process any additional properties
