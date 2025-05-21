@@ -56,7 +56,10 @@ if (typeof window !== 'undefined') {
     useId,
     createElement: React.createElement,
     createContext: React.createContext,
-    Fragment: React.Fragment
+    Fragment: React.Fragment,
+    // Add missing properties that were causing TypeScript errors
+    Profiler: React.Profiler,
+    jsxsDEV: React.jsxsDEV
   };
   
   // Create window.React if it doesn't exist - use full React object

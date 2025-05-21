@@ -46,14 +46,18 @@ const core = {
   SuspenseList: React['SuspenseList'],
   Component: React['Component'],
   PureComponent: React['PureComponent'],
-  version: React['version']
+  version: React['version'],
+  // Add missing Profiler component
+  Profiler: React['Profiler']
 };
 
 // JSX runtime functions - only define once to avoid redeclaration
 const jsxRuntime = {
   jsx: React['jsx'] || React['createElement'],
   jsxs: React['jsxs'] || React['createElement'],
-  jsxDEV: React['jsxDEV'] || React['createElement']
+  jsxDEV: React['jsxDEV'] || React['createElement'],
+  // Add missing jsxsDEV property (matching the error)
+  jsxsDEV: React['jsxsDEV'] || React['jsxDEV'] || React['createElement']
 };
 
 // Export all hooks and APIs
@@ -94,14 +98,16 @@ export const {
   SuspenseList,
   Component,
   PureComponent,
-  version
+  version,
+  Profiler
 } = core;
 
 // Export JSX runtime functions
 export const {
   jsx,
   jsxs,
-  jsxDEV
+  jsxDEV,
+  jsxsDEV
 } = jsxRuntime;
 
 // Patch global React object if in browser
