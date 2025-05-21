@@ -1,6 +1,21 @@
 
 import * as React from 'react';
 
+// Helper function to safely define a property if it doesn't exist
+const safelyDefineProperty = (obj, prop, value) => {
+  if (!obj[prop]) {
+    try {
+      Object.defineProperty(obj, prop, { 
+        value, 
+        configurable: true,
+        writable: true
+      });
+    } catch (e) {
+      console.warn(`Could not define ${prop} on object: ${e.message}`);
+    }
+  }
+};
+
 // Export the function for applying React compatibility
 export function ensureReactCompatibility(): void {
   if (typeof window !== 'undefined') {
@@ -19,13 +34,7 @@ export function ensureReactCompatibility(): void {
       };
       
       Object.entries(jsxFunctions).forEach(([key, value]) => {
-        try {
-          if (!window.React[key]) {
-            window.React[key] = value;
-          }
-        } catch (e) {
-          console.warn(`Could not define ${key} on window.React`, e);
-        }
+        safelyDefineProperty(window.React, key, value);
       });
       
       // Make sure all essential React functions are available
@@ -49,13 +58,7 @@ export function ensureReactCompatibility(): void {
       
       // Apply essential functions safely
       Object.entries(essentialReactFunctions).forEach(([key, value]) => {
-        try {
-          if (!window.React[key]) {
-            window.React[key] = value;
-          }
-        } catch (e) {
-          console.warn(`Could not define ${key} on window.React`, e);
-        }
+        safelyDefineProperty(window.React, key, value);
       });
       
       // Log success
