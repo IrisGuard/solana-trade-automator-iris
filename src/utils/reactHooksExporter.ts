@@ -6,6 +6,7 @@
 
 // Use namespace import instead of default import for React 18.3.1+ compatibility
 import * as React from 'react';
+// Import bridge hooks that provide fallbacks
 import { 
   useState as bridgeUseState,
   useEffect as bridgeUseEffect,
@@ -24,24 +25,29 @@ import {
   useTransition as bridgeUseTransition
 } from '../react-18-bridge';
 
-// Create a mapping of all hooks to ensure they exist
+// Check if React hooks are directly available
+const hasUseState = typeof React['useState'] === 'function';
+const hasUseEffect = typeof React['useEffect'] === 'function';
+const hasFragment = React.Fragment !== undefined;
+
+// Create a mapping of all hooks to ensure they exist - prefer direct React hooks if available
 const reactHooks = {
-  // Use bridge hooks or fallbacks
-  useState: bridgeUseState || React.useState || function useState(initialState) { return [initialState, () => {}]; },
-  useEffect: bridgeUseEffect || React.useEffect || function useEffect() {},
-  useContext: bridgeUseContext || React.useContext || function useContext() { return undefined; },
-  useRef: bridgeUseRef || React.useRef || function useRef(initialValue) { return { current: initialValue }; },
-  useReducer: bridgeUseReducer || React.useReducer || function useReducer(reducer, initialState) { return [initialState, () => {}]; },
-  useCallback: bridgeUseCallback || React.useCallback || function useCallback(callback) { return callback; },
-  useMemo: bridgeUseMemo || React.useMemo || function useMemo(factory) { return factory(); },
-  useLayoutEffect: bridgeUseLayoutEffect || React.useLayoutEffect || function useLayoutEffect() {},
-  useImperativeHandle: bridgeUseImperativeHandle || React.useImperativeHandle || function useImperativeHandle() {},
-  useDebugValue: bridgeUseDebugValue || React.useDebugValue || function useDebugValue() {},
-  useId: bridgeUseId || React.useId || function useId() { return Math.random().toString(36).substring(2); },
-  useDeferredValue: bridgeUseDeferredValue || React.useDeferredValue || function useDeferredValue(value) { return value; },
-  useInsertionEffect: bridgeUseInsertionEffect || React.useInsertionEffect || function useInsertionEffect() {},
-  useSyncExternalStore: bridgeUseSyncExternalStore || React.useSyncExternalStore || function useSyncExternalStore(subscribe, getSnapshot) { return getSnapshot(); },
-  useTransition: bridgeUseTransition || React.useTransition || function useTransition() { return [false, () => {}]; }
+  // Use direct React hooks, bridge hooks, or fallbacks in that order
+  useState: hasUseState ? React['useState'] : (bridgeUseState || function useState(initialState) { return [initialState, () => {}]; }),
+  useEffect: hasUseEffect ? React['useEffect'] : (bridgeUseEffect || function useEffect() {}),
+  useContext: React['useContext'] || bridgeUseContext || function useContext() { return undefined; },
+  useRef: React['useRef'] || bridgeUseRef || function useRef(initialValue) { return { current: initialValue }; },
+  useReducer: React['useReducer'] || bridgeUseReducer || function useReducer(reducer, initialState) { return [initialState, () => {}]; },
+  useCallback: React['useCallback'] || bridgeUseCallback || function useCallback(callback) { return callback; },
+  useMemo: React['useMemo'] || bridgeUseMemo || function useMemo(factory) { return factory(); },
+  useLayoutEffect: React['useLayoutEffect'] || bridgeUseLayoutEffect || function useLayoutEffect() {},
+  useImperativeHandle: React['useImperativeHandle'] || bridgeUseImperativeHandle || function useImperativeHandle() {},
+  useDebugValue: React['useDebugValue'] || bridgeUseDebugValue || function useDebugValue() {},
+  useId: React['useId'] || bridgeUseId || function useId() { return Math.random().toString(36).substring(2); },
+  useDeferredValue: React['useDeferredValue'] || bridgeUseDeferredValue || function useDeferredValue(value) { return value; },
+  useInsertionEffect: React['useInsertionEffect'] || bridgeUseInsertionEffect || function useInsertionEffect() {},
+  useSyncExternalStore: React['useSyncExternalStore'] || bridgeUseSyncExternalStore || function useSyncExternalStore(subscribe, getSnapshot) { return getSnapshot(); },
+  useTransition: React['useTransition'] || bridgeUseTransition || function useTransition() { return [false, () => {}]; }
 };
 
 // Explicitly export all hooks from React
@@ -62,6 +68,9 @@ export const {
   useSyncExternalStore,
   useTransition
 } = reactHooks;
+
+// Create a safe Fragment reference
+export const Fragment = hasFragment ? React.Fragment : Symbol('React.Fragment');
 
 // Ensure the hooks are also available on the global React object
 if (typeof window !== 'undefined') {
@@ -94,12 +103,9 @@ if (typeof window !== 'undefined') {
   // Handle Fragment differently to avoid read-only property error
   if (!window.React.Fragment) {
     try {
-      // Create a new Fragment symbol if needed
-      const fragmentSymbol = React.Fragment || Symbol('React.Fragment');
-      
-      // Try to define Fragment with proper configuration
+      // Use our safe Fragment reference
       Object.defineProperty(window.React, 'Fragment', {
-        value: fragmentSymbol,
+        value: Fragment,
         writable: true,
         configurable: true
       });

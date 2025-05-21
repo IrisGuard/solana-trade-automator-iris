@@ -1,129 +1,82 @@
 
-// Add any additional types needed for the Error interface
-interface ExtendedError extends Error {
-  timestamp?: string;
-  url?: string;
-}
-
 /**
- * Safely sanitizes error objects to ensure they have all expected properties
- * and can be safely used in error displays and logging.
+ * Utility functions for testing and clearing errors
  */
-export function sanitizeErrorObject(error: unknown): ExtendedError {
-  // If already an Error object, use it as the base
-  const baseError: ExtendedError = error instanceof Error 
-    ? error 
-    : new Error(typeof error === 'string' ? error : 'Unknown error');
-  
-  // Ensure the error has a name
-  if (!baseError.name) {
-    baseError.name = 'Error';
-  }
-  
-  // Ensure the error has a message
-  if (!baseError.message) {
-    baseError.message = 'An unknown error occurred';
-  }
-  
-  // Add timestamp if not present
-  if (!('timestamp' in baseError)) {
-    baseError.timestamp = new Date().toISOString();
-  }
-  
-  // Add URL if not present
-  if (!('url' in baseError)) {
-    baseError.url = typeof window !== 'undefined' ? window.location.href : 'unknown';
-  }
-  
-  // Ensure the error has a stack trace
-  if (!baseError.stack) {
-    try {
-      // This creates a stack trace
-      Error.captureStackTrace(baseError);
-    } catch (e) {
-      baseError.stack = 'Stack trace not available';
-    }
-  }
-  
-  return baseError;
-}
 
-/**
- * Initialize the site protection system
- * This function implements site integrity checks and monitoring
- */
-export function initProtectionSystem() {
-  console.log("Initializing site protection system...");
-  
-  // Track startup time
-  const startTime = Date.now();
-  
-  // Simple health check function that can be called periodically
-  const checkHealth = () => {
-    // Calculate uptime
-    const uptime = Date.now() - startTime;
+// Create a function to clear all errors
+export function clearAllErrors(): void {
+  if (typeof window !== 'undefined') {
+    // Clear any error states in the application
+    console.log('Clearing all application errors');
     
-    // Check for DOM errors
-    const domErrors = document.querySelectorAll('.error-indicator').length;
-    
-    // Basic browser compatibility check
-    const isIE = 'documentMode' in document; // Safer way to check for IE
-    
-    console.log(`Health check - Uptime: ${uptime}ms, DOM Errors: ${domErrors}, Browser Issues: ${isIE ? 'Yes' : 'No'}`);
-    
-    return {
-      healthy: !isIE && domErrors === 0,
-      uptime,
-      browserIssues: isIE,
-      domErrors
-    };
-  };
-  
-  // Setup automatic health checks
-  let healthCheckInterval: number;
-  
-  const startMonitoring = () => {
-    healthCheckInterval = window.setInterval(() => {
-      checkHealth();
-    }, 30000) as unknown as number; // Run every 30 seconds
-  };
-  
-  const stopMonitoring = () => {
-    if (healthCheckInterval) {
-      clearInterval(healthCheckInterval);
-    }
-  };
-  
-  // Start monitoring immediately
-  startMonitoring();
-  
-  // Return the protection system API
-  return {
-    checkHealth,
-    startMonitoring,
-    stopMonitoring
-  };
-}
-
-/**
- * Clear all collected errors from various error stores
- */
-export function clearAllErrors() {
-  // Clear errors from localStorage if available
-  try {
-    localStorage.removeItem('app_console_logs');
-    localStorage.removeItem('app_errors');
-    
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(new CustomEvent('lovable-clear-errors'));
-    
-    // Clear any errors in lovableChat if available
-    if (window.lovableChat && window.lovableChat.clearErrors) {
+    // Clear any global error state if it exists
+    if (window.lovableChat && typeof window.lovableChat.clearErrors === 'function') {
       window.lovableChat.clearErrors();
     }
     
-    console.log("All errors cleared successfully");
-  } catch (e) {
-    console.error("Error while clearing errors:", e);
+    // Clear console errors if needed for testing
+    if (console && console.clear) {
+      console.clear();
+    }
   }
 }
+
+// Test function to trigger an error for testing purposes
+export function triggerTestError(errorType: string = 'general'): void {
+  console.log(`Triggering test error of type: ${errorType}`);
+  
+  switch(errorType) {
+    case 'reference':
+      // Trigger a reference error
+      try {
+        // @ts-ignore - intentional error
+        nonExistentVariable.property = true;
+      } catch (e) {
+        console.error('Reference error triggered:', e);
+        throw e;
+      }
+      break;
+      
+    case 'type':
+      // Trigger a type error
+      try {
+        // @ts-ignore - intentional error
+        const num: number = 'string' as any;
+        // @ts-ignore - intentional error
+        num.toFixed(2).substring(3).nonExistentMethod();
+      } catch (e) {
+        console.error('Type error triggered:', e);
+        throw e;
+      }
+      break;
+      
+    case 'syntax':
+      // We can't directly trigger a syntax error at runtime,
+      // but we can simulate one with an eval
+      try {
+        // @ts-ignore - intentional error
+        eval('const x = {');
+      } catch (e) {
+        console.error('Syntax error triggered:', e);
+        throw e;
+      }
+      break;
+      
+    case 'async':
+      // Return a promise that rejects
+      console.log('Triggering async error');
+      return Promise.reject(new Error('Async test error')).then(() => {
+        console.log('This should not execute');
+      });
+      
+    default:
+      // General error
+      throw new Error('Test error triggered');
+  }
+}
+
+// Export the utility functions
+export default {
+  clearAllErrors,
+  triggerTestError
+};

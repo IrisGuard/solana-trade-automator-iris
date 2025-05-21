@@ -2,8 +2,8 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
-// Import React JSX runtime directly
-import { jsx, jsxs, Fragment } from 'react/jsx-runtime'
+// Import jsx runtime directly from our bridge
+import { jsx, jsxs, Fragment } from '../../jsx-runtime-bridge'
 
 const Card = React.forwardRef<
   HTMLDivElement,

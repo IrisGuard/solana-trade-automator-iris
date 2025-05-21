@@ -7,6 +7,11 @@
 // Import standard React
 import * as React from 'react';
 
+// Check if we can access standard React functions
+const hasCreateElement = React && typeof React.createElement === 'function';
+const hasFragment = React && React.Fragment !== undefined;
+const hasCreateContext = React && typeof React.createContext === 'function';
+
 /**
  * React 18.3.1 has moved hooks and other APIs into a different structure.
  * This function detects the React version and provides appropriate shims.
@@ -18,7 +23,7 @@ export function applyReact183Compatibility() {
   const reactApiShims = {
     createElement: function createElement(type, props, ...children) {
       // Fallback implementation for React.createElement
-      if (typeof React.createElement === 'function') {
+      if (hasCreateElement) {
         return React.createElement(type, props, ...children);
       }
       
@@ -27,10 +32,10 @@ export function applyReact183Compatibility() {
       return { type, props: { ...props, children: children.length === 1 ? children[0] : children } };
     },
     
-    Fragment: React.Fragment || Symbol('React.Fragment'),
+    Fragment: hasFragment ? React.Fragment : Symbol('React.Fragment'),
     
     createContext: function createContext(defaultValue) {
-      if (typeof React.createContext === 'function') {
+      if (hasCreateContext) {
         return React.createContext(defaultValue);
       }
       

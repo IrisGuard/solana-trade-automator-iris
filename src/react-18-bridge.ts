@@ -11,10 +11,10 @@ import * as React from 'react';
 console.log('React bridge loading - ensuring compatibility with React 18.3.1');
 
 // Create hooks with safe fallbacks
-const createHook = (name, fallbackFn) => {
-  // Try to access the hook from React directly
-  return React[name] || // Direct access
-         fallbackFn;    // Fallback implementation
+const createHook = (hookName, fallbackFn) => {
+  // Try to access the hook directly from the React object
+  return React[hookName] || // Direct access if available
+         fallbackFn;        // Fallback implementation
 };
 
 // Create named exports for all React hooks
@@ -34,14 +34,22 @@ export const useInsertionEffect = createHook('useInsertionEffect', () => {});
 export const useSyncExternalStore = createHook('useSyncExternalStore', (subscribe, getSnapshot) => getSnapshot());
 export const useTransition = createHook('useTransition', () => [false, () => {}]);
 
-// Create JSX runtime function exports - use React.createElement directly as fallback
-export const jsx = React.createElement;
-export const jsxs = React.createElement;
-export const Fragment = React.Fragment || Symbol('React.Fragment');
-export const createElement = React.createElement;
-export const createContext = React.createContext;
-export const forwardRef = React.forwardRef;
-export const memo = React.memo;
+// Create safe versions of React element creation functions
+// Use hasOwnProperty to safely check if the methods exist
+const hasCreateElement = React && typeof React.createElement === 'function';
+const hasFragment = React && React.Fragment !== undefined;
+const hasCreateContext = React && typeof React.createContext === 'function';
+const hasForwardRef = React && typeof React.forwardRef === 'function';
+const hasMemo = React && typeof React.memo === 'function';
+
+// Create JSX runtime function exports with fallbacks
+export const jsx = hasCreateElement ? React.createElement : ((type, props) => ({ type, props }));
+export const jsxs = hasCreateElement ? React.createElement : ((type, props) => ({ type, props }));
+export const Fragment = hasFragment ? React.Fragment : Symbol('React.Fragment');
+export const createElement = hasCreateElement ? React.createElement : ((type, props, ...children) => ({ type, props: { ...props, children } }));
+export const createContext = hasCreateContext ? React.createContext : ((defaultValue) => ({ Provider: ({ children }) => children, Consumer: ({ children }) => children(defaultValue), _currentValue: defaultValue }));
+export const forwardRef = hasForwardRef ? React.forwardRef : ((render) => render);
+export const memo = hasMemo ? React.memo : ((component) => component);
 
 // Apply these to the global React object
 if (typeof window !== 'undefined') {
@@ -53,7 +61,8 @@ if (typeof window !== 'undefined') {
     useState, useEffect, useContext, useReducer, useRef, useMemo, useCallback,
     useLayoutEffect, useDebugValue, useImperativeHandle, useId, useDeferredValue,
     useInsertionEffect, useSyncExternalStore, useTransition,
-    Fragment, createElement, createContext, forwardRef, memo
+    Fragment, createElement, createContext, forwardRef, memo,
+    jsx, jsxs
   };
   
   Object.entries(hooks).forEach(([name, fn]) => {
