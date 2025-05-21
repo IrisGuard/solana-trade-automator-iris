@@ -1,123 +1,77 @@
 
 /**
- * Utility functions for error testing and handling
+ * Utility functions for error handling and testing
  */
 
 /**
- * Clear all errors from the lovableChat system
+ * Safely sanitizes an error object to ensure it won't cause issues when displayed or logged
+ * This is especially important when dealing with non-standard error objects
+ */
+export function sanitizeErrorObject(error: unknown): Error {
+  if (error instanceof Error) {
+    // Already an Error object, make a safe copy
+    const sanitizedError = new Error(error.message);
+    sanitizedError.name = error.name;
+    sanitizedError.stack = error.stack;
+    return sanitizedError;
+  }
+  
+  // Handle other types of errors
+  if (typeof error === 'string') {
+    return new Error(error);
+  }
+  
+  if (error === null) {
+    return new Error('Null error');
+  }
+  
+  if (error === undefined) {
+    return new Error('Undefined error');
+  }
+  
+  try {
+    // Try to convert to string representation
+    const errorString = JSON.stringify(error);
+    return new Error(`Non-standard error: ${errorString}`);
+  } catch (jsonError) {
+    // Last resort if JSON.stringify fails
+    return new Error(`Unknown error: ${String(error)}`);
+  }
+}
+
+/**
+ * Clear all errors from collector for testing purposes
  */
 export function clearAllErrors(): void {
-  if (window.lovableChat && typeof window.lovableChat.clearErrors === 'function') {
-    window.lovableChat.clearErrors();
-  }
-}
-
-/**
- * Ensure an error object has all properties as strings
- * to prevent React rendering issues
- */
-export function sanitizeErrorObject(error: any): Error & {
-  message: string; 
-  name: string;
-  stack?: string;
-  timestamp?: string;
-  url?: string;
-  [key: string]: any;
-} {
-  // Handle null or undefined error
-  if (error === null || error === undefined) {
-    return {
-      name: 'Error',
-      message: 'Unknown Error',
-      stack: 'No stack trace available',
-      timestamp: new Date().toISOString(),
-      url: window.location.href
-    };
-  }
-
-  // First ensure error is an object
-  const errorObj = typeof error === 'object' ? error : { message: String(error), name: 'Error' };
-  
-  // Create a new object with sanitized properties
-  const sanitized: Record<string, any> = {};
-  
-  // Process each property to ensure it's in string format
-  Object.entries(errorObj).forEach(([key, value]) => {
-    if (value === undefined || value === null) {
-      sanitized[key] = key === 'message' ? 'Unknown Error' : 
-                      key === 'name' ? 'Error' : undefined;
-    } else if (typeof value === 'string') {
-      sanitized[key] = value;
-    } else if (typeof value === 'object') {
-      try {
-        // Special case for error location info objects
-        if (value && typeof value === 'object' && 
-            ('fileName' in value || 'lineNumber' in value || 'columnNumber' in value)) {
-          const objDetails = [];
-          if ('fileName' in value) objDetails.push(`file: ${String(value.fileName)}`);
-          if ('lineNumber' in value) objDetails.push(`line: ${String(value.lineNumber)}`);
-          if ('columnNumber' in value) objDetails.push(`column: ${String(value.columnNumber)}`);
-          sanitized[key] = objDetails.join(', ');
-        } else if (Array.isArray(value)) {
-          // Handle arrays by converting each item to string
-          sanitized[key] = value.map(item => 
-            typeof item === 'object' ? JSON.stringify(item) : String(item)
-          ).join(', ');
-        } else {
-          // Try to stringify other objects
-          try {
-            sanitized[key] = JSON.stringify(value);
-          } catch (e) {
-            sanitized[key] = `[Complex ${key} object]`;
-          }
-        }
-      } catch (e) {
-        sanitized[key] = `[Complex ${key} object]`;
-      }
-    } else if (typeof value === 'function') {
-      sanitized[key] = `[Function: ${value.name || 'anonymous'}]`;
-    } else if (typeof value === 'symbol') {
-      sanitized[key] = value.toString();
+  try {
+    // Try to access the error collector from the global scope
+    const collector = window['errorCollector'];
+    if (collector && typeof collector.clearErrors === 'function') {
+      collector.clearErrors();
+      console.log('All errors cleared from collector');
     } else {
-      sanitized[key] = String(value);
+      console.warn('Error collector not found or missing clearErrors method');
     }
-  });
-
-  // Ensure required properties exist
-  return {
-    ...sanitized,
-    message: sanitized.message || 'Unknown Error',
-    name: sanitized.name || 'Error', // Ensure name is present for Error interface
-    stack: sanitized.stack || undefined,
-    timestamp: sanitized.timestamp || new Date().toISOString(),
-    url: sanitized.url || window.location.href
-  };
+  } catch (e) {
+    console.error('Failed to clear errors:', e);
+  }
 }
 
 /**
- * Initialize the site protection system
+ * Utility to check React version and runtime environment
  */
-export function initProtectionSystem() {
-  const checkHealth = () => {
-    // Simple health check that ensures errors are being handled
-    try {
-      // Check if the error dialog system is working
-      if (!window.lovableChat) {
-        console.warn("[Protection] Error dialog system is not initialized");
-      }
-    } catch (err) {
-      // Sanitize the error before logging
-      const sanitizedError = sanitizeErrorObject(err);
-      console.error("[Protection] Failed to perform health check:", sanitizedError);
-    }
-    return true;
-  };
-
-  // Initial health check
-  checkHealth();
-
-  // Return methods that can be called from outside
-  return {
-    checkHealth
-  };
+export function checkReactEnvironment(): Record<string, unknown> {
+  try {
+    return {
+      reactVersion: window.React?.version || 'unknown',
+      hasJsx: typeof window.React?.jsx === 'function',
+      hasJsxs: typeof window.React?.jsxs === 'function',
+      hasCreateElement: typeof window.React?.createElement === 'function',
+      hasUseState: typeof window.React?.useState === 'function',
+      documentMode: document.documentMode,
+      userAgent: navigator.userAgent
+    };
+  } catch (e) {
+    return { error: sanitizeErrorObject(e).message };
+  }
 }

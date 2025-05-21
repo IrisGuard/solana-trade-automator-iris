@@ -5,7 +5,7 @@
  */
 import * as React from 'react';
 
-// Access React exports from React.jsx namespace for React 18.3.1
+// Access React exports safely for React 18.3.1
 const reactJsx = React.jsx || {};
 
 // Export JSX runtime functions with fallbacks
