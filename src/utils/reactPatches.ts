@@ -8,17 +8,38 @@ export function ensureReactCompatibility(): void {
       // Create a full copy of React in the window
       window.React = window.React || React;
       
-      // Explicitly patch JSX runtime functions
+      // Explicitly patch JSX runtime functions using Object.defineProperty
       if (!window.React.jsx) {
-        window.React.jsx = React.createElement;
+        try {
+          Object.defineProperty(window.React, 'jsx', {
+            value: React.createElement,
+            configurable: true
+          });
+        } catch (e) {
+          console.warn('Could not define jsx on window.React', e);
+        }
       }
       
       if (!window.React.jsxs) {
-        window.React.jsxs = React.createElement;
+        try {
+          Object.defineProperty(window.React, 'jsxs', {
+            value: React.createElement,
+            configurable: true
+          });
+        } catch (e) {
+          console.warn('Could not define jsxs on window.React', e);
+        }
       }
       
       if (!window.React.jsxDEV) {
-        window.React.jsxDEV = React.createElement;
+        try {
+          Object.defineProperty(window.React, 'jsxDEV', {
+            value: React.createElement,
+            configurable: true
+          });
+        } catch (e) {
+          console.warn('Could not define jsxDEV on window.React', e);
+        }
       }
       
       // Make sure all essential React functions are available
@@ -43,7 +64,14 @@ export function ensureReactCompatibility(): void {
       // Apply essential functions
       Object.entries(essentialReactFunctions).forEach(([key, value]) => {
         if (!window.React[key]) {
-          window.React[key] = value;
+          try {
+            Object.defineProperty(window.React, key, {
+              value,
+              configurable: true
+            });
+          } catch (e) {
+            console.warn(`Could not define ${key} on window.React`, e);
+          }
         }
       });
       

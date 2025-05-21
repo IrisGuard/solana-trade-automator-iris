@@ -22,16 +22,15 @@ export function clearAllErrors(): void {
 }
 
 // Function to sanitize error objects for safe use in React components
-export function sanitizeErrorObject(error: unknown): Error & Record<string, string> {
+export function sanitizeErrorObject(error: unknown): Record<string, string> {
   // First convert to a proper Error object if it isn't already
   const errorObj = error instanceof Error ? error : new Error(String(error));
   
   // Create a safe copy with string properties
-  const safeError: Error & Record<string, string> = {
-    ...errorObj,
+  const safeError: Record<string, string> = {
     name: String(errorObj.name || 'Error'),
     message: String(errorObj.message || 'Unknown error'),
-    stack: String(errorObj.stack || ''),
+    stack: String(errorObj.stack || '')
   };
   
   // Add timestamp if not present
@@ -44,18 +43,26 @@ export function sanitizeErrorObject(error: unknown): Error & Record<string, stri
     safeError.url = window.location.href;
   }
 
-  // Ensure any nested objects are also converted to strings
-  Object.keys(errorObj).forEach(key => {
-    if (typeof errorObj[key] === 'object' && errorObj[key] !== null) {
-      try {
-        safeError[key] = JSON.stringify(errorObj[key]);
-      } catch (e) {
-        safeError[key] = '[Object cannot be stringified]';
+  // Process any additional properties
+  if (typeof error === 'object' && error !== null) {
+    Object.entries(error).forEach(([key, value]) => {
+      if (key !== 'name' && key !== 'message' && key !== 'stack') {
+        if (value === null) {
+          safeError[key] = 'null';
+        } else if (value === undefined) {
+          safeError[key] = 'undefined';
+        } else if (typeof value === 'object') {
+          try {
+            safeError[key] = JSON.stringify(value);
+          } catch (e) {
+            safeError[key] = '[Object cannot be stringified]';
+          }
+        } else {
+          safeError[key] = String(value);
+        }
       }
-    } else if (errorObj[key] !== undefined) {
-      safeError[key] = String(errorObj[key]);
-    }
-  });
+    });
+  }
   
   return safeError;
 }

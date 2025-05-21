@@ -5,26 +5,26 @@
 import * as React from 'react';
 
 // Use direct imports from React
-const createElement = React.createElement;
-const Fragment = React.Fragment;
+const reactCreateElement = React.createElement;
+const reactFragment = React.Fragment;
 
 // Create jsx/jsxs functions that always use React.createElement
 export const jsx = function jsx(type, props, ...children) {
-  return createElement(type, props, ...children);
+  return reactCreateElement(type, props, ...children);
 };
 
 export const jsxs = function jsxs(type, props, ...children) {
-  return createElement(type, props, ...children);
+  return reactCreateElement(type, props, ...children);
 };
 
-export const Fragment = Fragment;
+export { reactFragment as Fragment };
 
 // Also export these functions that might be used by the JSX transformer
 export const jsxDEV = jsx;
 export const jsxsDEV = jsxs;
 
 // Export createElement directly 
-export const createElement = createElement;
+export { reactCreateElement as createElement };
 
 // Re-export all React hooks
 export const useState = React.useState || ((initialState) => [initialState, () => {}]);
@@ -45,13 +45,13 @@ if (typeof window !== 'undefined') {
   window.React = window.React || React;
   
   // Add JSX runtime functions to global React
-  Object.assign(window.React, {
+  const runtimeFunctions = {
     jsx,
     jsxs,
     jsxDEV,
     jsxsDEV,
-    Fragment,
-    createElement,
+    Fragment: reactFragment,
+    createElement: reactCreateElement,
     // Also add hooks
     useState,
     useEffect,
@@ -64,6 +64,21 @@ if (typeof window !== 'undefined') {
     useImperativeHandle,
     useDebugValue,
     useId
+  };
+  
+  // Safely add properties to window.React
+  Object.entries(runtimeFunctions).forEach(([key, value]) => {
+    if (!window.React[key]) {
+      try {
+        Object.defineProperty(window.React, key, {
+          value,
+          writable: false,
+          configurable: true
+        });
+      } catch (e) {
+        console.warn(`Could not define ${key} on window.React`, e);
+      }
+    }
   });
 
   // Mark that we've patched the JSX runtime
