@@ -27,7 +27,7 @@ export function sendErrorToChat(error: Error | unknown, options: { component?: s
     const sanitizedError = sanitizeErrorObject(error);
     
     // Create error detail object with only string values
-    const errorData = {
+    const errorData: Record<string, string> = {
       name: sanitizedError.name || 'Error',
       message: sanitizedError.message || 'Unknown error',
       stack: sanitizedError.stack || '',

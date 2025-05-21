@@ -14,16 +14,17 @@ export class ErrorCollector {
    * Capture an error with additional context
    */
   public captureError(error: Error | string, options: ErrorOptions = {}): string {
-    const errorMessage = typeof error === 'string' ? error : error.message;
-    const errorStack = typeof error === 'string' ? null : error.stack;
+    const errorObj = typeof error === 'string' ? new Error(error) : error;
+    const errorMessage = errorObj.message;
+    const errorStack = errorObj.stack;
     
     const errorId = this.generateErrorId();
     
     const errorData: ErrorData = {
       id: errorId,
-      error: typeof error === 'string' ? new Error(error) : error,
+      error: errorObj,
       message: errorMessage,
-      stack: errorStack,
+      stack: errorStack || null,
       timestamp: new Date().toISOString(),
       component: options.component || null,
       source: options.source || 'client',
@@ -36,7 +37,7 @@ export class ErrorCollector {
       errorId: options.errorId || null,
       errorType: options.errorType,
       details: options.details,
-      severity: options.severity || 'medium', // Updated to include 'critical'
+      severity: options.severity || 'medium',
       options: options
     };
 

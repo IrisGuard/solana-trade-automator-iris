@@ -71,7 +71,7 @@ export function AppContent() {
   return (
     <ErrorBoundary
       FallbackComponent={({ error }) => {
-        // Sanitize error before rendering it
+        // Ensure error is an Error object and sanitize it
         const sanitizedError = sanitizeErrorObject(error);
         
         return (

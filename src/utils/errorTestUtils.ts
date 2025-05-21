@@ -22,16 +22,19 @@ export function clearAllErrors(): void {
 }
 
 // Function to sanitize error objects for safe use in React components
-export function sanitizeErrorObject(error: unknown): Record<string, string> {
+export function sanitizeErrorObject(error: unknown): Error & Record<string, string> {
   // First convert to a proper Error object if it isn't already
   const errorObj = error instanceof Error ? error : new Error(String(error));
   
   // Create a safe copy with string properties
-  const safeError: Record<string, string> = {
-    name: String(errorObj.name || 'Error'),
-    message: String(errorObj.message || 'Unknown error'),
-    stack: String(errorObj.stack || '')
-  };
+  const safeError: Error & Record<string, string> = Object.assign(
+    new Error(String(errorObj.message || 'Unknown error')), 
+    {
+      name: String(errorObj.name || 'Error'),
+      message: String(errorObj.message || 'Unknown error'),
+      stack: String(errorObj.stack || '')
+    }
+  );
   
   // Add timestamp if not present
   if (!('timestamp' in safeError)) {

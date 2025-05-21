@@ -1,51 +1,56 @@
 
-/** Error options for capturing errors */
+export interface ErrorData {
+  id?: string;
+  error: Error;
+  component?: string | null;
+  details?: any;
+  timestamp?: string;
+  source?: string | null;
+  stack?: string | null;
+  url?: string | null;
+  browserInfo?: any;
+  message?: string;
+  errorCode?: string | null;
+  context?: any | null;
+  metadata?: any | null;
+  status?: number | null;
+  errorId?: string | null;
+  errorType?: string | null;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+  options?: any;
+}
+
 export interface ErrorOptions {
   component?: string;
   source?: string;
+  url?: string;
+  details?: Record<string, unknown>;
+  browserInfo?: any;
+  useCollector?: boolean;
+  toastTitle?: string;
+  title?: string;
   errorCode?: string;
-  context?: string;
-  metadata?: any;
   status?: number;
+  context?: any;
+  metadata?: any;
   errorId?: string;
   errorType?: string;
-  details?: Record<string, unknown>;
   severity?: 'low' | 'medium' | 'high' | 'critical';
-  onError?: (error: ErrorData) => void;
+  onError?: (errorData: ErrorData) => void;
 }
 
-/** Error data structure */
-export interface ErrorData {
-  id: string;
-  error: Error;
-  message: string;
-  stack: string | null;
-  timestamp: string;
-  component: string | null;
-  source: string;
-  url: string;
-  browserInfo: {
-    userAgent: string;
-    language: string;
-    platform: string;
-    screenSize?: string;
-    timestamp?: string;
-  };
-  errorCode: string | null;
-  context: string | null;
-  metadata: any | null;
-  status: number | null;
-  errorId: string | null;
-  errorType?: string;
-  details?: Record<string, unknown>;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  options: ErrorOptions;
+export interface GroupedError {
+  hash: string;
+  count: number;
+  lastOccurrence: Date;
+  errorData: ErrorData;
 }
 
-/** Error Collector Interface */
-export interface ErrorCollector {
+export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
+
+export type ErrorCollector = {
   captureError: (error: Error | string, options?: ErrorOptions) => string;
   getErrors: () => ErrorData[];
   clearErrors: () => void;
   getErrorCount: () => number;
-}
+};

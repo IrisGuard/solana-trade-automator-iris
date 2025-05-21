@@ -20,8 +20,10 @@ export function GlobalErrorHandler() {
       try {
         // Use getRecentErrors instead of getErrors to match implementation
         const allErrors = (errorCollector.getRecentErrors ? errorCollector.getRecentErrors() : errorCollector.getErrors()).map(e => {
-          // Sanitize error objects before using them and ensure they have the 'name' property
-          const sanitizedError = e.error ? sanitizeErrorObject(e.error) : sanitizeErrorObject(new Error('Unknown error'));
+          // Ensure error is an Error object with required properties
+          const sanitizedError = e.error instanceof Error 
+            ? sanitizeErrorObject(e.error)
+            : sanitizeErrorObject(new Error('Unknown error'));
           
           // Create a properly typed ErrorData object
           const typedErrorData: ErrorData = {
