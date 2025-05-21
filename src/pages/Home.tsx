@@ -30,13 +30,7 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section with Wallet Connection Status */}
-      <HeroSection>
-        <div className="w-full max-w-xs mx-auto">
-          <WalletMultiButton 
-            className="w-full bg-primary hover:bg-primary/90 text-white p-4 rounded-lg transition-colors"
-          />
-        </div>
-      </HeroSection>
+      <HeroSection />
       
       {/* Dynamic Content Based on Wallet Connection Status */}
       {isConnected ? (
