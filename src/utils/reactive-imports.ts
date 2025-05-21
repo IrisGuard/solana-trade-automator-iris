@@ -7,24 +7,21 @@
 // Import React directly to get accurate types and implementations
 import * as React from 'react';
 
-// Access React hooks via the hooks object in React 18.3.1
-const reactHooks = React.hooks || {};
-
 // Create hooks with fallbacks
 const hooksWithFallbacks = {
-  useState: reactHooks.useState || function useState(initialState) { 
+  useState: React.useState || function useState(initialState) { 
     return [typeof initialState === 'function' ? initialState() : initialState, () => {}]; 
   },
-  useEffect: reactHooks.useEffect || function useEffect() {},
-  useContext: reactHooks.useContext || function useContext() { return undefined; },
-  useReducer: reactHooks.useReducer || function useReducer(reducer, state) { return [state, () => {}]; },
-  useRef: reactHooks.useRef || function useRef(value) { return {current: value}; },
-  useCallback: reactHooks.useCallback || function useCallback(fn) { return fn; },
-  useMemo: reactHooks.useMemo || function useMemo(fn) { return fn(); },
-  useLayoutEffect: reactHooks.useLayoutEffect || function useLayoutEffect() {},
-  useImperativeHandle: reactHooks.useImperativeHandle || function useImperativeHandle() {},
-  useDebugValue: reactHooks.useDebugValue || function useDebugValue() {},
-  useId: reactHooks.useId || function useId() { return Math.random().toString(36).slice(2); }
+  useEffect: React.useEffect || function useEffect() {},
+  useContext: React.useContext || function useContext() { return undefined; },
+  useReducer: React.useReducer || function useReducer(reducer, state) { return [state, () => {}]; },
+  useRef: React.useRef || function useRef(value) { return {current: value}; },
+  useCallback: React.useCallback || function useCallback(fn) { return fn; },
+  useMemo: React.useMemo || function useMemo(fn) { return fn(); },
+  useLayoutEffect: React.useLayoutEffect || function useLayoutEffect() {},
+  useImperativeHandle: React.useImperativeHandle || function useImperativeHandle() {},
+  useDebugValue: React.useDebugValue || function useDebugValue() {},
+  useId: React.useId || function useId() { return Math.random().toString(36).slice(2); }
 };
 
 // Core React APIs with fallbacks
@@ -82,7 +79,7 @@ export function patchGlobalReact() {
   if (typeof window !== 'undefined') {
     // Create a starter React object with required props if needed
     if (!window.React) {
-      window.React = React;
+      window.React = Object.create(React);
     }
     
     // Combine all exports

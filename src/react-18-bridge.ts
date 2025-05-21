@@ -7,36 +7,43 @@
  */
 import * as React from 'react';
 
-// Access React hooks via React.hooks
-const hooks = React.hooks || {};
-
-// Export hooks using proper React 18.3.1 structure
-export const useState = hooks.useState || function(initialState) { return [initialState, () => {}]; };
-export const useEffect = hooks.useEffect || function() {};
-export const useContext = hooks.useContext || function() { return undefined; };
-export const useReducer = hooks.useReducer || function(r, i) { return [i, () => {}]; };
-export const useRef = hooks.useRef || function(i) { return {current: i}; };
-export const useMemo = hooks.useMemo || function(fn) { return fn(); };
-export const useCallback = hooks.useCallback || function(fn) { return fn; };
-export const useLayoutEffect = hooks.useLayoutEffect || function() {};
-export const useDebugValue = hooks.useDebugValue || function() {};
-export const useImperativeHandle = hooks.useImperativeHandle || function() {};
-export const useId = hooks.useId || function() { return Math.random().toString(36).slice(2); };
-export const useDeferredValue = hooks.useDeferredValue || function(v) { return v; };
-export const useInsertionEffect = hooks.useInsertionEffect || hooks.useEffect || function() {};
-export const useSyncExternalStore = hooks.useSyncExternalStore || function(s, g) { return g(); };
-export const useTransition = hooks.useTransition || function() { return [false, function() {}]; };
+// Access React hooks directly or create fallbacks
+// React 18.3.1 doesn't use the hooks property in TypeScript definitions
+const useState = React.useState || function(initialState) { return [initialState, () => {}]; };
+const useEffect = React.useEffect || function() {};
+const useContext = React.useContext || function() { return undefined; };
+const useReducer = React.useReducer || function(r, i) { return [i, () => {}]; };
+const useRef = React.useRef || function(i) { return {current: i}; };
+const useMemo = React.useMemo || function(fn) { return fn(); };
+const useCallback = React.useCallback || function(fn) { return fn; };
+const useLayoutEffect = React.useLayoutEffect || function() {};
+const useDebugValue = React.useDebugValue || function() {};
+const useImperativeHandle = React.useImperativeHandle || function() {};
+const useId = React.useId || function() { return Math.random().toString(36).slice(2); };
+const useDeferredValue = React.useDeferredValue || function(v) { return v; };
+const useInsertionEffect = React.useInsertionEffect || React.useEffect || function() {};
+const useSyncExternalStore = React.useSyncExternalStore || function(s, g) { return g(); };
+const useTransition = React.useTransition || function() { return [false, function() {}]; };
 
 // Core React functions
-export const Fragment = React.Fragment || Symbol('React.Fragment');
-export const createElement = React.createElement;
-export const createContext = React.createContext;
-export const forwardRef = React.forwardRef;
-export const memo = React.memo;
+const Fragment = React.Fragment || Symbol('React.Fragment');
+const createElement = React.createElement;
+const createContext = React.createContext;
+const forwardRef = React.forwardRef;
+const memo = React.memo;
 
 // Create JSX runtime function exports that use createElement directly
-export const jsx = createElement;
-export const jsxs = createElement;
+const jsx = createElement;
+const jsxs = createElement;
+
+// Export all hooks and functions
+export {
+  useState, useEffect, useContext, useReducer, useRef, useMemo, useCallback,
+  useLayoutEffect, useDebugValue, useImperativeHandle, useId, useDeferredValue,
+  useInsertionEffect, useSyncExternalStore, useTransition,
+  Fragment, createElement, createContext, forwardRef, memo,
+  jsx, jsxs
+};
 
 // Apply these to the global React object
 if (typeof window !== 'undefined') {

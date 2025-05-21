@@ -7,64 +7,61 @@
 // Use namespace import instead of default import for React 18.3.1+ compatibility
 import * as React from 'react';
 
-// Access React hooks via the hooks namespace in React 18.3.1
-const reactHooks = React.hooks || {};
-
-// Create a mapping of all hooks to ensure they exist
+// Create a mapping of all hooks with fallbacks
 const hooksMapping = {
-  // First try React.hooks (React 18.3.1), then fallback to direct access, then use fallbacks
-  useState: reactHooks.useState || function useState(initialState) { 
+  // Try direct access to hooks, then use fallbacks
+  useState: React.useState || function useState(initialState) { 
     console.warn('Using fallback useState');
     return [typeof initialState === 'function' ? initialState() : initialState, () => {}]; 
   },
-  useEffect: reactHooks.useEffect || function useEffect() {
+  useEffect: React.useEffect || function useEffect() {
     console.warn('Using fallback useEffect');
   },
-  useContext: reactHooks.useContext || function useContext() { 
+  useContext: React.useContext || function useContext() { 
     console.warn('Using fallback useContext');
     return undefined; 
   },
-  useRef: reactHooks.useRef || function useRef(initialValue) { 
+  useRef: React.useRef || function useRef(initialValue) { 
     console.warn('Using fallback useRef');
     return { current: initialValue }; 
   },
-  useReducer: reactHooks.useReducer || function useReducer(reducer, initialState) { 
+  useReducer: React.useReducer || function useReducer(reducer, initialState) { 
     console.warn('Using fallback useReducer');
     return [initialState, () => {}]; 
   },
-  useCallback: reactHooks.useCallback || function useCallback(callback) { 
+  useCallback: React.useCallback || function useCallback(callback) { 
     console.warn('Using fallback useCallback');
     return callback; 
   },
-  useMemo: reactHooks.useMemo || function useMemo(factory) { 
+  useMemo: React.useMemo || function useMemo(factory) { 
     console.warn('Using fallback useMemo');
     return factory(); 
   },
-  useLayoutEffect: reactHooks.useLayoutEffect || function useLayoutEffect() {
+  useLayoutEffect: React.useLayoutEffect || function useLayoutEffect() {
     console.warn('Using fallback useLayoutEffect');
   },
-  useImperativeHandle: reactHooks.useImperativeHandle || function useImperativeHandle() {
+  useImperativeHandle: React.useImperativeHandle || function useImperativeHandle() {
     console.warn('Using fallback useImperativeHandle');
   },
-  useDebugValue: reactHooks.useDebugValue || function useDebugValue() {
+  useDebugValue: React.useDebugValue || function useDebugValue() {
     console.warn('Using fallback useDebugValue');
   },
-  useId: reactHooks.useId || function useId() { 
+  useId: React.useId || function useId() { 
     console.warn('Using fallback useId');
     return Math.random().toString(36).substring(2); 
   },
-  useDeferredValue: reactHooks.useDeferredValue || function useDeferredValue(value) { 
+  useDeferredValue: React.useDeferredValue || function useDeferredValue(value) { 
     console.warn('Using fallback useDeferredValue');
     return value; 
   },
-  useInsertionEffect: reactHooks.useInsertionEffect || function useInsertionEffect() {
+  useInsertionEffect: React.useInsertionEffect || function useInsertionEffect() {
     console.warn('Using fallback useInsertionEffect');
   },
-  useSyncExternalStore: reactHooks.useSyncExternalStore || function useSyncExternalStore(subscribe, getSnapshot) { 
+  useSyncExternalStore: React.useSyncExternalStore || function useSyncExternalStore(subscribe, getSnapshot) { 
     console.warn('Using fallback useSyncExternalStore');
     return getSnapshot(); 
   },
-  useTransition: reactHooks.useTransition || function useTransition() { 
+  useTransition: React.useTransition || function useTransition() { 
     console.warn('Using fallback useTransition');
     return [false, () => {}]; 
   }

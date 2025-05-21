@@ -7,9 +7,6 @@
 // Import standard React
 import * as React from 'react';
 
-// Access React hooks via the hooks object in React 18.3.1
-const reactHooks = React.hooks || {};
-
 /**
  * React 18.3.1 has moved hooks and other APIs into a different structure.
  * This function detects the React version and provides appropriate shims.
@@ -39,21 +36,21 @@ export function applyReact183Compatibility() {
     }
   };
   
-  // Hook shims - use React.hooks object from 18.3.1 if available
+  // Hook shims - use direct access to hooks
   const hookShims = {
-    useState: reactHooks.useState || function useState(initialState) {
+    useState: React.useState || function useState(initialState) {
       console.warn('Using useState fallback shim');
       const state = typeof initialState === 'function' ? initialState() : initialState;
       const setState = () => { /* noop */ };
       return [state, setState];
     },
     
-    useEffect: reactHooks.useEffect || function useEffect() {
+    useEffect: React.useEffect || function useEffect() {
       console.warn('Using useEffect fallback shim');
       // No-op implementation
     },
     
-    useRef: reactHooks.useRef || function useRef(initialValue) {
+    useRef: React.useRef || function useRef(initialValue) {
       console.warn('Using useRef fallback shim');
       return { current: initialValue };
     }
@@ -63,7 +60,10 @@ export function applyReact183Compatibility() {
 
   // Apply to global React if it exists
   if (typeof window !== 'undefined') {
-    window.React = window.React || {};
+    // Make sure window.React exists
+    if (!window.React) {
+      window.React = Object.create(React);
+    }
     
     // Apply API shims
     Object.entries(reactApiShims).forEach(([key, implementation]) => {
