@@ -7,35 +7,83 @@
  * Safely sanitizes an error object to ensure it won't cause issues when displayed or logged
  * This is especially important when dealing with non-standard error objects
  */
-export function sanitizeErrorObject(error: unknown): Error {
+export function sanitizeErrorObject(error: unknown): Error & { 
+  timestamp?: string;
+  url?: string;
+  name: string; 
+} {
   if (error instanceof Error) {
     // Already an Error object, make a safe copy
-    const sanitizedError = new Error(error.message);
-    sanitizedError.name = error.name;
+    const sanitizedError = new Error(error.message) as Error & { timestamp?: string; url?: string };
+    sanitizedError.name = error.name || 'Error';
     sanitizedError.stack = error.stack;
+    
+    // Copy any custom properties that might exist on the error
+    if ('timestamp' in error) {
+      sanitizedError.timestamp = String(error['timestamp']);
+    } else {
+      sanitizedError.timestamp = new Date().toISOString();
+    }
+    
+    if ('url' in error) {
+      sanitizedError.url = String(error['url']);
+    } else if (typeof window !== 'undefined') {
+      sanitizedError.url = window.location.href;
+    }
+    
     return sanitizedError;
   }
   
   // Handle other types of errors
   if (typeof error === 'string') {
-    return new Error(error);
+    const err = new Error(error) as Error & { timestamp: string; url?: string };
+    err.name = 'StringError';
+    err.timestamp = new Date().toISOString();
+    if (typeof window !== 'undefined') {
+      err.url = window.location.href;
+    }
+    return err;
   }
   
   if (error === null) {
-    return new Error('Null error');
+    const err = new Error('Null error') as Error & { timestamp: string; url?: string };
+    err.name = 'NullError';
+    err.timestamp = new Date().toISOString();
+    if (typeof window !== 'undefined') {
+      err.url = window.location.href;
+    }
+    return err;
   }
   
   if (error === undefined) {
-    return new Error('Undefined error');
+    const err = new Error('Undefined error') as Error & { timestamp: string; url?: string };
+    err.name = 'UndefinedError';
+    err.timestamp = new Date().toISOString();
+    if (typeof window !== 'undefined') {
+      err.url = window.location.href;
+    }
+    return err;
   }
   
   try {
     // Try to convert to string representation
     const errorString = JSON.stringify(error);
-    return new Error(`Non-standard error: ${errorString}`);
+    const err = new Error(`Non-standard error: ${errorString}`) as Error & { timestamp: string; url?: string };
+    err.name = 'NonStandardError';
+    err.timestamp = new Date().toISOString();
+    if (typeof window !== 'undefined') {
+      err.url = window.location.href;
+    }
+    return err;
   } catch (jsonError) {
     // Last resort if JSON.stringify fails
-    return new Error(`Unknown error: ${String(error)}`);
+    const err = new Error(`Unknown error: ${String(error)}`) as Error & { timestamp: string; url?: string };
+    err.name = 'UnknownError';
+    err.timestamp = new Date().toISOString();
+    if (typeof window !== 'undefined') {
+      err.url = window.location.href;
+    }
+    return err;
   }
 }
 
@@ -58,6 +106,39 @@ export function clearAllErrors(): void {
 }
 
 /**
+ * Initialize the site protection system
+ */
+export function initProtectionSystem(): { checkHealth: () => void } {
+  console.log('Initializing site protection system');
+  
+  // Create a simple protection system
+  const protectionSystem = {
+    checkHealth: () => {
+      console.log('Running site health check');
+      // Simplified health check - in a real system this would check various aspects
+      try {
+        // Check React is available
+        if (typeof window !== 'undefined' && !window.React) {
+          console.warn('React not found in global scope');
+        }
+        
+        // Check if essential DOM elements exist
+        const root = document.getElementById('root');
+        if (!root) {
+          console.warn('Root element not found');
+        }
+        
+        console.log('Health check completed');
+      } catch (e) {
+        console.error('Error during health check:', e);
+      }
+    }
+  };
+  
+  return protectionSystem;
+}
+
+/**
  * Utility to check React version and runtime environment
  */
 export function checkReactEnvironment(): Record<string, unknown> {
@@ -68,7 +149,11 @@ export function checkReactEnvironment(): Record<string, unknown> {
       hasJsxs: typeof window.React?.jsxs === 'function',
       hasCreateElement: typeof window.React?.createElement === 'function',
       hasUseState: typeof window.React?.useState === 'function',
-      documentMode: document.documentMode,
+      // Safely check document mode
+      // document.documentMode is an IE-specific property
+      documentMode: typeof document !== 'undefined' && 
+                  'documentMode' in document ? 
+                  document['documentMode'] : undefined,
       userAgent: navigator.userAgent
     };
   } catch (e) {

@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { Routes } from "@/routes";
 import { Toaster } from "sonner";
@@ -13,13 +12,12 @@ import { ThemeProvider } from "@/providers/ThemeProvider";
 import { LanguageProvider } from "@/providers/LanguageProvider";
 import { ensureRouterCompatibility } from "@/utils/routerPatches";
 import { EmergencyRecovery } from "@/components/emergency/EmergencyRecovery";
-import { initProtectionSystem } from "@/utils/errorTestUtils";
+import { initProtectionSystem, sanitizeErrorObject } from "@/utils/errorTestUtils";
 import { HelpButton } from "@/components/help/HelpButton";
 import { HealthStatusIndicator } from "@/components/monitoring/HealthStatusIndicator";
 import { DOMErrorHandler } from "@/components/errors/DOMErrorHandler";
 import { MonitoringSystem } from "@/components/monitoring/MonitoringSystem";
 import { PermanentRestoreButton } from "@/components/emergency/PermanentRestoreButton";
-import { sanitizeErrorObject } from "@/utils/errorTestUtils";
 
 // Εφαρμογή διορθώσεων συμβατότητας του React Router
 ensureRouterCompatibility();
