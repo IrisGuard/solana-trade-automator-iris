@@ -40,19 +40,15 @@ export function EnhancedTradingBotTab() {
   // Create a new array of tokens with the correct type structure that satisfies the Token type
   // from @/types/wallet where amount is required and must be a number
   const typedTokens = tokens.map(token => {
-    // Make sure to convert token.amount to number if it's not already
-    const amount = typeof token.amount === 'number' ? token.amount : Number(token.amount || 0);
-    
-    // Convert to the expected Token type with all required properties
     return {
       address: token.address || '',
       symbol: token.symbol || '',
       name: token.name || '',
-      amount: amount,
+      amount: typeof token.amount === 'number' ? token.amount : Number(token.amount || 0),
       decimals: token.decimals || 0,
       mint: token.mint || token.address || '',
       logo: token.logo
-    } as Token;
+    } satisfies Token; // Using satisfies ensures the type is correct
   });
 
   return (
