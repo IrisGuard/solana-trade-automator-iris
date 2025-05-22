@@ -1,3 +1,4 @@
+
 /**
  * Utility for displaying errors to users
  */

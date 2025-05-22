@@ -18,7 +18,7 @@ export function WalletErrorFallback({ error, resetErrorBoundary }: FallbackProps
   
   // Ensure the error object is properly sanitized with all properties as strings
   const sanitizedError = sanitizeErrorObject(error);
-  const errorMessage = String(sanitizedError.message || 'Unknown error');
+  const errorMessage = sanitizedError.message || 'Unknown error';
   
   // Έλεγχος για συγκεκριμένα σφάλματα
   const isSubstringError = errorMessage.includes('substring is not a function');
