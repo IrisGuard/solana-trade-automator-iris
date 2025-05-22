@@ -1,4 +1,3 @@
-
 /**
  * React 18.3.1 Compatibility Layer
  * 
@@ -54,12 +53,12 @@ const reactFunctions = {
   
   // Core React APIs
   createElement: React?.createElement || function() { return null; },
-  createContext: React?.createContext || function() { return { Provider: () => null, Consumer: () => null }; },
+  createContext: React?.createContext || function(defaultValue) { return { Provider: () => null, Consumer: () => null }; },
   Fragment: React?.Fragment || Symbol('Fragment'),
   
   // JSX runtime
-  jsx: React?.createElement || function() { return null; },
-  jsxs: React?.createElement || function() { return null; },
+  jsx: React?.createElement || function(type, props) { return null; },
+  jsxs: React?.createElement || function(type, props) { return null; },
   jsxDEV: React?.createElement || function() { return null; },
   
   // Other React APIs
