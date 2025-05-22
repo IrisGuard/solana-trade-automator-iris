@@ -21,7 +21,7 @@ export function GlobalErrorHandler() {
         // Use getRecentErrors instead of getErrors to match implementation
         const allErrors = (errorCollector.getRecentErrors ? errorCollector.getRecentErrors() : errorCollector.getErrors()).map(e => {
           // Ensure error is an Error object with required properties
-          const errorObj = e.error instanceof Error ? e.error : new Error('Unknown error');
+          const errorObj = e.error instanceof Error ? e.error : new Error(String(e.error || 'Unknown error'));
           const sanitizedError = sanitizeErrorObject(errorObj);
           
           // Create a properly typed ErrorData object
@@ -29,8 +29,8 @@ export function GlobalErrorHandler() {
             id: `err_${e.timestamp || Date.now()}`,
             error: errorObj, // Use the actual Error object, not the sanitized version
             timestamp: e.timestamp ? new Date(e.timestamp).toISOString() : new Date().toISOString(),
-            message: String(sanitizedError.message),
-            stack: String(sanitizedError.stack || ''),
+            message: sanitizedError.message,
+            stack: sanitizedError.stack || '',
             component: e.data?.component || null,
             source: e.data?.source || 'client',
             url: window.location.href,
@@ -110,12 +110,8 @@ export function GlobalErrorHandler() {
   if (!lastError) return null;
 
   // Make sure we properly stringify any potential object values before rendering
-  const errorMessage = typeof lastError.message === 'string' ? 
-    lastError.message : String(lastError.message || 'Unknown error');
-  
-  const componentName = typeof lastError.component === 'string' ? 
-    lastError.component : String(lastError.component || 'Unknown');
-    
+  const errorMessage = String(lastError.message || 'Unknown error');
+  const componentName = String(lastError.component || 'Unknown');
   const timestamp = typeof lastError.timestamp === 'string' ? 
     new Date(lastError.timestamp).toLocaleTimeString() : 
     new Date().toLocaleTimeString();

@@ -23,14 +23,14 @@ export function ErrorDialogContent({ error, onClose, errorCode }: ErrorDialogCon
   const safeError = sanitizeErrorObject(error);
   
   // Safe access to timestamp, with default current time if not available
-  const timestamp = typeof safeError.timestamp === 'string' ? 
+  const timestamp = typeof safeError.timestamp === 'string' && safeError.timestamp ? 
     new Date(safeError.timestamp).toLocaleString() : 
     new Date().toLocaleString();
   
   // Ensure all values are strings
-  const stackTrace = String(safeError.stack || 'No stack trace available');
-  const errorMessage = String(safeError.message || 'Unknown error');
-  const errorUrl = String(safeError.url || window.location.href);
+  const stackTrace = safeError.stack || 'No stack trace available';
+  const errorMessage = safeError.message || 'Unknown error';
+  const errorUrl = safeError.url || window.location.href;
   
   return (
     <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden">

@@ -17,7 +17,8 @@ import { DatabaseInitializeButton } from './components/database/DatabaseInitiali
 import { StatusSection } from './components/dashboard/StatusSection';
 import { ensureAuthenticated } from './integrations/supabase/client';
 import { autoInitialize } from './utils/autoInitialize';
-import { sanitizeErrorObject } from './utils/errorTestUtils';
+import { HeliusSyncComponent } from './components/wallet/HeliusSyncComponent';
+import { syncHeliusKeys } from './utils/databaseInitializer';
 
 function App() {
   // Auto-initialize once on app launch
@@ -26,42 +27,53 @@ function App() {
       console.log('App component mounted successfully');
       
       const initializeApp = async () => {
-        // Ensure authentication
-        const isAuthenticated = await ensureAuthenticated();
-        
-        if (isAuthenticated) {
-          console.log('User authenticated, checking if database needs initialization...');
+        try {
+          // Ensure authentication
+          const isAuthenticated = await ensureAuthenticated();
           
-          // Show toast notification
-          toast.success('Καλώς ήρθατε στο Solana Trade Automator!', {
-            duration: 5000,
-            action: {
-              label: 'Άμεση Ενεργοποίηση',
-              onClick: () => {
-                autoInitialize();
-              }
+          if (isAuthenticated) {
+            console.log('User authenticated, checking if database needs initialization...');
+            
+            // Sync Helius keys
+            try {
+              await syncHeliusKeys();
+            } catch (keyError) {
+              console.error('Failed to sync Helius keys:', keyError);
             }
-          });
-          
-          // Auto-initialize only on first load (not on hot reload during development)
-          if (!window.localStorage.getItem('app_initialized')) {
-            console.log('Starting auto-initialization...');
-            await autoInitialize();
-            window.localStorage.setItem('app_initialized', 'true');
+            
+            // Show toast notification
+            toast.success('Καλώς ήρθατε στο Solana Trade Automator!', {
+              duration: 5000,
+              action: {
+                label: 'Άμεση Ενεργοποίηση',
+                onClick: () => {
+                  autoInitialize();
+                }
+              }
+            });
+            
+            // Auto-initialize only on first load (not on hot reload during development)
+            if (!window.localStorage.getItem('app_initialized')) {
+              console.log('Starting auto-initialization...');
+              await autoInitialize();
+              window.localStorage.setItem('app_initialized', 'true');
+            }
+          } else {
+            console.log('Authentication failed, manual initialization will be required');
+            toast.error('Αδυναμία αυτόματης σύνδεσης. Παρακαλώ κάντε χειροκίνητη σύνδεση.', {
+              duration: 8000
+            });
           }
-        } else {
-          console.log('Authentication failed, manual initialization will be required');
-          toast.error('Αδυναμία αυτόματης σύνδεσης. Παρακαλώ κάντε χειροκίνητη σύνδεση.', {
-            duration: 8000
-          });
+        } catch (initError) {
+          console.error('Error in initialization process:', initError);
+          // Continue app execution despite initialization errors
         }
       };
       
       initializeApp();
     } catch (error) {
-      // Sanitize the error before logging it
-      const sanitizedError = sanitizeErrorObject(error);
-      console.error('Error in App initialization:', sanitizedError);
+      // Safe error handling
+      console.error('Error in App initialization:', error instanceof Error ? error.message : String(error));
     }
     
     return () => {
@@ -82,6 +94,7 @@ function App() {
                     <DatabaseInitializeButton />
                   </div>
                 </div>
+                <HeliusSyncComponent />
                 <Routes />
               </Suspense>
             </SolanaProviderFallback>

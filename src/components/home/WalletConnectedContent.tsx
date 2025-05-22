@@ -8,7 +8,6 @@ import { WalletInfoCard } from "./WalletInfoCard";
 import { Token } from "@/types/wallet";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InfoIcon } from "lucide-react";
-import { sanitizeErrorObject } from "@/utils/errorTestUtils";
 
 interface WalletConnectedContentProps {
   walletAddress: string;

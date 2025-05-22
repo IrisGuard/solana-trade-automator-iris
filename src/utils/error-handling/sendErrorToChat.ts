@@ -26,13 +26,13 @@ export function sendErrorToChat(error: Error | unknown, options: { component?: s
     // Ensure we have a properly sanitized error object with all string properties
     const sanitizedError = sanitizeErrorObject(error);
     
-    // Create error detail object with only string values
+    // Create error detail object with explicitly string values
     const errorData: Record<string, string> = {
-      name: String(sanitizedError.name || ''),
-      message: String(sanitizedError.message || ''),
-      stack: String(sanitizedError.stack || ''),
-      timestamp: String(sanitizedError.timestamp || ''),
-      url: String(sanitizedError.url || ''),
+      name: sanitizedError.name || '',
+      message: sanitizedError.message || '',
+      stack: sanitizedError.stack || '',
+      timestamp: sanitizedError.timestamp || new Date().toISOString(),
+      url: sanitizedError.url || window.location.href,
       component: options.component ? String(options.component) : 'unknown'
     };
 

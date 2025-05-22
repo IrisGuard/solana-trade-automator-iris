@@ -37,7 +37,7 @@ class HeliusKeyManager {
       
       // Return a dummy key to prevent immediate crashes
       // This will likely fail API requests but prevents application crashes
-      return "helius-key-missing-please-add-one";
+      return FALLBACK_HELIUS_KEY || "helius-key-missing-please-add-one";
     }
 
     // Round robin key selection
@@ -107,19 +107,48 @@ class HeliusKeyManager {
           this.retryCount = 0; // Reset retry count on success
           console.log(`Επιτυχής φόρτωση ${keys.length} κλειδιών Helius API`);
           return true;
+        } else {
+          console.log('Βρέθηκαν εγγραφές αλλά δεν περιείχαν έγκυρα κλειδιά Helius API');
         }
+      } else {
+        console.log('Δεν βρέθηκαν κλειδιά Helius API στη βάση δεδομένων');
       }
       
-      console.log('Δεν βρέθηκαν κλειδιά Helius API στη βάση δεδομένων');
-      
-      // If no keys found, use fallback key
-      if (FALLBACK_HELIUS_KEY && this.apiKeys.length === 0) {
+      // Check if we have a default key in config
+      if (FALLBACK_HELIUS_KEY && (!this.apiKeys.length || !this.apiKeys.includes(FALLBACK_HELIUS_KEY))) {
+        console.log('Χρήση εφεδρικού κλειδιού Helius API από config');
         this.apiKeys = [FALLBACK_HELIUS_KEY];
-        console.log('Χρήση εφεδρικού κλειδιού Helius API');
+        this.isInitialized = true;
+        return true;
+      } else if (this.apiKeys.length > 0) {
+        console.log('Χρήση υπαρχόντων κλειδιών Helius API');
+        this.isInitialized = true;
         return true;
       }
       
-      return this.apiKeys.length > 0;
+      // Try to get any key, not just active ones
+      try {
+        console.log('Προσπάθεια λήψης οποιουδήποτε κλειδιού Helius API, όχι μόνο ενεργών');
+        const { data: anyKeys, error: anyError } = await supabase
+          .from('api_keys_storage')
+          .select('key_value')
+          .eq('service', 'helius');
+        
+        if (!anyError && anyKeys && anyKeys.length > 0) {
+          const anyValidKeys = anyKeys.map(row => row.key_value).filter(Boolean);
+          if (anyValidKeys.length > 0) {
+            this.apiKeys = anyValidKeys;
+            this.isInitialized = true;
+            console.log(`Επιτυχής φόρτωση ${anyValidKeys.length} κλειδιών Helius API (οποιασδήποτε κατάστασης)`);
+            return true;
+          }
+        }
+      } catch (innerError) {
+        console.error('Σφάλμα κατά την αναζήτηση οποιουδήποτε κλειδιού:', innerError);
+      }
+      
+      console.warn('Δεν βρέθηκαν κλειδιά Helius API και δεν υπάρχει εφεδρικό κλειδί');
+      return false;
     } catch (error) {
       console.error('Εξαίρεση κατά την ανανέωση των κλειδιών Helius API:', error);
       errorCollector.captureError(error, {
@@ -131,15 +160,6 @@ class HeliusKeyManager {
       return this.apiKeys.length > 0;
     } finally {
       this.isRefreshing = false;
-    }
-  }
-  
-  /**
-   * Make sure keys are loaded before use
-   */
-  private async ensureInitialized(): Promise<void> {
-    if (!this.isInitialized || this.apiKeys.length === 0) {
-      await this.refreshKeys();
     }
   }
 

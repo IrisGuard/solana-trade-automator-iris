@@ -27,14 +27,14 @@ try {
 }
 
 // Create initial backup if none exists
-if (SiteBackupService.countAvailableBackups() === 0) {
-  SiteBackupService.createBackup();
+if (SiteBackupService && SiteBackupService.countAvailableBackups && SiteBackupService.countAvailableBackups() === 0) {
+  SiteBackupService.createBackup && SiteBackupService.createBackup();
 }
 
 // Start health monitoring
 try {
   console.log('Starting site health monitoring...');
-  SiteHealthMonitor.start();
+  SiteHealthMonitor && SiteHealthMonitor.start && SiteHealthMonitor.start();
 } catch (e) {
   console.error('Failed to start health monitoring:', e);
 }
@@ -56,13 +56,13 @@ try {
   const createRoot = ReactDOM.createRoot;
   
   // Get StrictMode safely
-  const StrictMode = React['StrictMode'] || React['Fragment'] || 'div';
+  const StrictMode = React['StrictMode'] || React['Fragment'] || React.Fragment || 'div';
   
   // Render app with proper error handling
   try {
     const root = createRoot(rootElement);
     
-    // Use proper JSX creation via React.createElement
+    // Use explicit createElement to avoid JSX in case it's not available yet
     root.render(
       React.createElement(StrictMode, null,
         React.createElement(App)
@@ -79,6 +79,18 @@ try {
       root.render(React.createElement(App));
     } catch (fallbackError) {
       console.error('[App] Alternative render failed:', fallbackError);
+      
+      // Display error message in DOM
+      rootElement.innerHTML = `
+        <div style="padding: 20px; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px;">
+          <h3>Σφάλμα Εφαρμογής</h3>
+          <p>Η εφαρμογή δεν μπόρεσε να φορτωθεί σωστά. Παρακαλώ ανανεώστε τη σελίδα.</p>
+          <p style="margin-top: 8px; font-size: 0.9em;">Σφάλμα: ${String(fallbackError)}</p>
+          <button onclick="window.location.reload()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-top: 10px;">
+            Ανανέωση
+          </button>
+        </div>
+      `;
     }
   }
 } catch (error) {
@@ -91,10 +103,11 @@ try {
       // Display error message in DOM
       rootElement.innerHTML = `
         <div style="padding: 20px; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px;">
-          <h3>Application Error</h3>
-          <p>The application couldn't load properly. Please refresh the page or contact support.</p>
-          <button onclick="window.location.reload()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer;">
-            Refresh
+          <h3>Σφάλμα Εφαρμογής</h3>
+          <p>Η εφαρμογή δεν μπόρεσε να φορτωθεί σωστά. Παρακαλώ ανανεώστε τη σελίδα.</p>
+          <p style="margin-top: 8px; font-size: 0.9em;">Σφάλμα: ${String(error)}</p>
+          <button onclick="window.location.reload()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-top: 10px;">
+            Ανανέωση
           </button>
         </div>
       `;

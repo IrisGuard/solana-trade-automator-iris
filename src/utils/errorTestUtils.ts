@@ -10,38 +10,43 @@
  * @param error The error object to sanitize
  * @returns A sanitized version of the error object with safe-to-render values
  */
-export function sanitizeErrorObject(error: any): Record<string, string | number | boolean> & { 
+export function sanitizeErrorObject(error: any): { 
   message: string;
   name: string;
+  stack?: string;
+  timestamp?: string;
+  url?: string;
+  [key: string]: string | undefined;
 } {
   // Handle null or undefined
   if (error == null) {
-    return { message: 'Unknown error (null)', name: 'Error', sanitized: true };
+    return { message: 'Unknown error (null)', name: 'Error', sanitized: 'true' };
   }
 
   try {
     // If it's already a string, just return a simple object
     if (typeof error === 'string') {
-      return { message: error, name: 'Error', sanitized: true };
+      return { message: error, name: 'Error', sanitized: 'true' };
     }
 
     // For errors or objects, create a sanitized version
-    const sanitized: Record<string, string | number | boolean> & {
+    const sanitized: { 
       message: string;
       name: string;
+      [key: string]: string | undefined;
     } = {
       message: 'Unknown error',
       name: 'Error'
     };
     
-    // Process common error properties
+    // Process common error properties - ensure all values are strings
     if (error.message) sanitized.message = String(error.message);
     if (error.name) sanitized.name = String(error.name);
     if (error.stack) sanitized.stack = String(error.stack);
     if (error.code) sanitized.code = String(error.code);
     if (error.fileName) sanitized.fileName = String(error.fileName);
-    if (error.lineNumber) sanitized.lineNumber = Number(error.lineNumber);
-    if (error.columnNumber) sanitized.columnNumber = Number(error.columnNumber);
+    if (error.lineNumber) sanitized.lineNumber = String(error.lineNumber);
+    if (error.columnNumber) sanitized.columnNumber = String(error.columnNumber);
     if (error.timestamp) sanitized.timestamp = String(error.timestamp);
     if (error.url) sanitized.url = String(error.url);
     
@@ -54,7 +59,7 @@ export function sanitizeErrorObject(error: any): Record<string, string | number 
       }
     }
     
-    sanitized.sanitized = true;
+    sanitized.sanitized = 'true';
     return sanitized;
   } catch (e) {
     // Fallback if anything goes wrong during sanitization
@@ -62,7 +67,7 @@ export function sanitizeErrorObject(error: any): Record<string, string | number 
       message: 'Error during sanitization', 
       name: 'SanitizationError',
       sanitizationError: String(e),
-      sanitized: true
+      sanitized: 'true'
     };
   }
 }
@@ -93,12 +98,6 @@ export function clearAllErrors() {
   console.log('[ErrorSystem] Clearing all errors');
   
   try {
-    // Clear errors from collector if available
-    const { errorCollector } = require('./error-handling/collector');
-    if (errorCollector && typeof errorCollector.clearErrors === 'function') {
-      errorCollector.clearErrors();
-    }
-    
     // Clear errors from lovableChat if available
     if (window.lovableChat && typeof window.lovableChat.clearErrors === 'function') {
       window.lovableChat.clearErrors();
