@@ -1,18 +1,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { BotStatus } from './trading-bot/types';
-
-interface Token {
-  address: string;
-  name: string;
-  symbol: string;
-  decimals: number;
-  logo?: string;
-  balance?: number;
-  price?: number;
-  amount?: number;
-  mint?: string;
-}
+import { Token } from '@/types/wallet';
+import { normalizeTokenArray } from '@/utils/tokenTypeAdapter';
 
 interface TradingBotConfig {
   strategy: string;
@@ -40,7 +30,10 @@ interface TradingOrder {
   timestamp: string;
 }
 
-export function useTradingBot(tokens: Token[] = []) {
+export function useTradingBot(inputTokens: any[] = []) {
+  // Normalize input tokens to ensure they match the required Token type
+  const tokens: Token[] = normalizeTokenArray(inputTokens);
+  
   const [config, setConfig] = useState<TradingBotConfig>({
     strategy: 'momentum',
     tokenAddress: '',

@@ -38,16 +38,16 @@ export function EnhancedTradingBotTab() {
   } as LocalTradingBotConfig;
 
   // Create a new array of tokens with the correct type structure
-  // Ensure each token has all the required properties from Token type
-  const typedTokens = tokens.map(token => ({
+  // We need to ensure all required properties are present and properly typed
+  const typedTokens: Token[] = tokens.map(token => ({
     address: token.address || '',
     symbol: token.symbol || '',
     name: token.name || '',
-    amount: typeof token.amount === 'number' ? token.amount : Number(token.amount || 0), // Ensure amount is a number and not undefined
+    amount: typeof token.amount === 'number' ? token.amount : Number(token.amount || 0),
     decimals: token.decimals || 0,
     mint: token.mint || token.address || '',
     logo: token.logo
-  })) as Token[]; // Use direct type assertion instead of satisfies to ensure compatibility
+  }));
 
   return (
     <Tabs defaultValue="trading">
