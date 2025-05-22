@@ -14,7 +14,6 @@ const {
   useReducer,
   useLayoutEffect,
   useId,
-  createElement,
   Fragment,
   Children
 } = React;
@@ -23,10 +22,10 @@ const {
 let _React = React;
 
 // JSX Runtime functions
-export const jsx = React.createElement || createElement;
-export const jsxs = React.createElement || createElement;
-export const jsxDEV = React.createElement || createElement;
-export const jsxsDEV = React.createElement || createElement;
+export const jsx = React.createElement || function() {};
+export const jsxs = React.createElement || function() {};
+export const jsxDEV = React.createElement || function() {};
+export const jsxsDEV = React.createElement || function() {};
 
 // For compatibility with older code
 export {
@@ -40,14 +39,13 @@ export {
   useLayoutEffect,
   useId,
   createContext,
-  createElement,
   Fragment,
   Children
 };
 
 // Additional hooks that might be needed
-export const useImperativeHandle = React.useImperativeHandle;
-export const useDebugValue = React.useDebugValue;
-export const Profiler = React.Profiler || (() => null);
+export const useImperativeHandle = React.useImperativeHandle || function() {};
+export const useDebugValue = React.useDebugValue || function() {};
+export const Profiler = React.Profiler || function() { return null; };
 
 export default _React;

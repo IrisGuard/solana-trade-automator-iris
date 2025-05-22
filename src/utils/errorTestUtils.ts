@@ -1,158 +1,82 @@
 
 /**
- * Utility functions for testing and clearing errors
+ * Utility functions for error handling and sanitization
  */
 
-// Create a function to clear all errors
-export function clearAllErrors(): void {
-  if (typeof window !== 'undefined') {
-    // Clear any error states in the application
-    console.log('Clearing all application errors');
-    
-    // Clear any global error state if it exists
-    if (window.lovableChat && typeof window.lovableChat.clearErrors === 'function') {
-      window.lovableChat.clearErrors();
-    }
-    
-    // Clear console errors if needed for testing
-    if (console && console.clear) {
-      console.clear();
-    }
-  }
-}
-
-// Function to sanitize error objects for safe use in React components
-export function sanitizeErrorObject(error: unknown): Error & Record<string, string> {
-  // First convert to a proper Error object if it isn't already
-  const errorObj = error instanceof Error ? error : new Error(String(error));
-  
-  // Create a safe copy as Record<string, string>
-  const safeError = Object.create(Object.getPrototypeOf(errorObj)) as Error & Record<string, string>;
-  
-  // Copy standard Error properties
-  safeError.name = String(errorObj.name || 'Error');
-  safeError.message = String(errorObj.message || 'Unknown error');
-  safeError.stack = String(errorObj.stack || '');
-  
-  // Add timestamp if not present
-  safeError.timestamp = new Date().toISOString();
-
-  // Add URL information
-  if (typeof window !== 'undefined') {
-    safeError.url = window.location.href;
-  } else {
-    safeError.url = 'unknown';
+/**
+ * Safely sanitizes an error object to ensure all properties are serializable
+ * and won't cause React rendering issues
+ * 
+ * @param error The error object to sanitize
+ * @returns A sanitized version of the error object with safe-to-render values
+ */
+export function sanitizeErrorObject(error: any): Record<string, string | number | boolean> {
+  // Handle null or undefined
+  if (error == null) {
+    return { message: 'Unknown error (null)', sanitized: true };
   }
 
-  // Process any additional properties
-  if (typeof error === 'object' && error !== null) {
-    Object.entries(error).forEach(([key, value]) => {
-      if (key !== 'name' && key !== 'message' && key !== 'stack') {
-        if (value === null) {
-          safeError[key] = 'null';
-        } else if (value === undefined) {
-          safeError[key] = 'undefined';
-        } else if (typeof value === 'object') {
-          try {
-            safeError[key] = JSON.stringify(value);
-          } catch (e) {
-            safeError[key] = '[Object cannot be stringified]';
-          }
-        } else {
-          safeError[key] = String(value);
-        }
+  try {
+    // If it's already a string, just return a simple object
+    if (typeof error === 'string') {
+      return { message: error, sanitized: true };
+    }
+
+    // For errors or objects, create a sanitized version
+    const sanitized: Record<string, string | number | boolean> = {};
+    
+    // Process common error properties
+    if (error.message) sanitized.message = String(error.message);
+    if (error.name) sanitized.name = String(error.name);
+    if (error.stack) sanitized.stack = String(error.stack);
+    if (error.code) sanitized.code = String(error.code);
+    if (error.fileName) sanitized.fileName = String(error.fileName);
+    if (error.lineNumber) sanitized.lineNumber = Number(error.lineNumber);
+    if (error.columnNumber) sanitized.columnNumber = Number(error.columnNumber);
+    if (error.timestamp) sanitized.timestamp = String(error.timestamp);
+    if (error.url) sanitized.url = String(error.url);
+    
+    // If the error has no standard properties, try to stringify it or add generic message
+    if (Object.keys(sanitized).length === 0) {
+      try {
+        sanitized.message = JSON.stringify(error);
+      } catch {
+        sanitized.message = 'Unserializable error object';
       }
-    });
+    }
+    
+    sanitized.sanitized = true;
+    return sanitized;
+  } catch (e) {
+    // Fallback if anything goes wrong during sanitization
+    return { 
+      message: 'Error during sanitization', 
+      sanitizationError: String(e),
+      sanitized: true
+    };
   }
-  
-  return safeError;
 }
 
-// Initialize protection system for the application
+/**
+ * Initialize site protection system with error handling
+ */
 export function initProtectionSystem() {
-  console.log('Initializing site protection system');
-  
-  // Simple protection system object with health check method
-  const protectionSystem = {
+  const system = {
+    initialized: true,
     checkHealth: () => {
-      console.log('Performing application health check');
+      console.log('[Health] Running site health check');
       return true;
     },
-    
-    restoreBackup: () => {
-      console.log('Restoring from backup if available');
-      return true;
-    },
-    
-    detectAnomalies: () => {
-      console.log('Checking for system anomalies');
-      // Return true if everything is normal, false if anomalies detected
+    recover: () => {
+      console.log('[Health] Running recovery procedure');
       return true;
     }
   };
   
-  return protectionSystem;
+  return system;
 }
 
-// Test function to trigger an error for testing purposes
-export function triggerTestError(errorType: string = 'general'): void {
-  console.log(`Triggering test error of type: ${errorType}`);
-  
-  switch(errorType) {
-    case 'reference':
-      // Trigger a reference error
-      try {
-        // @ts-ignore - intentional error
-        nonExistentVariable.property = true;
-      } catch (e) {
-        console.error('Reference error triggered:', e);
-        throw e;
-      }
-      break;
-      
-    case 'type':
-      // Trigger a type error
-      try {
-        // @ts-ignore - intentional error
-        const num: number = 'string' as any;
-        // @ts-ignore - intentional error
-        num.toFixed(2).substring(3).nonExistentMethod();
-      } catch (e) {
-        console.error('Type error triggered:', e);
-        throw e;
-      }
-      break;
-      
-    case 'syntax':
-      // We can't directly trigger a syntax error at runtime,
-      // but we can simulate one with an eval
-      try {
-        // @ts-ignore - intentional error
-        eval('const x = {');
-      } catch (e) {
-        console.error('Syntax error triggered:', e);
-        throw e;
-      }
-      break;
-      
-    case 'async':
-      // Return a promise that rejects
-      console.log('Triggering async error');
-      void Promise.reject(new Error('Async test error')).then(() => {
-        console.log('This should not execute');
-      });
-      break;
-      
-    default:
-      // General error
-      throw new Error('Test error triggered');
-  }
-}
-
-// Export the utility functions
 export default {
-  clearAllErrors,
-  triggerTestError,
   sanitizeErrorObject,
   initProtectionSystem
 };

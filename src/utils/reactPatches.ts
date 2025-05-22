@@ -1,5 +1,5 @@
 
-import React from 'react';
+import * as React from 'react';
 import * as ReactHooks from 'react';
 
 // Helper function to safely define a property if it doesn't exist
