@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { BotActionStatus } from './types';
 
 export function useBotActions() {
-  const [status, setStatus] = useState('idle');
+  const [status, setStatus] = useState<BotActionStatus>('idle');
   const [isStarting, setIsStarting] = useState(false);
   const [isPausing, setIsPausing] = useState(false);
   const [isStopping, setIsStopping] = useState(false);

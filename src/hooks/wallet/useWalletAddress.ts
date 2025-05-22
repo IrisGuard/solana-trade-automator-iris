@@ -2,7 +2,7 @@
 import { useState, useEffect } from '../../react-compatibility';
 
 export function useWalletAddress() {
-  const [walletAddress, setWalletAddress] = useState(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   
   // Check local storage for saved wallet on mount
