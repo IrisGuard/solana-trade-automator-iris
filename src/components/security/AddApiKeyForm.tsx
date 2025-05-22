@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/SupabaseAuthContext";
+import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { KeyRound, Loader2, Check, X } from "lucide-react";
 import { validateHeliusKey } from "@/utils/addHeliusEndpoints";
 import { testApiKey } from "@/utils/apiKeyChecker";

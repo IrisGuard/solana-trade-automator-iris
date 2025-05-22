@@ -7,13 +7,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { EnhancedPanel } from "./EnhancedPanel";
 import { EnhancedStatusPanel } from "./EnhancedStatusPanel";
-import { useWalletConnection } from "@/hooks/useWalletConnection";
-import { TradingBotConfig as LocalTradingBotConfig } from "@/hooks/trading-bot/types";
-import { Token } from "@/types/wallet";
 
 export function EnhancedTradingBotTab() {
   const { connected } = useWallet();
-  const { tokens } = useWalletConnection();
   const {
     config,
     updateConfig,
@@ -24,30 +20,12 @@ export function EnhancedTradingBotTab() {
     botStatus,
     activeOrders,
     selectedTokenPrice,
-    selectedTokenDetails
-  } = useTradingBot(tokens);
+    selectedTokenDetails,
+    tokens
+  } = useTradingBot();
 
   // Convert botStatus to the expected type for EnhancedPanel
-  // We now support 'error' in the botStatus type
   const normalizedBotStatus = botStatus === 'error' ? 'idle' : botStatus;
-
-  // Cast config to the correct type for EnhancedPanel which expects different strategy type
-  const typedConfig = {
-    ...config,
-    strategy: config.strategy as "grid" | "dca" | "momentum" | "simple" | "advanced" | "custom"
-  } as LocalTradingBotConfig;
-
-  // Create a new array of tokens with the correct type structure
-  // We need to ensure all required properties are present and properly typed
-  const typedTokens: Token[] = tokens.map(token => ({
-    address: token.address || '',
-    symbol: token.symbol || '',
-    name: token.name || '',
-    amount: typeof token.amount === 'number' ? token.amount : Number(token.amount || 0),
-    decimals: token.decimals || 0,
-    mint: token.mint || token.address || '',
-    logo: token.logo
-  }));
 
   return (
     <Tabs defaultValue="trading">
@@ -64,12 +42,12 @@ export function EnhancedTradingBotTab() {
             <div className="grid gap-4 md:grid-cols-2 mb-6">
               <div className="space-y-4">
                 <EnhancedPanel
-                  config={typedConfig}
+                  config={config}
                   updateConfig={updateConfig}
-                  selectToken={async (tokenAddr) => selectToken(tokenAddr || '')}
+                  selectToken={selectToken}
                   selectedTokenPrice={selectedTokenPrice}
                   selectedTokenDetails={selectedTokenDetails}
-                  tokens={typedTokens}
+                  tokens={tokens}
                   isLoading={isLoading}
                   botStatus={normalizedBotStatus}
                   startBot={startBot}
@@ -79,7 +57,7 @@ export function EnhancedTradingBotTab() {
               
               <EnhancedStatusPanel 
                 botStatus={normalizedBotStatus}
-                selectedTokenDetails={selectedTokenDetails || undefined}
+                selectedTokenDetails={selectedTokenDetails}
                 selectedTokenPrice={selectedTokenPrice}
                 activeOrders={activeOrders}
               />

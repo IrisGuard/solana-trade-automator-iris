@@ -9,7 +9,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ConsoleMonitor } from "@/components/debug/ConsoleMonitor";
 import { toast } from "sonner";
 import { useErrorReporting } from "@/hooks/useErrorReporting";
-import { useAuth } from "@/contexts/SupabaseAuthContext";
+import { useAuth } from "@/providers/AuthProvider";
 import { MonitoringSystem } from "../monitoring/MonitoringSystem";
 
 export function Layout() {

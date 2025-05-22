@@ -22,8 +22,6 @@ interface ApiVaultContentProps {
   onAddKeyClick: () => void;
   setApiKeys: React.Dispatch<React.SetStateAction<ApiKey[]>>;
   onImportClick?: () => void;
-  onLockClick?: () => void;
-  isLocked?: boolean;
 }
 
 export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
@@ -39,16 +37,12 @@ export const ApiVaultContent: React.FC<ApiVaultContentProps> = ({
   getKeysByService,
   onAddKeyClick,
   setApiKeys,
-  onImportClick = () => {},
-  onLockClick = () => {},
-  isLocked = false
+  onImportClick
 }) => {
   if (apiKeys.length === 0) {
     return <EmptyApiVault 
       onAddKeyClick={onAddKeyClick} 
-      onImportClick={onImportClick || (() => {})}
-      onLockClick={onLockClick}
-      isLocked={isLocked}
+      onImportClick={onImportClick}
       setApiKeys={setApiKeys} 
     />;
   }

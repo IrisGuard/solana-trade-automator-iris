@@ -5,6 +5,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
 import rollupNodePolyFill from 'rollup-plugin-node-polyfills';
+import { createRequire } from 'module';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }: ConfigEnv) => {
@@ -18,20 +19,16 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       react({
         // Use options that are actually supported by the SWC React plugin
         tsDecorators: true,
-        // Use the default JSX runtime that comes with React
-        jsxImportSource: undefined,
+        // Removed jsxRuntime as it's not a valid option in this version
       }),
       mode === 'development' && componentTagger(),
     ].filter(Boolean) as PluginOption[],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
-        // Custom bridge to fix React 18.3.1 compatibility issues
-        'react/jsx-runtime': path.resolve(__dirname, "./src/react-compatibility.ts"),
-        'react/jsx-dev-runtime': path.resolve(__dirname, "./src/react-compatibility.ts"),
-        // Add explicit references to React hooks modules
-        'react-router-dom': path.resolve(__dirname, "./node_modules/react-router-dom"),
-        'react': path.resolve(__dirname, "./node_modules/react"),
+        // Fix JSX runtime issue with correct paths
+        'react/jsx-runtime': 'react/jsx-runtime',
+        'react/jsx-dev-runtime': 'react/jsx-dev-runtime',
         // Fix polyfill path issues - explicitly map each required polyfill
         buffer: 'buffer/',
         // Fix the process polyfill path - important change
@@ -40,10 +37,12 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         util: 'util/',
         crypto: 'crypto-browserify',
         assert: 'assert/',
+        // Add React alias to ensure consistent version
+        "react": path.resolve(__dirname, "node_modules/react"),
+        "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
+        "react-router-dom": path.resolve(__dirname, "node_modules/react-router-dom"),
       },
       mainFields: ['browser', 'module', 'main'],
-      // Add dedupe to avoid duplicate React instances
-      dedupe: ['react', 'react-dom', 'react-router-dom']
     },
     define: {
       // Node.js polyfills
@@ -76,10 +75,10 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         '@solana/spl-token',
         '@solana/wallet-adapter-base',
         '@solana/wallet-adapter-react',
-        // Make sure React and React Router are optimized
+        // Add React and React Router DOM to the optimization
         'react',
         'react-dom',
-        'react-router-dom',
+        'react-router-dom'
       ],
       // Force optimization of problematic dependencies
       force: true,
@@ -97,26 +96,13 @@ export default defineConfig(({ mode }: ConfigEnv) => {
           // Enable rollup polyfills plugin
           rollupNodePolyFill() as any,
         ],
-        // Configure externals to improve compatibility
-        external: [],
+        // External to prevent Rollup from trying to bundle process
+        external: ['process/browser', 'react'], 
         onwarn(warning, warn) {
           if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
             return;
           }
-          // Ignore "mixed named/default exports" warning for React 18.3.1
-          if ((warning.code === 'MIXED_EXPORTS' || warning.code === 'CIRCULAR_DEPENDENCY') && 
-              warning.id && 
-              (warning.id.includes('react') || warning.id.includes('jsx-runtime'))) {
-            return;
-          }
           warn(warning);
-        },
-        // Ensure React Router has access to React hooks
-        output: {
-          manualChunks: {
-            'react-vendor': ['react', 'react-dom'],
-            'react-router': ['react-router-dom'],
-          },
         },
       },
       // Ensure sourcemaps are generated

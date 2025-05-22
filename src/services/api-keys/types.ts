@@ -1,32 +1,41 @@
 
-export interface ApiKey {
-  id: string;
-  name: string;
-  service: string;
-  key_value: string;
-  user_id: string;
-  status: string;
-  created_at: string;
-  is_encrypted?: boolean;
-  description?: string;
-}
+/**
+ * Types for API key management
+ */
+
+export type ApiKeyStatus = 'active' | 'expired' | 'revoked' | 'failing';
 
 export interface ApiKeyEntry {
   id: string;
+  user_id: string;
   name: string;
   service: string;
   key_value: string;
-  user_id: string;
-  status: string;
+  status: ApiKeyStatus;
+  description?: string;
   created_at: string;
   is_encrypted?: boolean;
-  description?: string;
+  updated_at?: string;
 }
 
-export interface ApiKeyWithState extends ApiKey {
+export interface ApiKeyWithState extends ApiKeyEntry {
   isVisible: boolean;
   isWorking: boolean;
   isTesting: boolean;
+}
+
+export interface ApiKeyFilterOptions {
+  service?: string;
+  status?: ApiKeyStatus;
+  search?: string;
+}
+
+export interface ApiKeyServiceInfo {
+  name: string;
+  description: string;
+  icon: React.ReactNode;
+  testEndpoint?: string;
+  isCommon: boolean;
 }
 
 export interface ApiService {
@@ -35,6 +44,4 @@ export interface ApiService {
   description: string;
   documentationUrl: string;
   apiKeyUrl: string;
-  endpoint: string;
-  isActive: boolean;
 }

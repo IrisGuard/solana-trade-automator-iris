@@ -8,9 +8,9 @@ export function SwapQuote({ inputToken, outputToken, outputAmount, inputAmount, 
       <div className="flex justify-between text-sm">
         <span className="text-muted-foreground">Rate</span>
         <span>
-          1 {inputToken?.symbol || "?"} ≈ {
-            inputAmount > 0 ? (outputAmount / inputAmount).toFixed(6) : "0"
-          } {outputToken?.symbol || "?"}
+          1 {inputToken.symbol} ≈ {
+            (Number(outputAmount) / Number(inputAmount)).toFixed(6)
+          } {outputToken.symbol}
         </span>
       </div>
       <div className="flex justify-between text-sm">

@@ -1,188 +1,135 @@
 
-/**
- * Utility to safely convert any error object to a serializable object
- * This is critical for ensuring errors can be safely displayed in React components
- */
+import { SiteHealthMonitor } from './error-handling/SiteHealthMonitor';
+import { SiteBackupService } from './site-protection/SiteBackupService';
+import { AutoRecovery } from './error-handling/AutoRecovery';
 
-// Define a type for sanitized error objects
-export interface SanitizedError {
-  message: string;
-  name: string;
-  stack?: string;
-  code?: string;
-  timestamp?: string;
-  url?: string;
-  [key: string]: string | undefined;
-}
-
-/**
- * Safely converts any error object to a simple object with string properties
- * This prevents "Objects are not valid as React child" errors
- */
-export function sanitizeErrorObject(error: unknown): SanitizedError {
-  // Default error object if input is undefined or null
-  if (!error) {
-    return {
-      message: 'Unknown error occurred',
-      name: 'Error',
-    };
+// Initialize the entire protection system
+export function initProtectionSystem() {
+  // Start the site health monitor
+  SiteHealthMonitor.start();
+  
+  // Initialize auto-recovery system
+  AutoRecovery.init();
+  
+  // Create initial backup if needed
+  if (!localStorage.getItem('site_structure_backup')) {
+    SiteBackupService.createBackup({ silent: true });
   }
-
-  // Handle Error instances
-  if (error instanceof Error) {
-    const result: SanitizedError = {
-      message: String(error.message || 'No message provided'),
-      name: String(error.name || 'Error'),
-    };
-
-    if (error.stack) {
-      result.stack = String(error.stack);
-    }
-
-    // Explicitly handle common properties that might cause issues if they're objects
-    const propertiesToCheck = ['fileName', 'lineNumber', 'columnNumber', 'sourceURL', 'line', 'column'];
-    for (const prop of propertiesToCheck) {
-      if ((error as any)[prop] !== undefined) {
-        result[prop] = String((error as any)[prop]);
-      }
-    }
-
-    // Handle custom properties that might exist on error objects
-    // Iterate through all properties and convert them to strings
-    for (const key in error) {
-      if (Object.prototype.hasOwnProperty.call(error, key) && 
-          key !== 'message' && key !== 'name' && key !== 'stack' && 
-          !propertiesToCheck.includes(key)) {
-        // Safely convert any value to string, handle objects carefully
-        const value = (error as any)[key];
-        if (value === null) {
-          result[key] = 'null';
-        } else if (value === undefined) {
-          result[key] = 'undefined';
-        } else if (typeof value === 'object') {
-          try {
-            result[key] = JSON.stringify(value);
-          } catch (e) {
-            result[key] = String(value);
-          }
-        } else {
-          result[key] = String(value);
-        }
-      }
-    }
-
-    return result;
-  }
-
-  // Handle string errors
-  if (typeof error === 'string') {
-    return {
-      message: error,
-      name: 'Error',
-    };
-  }
-
-  // Handle object errors that aren't Error instances
-  if (typeof error === 'object' && error !== null) {
-    const result: SanitizedError = {
-      message: String((error as any).message || 'Unknown error'),
-      name: String((error as any).name || 'Error'),
-    };
-
-    // Copy all properties as strings
-    for (const key in error) {
-      if (Object.prototype.hasOwnProperty.call(error, key)) {
-        const value = (error as any)[key];
-        if (value === null) {
-          result[key] = 'null';
-        } else if (value === undefined) {
-          result[key] = 'undefined';
-        } else if (typeof value === 'object') {
-          try {
-            result[key] = JSON.stringify(value);
-          } catch (e) {
-            result[key] = String(value);
-          }
-        } else {
-          result[key] = String(value);
-        }
-      }
-    }
-
-    return result;
-  }
-
-  // Handle any other type of error
+  
+  // Set up scheduled backups (every 2 hours)
+  setInterval(() => {
+    console.log('Creating scheduled backup...');
+    SiteBackupService.createBackup({ silent: true });
+  }, 2 * 60 * 60 * 1000);
+  
+  // Return object with health checking functionality
   return {
-    message: String(error),
-    name: 'Error',
+    checkHealth: SiteHealthMonitor.checkHealth,
+    recover: SiteHealthMonitor.attemptRecovery,
+    createBackup: SiteBackupService.createBackup,
+    restoreBackup: SiteBackupService.restoreFromBackup
   };
 }
 
-/**
- * Test function to verify that sanitizeErrorObject works as expected
- */
-export function testSanitizeError(): void {
-  const testCases = [
-    new Error('Test error'),
-    { message: 'Object error', code: 500 },
-    'String error',
-    null,
-    undefined,
-    { complex: { nested: true, data: [1, 2, 3] } },
-    { fileName: 'test.js', lineNumber: 42, columnNumber: 10 }
-  ];
-
-  console.group('Testing sanitizeErrorObject');
-  testCases.forEach((testCase, index) => {
-    const result = sanitizeErrorObject(testCase);
-    console.log(`Test case ${index}:`, result);
-    // Make sure all properties are strings
-    for (const key in result) {
-      console.assert(
-        typeof result[key] === 'string' || result[key] === undefined,
-        `Property ${key} should be a string or undefined, got ${typeof result[key]}`
-      );
-    }
-  });
-  console.groupEnd();
+// Simulate an error to test the error handling system
+export function simulateError(type: string, severity: 'low' | 'medium' | 'high' | 'critical' = 'medium') {
+  switch (type) {
+    case 'javascript':
+      throw new Error('Simulated JavaScript error for testing purposes');
+    
+    case 'network':
+      console.error('Simulated network error');
+      return Promise.reject(new Error('Network request failed'));
+    
+    case 'api':
+      console.error('Simulated API error');
+      return Promise.reject({ status: 500, message: 'API Error' });
+    
+    case 'ui':
+      document.getElementById('non-existing-element')!.innerHTML = 'This will fail';
+      break;
+      
+    case 'storage':
+      // Simulate storage corruption
+      localStorage.setItem('_test_corrupted', '{invalid json:}');
+      try {
+        JSON.parse(localStorage.getItem('_test_corrupted')!);
+      } catch (e) {
+        throw new Error('Simulated storage corruption');
+      }
+      break;
+      
+    case 'async':
+      setTimeout(() => {
+        throw new Error('Simulated async error');
+      }, 100);
+      break;
+      
+    default:
+      console.error('Unknown error type:', type);
+  }
 }
 
-// Add the missing exports that were causing TypeScript errors
-export function clearAllErrors(): void {
-  console.log('Clearing all errors from the collector');
+// Test the backup and recovery system
+export function testBackupRecovery() {
+  // Create a backup
+  const backupCreated = SiteBackupService.createBackup();
+  console.log('Backup created:', backupCreated);
+  
+  // Simulate some data changes
+  localStorage.setItem('test_data', JSON.stringify({ timestamp: Date.now() }));
+  
+  // Restore from backup
+  const restored = SiteBackupService.restoreFromBackup(false);
+  console.log('Backup restored:', restored);
+  
+  return { backupCreated, restored };
+}
+
+// Added missing clearAllErrors function
+export function clearAllErrors() {
+  // Clear any error state from localStorage
+  const errorKeys = Object.keys(localStorage).filter(key => 
+    key.startsWith('error_') || 
+    key.includes('_error') || 
+    key.includes('_errors')
+  );
+  
+  // Remove each error-related item
+  errorKeys.forEach(key => localStorage.removeItem(key));
+  
+  // Clear error collector if available
   try {
-    // Try to access the error collector if it exists
-    const errorCollector = (window as any).errorCollector;
+    const { errorCollector } = require('./error-handling/collector');
     if (errorCollector && typeof errorCollector.clearErrors === 'function') {
       errorCollector.clearErrors();
     }
-    
-    // Clear any errors stored in localStorage
-    localStorage.removeItem('app_errors');
-    localStorage.removeItem('app_console_logs');
-    
-    console.log('All errors cleared successfully');
   } catch (e) {
-    console.error('Failed to clear errors:', e);
+    console.warn('Error collector not available:', e);
   }
+  
+  console.log('All errors have been cleared');
+  return true;
 }
 
-// Add a simple protection system for monitoring
-export function initProtectionSystem() {
-  console.log('Initializing protection system');
-  return {
-    checkHealth: () => {
-      console.log('Health check passed');
-      return true;
-    },
-    createBackup: () => {
-      console.log('Creating backup');
-      return true;
-    },
-    restoreFromBackup: () => {
-      console.log('Restoring from backup');
-      return true;
-    }
-  };
+// Export utilities for console use
+window.testUtils = {
+  simulateError,
+  testBackupRecovery,
+  healthCheck: SiteHealthMonitor.checkHealth,
+  createBackup: SiteBackupService.createBackup,
+  restoreBackup: SiteBackupService.restoreFromBackup
+};
+
+// Add type definitions
+declare global {
+  interface Window {
+    testUtils: {
+      simulateError: (type: string, severity?: 'low' | 'medium' | 'high' | 'critical') => void;
+      testBackupRecovery: () => { backupCreated: boolean; restored: boolean };
+      healthCheck: () => any;
+      createBackup: (options?: any) => boolean;
+      restoreBackup: (showNotification?: boolean) => boolean;
+    };
+  }
 }

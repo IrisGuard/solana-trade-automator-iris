@@ -5,7 +5,6 @@
 import { toast } from 'sonner';
 import { errorCollector } from './collector';
 import { sendErrorToChat } from './sendErrorToChat';
-import { sanitizeErrorObject } from '@/utils/errorTestUtils';
 
 interface DisplayErrorOptions {
   showToast?: boolean;
@@ -15,16 +14,13 @@ interface DisplayErrorOptions {
   useCollector?: boolean;
   details?: Record<string, unknown>;
   severity?: 'low' | 'medium' | 'high' | 'critical';
-  source?: string;
+  source?: string; // Added the source property
 }
 
 /**
  * Display an error to the user and optionally collect it
  */
-export function displayError(error: Error | unknown, options: DisplayErrorOptions = {}): void {
-  // Ensure we have a proper Error object that is sanitized for React with the required 'name' property
-  const sanitizedError = sanitizeErrorObject(error);
-
+export function displayError(error: Error, options: DisplayErrorOptions = {}): void {
   // Default options
   const {
     showToast = true,
@@ -38,11 +34,11 @@ export function displayError(error: Error | unknown, options: DisplayErrorOption
   } = options;
 
   // Always log to console
-  console.error(`[displayError] ${component}:`, sanitizedError);
+  console.error(`[displayError] ${component}:`, error);
 
   // Collect the error if requested
   if (useCollector) {
-    errorCollector.captureError(sanitizedError, {
+    errorCollector.captureError(error, {
       component,
       details,
       severity,
@@ -53,15 +49,13 @@ export function displayError(error: Error | unknown, options: DisplayErrorOption
   // Show toast if requested
   if (showToast) {
     toast.error(toastTitle, {
-      description: typeof sanitizedError.message === 'string' ? 
-        sanitizedError.message : 
-        'Παρουσιάστηκε ένα σφάλμα',
+      description: error.message || 'Παρουσιάστηκε ένα σφάλμα',
       duration: 5000,
     });
   }
 
   // Send to chat if requested
   if (sendToChat) {
-    sendErrorToChat(sanitizedError, { component, details });
+    sendErrorToChat(error, { component, details });
   }
 }

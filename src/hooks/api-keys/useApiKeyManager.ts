@@ -1,98 +1,153 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { ApiKey, ApiKeyEntry } from '@/services/api-keys/types';
+import { useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { errorCollector } from '@/utils/error-handling/collector';
+import { ApiKeyEntry } from '@/services/api-keys/types';
 
-/**
- * Hook to manage API keys
- */
-export function useApiKeyManager() {
-  const [apiKeys, setApiKeys] = useState<ApiKeyEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [copiedKeyId, setCopiedKeyId] = useState<string | null>(null);
-  const [visibleKeyIds, setVisibleKeyIds] = useState<string[]>([]);
-  
-  // Load API keys on mount
-  useEffect(() => {
-    loadApiKeys();
-  }, []);
-  
-  // Load API keys from storage or API
-  const loadApiKeys = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      // Mock data for demonstration
-      const mockKeys: ApiKeyEntry[] = [
-        {
-          id: '1',
-          name: 'Helius API',
-          service: 'Helius',
-          key_value: 'demo-key-xxxx-yyyy',
-          status: 'active',
-          user_id: 'demo-user',
-          description: 'Demo Helius API key',
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          name: 'Quicknode',
-          service: 'Quicknode',
-          key_value: 'qn-api-xxxx-yyyy',
-          status: 'active',
-          user_id: 'demo-user',
-          created_at: new Date().toISOString()
-        }
-      ];
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setApiKeys(mockKeys);
-    } catch (error) {
-      console.error('Failed to load API keys:', error);
-    } finally {
-      setIsLoading(false);
+interface UseApiKeyManagerProps {
+  userId?: string;
+  onSuccess?: (key: ApiKeyEntry) => void;
+}
+
+export function useApiKeyManager({ userId, onSuccess }: UseApiKeyManagerProps = {}) {
+  const [isAdding, setIsAdding] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const addKey = async (
+    name: string, 
+    service: string, 
+    keyValue: string, 
+    description?: string
+  ): Promise<ApiKeyEntry | null> => {
+    if (!userId) {
+      toast.error('You need to be logged in to add API keys');
+      return null;
     }
-  }, []);
-  
-  // Toggle key visibility
-  const toggleKeyVisibility = useCallback((id: string) => {
-    setVisibleKeyIds(prev => {
-      if (prev.includes(id)) {
-        return prev.filter(keyId => keyId !== id);
-      } else {
-        return [...prev, id];
-      }
-    });
-  }, []);
-  
-  // Copy key to clipboard
-  const handleCopy = useCallback((id: string) => {
-    const key = apiKeys.find(k => k.id === id);
-    if (key) {
-      navigator.clipboard.writeText(key.key_value);
-      setCopiedKeyId(id);
-      setTimeout(() => setCopiedKeyId(null), 2000);
-    }
-  }, [apiKeys]);
-  
-  // Add a new API key
-  const handleAddNewKey = useCallback((key: Omit<ApiKeyEntry, 'id' | 'created_at'>) => {
-    const newKey: ApiKeyEntry = {
-      ...key,
-      id: `new-${Date.now()}`,
-      created_at: new Date().toISOString()
-    };
     
-    setApiKeys(prev => [...prev, newKey]);
-  }, []);
+    setIsAdding(true);
+    
+    try {
+      const newKey: ApiKeyEntry = {
+        id: uuidv4(),
+        user_id: userId,
+        name,
+        service,
+        key_value: keyValue,
+        status: 'active',
+        created_at: new Date().toISOString(),
+        description
+      };
+      
+      const { error } = await supabase
+        .from('api_keys_storage')
+        .insert({
+          id: newKey.id,
+          user_id: newKey.user_id,
+          name: newKey.name,
+          service: newKey.service,
+          key_value: newKey.key_value,
+          status: newKey.status,
+          description: newKey.description
+        });
+      
+      if (error) throw error;
+      
+      toast.success('API key added successfully');
+      onSuccess?.(newKey);
+      return newKey;
+    } catch (err) {
+      console.error('Error adding API key:', err);
+      errorCollector.captureError(err instanceof Error ? err : new Error('Failed to add API key'), {
+        component: 'useApiKeyManager',
+        source: 'addKey',
+        details: { name, service }
+      });
+      toast.error('Failed to add API key');
+      return null;
+    } finally {
+      setIsAdding(false);
+    }
+  };
+  
+  const updateKey = async (
+    keyId: string, 
+    updates: Partial<Omit<ApiKeyEntry, 'id' | 'created_at'>>
+  ): Promise<ApiKeyEntry | null> => {
+    if (!userId) {
+      toast.error('You need to be logged in to update API keys');
+      return null;
+    }
+    
+    if (keyId.startsWith('demo-')) {
+      toast.error('Cannot update demo keys');
+      return null;
+    }
+    
+    setIsUpdating(true);
+    
+    try {
+      // Define valid status values as a type
+      const validStatuses = ['active', 'expired', 'revoked', 'failing'] as const;
+      type ValidStatus = typeof validStatuses[number];
+      
+      // Ensure status is one of the allowed values if it's being updated
+      if (updates.status !== undefined) {
+        // Check if the status is valid, if not default to 'active'
+        const isValidStatus = (status: string): status is ValidStatus => {
+          return validStatuses.includes(status as ValidStatus);
+        };
+        
+        if (!isValidStatus(updates.status)) {
+          updates.status = 'active';
+        }
+      }
+      
+      const { data, error } = await supabase
+        .from('api_keys_storage')
+        .update(updates)
+        .eq('id', keyId)
+        .eq('user_id', userId)
+        .select()
+        .single();
+        
+      if (error) throw error;
+      
+      toast.success('API key updated successfully');
+      
+      const updatedKey: ApiKeyEntry = {
+        id: data.id,
+        user_id: data.user_id,
+        name: data.name,
+        service: data.service,
+        key_value: data.key_value,
+        status: data.status as ApiKeyEntry['status'],
+        created_at: data.created_at,
+        description: data.description,
+        is_encrypted: data.is_encrypted
+      };
+      
+      onSuccess?.(updatedKey);
+      return updatedKey;
+    } catch (err) {
+      console.error('Error updating API key:', err);
+      errorCollector.captureError(err instanceof Error ? err : new Error('Failed to update API key'), {
+        component: 'useApiKeyManager',
+        source: 'updateKey',
+        details: { keyId }
+      });
+      toast.error('Failed to update API key');
+      return null;
+    } finally {
+      setIsUpdating(false);
+    }
+  };
   
   return {
-    apiKeys,
-    isLoading,
-    copiedKeyId,
-    visibleKeyIds,
-    loadApiKeys,
-    handleCopy,
-    handleAddNewKey,
-    toggleKeyVisibility
+    addKey,
+    updateKey,
+    isAdding,
+    isUpdating
   };
 }

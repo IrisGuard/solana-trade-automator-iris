@@ -4,15 +4,14 @@ import { Dialog } from '@/components/ui/dialog';
 import { ErrorDialogContent } from './ErrorDialogContent';
 import { generateErrorCode } from './errorCodeUtils';
 import { useEscapeKeyHandler } from './useEscapeKeyHandler';
-import { sanitizeErrorObject } from '@/utils/errorTestUtils';
 
 interface ErrorDialogProps {
   error: {
     message: string;
     stack?: string;
-    timestamp?: string;
-    url?: string;
-  } | Error | string | unknown;
+    timestamp: string;
+    url: string;
+  };
   onClose: () => void;
 }
 
@@ -26,13 +25,10 @@ export function ErrorDialogInChat({ error, onClose }: ErrorDialogProps) {
   // Χειρισμός του πλήκτρου escape
   useEscapeKeyHandler(autoClose, onClose);
 
-  // Process error to ensure all properties are strings
-  const processedError = sanitizeErrorObject(error);
-
   return (
     <Dialog open={true} onOpenChange={() => autoClose && onClose()}>
       <ErrorDialogContent 
-        error={processedError} 
+        error={error} 
         onClose={onClose}
         errorCode={errorCode}
       />

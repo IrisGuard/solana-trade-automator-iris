@@ -1,8 +1,6 @@
 
-import { Token } from '@/types/wallet';
-import { TokenPrices } from '@/services/solana/price/types';
+import { Token, TokenPrices } from "@/types/wallet";
 
-// Interface for the wallet connection hook return values
 export interface WalletConnectionHook {
   isConnected: boolean;
   isConnecting: boolean;

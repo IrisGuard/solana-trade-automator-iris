@@ -1,13 +1,17 @@
 
-import { useState } from '../../react-compatibility';
+import { useState } from 'react';
 import { ApiIntegrationService } from '@/components/security/apiVault/ApiIntegrationService';
 import { ApiKey } from '@/components/security/apiVault/types';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { useAuth } from '@/providers/SupabaseAuthProvider';
 
 export function useApiKeyCleanup() {
   const [isRunning, setIsRunning] = useState(false);
-  const [results, setResults] = useState({
+  const [results, setResults] = useState<{
+    checked: number;
+    valid: number;
+    removed: number;
+  }>({
     checked: 0,
     valid: 0,
     removed: 0,

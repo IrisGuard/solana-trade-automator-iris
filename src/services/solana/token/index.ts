@@ -52,8 +52,7 @@ export const fetchAllTokenBalances = async (walletAddress: string): Promise<Toke
         name: metadata.name || 'Unknown Token',
         amount: token.amount || 0,
         decimals: token.decimals || 9,
-        logo: metadata.logoURI || '',
-        mint: token.mint  // Add this to fix the missing 'mint' property
+        logo: metadata.logoURI || ''
       };
     }).filter(token => token.amount > 0); // Filter out zero-balance tokens
   } catch (error) {

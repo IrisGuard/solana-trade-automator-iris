@@ -1,20 +1,19 @@
 
-import { useState, useCallback } from '../../react-compatibility';
+import { useState, useCallback } from 'react';
 import { TradingBotConfig } from './types';
 
 const DEFAULT_CONFIG: TradingBotConfig = {
   selectedToken: null,
-  strategy: 'grid', // Changed from 'simple' to 'grid'
+  strategy: 'simple',
   tradeAmount: 10,
   buyThreshold: 1.0,
   sellThreshold: 2.0,
   stopLoss: 5.0,
   takeProfit: 10.0,
-  autoReinvest: false,
   maxBudget: 100,
-  trailingStop: false,
   autoRebalance: false,
-  enabledStrategies: {
+  trailingStop: false,
+  enabledStrategies: { // Now properly typed
     dca: false,
     grid: false,
     momentum: false
@@ -25,7 +24,7 @@ const DEFAULT_CONFIG: TradingBotConfig = {
  * Hook για τη διαχείριση της διαμόρφωσης του trading bot
  */
 export function useConfig() {
-  const [config, setConfig] = useState(DEFAULT_CONFIG);
+  const [config, setConfig] = useState<TradingBotConfig>(DEFAULT_CONFIG);
   
   // Ενημερώνει τις ρυθμίσεις του bot
   const updateConfig = useCallback((newConfig: Partial<TradingBotConfig>) => {

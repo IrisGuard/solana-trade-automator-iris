@@ -4,8 +4,7 @@ import { ThemeProvider } from "@/providers/ThemeProvider";
 import { LanguageProvider } from "@/providers/LanguageProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
-import { SupabaseAuthProvider } from "@/contexts/SupabaseAuthContext";
-import { AppInitializer } from "@/components/AppInitializer";
+import { AuthProvider } from "@/providers/AuthProvider"; 
 
 // Create a client with better error handling
 const queryClient = new QueryClient({
@@ -38,11 +37,9 @@ export function AppProviders({ children }: AppProvidersProps) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <LanguageProvider defaultLanguage="el">
-          <SupabaseAuthProvider>
-            <AppInitializer>
-              {children}
-            </AppInitializer>
-          </SupabaseAuthProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
           <Toaster position="top-right" richColors />
         </LanguageProvider>
       </ThemeProvider>

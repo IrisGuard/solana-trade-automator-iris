@@ -13,7 +13,7 @@ export function useWalletBalance() {
   // Βοηθητική συνάρτηση για τη φόρτωση και ορισμό του υπολοίπου
   const fetchAndSetBalance = useCallback(async (address: string) => {
     try {
-      const fetchedBalance = await solanaService.fetchSOLBalance(address);
+      const fetchedBalance = await solanaService.getSolBalance(address);
       setBalance(fetchedBalance);
       return fetchedBalance;
     } catch (error) {

@@ -1,66 +1,42 @@
 
 /**
- * Utility for sending errors to the lovable chat system
+ * Αποστολή σφάλματος στο chat για ανάλυση
  */
-import { sanitizeErrorObject } from '@/utils/errorTestUtils';
-
-// Define a window interface extension to ensure TypeScript understands lovableChat
-declare global {
-  interface Window {
-    lovableChat?: {
-      createErrorDialog?: (errorData: any) => void;
-      clearErrors?: () => void;
-      [key: string]: any;
-    };
-  }
-}
-
-export function sendErrorToChat(error: Error | unknown, options: { component?: string; details?: Record<string, unknown> } = {}) {
-  // Early return if window or lovableChat is not available
-  if (!window.lovableChat || !window.lovableChat.createErrorDialog) {
-    console.error("[sendErrorToChat] Chat error dialog system is not available");
-    return;
-  }
-
+export function sendErrorToChat(error: Error | string, additionalInfo?: any): void {
   try {
-    // Ensure we have a properly sanitized error object with all string properties
-    const sanitizedError = sanitizeErrorObject(error);
+    // Μετατροπή string σε Error αν χρειάζεται
+    const errorObject = typeof error === 'string' ? new Error(error) : error;
     
-    // Create error detail object with explicitly string values
-    const errorData: Record<string, string> = {
-      name: sanitizedError.name || '',
-      message: sanitizedError.message || '',
-      stack: sanitizedError.stack || '',
-      timestamp: sanitizedError.timestamp || new Date().toISOString(),
-      url: sanitizedError.url || window.location.href,
-      component: options.component ? String(options.component) : 'unknown'
+    // Δημιουργία αντικειμένου δεδομένων για το chat
+    const errorData = {
+      type: 'error',
+      message: errorObject.message,
+      stack: errorObject.stack,
+      additionalInfo,
+      url: window.location.href,
+      timestamp: new Date().toISOString(),
     };
-
-    // Handle details separately to ensure they're all strings
-    if (options.details) {
-      const stringifiedDetails: Record<string, string> = {};
-      Object.entries(options.details).forEach(([key, value]) => {
-        if (value === null) {
-          stringifiedDetails[key] = 'null';
-        } else if (value === undefined) {
-          stringifiedDetails[key] = 'undefined';
-        } else if (typeof value === 'object') {
-          try {
-            stringifiedDetails[key] = JSON.stringify(value);
-          } catch (e) {
-            stringifiedDetails[key] = '[Object cannot be stringified]';
-          }
-        } else {
-          stringifiedDetails[key] = String(value);
-        }
-      });
-      
-      errorData.details = JSON.stringify(stringifiedDetails);
+    
+    // Αποθήκευση στο localStorage για το Lovable Chat
+    try {
+      const storedErrors = JSON.parse(localStorage.getItem('lovable_chat_errors') || '[]');
+      storedErrors.push(errorData);
+      localStorage.setItem('lovable_chat_errors', JSON.stringify(storedErrors));
+    } catch (e) {
+      console.error("Error storing error for chat:", e);
     }
-
-    // Send to chat system
-    window.lovableChat.createErrorDialog(errorData);
+    
+    // Αποστολή custom event για να ενημερώσει το Lovable Chat
+    try {
+      const event = new CustomEvent('lovable-error', { detail: errorData });
+      window.dispatchEvent(event);
+      
+      console.log('Error sent to chat successfully');
+    } catch (e) {
+      console.error('Failed to dispatch error event to chat:', e);
+    }
+    
   } catch (e) {
-    console.error("[sendErrorToChat] Failed to send error to chat:", e);
+    console.error("Error in sendErrorToChat:", e);
   }
 }

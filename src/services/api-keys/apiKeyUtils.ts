@@ -101,44 +101,34 @@ export const API_SERVICES: ApiService[] = [
     name: 'Helius',
     description: 'Solana blockchain data API',
     documentationUrl: 'https://docs.helius.xyz/',
-    apiKeyUrl: 'https://dev.helius.xyz/dashboard/app',
-    endpoint: 'https://api.helius.xyz/v0',
-    isActive: true
+    apiKeyUrl: 'https://dev.helius.xyz/dashboard/app'
   },
   {
     id: 'solana',
     name: 'Solana',
     description: 'Solana blockchain wallet keys and RPC',
     documentationUrl: 'https://docs.solana.com/',
-    apiKeyUrl: 'https://solana.com/',
-    endpoint: 'https://api.mainnet-beta.solana.com',
-    isActive: true
+    apiKeyUrl: 'https://solana.com/'
   },
   {
     id: 'openai',
     name: 'OpenAI',
     description: 'AI models and GPT API',
     documentationUrl: 'https://platform.openai.com/docs/',
-    apiKeyUrl: 'https://platform.openai.com/account/api-keys',
-    endpoint: 'https://api.openai.com/v1',
-    isActive: true
+    apiKeyUrl: 'https://platform.openai.com/account/api-keys'
   },
   {
     id: 'github',
     name: 'GitHub',
     description: 'GitHub API access',
     documentationUrl: 'https://docs.github.com/en/rest',
-    apiKeyUrl: 'https://github.com/settings/tokens',
-    endpoint: 'https://api.github.com',
-    isActive: true
+    apiKeyUrl: 'https://github.com/settings/tokens'
   },
   {
     id: 'other',
     name: 'Other',
     description: 'Custom or other API service',
     documentationUrl: '',
-    apiKeyUrl: '',
-    endpoint: '',
-    isActive: false
+    apiKeyUrl: ''
   }
 ];

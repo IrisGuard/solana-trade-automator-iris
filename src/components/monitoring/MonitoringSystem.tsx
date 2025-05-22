@@ -8,7 +8,6 @@ import { NetworkStatusMonitor } from './NetworkStatusMonitor';
 import { ConsoleMonitor } from '@/components/debug/ConsoleMonitor';
 import { SystemLoaderFallback } from './SystemLoaderFallback';
 import { checkSupabaseConnection } from '@/integrations/supabase/client';
-import { sanitizeErrorObject } from '@/utils/errorTestUtils';
 
 export function MonitoringSystem() {
   const [monitoringReady, setMonitoringReady] = useState(false);
@@ -51,9 +50,7 @@ export function MonitoringSystem() {
         sessionStorage.setItem('system-monitoring-init', 'true');
       }
     } catch (err) {
-      // Sanitize error before logging or showing it
-      const sanitizedError = sanitizeErrorObject(err);
-      console.error("[Error] Failed to initialize monitoring system:", sanitizedError);
+      console.error("[Error] Failed to initialize monitoring system:", err);
       
       // Still try to show a toast in case UI is working
       toast.error("Σφάλμα στην αρχικοποίηση του συστήματος παρακολούθησης", {
@@ -67,9 +64,7 @@ export function MonitoringSystem() {
         consoleLogger.restore();
         console.log("[Debug] Monitoring system cleanup complete");
       } catch (err) {
-        // Sanitize error before logging
-        const sanitizedError = sanitizeErrorObject(err);
-        console.error("[Error] Error during monitoring system cleanup:", sanitizedError);
+        console.error("[Error] Error during monitoring system cleanup:", err);
       }
     };
   }, []);

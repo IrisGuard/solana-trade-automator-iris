@@ -10,7 +10,6 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { AppNavigation } from "@/components/navigation/AppNavigation";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
-import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 
 // Define simple interfaces for bot data
 interface BotData {
@@ -25,7 +24,7 @@ interface ChartDataPoint {
   month: string;
 }
 
-export default function DashboardPage() {
+export default function Dashboard() {
   const {
     isConnected,
     walletAddress,
@@ -39,7 +38,7 @@ export default function DashboardPage() {
     selectTokenForTrading
   } = useWalletConnection();
 
-  const { user, isLoading } = useUser();
+  const { user, loading: userLoading } = useUser();
   const { reportError } = useErrorReporting();
   const [botActive, setBotActive] = useState(false);
   const [botLoading, setBotLoading] = useState(false);
@@ -206,15 +205,11 @@ export default function DashboardPage() {
     refreshWalletData();
   };
 
-  if (isLoading) {
-    return <DashboardSkeleton />;
-  }
-
   return (
     <div className="space-y-6">
       <PageHeader 
         title="Πίνακας Ελέγχου"
-        description={!isLoading && user?.username ? `Καλωσήρθατε, ${user.username}!` : "Συνολική επισκόπηση του χαρτοφυλακίου σας"}
+        description={!userLoading && user?.username ? `Καλωσήρθατε, ${user.username}!` : "Συνολική επισκόπηση του χαρτοφυλακίου σας"}
         breadcrumbs={[{ label: "Dashboard" }]}
         variant="blue"
         actions={

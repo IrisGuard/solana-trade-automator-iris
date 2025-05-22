@@ -1,11 +1,9 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/SupabaseAuthContext';
-import { TokenData } from '@/types/tokenTypes'; // Changed the import path
-import { toast } from 'sonner';
-import { errorCollector } from '@/utils/error-handling/collector';
+import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { errorCollector } from '@/utils/error-handling/collector';
+import { useAuth } from '@/providers/SupabaseAuthProvider';
+import { supabase } from '@/integrations/supabase/client';
 import type { Token } from '@/types/wallet';
 
 // Define a table type for wallet_tokens

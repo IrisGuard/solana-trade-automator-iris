@@ -1,91 +1,81 @@
 
-import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
-// Avoid importing specific types that might change between Supabase versions
-// Instead, use a type that accurately represents the user object structure
-type SupabaseUser = {
+interface UserProfile {
   id: string;
-  email?: string;
-  app_metadata: any;
-  user_metadata: any;
-  aud: string;
-  created_at: string;
-  username?: string; // Add username field that other components are expecting
+  email: string;
+  username: string;
+  role: string;
+  avatar?: string;
+  isVerified: boolean;
+}
+
+const mockProfile: UserProfile = {
+  id: 'user123',
+  email: 'demo@example.com',
+  username: 'traderuser',
+  role: 'premium',
+  avatar: 'https://github.com/shadcn.png',
+  isVerified: true
 };
 
 export function useUser() {
-  const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   
-  useEffect(() => {
-    // Get current user on mount
-    const getCurrentUser = async () => {
-      try {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        
-        if (error) {
-          console.error('Error getting user:', error);
-          setUser(null);
-        } else {
-          // Check if the username is in user_metadata and attach it to the user object
-          const supabaseUser = user as SupabaseUser;
-          
-          // If user has user_metadata.username, expose it directly at the user level
-          if (user?.user_metadata?.username) {
-            supabaseUser.username = user.user_metadata.username;
-          }
-          
-          // Alternatively, try to use email as username if no username is set
-          // This fallback helps prevent UI errors
-          if (!supabaseUser.username && supabaseUser.email) {
-            supabaseUser.username = supabaseUser.email.split('@')[0];
-          }
-          
-          setUser(supabaseUser);
-        }
-      } catch (error) {
-        console.error('Unexpected error in useUser:', error);
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchUserProfile = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     
-    getCurrentUser();
-    
-    // Listen for auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      const supabaseUser = session?.user as SupabaseUser ?? null;
+    try {
+      // Simulate API call
+      await new Promise(r => setTimeout(r, 800));
       
-      // If we have a user, process the username
-      if (supabaseUser) {
-        // Check for username in user_metadata
-        if (supabaseUser.user_metadata?.username) {
-          supabaseUser.username = supabaseUser.user_metadata.username;
-        }
-        
-        // Fallback to email-based username
-        if (!supabaseUser.username && supabaseUser.email) {
-          supabaseUser.username = supabaseUser.email.split('@')[0];
-        }
-      }
-      
-      setUser(supabaseUser);
-      
-      // Show toast on login/logout
-      if (event === 'SIGNED_IN') {
-        toast.success('Επιτυχής σύνδεση!');
-      } else if (event === 'SIGNED_OUT') {
-        toast.info('Αποσυνδεθήκατε από το λογαριασμό σας.');
-      }
-    });
-    
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
+      // For demo, use mock data
+      setUser(mockProfile);
+    } catch (err: any) {
+      console.error('Error fetching user profile:', err);
+      setError(err.message || 'Failed to load user profile');
+      toast.error('Failed to load user profile');
+    } finally {
+      setLoading(false);
+    }
   }, []);
   
-  return { user, isLoading };
+  const updateUserProfile = useCallback(async (updates: Partial<UserProfile>) => {
+    setLoading(true);
+    
+    try {
+      // Simulate API call
+      await new Promise(r => setTimeout(r, 800));
+      
+      setUser(prev => {
+        if (!prev) return null;
+        return { ...prev, ...updates };
+      });
+      
+      toast.success('Profile updated successfully');
+      return true;
+    } catch (err: any) {
+      console.error('Error updating profile:', err);
+      toast.error('Failed to update profile');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  
+  useEffect(() => {
+    fetchUserProfile();
+  }, [fetchUserProfile]);
+  
+  return {
+    user,
+    loading,
+    error,
+    fetchUserProfile,
+    updateUserProfile
+  };
 }

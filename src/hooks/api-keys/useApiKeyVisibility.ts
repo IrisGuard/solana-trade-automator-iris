@@ -1,11 +1,11 @@
 
-import { useState, useCallback } from '../../react-compatibility';
+import { useState, useCallback } from 'react';
 
 /**
  * Hook for managing API key visibility with utilities
  */
 export function useApiKeyVisibility() {
-  const [visibleKeyIds, setVisibleKeyIds] = useState({});
+  const [visibleKeyIds, setVisibleKeyIds] = useState<Record<string, boolean>>({});
   
   /**
    * Toggle visibility for a specific key

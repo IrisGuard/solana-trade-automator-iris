@@ -1,5 +1,5 @@
 
-import { useEffect, useCallback } from '../../react-runtime';
+import { useEffect, useCallback } from 'react';
 import { isPhantomInstalled, connectPhantomWallet } from '@/utils/phantomWallet';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 

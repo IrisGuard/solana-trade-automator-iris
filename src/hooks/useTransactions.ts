@@ -120,7 +120,8 @@ export const useTransactions = ({ walletAddress, limit = 10 }: UseTransactionsPr
       console.error('Error fetching transactions:', error);
       errorCollector.captureError(error, {
         component: 'useTransactions',
-        source: 'hook'
+        source: 'hook',
+        details: { walletAddress, limit }
       });
       
       toast.error('Προσωρινό πρόβλημα φόρτωσης συναλλαγών', {

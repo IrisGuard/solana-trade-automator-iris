@@ -11,20 +11,20 @@ export function PermanentRestoreButton() {
   const [isRestoring, setIsRestoring] = useState(false);
   
   const handleRestore = () => {
-    if (window.confirm(t('general.confirmRestore'))) {
+    if (window.confirm(t('general.confirmRestore', 'Είστε σίγουροι ότι θέλετε να γίνει επαναφορά της εφαρμογής;'))) {
       setIsRestoring(true);
       
       try {
         const success = SiteBackupService.restoreFromBackup();
         
         if (success) {
-          toast.success(t('general.restoreSuccess'));
+          toast.success(t('general.restoreSuccess', 'Επιτυχής επαναφορά της εφαρμογής'));
         } else {
-          toast.error(t('general.restoreError'));
+          toast.error(t('general.restoreError', 'Σφάλμα κατά την επαναφορά'));
         }
       } catch (error) {
         console.error('Error during restore:', error);
-        toast.error(t('general.restoreError'));
+        toast.error(t('general.restoreError', 'Σφάλμα κατά την επαναφορά'));
       } finally {
         setIsRestoring(false);
       }
@@ -40,7 +40,7 @@ export function PermanentRestoreButton() {
         className="flex items-center gap-2 px-4 py-2 shadow-lg"
       >
         <RefreshCw className={`size-4 ${isRestoring ? 'animate-spin' : ''}`} />
-        {t('general.restore')}
+        {t('general.restore', 'Επαναφορά')}
       </Button>
     </div>
   );

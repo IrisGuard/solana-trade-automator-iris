@@ -1,45 +1,22 @@
 
 import * as React from 'react';
 
-// Define types for the window object to avoid conflicts
+// Προσθήκη τύπων για το window object
 declare global {
   interface Window {
-    // Using proper typing for React
     React: typeof React;
-    patchedReactRouter?: boolean;
+    patchedReactRouter: boolean;
   }
 }
 
-// Export the function for applying React Router compatibility
+// Εξαγωγή της συνάρτησης για εφαρμογή συμβατότητας με το React Router
 export function ensureRouterCompatibility(): void {
   if (typeof window !== 'undefined') {
     try {
-      // Ensure we have a complete React object
-      window.React = window.React || {...React};
+      // Βεβαιώνουμε ότι έχουμε πλήρες React object
+      window.React = window.React || React;
       
-      // Access methods using safe property access
-      const essentialFunctions = {
-        createElement: React['createElement'] || function() {},
-        createContext: React['createContext'] || function() {},
-        Fragment: React['Fragment'] || Symbol('Fragment'),
-        useState: React['useState'] || function() { return [undefined, () => {}]; },
-        useEffect: React['useEffect'] || function() {},
-        useContext: React['useContext'] || function() {},
-        useRef: React['useRef'] || function() { return { current: null }; }
-      };
-      
-      // Apply them to window.React
-      Object.entries(essentialFunctions).forEach(([key, value]) => {
-        if (!window.React[key]) {
-          try {
-            window.React[key] = value;
-          } catch (e) {
-            console.warn(`Could not assign ${key} to window.React: ${e.message}`);
-          }
-        }
-      });
-      
-      // Mark that we've applied the router patch
+      // Σημειώνουμε ότι έχουμε εφαρμόσει το router patch
       window.patchedReactRouter = true;
       
       console.log('React Router patches applied successfully');
@@ -49,8 +26,5 @@ export function ensureRouterCompatibility(): void {
   }
 }
 
-// Apply patch immediately when imported
-ensureRouterCompatibility();
-
-// For backwards compatibility with older code
+// Για συμβατότητα με παλαιότερες εκδόσεις κώδικα
 export default ensureRouterCompatibility;

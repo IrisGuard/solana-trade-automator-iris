@@ -1,179 +1,213 @@
 
-import { useState, useEffect, useCallback } from "../../../../react-compatibility";
-import { Token } from "@/types/wallet";
-import { ApiKeyService } from "@/services/api-keys/apiKeyService";
+import { useState } from "react";
 import { toast } from "sonner";
+import { apiServices } from "@/services/solana/apiServices";
+import { transactionsService } from "@/services/transactionsService";
+import { SwapState, TokenInfo } from "../types";
+import { Token } from "@/types/wallet";
 
-export function useJupiterSwap(
-  fromToken: Token | null,
-  toToken: Token | null,
-  amount: number,
-  slippage: number
-) {
-  const [isSwapping, setIsSwapping] = useState(false);
-  const [quote, setQuote] = useState(null);
-  const [error, setError] = useState(null);
-  const [expectedAmount, setExpectedAmount] = useState(0);
-  
-  // State for swap form
-  const [inputMint, setInputMint] = useState("");
-  const [outputMint, setOutputMint] = useState("");
-  const [inputAmount, setInputAmount] = useState("");
-  const [outputAmount, setOutputAmount] = useState("");
-  const [priceImpact, setPriceImpact] = useState("0%");
+interface UseJupiterSwapProps {
+  walletAddress: string | undefined;
+  isConnected: boolean;
+  availableTokens: Token[];
+}
 
-  // Swap state object for consistent interface
-  const swapState = {
-    inputMint,
-    outputMint,
-    inputAmount,
-    outputAmount,
-    isLoading: isSwapping,
-    quoteResponse: quote,
-    swapStatus: error ? 'error' : isSwapping ? 'loading' : 'idle',
-    priceImpact
+export function useJupiterSwap({ walletAddress, isConnected, availableTokens }: UseJupiterSwapProps) {
+  const [swapState, setSwapState] = useState<SwapState>({
+    inputMint: "So11111111111111111111111111111111111111112", // SOL by default
+    outputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC by default
+    inputAmount: "0.1",
+    isLoading: false,
+    quoteResponse: null,
+    swapStatus: 'idle',
+    outputAmount: "0",
+    priceImpact: "0"
+  });
+
+  // Find token info by mint address
+  const getTokenInfo = (mintAddress: string): TokenInfo => {
+    return availableTokens.find(token => token.address === mintAddress) || {
+      symbol: "Unknown",
+      name: "Unknown Token",
+      decimals: 0
+    };
   };
 
-  // Get quote when inputs change
-  useEffect(() => {
-    const getQuoteInternal = async () => {
-      if (!fromToken || !toToken || amount <= 0) {
-        setQuote(null);
-        setExpectedAmount(0);
-        setOutputAmount("0");
-        return;
-      }
+  const inputToken = getTokenInfo(swapState.inputMint);
+  const outputToken = getTokenInfo(swapState.outputMint);
 
-      try {
-        // In a real implementation, this would call Jupiter API
-        console.log(`Getting quote for ${amount} ${fromToken.symbol} to ${toToken.symbol}`);
-        
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Mock response
-        const mockRate = Math.random() * 10 + 0.1; // Random rate between 0.1 and 10.1
-        const expectedOutput = amount * mockRate;
-        
-        setQuote({
-          inputMint: fromToken.mint,
-          outputMint: toToken.mint,
-          inAmount: amount,
-          outAmount: expectedOutput,
-          fee: expectedOutput * 0.003, // 0.3% fee
-          priceImpact: Math.random() * 2, // 0-2% price impact
-        });
-        
-        setExpectedAmount(expectedOutput);
-        setOutputAmount(expectedOutput.toFixed(6));
-        setPriceImpact((Math.random() * 2).toFixed(2) + "%");
-        setError(null);
-      } catch (err) {
-        console.error("Error getting Jupiter quote:", err);
-        setQuote(null);
-        setError(err instanceof Error ? err : new Error("Failed to get quote"));
-        toast.error("Failed to get swap quote");
-      }
-    };
-
-    if (fromToken && toToken && inputMint && outputMint && inputAmount) {
-      getQuoteInternal();
-    }
-  }, [fromToken, toToken, amount, inputMint, outputMint, inputAmount]);
-
-  // Execute swap function
-  const executeSwap = useCallback(async () => {
-    if (!fromToken || !toToken || !quote || amount <= 0) {
-      toast.error("Invalid swap parameters");
-      return false;
-    }
-
-    setIsSwapping(true);
-    try {
-      // Check if we have a Jupiter API key
-      const jupiterKey = await ApiKeyService.getRandomServiceKey("jupiter");
-      
-      if (!jupiterKey) {
-        toast.error("No Jupiter API key found");
-        return false;
-      }
-      
-      // In a real implementation, this would call Jupiter API to execute the swap
-      console.log(`Executing swap: ${amount} ${fromToken.symbol} to ${toToken.symbol}`);
-      console.log(`Slippage: ${slippage}%`);
-      console.log(`Expected output: ${expectedAmount} ${toToken.symbol}`);
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Simulate success
-      const success = Math.random() > 0.2; // 80% success rate
-      
-      if (success) {
-        toast.success(`Swap completed: ${amount} ${fromToken.symbol} to ${expectedAmount.toFixed(4)} ${toToken.symbol}`);
-        return true;
-      } else {
-        throw new Error("Swap failed due to network conditions");
-      }
-    } catch (err) {
-      console.error("Error executing Jupiter swap:", err);
-      setError(err instanceof Error ? err : new Error("Failed to execute swap"));
-      toast.error("Swap failed: " + (err instanceof Error ? err.message : "Unknown error"));
-      return false;
-    } finally {
-      setIsSwapping(false);
-    }
-  }, [fromToken, toToken, quote, amount, expectedAmount, slippage]);
-
-  // Handle token selection
-  const updateInputMint = useCallback((tokenMint) => {
-    setInputMint(tokenMint);
-    if (fromToken?.mint !== tokenMint) {
-      setInputAmount(""); // Reset amount when changing token
-    }
-  }, [fromToken]);
-
-  const updateOutputMint = useCallback((tokenMint) => {
-    setOutputMint(tokenMint);
-  }, []);
-
-  const updateInputAmount = useCallback((amount) => {
-    setInputAmount(amount);
-  }, []);
-
-  // Get quote function exposed to UI
-  const getQuote = useCallback(() => {
-    if (!inputMint || !outputMint || !inputAmount) {
-      toast.error("Please select tokens and enter an amount");
+  const getQuote = async () => {
+    if (!isConnected) {
+      toast.error("Please connect your wallet first");
       return;
     }
-    
-    setIsSwapping(true);
-    // This will trigger the useEffect
-    setTimeout(() => setIsSwapping(false), 1000);
-  }, [inputMint, outputMint, inputAmount]);
 
-  // Swap tokens function
-  const swapTokens = useCallback(() => {
-    const tempInputMint = inputMint;
-    const tempOutputMint = outputMint;
-    setInputMint(tempOutputMint);
-    setOutputMint(tempInputMint);
-    setInputAmount("");
-    setOutputAmount("");
-    setQuote(null);
-  }, [inputMint, outputMint]);
+    const { inputMint, outputMint, inputAmount } = swapState;
+    if (!inputMint || !outputMint || !inputAmount || parseFloat(inputAmount) <= 0) {
+      toast.error("Please provide valid input values");
+      return;
+    }
+
+    setSwapState(prev => ({ ...prev, isLoading: true }));
+
+    try {
+      // Convert inputAmount to lamports/atoms based on decimal places
+      const decimals = inputToken.decimals || 9; // Default to 9 for SOL
+      const amountInSmallestUnit = Math.floor(parseFloat(inputAmount) * Math.pow(10, decimals));
+      
+      const quoteResponse = await apiServices.jupiter.getQuote(
+        inputMint,
+        outputMint,
+        amountInSmallestUnit
+      );
+      
+      if (!quoteResponse || !quoteResponse.outAmount) {
+        throw new Error("Failed to get valid quote");
+      }
+
+      // Calculate output amount in human readable format
+      const outputDecimals = outputToken.decimals || 6; // Default to 6 for USDC/USDT
+      const outputAmount = (Number(quoteResponse.outAmount) / Math.pow(10, outputDecimals)).toFixed(outputDecimals);
+      
+      // Format price impact
+      const priceImpact = quoteResponse.priceImpactPct 
+        ? (Number(quoteResponse.priceImpactPct) * 100).toFixed(2) + '%'
+        : "< 0.01%";
+      
+      setSwapState(prev => ({
+        ...prev,
+        quoteResponse,
+        outputAmount,
+        priceImpact,
+        isLoading: false
+      }));
+      
+      toast.success("Quote received successfully");
+    } catch (error: any) {
+      console.error("Error fetching quote:", error);
+      toast.error(`Failed to get quote: ${error.message}`);
+      setSwapState(prev => ({ ...prev, isLoading: false }));
+    }
+  };
+
+  const executeSwap = async () => {
+    if (!isConnected) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
+
+    if (!swapState.quoteResponse) {
+      toast.error("Please get a quote first");
+      return;
+    }
+
+    setSwapState(prev => ({ ...prev, swapStatus: 'loading' }));
+
+    try {
+      // Build the transaction using Jupiter API
+      const swapResult = await apiServices.jupiter.buildSwapTransaction(
+        swapState.quoteResponse
+      );
+      
+      if (!swapResult || !swapResult.swapTransaction) {
+        throw new Error("Failed to build swap transaction");
+      }
+
+      // Execute the transaction
+      const signature = await apiServices.jupiter.executeSwapTransaction(swapResult.swapTransaction);
+      
+      if (!signature) {
+        throw new Error("Failed to execute swap transaction");
+      }
+
+      // Save transaction to database
+      try {
+        // Only try to save if there's a wallet address (user is logged in)
+        if (walletAddress) {
+          await transactionsService.saveTransaction({
+            user_id: null, // Will be filled by backend RLS
+            wallet_address: walletAddress,
+            signature: signature,
+            type: "swap",
+            status: "success",
+            amount: `${swapState.inputAmount} ${inputToken.symbol || 'Unknown'}`,
+            source: swapState.inputMint,
+            destination: swapState.outputMint,
+          });
+        }
+      } catch (saveError) {
+        console.error("Failed to save transaction:", saveError);
+        // Continue anyway as the swap was successful
+      }
+
+      setSwapState(prev => ({ ...prev, swapStatus: 'success' }));
+      toast.success(`Swap successful! Signature: ${signature}`);
+      
+      // Reset form after success
+      setTimeout(() => {
+        setSwapState(prev => ({
+          ...prev,
+          swapStatus: 'idle',
+          quoteResponse: null,
+          outputAmount: "0",
+          priceImpact: "0"
+        }));
+      }, 3000);
+      
+    } catch (error: any) {
+      console.error("Swap failed:", error);
+      toast.error(`Swap failed: ${error.message}`);
+      setSwapState(prev => ({ ...prev, swapStatus: 'error' }));
+    }
+  };
+
+  const swapTokens = () => {
+    setSwapState(prev => ({
+      ...prev,
+      inputMint: prev.outputMint,
+      outputMint: prev.inputMint,
+      quoteResponse: null,
+      outputAmount: "0",
+      priceImpact: "0"
+    }));
+  };
+
+  const updateInputMint = (value: string) => {
+    setSwapState(prev => ({ 
+      ...prev, 
+      inputMint: value,
+      quoteResponse: null,
+      outputAmount: "0", 
+      priceImpact: "0"
+    }));
+  };
+
+  const updateOutputMint = (value: string) => {
+    setSwapState(prev => ({ 
+      ...prev, 
+      outputMint: value,
+      quoteResponse: null,
+      outputAmount: "0",
+      priceImpact: "0"
+    }));
+  };
+
+  const updateInputAmount = (value: string) => {
+    setSwapState(prev => ({ 
+      ...prev, 
+      inputAmount: value,
+      quoteResponse: null,
+      outputAmount: "0",
+      priceImpact: "0"
+    }));
+  };
 
   return {
-    isSwapping,
-    quote,
-    error,
-    expectedAmount,
-    executeSwap,
     swapState,
-    inputToken: fromToken,
-    outputToken: toToken,
+    inputToken,
+    outputToken,
     getQuote,
+    executeSwap,
     swapTokens,
     updateInputMint,
     updateOutputMint,

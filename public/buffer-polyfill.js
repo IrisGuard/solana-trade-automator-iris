@@ -125,18 +125,61 @@
         window.Buffer = BufferConstructor;
       }
       
-      // Apply the basic buffer implementation without ESM imports
-      console.log('Enhanced Buffer with proper implementation');
-      console.log('Buffer.alloc available:', typeof window.Buffer.alloc === 'function');
-      console.log('Buffer.from available:', typeof window.Buffer.from === 'function');
-      
-      // Check if methods are really functions
-      try {
-        const testBuf = window.Buffer.alloc(10);
-        console.log('Buffer.alloc test successful:', testBuf.length === 10);
-      } catch (e) {
-        console.error('Buffer.alloc test failed:', e);
-      }
+      // Dynamic import of buffer module for enhanced functionality
+      import('buffer').then(bufferModule => {
+        const BufferImpl = bufferModule.Buffer;
+        
+        // Enhance the existing Buffer implementation with proper methods
+        if (!window.Buffer.alloc || typeof window.Buffer.alloc !== 'function') {
+          console.log('Enhancing Buffer.alloc');
+          window.Buffer.alloc = BufferImpl.alloc.bind(BufferImpl);
+          
+          // Also update kB if it exists
+          if (window.kB && !window.kB.alloc) {
+            window.kB.alloc = BufferImpl.alloc.bind(BufferImpl);
+          }
+        }
+        
+        if (!window.Buffer.from || typeof window.Buffer.from !== 'function') {
+          console.log('Enhancing Buffer.from');
+          window.Buffer.from = BufferImpl.from.bind(BufferImpl);
+          
+          // Also update kB if it exists
+          if (window.kB && !window.kB.from) {
+            window.kB.from = BufferImpl.from.bind(BufferImpl);
+          }
+        }
+        
+        if (!window.Buffer.allocUnsafe || typeof window.Buffer.allocUnsafe !== 'function') {
+          window.Buffer.allocUnsafe = BufferImpl.allocUnsafe.bind(BufferImpl);
+        }
+        
+        if (!window.Buffer.isBuffer || typeof window.Buffer.isBuffer !== 'function') {
+          window.Buffer.isBuffer = BufferImpl.isBuffer.bind(BufferImpl);
+        }
+        
+        if (!window.Buffer.byteLength || typeof window.Buffer.byteLength !== 'function') {
+          window.Buffer.byteLength = BufferImpl.byteLength.bind(BufferImpl);
+        }
+        
+        if (!window.Buffer.concat || typeof window.Buffer.concat !== 'function') {
+          window.Buffer.concat = BufferImpl.concat.bind(BufferImpl);
+        }
+        
+        console.log('Enhanced Buffer with proper implementation');
+        console.log('Buffer.alloc available:', typeof window.Buffer.alloc === 'function');
+        console.log('Buffer.from available:', typeof window.Buffer.from === 'function');
+        
+        // Check if methods are really functions
+        try {
+          const testBuf = window.Buffer.alloc(10);
+          console.log('Buffer.alloc test successful:', testBuf.length === 10);
+        } catch (e) {
+          console.error('Buffer.alloc test failed:', e);
+        }
+      }).catch(err => {
+        console.warn('ESM Buffer import failed:', err);
+      });
     } catch (e) {
       console.warn('Error setting up Buffer polyfill:', e);
     }

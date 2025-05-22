@@ -1,23 +1,24 @@
 
 import { errorCollector } from '@/utils/error-handling/collector';
 import { toast } from 'sonner';
-import { sanitizeErrorObject } from '@/utils/errorTestUtils';
 
 /**
  * Error handler specifically for Helius API errors
  */
 export const handleHeliusError = (error: unknown, source: string) => {
-  // Sanitize and create proper Error object with all required properties including 'name'
-  const sanitizedError = sanitizeErrorObject(error);
+  // Create a proper error object
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const errorStack = error instanceof Error ? error.stack : undefined;
+  const errorObj = error instanceof Error ? error : new Error(errorMessage);
   
   // Create a proper details object that satisfies Record<string, unknown>
   const details: Record<string, unknown> = {
-    originalError: typeof sanitizedError.message === 'string' ? sanitizedError.message : String(sanitizedError.message),
+    originalError: error,
     source,
     timestamp: new Date().toISOString()
   };
   
-  errorCollector.captureError(sanitizedError, {
+  errorCollector.captureError(errorObj, {
     component: 'HeliusService',
     source,
     details,
@@ -26,11 +27,9 @@ export const handleHeliusError = (error: unknown, source: string) => {
   
   // Show toast notification for critical errors
   toast.error('Helius API Error', {
-    description: typeof sanitizedError.message === 'string' ? 
-      sanitizedError.message.substring(0, 100) : 
-      String(sanitizedError.message).substring(0, 100), // Limit the length
+    description: errorMessage.substring(0, 100), // Limit the length
     duration: 5000
   });
   
-  throw sanitizedError;
+  throw error;
 };

@@ -35,9 +35,6 @@ export function WalletConnectedContent({
     `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}` : 
     '');
     
-  // Ensure connectionError is a string
-  const errorMessage = connectionError ? String(connectionError) : null;
-    
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <WalletInfoCard 
@@ -59,7 +56,6 @@ export function WalletConnectedContent({
           <AlertDescription>
             Δεν βρέθηκαν tokens στο πορτοφόλι σας ή δεν έχουν φορτωθεί ακόμη. Αν η φόρτωση είναι σε εξέλιξη, 
             παρακαλώ περιμένετε λίγο.
-            {errorMessage && <p className="mt-2 text-red-500">{errorMessage}</p>}
           </AlertDescription>
         </Alert>
       )}

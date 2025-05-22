@@ -1,106 +1,137 @@
 
-import * as React from 'react';
-import { useState, useEffect } from '../react-compatibility';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useEffect, useState } from "react";
+import { TestApp } from "@/components/TestApp";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Loader2, AlertTriangle, RefreshCw } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { ConsoleMonitor } from "@/components/debug/ConsoleMonitor";
+import { Button } from "@/components/ui/button";
+import { initializeSystemApiKeys } from "@/utils/apiKeyInitializer";
 
 export default function TestAPI() {
-  const [status, setStatus] = useState("Idle");
-  const [apiSuccess, setApiSuccess] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isInitializing, setIsInitializing] = useState(false);
 
-  // Test that React hooks are working
+  // Add comprehensive logging
   useEffect(() => {
-    console.log("TestAPI component mounted successfully!");
-    toast.success("Η σελίδα TestAPI φορτώθηκε επιτυχώς!");
+    console.log("[Debug] TestAPI page mounting...");
     
-    return () => {
-      console.log("TestAPI component unmounted");
-    };
+    try {
+      console.log("[Debug] Starting loading timer...");
+      // Simulate a short loading time to ensure components are ready
+      const timer = setTimeout(() => {
+        console.log("[Debug] Timer completed, setting isLoading=false");
+        setIsLoading(false);
+        console.log("[Debug] TestAPI page loaded successfully");
+        toast.success("Η σελίδα API Testing φορτώθηκε επιτυχώς", { 
+          id: "test-api-load-success" 
+        });
+      }, 1500); // Slight increase to ensure components have time to mount
+      
+      return () => {
+        clearTimeout(timer);
+        console.log("[Debug] TestAPI page unmounted, timer cleared");
+      };
+    } catch (err) {
+      console.error("[Error] Error in TestAPI page load effect:", err);
+      setError("Προέκυψε σφάλμα κατά τη φόρτωση της σελίδας. Παρακαλώ ανανεώστε τη σελίδα.");
+      setIsLoading(false);
+      
+      // Log the error with more details
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      toast.error("Σφάλμα φόρτωσης", {
+        description: errorMessage,
+        id: "test-api-load-error"
+      });
+    }
   }, []);
 
-  // Verify button click handler
-  const handleTestApi = () => {
-    setLoading(true);
-    setStatus("Testing API connection...");
-    
-    // Simulate API call
-    setTimeout(() => {
-      const success = Math.random() > 0.2; // 80% success rate
-      setApiSuccess(success);
-      setStatus(success ? "API connection successful!" : "API connection failed!");
-      setLoading(false);
-      
-      if (success) {
-        toast.success("API σύνδεση επιτυχής!");
+  // Handle API key initialization
+  const handleInitializeKeys = async () => {
+    setIsInitializing(true);
+    try {
+      const result = await initializeSystemApiKeys();
+      if (result) {
+        toast.success("API Keys αρχικοποιήθηκαν επιτυχώς");
       } else {
-        toast.error("API σύνδεση απέτυχε!");
+        toast.warning("Δεν ήταν δυνατή η πλήρης αρχικοποίηση των API Keys");
       }
-    }, 1500);
+    } catch (err) {
+      console.error("Σφάλμα αρχικοποίησης API Keys:", err);
+      toast.error("Σφάλμα αρχικοποίησης API Keys");
+    } finally {
+      setIsInitializing(false);
+    }
   };
 
-  return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">API Test Interface</h1>
-      
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>API Connection Test</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-4">
-            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md">
-              <p className="font-mono">Status: <span 
-                className={
-                  status === "Idle" ? "text-gray-500" :
-                  apiSuccess ? "text-green-500" : "text-red-500"
-                }
-              >{status}</span></p>
-            </div>
-            
-            <Button 
-              onClick={handleTestApi} 
-              disabled={loading}
-              className="w-full sm:w-auto"
-            >
-              {loading ? (
-                <>
-                  <span className="animate-spin mr-2">⟳</span>
-                  Έλεγχος API...
-                </>
-              ) : (
-                "Έλεγχος API Σύνδεσης"
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>React 18.3.1 Compatibility Status</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-green-500 mb-4">✓ React hooks are functioning correctly in this component</p>
-          <p className="mb-4">Αυτή η σελίδα επιβεβαιώνει ότι το React 18.3.1 λειτουργεί σωστά με τις προσαρμογές συμβατότητας.</p>
-          
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="text-center">
+          <Loader2 className="h-10 w-10 animate-spin mx-auto text-primary mb-4" />
+          <h2 className="text-xl font-medium mb-2">Φόρτωση σελίδας API Testing</h2>
+          <p className="text-muted-foreground">Παρακαλώ περιμένετε...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 p-4">
+        <PageHeader
+          title="API Testing"
+          description="Test various API integration methods"
+        />
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4 mr-2" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+        <div className="flex gap-2">
           <Button 
-            onClick={() => toast.success("Τα React hooks λειτουργούν κανονικά!")}
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Ανανέωση σελίδας
+          </Button>
+          <Button
+            onClick={handleInitializeKeys}
+            disabled={isInitializing}
             variant="outline"
-            className="mr-2"
+            className="flex items-center gap-2"
           >
-            Έλεγχος React Hooks
+            {isInitializing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Αρχικοποίηση API Keys
           </Button>
-          
-          <Button 
-            onClick={() => window.location.href = "/"}
-            variant="secondary"
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <ConsoleMonitor />
+      <div className="space-y-6">
+        <PageHeader
+          title="API Testing"
+          description="Test various API integration methods"
+        />
+        <div className="flex justify-end mb-4">
+          <Button
+            onClick={handleInitializeKeys}
+            disabled={isInitializing}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
           >
-            Επιστροφή στην Αρχική
+            {isInitializing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Αρχικοποίηση API Keys
           </Button>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+        <TestApp />
+      </div>
+    </>
   );
 }

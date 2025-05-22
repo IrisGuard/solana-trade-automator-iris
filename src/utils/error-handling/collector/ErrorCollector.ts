@@ -14,31 +14,29 @@ export class ErrorCollector {
    * Capture an error with additional context
    */
   public captureError(error: Error | string, options: ErrorOptions = {}): string {
-    const errorObj = typeof error === 'string' ? new Error(error) : error;
-    const errorMessage = errorObj.message;
-    const errorStack = errorObj.stack;
+    const errorMessage = typeof error === 'string' ? error : error.message;
+    const errorStack = typeof error === 'string' ? null : error.stack;
     
     const errorId = this.generateErrorId();
     
-    // Ensure all properties are strings to avoid rendering issues
     const errorData: ErrorData = {
       id: errorId,
-      error: errorObj,
-      message: String(errorMessage || 'Unknown error'),
-      stack: errorStack ? String(errorStack) : null,
+      error: typeof error === 'string' ? new Error(error) : error,
+      message: errorMessage,
+      stack: errorStack,
       timestamp: new Date().toISOString(),
-      component: options.component ? String(options.component) : null,
-      source: options.source ? String(options.source) : 'client',
+      component: options.component || null,
+      source: options.source || 'client',
       url: window.location.href,
       browserInfo: this.getBrowserInfo(),
-      errorCode: options.errorCode ? String(options.errorCode) : null,
-      context: options.context ? String(options.context) : null,
+      errorCode: options.errorCode || null,
+      context: options.context || null,
       metadata: options.metadata || null,
       status: options.status || null,
-      errorId: options.errorId ? String(options.errorId) : null,
-      errorType: options.errorType ? String(options.errorType) : undefined,
+      errorId: options.errorId || null,
+      errorType: options.errorType,
       details: options.details,
-      severity: options.severity || 'medium',
+      severity: options.severity || 'medium', // Updated to include 'critical'
       options: options
     };
 

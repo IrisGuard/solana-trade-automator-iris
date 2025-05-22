@@ -1,157 +1,155 @@
 
-import { heliusKeyManager } from './HeliusKeyManager';
-import { HELIUS_RPC_URL, HELIUS_API_BASE_URL } from './HeliusConfig';
-import { sanitizeErrorObject } from '@/utils/errorTestUtils';
-import { toast } from 'sonner';
-import { transactionService } from './TransactionService';
-import { tokenService } from './TokenService';
+import { fetchApiKey } from '@/utils/apiKeyFetcher';
+
+// Add a fallback key config
+const FALLBACK_HELIUS_KEY = null; // No hardcoded keys - will be populated from database
 
 class HeliusService {
-  private initialized = false;
-  private initializationPromise: Promise<void> | null = null;
-
+  private baseUrl = 'https://api.helius.xyz/v0';
+  private apiKey: string | null = null;
+  
   constructor() {
-    this.initialize();
-  }
-
-  async initialize() {
-    if (this.initializationPromise) {
-      return this.initializationPromise;
-    }
-    
-    this.initializationPromise = new Promise<void>(async (resolve) => {
-      try {
-        // Initialize key manager
-        await heliusKeyManager.initialize();
-        this.initialized = true;
-        console.log('HeliusService initialized successfully');
-      } catch (error) {
-        const sanitizedError = sanitizeErrorObject(error);
-        console.error('Failed to initialize HeliusService:', sanitizedError.message);
-        this.initialized = false;
-      } finally {
-        resolve();
-      }
-    });
-    
-    return this.initializationPromise;
-  }
-
-  async reinitialize() {
-    this.initialized = false;
-    this.initializationPromise = null;
-    await this.initialize();
-  }
-
-  private getApiKey() {
-    return heliusKeyManager.getApiKey();
-  }
-
-  private async makeApiRequest(endpoint: string, params: any = {}) {
-    if (!this.initialized) {
-      await this.initialize();
-    }
-
-    const apiKey = this.getApiKey();
-    
-    try {
-      const response = await fetch(`${HELIUS_RPC_URL}/${endpoint}?api-key=${apiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(params),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Helius API error: ${response.status} ${response.statusText}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      const sanitizedError = sanitizeErrorObject(error);
-      console.error(`Error making Helius API request to ${endpoint}:`, sanitizedError.message);
-      
-      // Check if this might be an API key issue and try to refresh keys
-      if (sanitizedError.message?.includes('401') || 
-          sanitizedError.message?.includes('403') || 
-          sanitizedError.message?.includes('Authentication')) {
-        console.log('Potential API key issue, attempting to refresh keys');
-        await heliusKeyManager.forceReload();
-      }
-      
-      throw error;
-    }
+    // Don't load API key in constructor, load it lazily when needed
+    console.log('HeliusService initialized');
   }
   
-  /**
-   * Check if an API key is valid
-   */
+  private async getApiKey(): Promise<string> {
+    if (!this.apiKey) {
+      try {
+        this.apiKey = await fetchApiKey('helius');
+        console.log('Helius API key loaded successfully');
+      } catch (error) {
+        console.error('Failed to fetch Helius API key:', error);
+        if (!this.apiKey && FALLBACK_HELIUS_KEY) {
+          console.warn('Using fallback Helius API key');
+          this.apiKey = FALLBACK_HELIUS_KEY;
+        }
+      }
+    }
+    
+    if (!this.apiKey) {
+      throw new Error('No Helius API key available');
+    }
+    
+    return this.apiKey;
+  }
+  
+  // Check if an API key is valid
   async checkApiKey(apiKey: string): Promise<boolean> {
     try {
-      // Use a test address to check if the API key works
-      const testAddress = "5YNmS1R9nNSCDzb5a7mMJ1dwK9uHeAAF4CmPEwKgVWr8";
+      // Try a simple request to check if the API key is valid
+      const testUrl = `${this.baseUrl}/addresses/dominated?api-key=${apiKey}`;
       
-      const response = await fetch(`${HELIUS_RPC_URL}/v0/addresses/${testAddress}/balances?api-key=${apiKey}`);
+      const response = await fetch(testUrl);
       
+      // If we get a 401 or 403, the API key is invalid
+      if (response.status === 401 || response.status === 403) {
+        return false;
+      }
+      
+      // Any successful response means the key is working
       return response.ok;
     } catch (error) {
-      console.error('Error checking API key:', error);
+      console.error('Error testing Helius API key:', error);
       return false;
     }
   }
   
-  /**
-   * Get token balances for a wallet address
-   */
-  async getTokenBalances(walletAddress: string) {
-    if (!this.initialized) {
-      await this.initialize();
-    }
-    
+  // Get account information
+  async getAccountInfo(address: string): Promise<any> {
     try {
-      return await tokenService.getTokenBalances(walletAddress);
+      const apiKey = await this.getApiKey();
+      const url = `${this.baseUrl}/addresses/${address}/balances?api-key=${apiKey}`;
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch account info: ${response.statusText}`);
+      }
+      
+      return await response.json();
     } catch (error) {
-      const sanitizedError = sanitizeErrorObject(error);
-      console.error('Error getting token balances:', sanitizedError.message);
+      console.error('Error fetching account info from Helius:', error);
       throw error;
     }
   }
-
-  /**
-   * Get token metadata for specified token addresses
-   */
-  async getTokenMetadata(tokenAddresses: string[]) {
-    if (!this.initialized) {
-      await this.initialize();
-    }
-    
+  
+  // Get token balances for an address
+  async getTokenBalances(address: string): Promise<any> {
     try {
-      return await tokenService.getTokenMetadata(tokenAddresses);
+      const apiKey = await this.getApiKey();
+      const url = `${this.baseUrl}/addresses/${address}/balances?api-key=${apiKey}`;
+      
+      console.log(`Fetching token balances from Helius for address: ${address}`);
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch token balances: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log(`Received token balances from Helius: ${data ? data.length : 0} tokens`);
+      return data;
     } catch (error) {
-      const sanitizedError = sanitizeErrorObject(error);
-      console.error('Error getting token metadata:', sanitizedError.message);
+      console.error('Error fetching token balances from Helius:', error);
       throw error;
     }
   }
-
-  /**
-   * Get transaction history for a wallet address
-   */
-  async getTransactionHistory(walletAddress: string, limit: number = 10) {
-    if (!this.initialized) {
-      await this.initialize();
-    }
-    
+  
+  // Get token metadata
+  async getTokenMetadata(mintAddresses: string[]): Promise<any> {
     try {
-      return await transactionService.getTransactionHistory(walletAddress, limit);
+      if (!mintAddresses || mintAddresses.length === 0) {
+        return [];
+      }
+      
+      const apiKey = await this.getApiKey();
+      const url = `${this.baseUrl}/tokens/metadata?api-key=${apiKey}`;
+      
+      console.log(`Fetching metadata for ${mintAddresses.length} tokens from Helius`);
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ mintAccounts: mintAddresses }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch token metadata: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log(`Received metadata for ${data ? data.length : 0} tokens from Helius`);
+      return data;
     } catch (error) {
-      const sanitizedError = sanitizeErrorObject(error);
-      console.error('Error getting transaction history:', sanitizedError.message);
+      console.error('Error fetching token metadata from Helius:', error);
       throw error;
     }
+  }
+  
+  // Get transaction history for an address
+  async getTransactionHistory(address: string, limit = 10, offset = 0): Promise<any> {
+    try {
+      const apiKey = await this.getApiKey();
+      const url = `${this.baseUrl}/addresses/${address}/transactions?api-key=${apiKey}&limit=${limit}&before=${offset}`;
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch transaction history: ${response.statusText}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching transaction history from Helius:', error);
+      throw error;
+    }
+  }
+  
+  // Reinitialize the service (for example, after adding a new key)
+  reinitialize(): void {
+    this.apiKey = null;
+    console.log('HeliusService reinitialized');
   }
 }
 
-// Export a singleton instance
 export const heliusService = new HeliusService();

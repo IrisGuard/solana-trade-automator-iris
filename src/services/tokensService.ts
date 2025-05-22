@@ -1,36 +1,53 @@
 
 import { dbClient } from '@/integrations/supabase/client';
-import { Token } from '@/types/wallet';
+import type { Token } from '@/types/wallet';
+
+// Define a type for database tokens
+interface DBToken {
+  user_id: string;
+  token_address: string;
+  name: string;
+  symbol: string;
+  amount: number;
+  logo?: string;
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
 export const tokensService = {
-  // Save tokens to the database for a user
-  async saveTokens(userId: string, tokens: Token[]): Promise<boolean> {
-    try {
-      // Simple implementation for now - just log the action
-      console.log(`Saving ${tokens.length} tokens for user ${userId}`);
-      
-      // In a real implementation, we would store these in Supabase
-      // This is left as a placeholder for future implementation
-      
-      return true;
-    } catch (err) {
-      console.error('Error saving tokens to database:', err);
-      return false;
-    }
+  async saveTokens(userId: string, tokens: Token[]) {
+    // First remove existing tokens for this user
+    await dbClient
+      .from('tokens')
+      .delete()
+      .eq('user_id', userId);
+    
+    // Then insert new tokens
+    const tokenData = tokens.map(token => ({
+      user_id: userId,
+      token_address: token.address,
+      name: token.name,
+      symbol: token.symbol,
+      amount: token.amount,
+      logo: token.logo
+    }));
+    
+    const { data, error } = await dbClient
+      .from('tokens')
+      .insert(tokenData);
+    
+    if (error) throw error;
+    return data;
   },
   
-  // Get tokens for a user
-  async getTokens(userId: string): Promise<Token[]> {
-    try {
-      console.log(`Getting tokens for user ${userId}`);
-      
-      // Placeholder for database retrieval
-      // In a real implementation, fetch from Supabase
-      
-      return [];
-    } catch (err) {
-      console.error('Error getting tokens from database:', err);
-      return [];
-    }
+  async getTokensByUser(userId: string) {
+    const { data, error } = await dbClient
+      .from('tokens')
+      .select('*')
+      .eq('user_id', userId);
+    
+    if (error) throw error;
+    return data as DBToken[];
   }
 };

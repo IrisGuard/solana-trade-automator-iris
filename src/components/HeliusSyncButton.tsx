@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCcw } from "lucide-react";
 import { syncAllHeliusData } from "@/utils/syncHeliusKeys";
-import { useAuth } from "@/contexts/SupabaseAuthContext";
+import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { heliusService } from "@/services/helius/HeliusService";
 
 export function HeliusSyncButton() {

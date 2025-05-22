@@ -11,16 +11,3 @@ export interface TokenAccount {
   uiAmount: number | null;
   uiAmountString: string;
 }
-
-/**
- * Represents token data structure for the application
- */
-export interface TokenData {
-  address: string;
-  mint?: string;
-  symbol: string;
-  name: string;
-  amount: number;
-  decimals: number;
-  logo?: string;
-}

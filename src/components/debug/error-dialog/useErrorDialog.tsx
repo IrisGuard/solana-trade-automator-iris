@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { ErrorDialogInChat } from './ErrorDialog';
-import { sanitizeErrorObject } from '@/utils/errorTestUtils';
 
 export function useErrorDialogInChat() {
   const [errors, setErrors] = useState<any[]>([]);
@@ -12,21 +11,18 @@ export function useErrorDialogInChat() {
     const handleLovableError = (event: CustomEvent) => {
       console.log('Λήφθηκε lovable-error event:', event.detail);
       
-      // Always sanitize the error to ensure all properties are strings
-      const processedError = sanitizeErrorObject(event.detail);
-      
       // Προσθήκη του νέου σφάλματος στο array (διατηρώντας και τα προηγούμενα)
       setErrors(prevErrors => {
         // Έλεγχος για αποφυγή διπλότυπων σφαλμάτων
         const isDuplicate = prevErrors.some(err => 
-          err.message === processedError.message && 
-          err.stack === processedError.stack
+          err.message === event.detail.message && 
+          err.stack === event.detail.stack
         );
         
         if (isDuplicate) return prevErrors;
         
         // Περιορισμός στα τελευταία 10 σφάλματα για απόδοση
-        const updatedErrors = [...prevErrors, processedError].slice(-10);
+        const updatedErrors = [...prevErrors, event.detail].slice(-10);
         return updatedErrors;
       });
     };
@@ -40,21 +36,18 @@ export function useErrorDialogInChat() {
     window.lovableChat.createErrorDialog = (errorData: any) => {
       console.log('Κλήση του createErrorDialog με δεδομένα:', errorData);
       
-      // Always sanitize the error
-      const processedError = sanitizeErrorObject(errorData);
-      
       // Προσθήκη του νέου σφάλματος στο array (διατηρώντας και τα προηγούμενα)
       setErrors(prevErrors => {
         // Έλεγχος για αποφυγή διπλότυπων σφαλμάτων
         const isDuplicate = prevErrors.some(err => 
-          err.message === processedError.message && 
-          err.stack === processedError.stack
+          err.message === errorData.message && 
+          err.stack === errorData.stack
         );
         
         if (isDuplicate) return prevErrors;
         
         // Περιορισμός στα τελευταία 10 σφάλματα για απόδοση
-        return [...prevErrors, processedError].slice(-10);
+        return [...prevErrors, errorData].slice(-10);
       });
     };
 

@@ -1,10 +1,10 @@
 
-import { useState, useEffect } from "../../../../react-compatibility";
+import { useState, useEffect } from "react";
 import { Token } from "@/types/wallet";
 import { COMMON_TOKEN_LIST } from "../types";
 
 export function useTokenList(tokens: Token[] | null | undefined) {
-  const [availableTokens, setAvailableTokens] = useState([]);
+  const [availableTokens, setAvailableTokens] = useState<Token[]>([]);
 
   useEffect(() => {
     if (tokens && tokens.length > 0) {
@@ -23,7 +23,6 @@ export function useTokenList(tokens: Token[] | null | undefined) {
             decimals: commonToken.decimals,
             amount: 0,
             logo: "",
-            mint: commonToken.mint
           });
         }
       });
@@ -38,7 +37,6 @@ export function useTokenList(tokens: Token[] | null | undefined) {
         decimals: token.decimals,
         amount: 0,
         logo: "",
-        mint: token.mint
       }));
       
       setAvailableTokens(formattedCommonTokens);

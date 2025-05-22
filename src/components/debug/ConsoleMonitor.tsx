@@ -1,8 +1,8 @@
+
 import React, { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import { useErrorReporting } from "@/hooks/useErrorReporting";
 import { displayError } from "@/utils/error-handling/displayError";
-import { sanitizeErrorObject } from "@/utils/errorTestUtils";
 
 interface LogRecord {
   type: 'error' | 'warn' | 'info';
@@ -39,19 +39,9 @@ export function ConsoleMonitor() {
       originalConsoleError.apply(console, args);
       
       try {
-        const message = args.map(arg => {
-          // Sanitize objects before trying to display them
-          if (arg instanceof Error) {
-            return sanitizeErrorObject(arg).message;
-          } else if (typeof arg === 'object' && arg !== null) {
-            try {
-              return JSON.stringify(arg);
-            } catch (e) {
-              return `[Object cannot be stringified]`;
-            }
-          }
-          return String(arg);
-        }).join(' ');
+        const message = args.map(arg => 
+          typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+        ).join(' ');
         
         // Add to logs
         setLogs(prev => [
@@ -75,22 +65,17 @@ export function ConsoleMonitor() {
             message.includes('Unhandled error') ||
             message.includes('Cannot read properties of') ||
             message.includes('is not defined') ||
-            message.includes('is not a function') ||
-            message.includes('Objects are not valid as a React child')
+            message.includes('is not a function')
           ) {
-            // Create an error object to report and sanitize it
+            // Create an error object to report
             const error = new Error(message);
-            const sanitizedError = sanitizeErrorObject(error);
-            
-            reportError(new Error(sanitizedError.message), {
+            reportError(error, {
               component: 'ConsoleMonitor',
               source: 'client',
               severity: 'medium',
               showToast: true,
               toastTitle: "Σφάλμα εφαρμογής",
-              additional: typeof sanitizedError.message === 'string' ? 
-                sanitizedError.message.substring(0, 150) : 
-                String(sanitizedError.message).substring(0, 150) 
+              toastDescription: message.substring(0, 150)
             });
           }
         }
@@ -106,18 +91,9 @@ export function ConsoleMonitor() {
       originalConsoleWarn.apply(console, args);
       
       try {
-        const message = args.map(arg => {
-          if (arg instanceof Error) {
-            return sanitizeErrorObject(arg).message;
-          } else if (typeof arg === 'object' && arg !== null) {
-            try {
-              return JSON.stringify(arg);
-            } catch (e) {
-              return `[Object cannot be stringified]`;
-            }
-          }
-          return String(arg);
-        }).join(' ');
+        const message = args.map(arg => 
+          typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+        ).join(' ');
         
         // Add to logs
         setLogs(prev => [
@@ -136,18 +112,9 @@ export function ConsoleMonitor() {
       originalConsoleLog.apply(console, args);
       
       try {
-        const message = args.map(arg => {
-          if (arg instanceof Error) {
-            return sanitizeErrorObject(arg).message;
-          } else if (typeof arg === 'object' && arg !== null) {
-            try {
-              return JSON.stringify(arg);
-            } catch (e) {
-              return `[Object cannot be stringified]`;
-            }
-          }
-          return String(arg);
-        }).join(' ');
+        const message = args.map(arg => 
+          typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+        ).join(' ');
         
         // Only capture logs with specific debugging prefixes
         if (
@@ -214,9 +181,8 @@ export function ConsoleMonitor() {
           
           return response;
         } catch (error) {
-          // Network errors or CORS issues - sanitize before logging
-          const sanitizedError = sanitizeErrorObject(error);
-          console.error(`API call to ${url} failed:`, sanitizedError);
+          // Network errors or CORS issues
+          console.error(`API call to ${url} failed:`, error);
           throw error;
         }
       };

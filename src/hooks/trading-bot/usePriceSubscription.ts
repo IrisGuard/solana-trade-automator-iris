@@ -1,88 +1,85 @@
 
-import { useState, useEffect, useCallback } from '../../react-compatibility';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
-export function usePriceSubscription(tokenAddress: string | null, isActive: boolean) {
-  const [currentPrice, setCurrentPrice] = useState(null);
-  const [priceHistory, setPriceHistory] = useState([]);
+// Define the TokenPriceInfo type to include all necessary properties
+export interface TokenPriceInfo {
+  price: number;
+  change24h: number;
+  highPrice24h?: number; // Make this property optional
+  lowPrice24h?: number;
+  volume24h?: number;
+  marketCap?: number;
+  lastUpdated?: Date;
+}
+
+export const usePriceSubscription = (tokenAddress: string | null) => {
+  const [priceInfo, setPriceInfo] = useState<TokenPriceInfo>({
+    price: 0,
+    change24h: 0,
+  });
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  
-  // Subscribe to price updates
-  const subscribe = useCallback(() => {
-    if (!tokenAddress) {
-      setError('No token address provided');
-      return false;
-    }
+  const [error, setError] = useState<Error | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    if (!tokenAddress) return;
+
+    // Simulate price subscription
+    let intervalId: ReturnType<typeof setInterval>;
     
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      console.log(`Subscribing to price updates for ${tokenAddress}`);
+    const setupPriceUpdates = () => {
+      // Initial update
+      updatePrice();
       
-      // In a real app, this would connect to a websocket or polling system
-      const initialPrice = 10 + Math.random() * 90;
-      setCurrentPrice(initialPrice);
-      setPriceHistory([{ price: initialPrice, timestamp: Date.now() }]);
+      // Subscribe to price updates
+      intervalId = setInterval(() => {
+        updatePrice();
+      }, 10000); // Update every 10 seconds
       
       setIsSubscribed(true);
-      setIsLoading(false);
-      return true;
-    } catch (err) {
-      console.error('Failed to subscribe to price updates:', err);
-      setError('Failed to subscribe to price updates');
-      setIsLoading(false);
-      toast.error('Failed to subscribe to price updates');
-      return false;
-    }
-  }, [tokenAddress]);
-  
-  // Unsubscribe from price updates
-  const unsubscribe = useCallback(() => {
-    console.log(`Unsubscribing from price updates for ${tokenAddress}`);
-    setIsSubscribed(false);
-    return true;
-  }, [tokenAddress]);
-  
-  // Generate mock price updates when active
-  useEffect(() => {
-    if (!isActive || !isSubscribed || !tokenAddress) return;
+    };
     
-    // Mock price update interval
-    const interval = setInterval(() => {
-      // Generate a small price change (-2% to +2%)
-      const changePercent = -2 + Math.random() * 4;
-      const currentValue = currentPrice || 100;
-      const newPrice = currentValue * (1 + changePercent / 100);
-      
-      setCurrentPrice(newPrice);
-      setPriceHistory(prev => [
-        ...prev,
-        { price: newPrice, timestamp: Date.now() }
-      ].slice(-100)); // Keep only last 100 entries
-    }, 5000);
+    const updatePrice = () => {
+      try {
+        // Generate random price changes to simulate real updates
+        const basePrice = 100; // Base price for all tokens
+        const variance = Math.random() * 10 - 5; // Random variance between -5 and +5
+        const newPrice = basePrice + variance;
+        const change = ((newPrice - basePrice) / basePrice) * 100;
+        
+        // Update with valid properties for our TokenPriceInfo type
+        setPriceInfo({
+          price: newPrice,
+          change24h: change,
+          highPrice24h: newPrice + (Math.random() * 5),
+          lowPrice24h: newPrice - (Math.random() * 5),
+          volume24h: 1000000 + (Math.random() * 500000),
+          marketCap: 100000000 + (Math.random() * 10000000),
+          lastUpdated: new Date(),
+        });
+        
+        setLastUpdate(new Date());
+        setError(null);
+      } catch (err) {
+        setError(err as Error);
+        toast.error('Failed to update token price');
+        console.error('Price subscription error:', err);
+      }
+    };
     
-    return () => clearInterval(interval);
-  }, [currentPrice, isActive, isSubscribed, tokenAddress]);
-  
-  // Subscribe/unsubscribe based on active state
-  useEffect(() => {
-    if (isActive && tokenAddress && !isSubscribed) {
-      subscribe();
-    } else if (!isActive && isSubscribed) {
-      unsubscribe();
-    }
-  }, [isActive, isSubscribed, subscribe, tokenAddress, unsubscribe]);
+    setupPriceUpdates();
+    
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+      setIsSubscribed(false);
+    };
+  }, [tokenAddress]);
   
   return {
-    currentPrice,
-    priceHistory,
+    priceInfo,
     isSubscribed,
-    isLoading,
     error,
-    subscribe,
-    unsubscribe
+    lastUpdate,
   };
-}
+};

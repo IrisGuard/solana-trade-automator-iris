@@ -2,24 +2,8 @@
 import { Token } from "@/types/wallet";
 
 export interface SwapFormProps {
-  isConnected?: boolean;
-  connectWallet?: () => void;
-}
-
-export interface SwapQuoteProps {
-  inputToken: {
-    symbol: string;
-    name: string;
-    mint: string;
-  };
-  outputToken: {
-    symbol: string;
-    name: string;
-    mint: string;
-  };
-  outputAmount: number;
-  inputAmount: number;
-  priceImpact: string;
+  isConnected: boolean;
+  connectWallet: () => Promise<void>;
 }
 
 export interface SwapState {
@@ -28,57 +12,56 @@ export interface SwapState {
   inputAmount: string;
   outputAmount: string;
   isLoading: boolean;
-  swapStatus: 'idle' | 'loading' | 'success' | 'error';
   quoteResponse: any | null;
+  swapStatus: 'idle' | 'loading' | 'success' | 'error';
   priceImpact: string;
-}
-
-export interface BotStatus {
-  type: 'idle' | 'running' | 'paused' | 'error';
-}
-
-export interface TradingOrder {
-  id: string;
-  tokenSymbol: string;
-  type: 'buy' | 'sell';
-  amount: number;
-  price: number;
-  status: 'open' | 'filled' | 'cancelled';
-  createdAt: string;
 }
 
 export interface TokenInfo {
   symbol: string;
   name: string;
-  address?: string;
-  mint?: string;
-  decimals?: number;
-  logo?: string;
+  decimals: number;
 }
 
-export const COMMON_TOKEN_LIST: TokenInfo[] = [
+export interface SwapQuoteProps {
+  inputToken: TokenInfo;
+  outputToken: TokenInfo;
+  inputAmount: string;
+  outputAmount: string;
+  priceImpact: string;
+}
+
+// Common token constants for the app
+export const COMMON_TOKENS = {
+  SOL: "So11111111111111111111111111111111111111112",
+  USDC: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  USDT: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+  ETH: "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs"
+};
+
+export const COMMON_TOKEN_LIST = [
   {
     symbol: "SOL",
     name: "Solana",
-    mint: "So11111111111111111111111111111111111111112",
+    mint: COMMON_TOKENS.SOL,
     decimals: 9
   },
   {
     symbol: "USDC",
     name: "USD Coin",
-    mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    mint: COMMON_TOKENS.USDC,
     decimals: 6
   },
   {
     symbol: "USDT",
-    name: "Tether USD",
-    mint: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+    name: "Tether",
+    mint: COMMON_TOKENS.USDT,
     decimals: 6
   },
   {
-    symbol: "BONK",
-    name: "Bonk",
-    mint: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
-    decimals: 5
+    symbol: "ETH",
+    name: "Ethereum (Solana)",
+    mint: COMMON_TOKENS.ETH,
+    decimals: 8
   }
 ];

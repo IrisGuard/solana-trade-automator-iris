@@ -7,7 +7,6 @@ import { AlertCircle, X } from 'lucide-react';
 import { displayError } from '@/utils/error-handling/displayError';
 import { useErrorReporting } from '@/hooks/useErrorReporting';
 import { toast } from 'sonner';
-import { sanitizeErrorObject } from '@/utils/errorTestUtils';
 
 export function GlobalErrorHandler() {
   const [errors, setErrors] = useState<ErrorData[]>([]);
@@ -17,52 +16,37 @@ export function GlobalErrorHandler() {
   // Λήψη των σφαλμάτων από τον collector
   useEffect(() => {
     const checkForErrors = () => {
-      try {
-        // Use getRecentErrors instead of getErrors to match implementation
-        const allErrors = (errorCollector.getRecentErrors ? errorCollector.getRecentErrors() : errorCollector.getErrors()).map(e => {
-          // Ensure error is an Error object with required properties
-          const errorObj = e.error instanceof Error ? e.error : new Error(String(e.error || 'Unknown error'));
-          const sanitizedError = sanitizeErrorObject(errorObj);
-          
-          // Create a properly typed ErrorData object
-          const typedErrorData: ErrorData = {
-            id: `err_${e.timestamp || Date.now()}`,
-            error: errorObj, // Use the actual Error object, not the sanitized version
-            timestamp: e.timestamp ? new Date(e.timestamp).toISOString() : new Date().toISOString(),
-            message: sanitizedError.message,
-            stack: sanitizedError.stack || '',
-            component: e.data?.component || null,
-            source: e.data?.source || 'client',
-            url: window.location.href,
-            browserInfo: { 
-              userAgent: navigator.userAgent,
-              language: navigator.language,
-              platform: navigator.platform
-            },
-            errorCode: null,
-            context: null,
-            metadata: null,
-            status: null,
-            errorId: null,
-            errorType: e.data?.method,
-            details: e.data?.details,
-            severity: e.data?.severity || 'medium',
-            options: e.data
-          };
-          
-          return typedErrorData;
-        });
-        
-        setErrors(allErrors);
-        
-        // Εάν υπάρχει νέο σφάλμα, το αποθηκεύουμε ως το τελευταίο
-        if (allErrors.length > 0 && (!lastError || allErrors[0].id !== lastError.id)) {
-          setLastError(allErrors[0]);
-        }
-      } catch (error) {
-        // Handle any errors during error processing
-        const error2 = error instanceof Error ? error : new Error(String(error));
-        console.error("Error processing errors in GlobalErrorHandler:", error2);
+      // Use getRecentErrors instead of getErrors to match implementation
+      const allErrors = errorCollector.getRecentErrors().map(e => ({
+        id: `err_${e.timestamp}`,
+        error: e.error,
+        timestamp: new Date(e.timestamp).toISOString(),
+        message: e.error.message,
+        stack: e.error.stack,
+        component: e.data.component || null,
+        source: e.data.source || 'client',
+        url: window.location.href,
+        browserInfo: { 
+          userAgent: navigator.userAgent,
+          language: navigator.language,
+          platform: navigator.platform
+        },
+        errorCode: null,
+        context: null,
+        metadata: null,
+        status: null,
+        errorId: null,
+        errorType: e.data.method,
+        details: e.data.details,
+        severity: e.data.severity || 'medium',
+        options: e.data
+      }));
+      
+      setErrors(allErrors);
+      
+      // Εάν υπάρχει νέο σφάλμα, το αποθηκεύουμε ως το τελευταίο
+      if (allErrors.length > 0 && (!lastError || allErrors[0].id !== lastError.id)) {
+        setLastError(allErrors[0]);
       }
     };
     
@@ -82,10 +66,10 @@ export function GlobalErrorHandler() {
     try {
       const supportMessage = `
         Error Report:
-        - Message: ${String(error.message || 'No message provided')}
-        - Component: ${String(error.component || 'Unknown')}
-        - Source: ${String(error.source || 'Unknown')}
-        - Timestamp: ${String(error.timestamp)}
+        - Message: ${error.message || 'No message provided'}
+        - Component: ${error.component || 'Unknown'}
+        - Source: ${error.source || 'Unknown'}
+        - Timestamp: ${error.timestamp}
       `;
       
       // Αποστολή του σφάλματος (για την προσομοίωση)
@@ -97,24 +81,12 @@ export function GlobalErrorHandler() {
       });
       
     } catch (e) {
-      // Sanitize any errors that occur during error handling
-      const error2 = e instanceof Error ? e : new Error(String(e));
-      console.error("Σφάλμα κατά την αποστολή του σφάλματος:", error2);
-      reportError(error2, {
-        component: 'GlobalErrorHandler',
-        severity: 'low',
-      });
+      console.error("Σφάλμα κατά την αποστολή του σφάλματος:", e);
+      reportError(e instanceof Error ? e : new Error("Αποτυχία αποστολής σφάλματος στην υποστήριξη"));
     }
   };
 
   if (!lastError) return null;
-
-  // Make sure we properly stringify any potential object values before rendering
-  const errorMessage = String(lastError.message || 'Unknown error');
-  const componentName = String(lastError.component || 'Unknown');
-  const timestamp = typeof lastError.timestamp === 'string' ? 
-    new Date(lastError.timestamp).toLocaleTimeString() : 
-    new Date().toLocaleTimeString();
 
   return (
     <div className="fixed bottom-4 right-4 max-w-md z-50 animate-in fade-in slide-in-from-right">
@@ -123,9 +95,9 @@ export function GlobalErrorHandler() {
           <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
           <div className="flex-1">
             <div className="font-semibold">Σφάλμα Εφαρμογής</div>
-            <div className="text-sm opacity-90">{errorMessage}</div>
+            <div className="text-sm opacity-90">{lastError.message || 'Unknown error'}</div>
             <div className="text-xs opacity-75 mt-1">
-              Στο: {componentName} | {timestamp}
+              Στο: {lastError.component || 'Unknown'} | {new Date(lastError.timestamp).toLocaleTimeString()}
             </div>
           </div>
         </div>

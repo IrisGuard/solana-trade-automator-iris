@@ -2,9 +2,8 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { useConsoleErrorMonitor } from "@/hooks/useConsoleErrorMonitor";
-import { useErrorDialogInChat } from "@/components/debug/error-dialog/useErrorDialog";
-import { displayError } from "@/utils/error-handling/displayError";
-import { sanitizeErrorObject } from "@/utils/errorTestUtils";
+import { useErrorDialogInChat } from "@/components/debug/ErrorDialogInChat";
+import { displayError } from "@/utils/errorUtils";
 
 // Component που παρακολουθεί για σφάλματα κονσόλας
 export function ErrorMonitor() {
@@ -68,13 +67,7 @@ export function PublishErrorMonitor() {
               console.log("Επιτυχής σύνδεση με το Supabase");
             })
             .catch(error => {
-              // Create a proper Error object
-              const errorObj = error instanceof Error ? error : new Error(String(error));
-              
-              // Sanitize the error to ensure all properties are strings
-              const sanitizedError = sanitizeErrorObject(errorObj);
-                  
-              displayError(sanitizedError, {
+              displayError(error, {
                 toastTitle: "Σφάλμα κατά τη δημοσίευση",
                 showToast: true,
                 component: 'PublishErrorMonitor',

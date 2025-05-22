@@ -1,52 +1,9 @@
 
 /**
  * This file provides a consistent interface for React Router DOM exports
- * to ensure compatibility across the application with React 18.3.1
+ * to ensure compatibility across the application
  */
-import * as React from 'react';
-
-// Import all React hooks first to ensure they're available
-// Use our hook exporter to ensure they're properly exported
-import {
-  useState,
-  useEffect,
-  useContext,
-  useRef,
-  useCallback,
-  useMemo,
-  useReducer,
-  useLayoutEffect
-} from '../utils/reactHooksExporter';
-
-// Patch React global object if needed
-if (typeof window !== 'undefined') {
-  window.React = window.React || {} as any;
-  
-  // Make sure React.createElement exists
-  if (!window.React.createElement) {
-    window.React.createElement = React.createElement;
-  }
-  
-  // Add essential hooks to global React
-  const hooks = {
-    useState,
-    useEffect,
-    useContext,
-    useRef,
-    useCallback,
-    useMemo,
-    useReducer,
-    useLayoutEffect
-  };
-  
-  Object.entries(hooks).forEach(([name, fn]) => {
-    if (!window.React[name]) {
-      window.React[name] = fn;
-    }
-  });
-  
-  console.log('[RouterExports] React hooks patched for router compatibility');
-}
+import React from '../react-exports-fix'; // Import from our fixed exports
 
 // Import all react-router-dom exports that we need
 import * as ReactRouterDOM from 'react-router-dom';
@@ -97,11 +54,6 @@ export function debugRouterExports() {
     Link: !!ReactRouterDOM.Link,
     useNavigate: !!ReactRouterDOM.useNavigate,
     useLocation: !!ReactRouterDOM.useLocation,
-    useState: typeof useState === 'function',
-    useEffect: typeof useEffect === 'function',
     createElement: !!React.createElement
   });
 }
-
-// Export patched React
-export { React };

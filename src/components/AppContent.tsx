@@ -13,7 +13,7 @@ import { ThemeProvider } from "@/providers/ThemeProvider";
 import { LanguageProvider } from "@/providers/LanguageProvider";
 import { ensureRouterCompatibility } from "@/utils/routerPatches";
 import { EmergencyRecovery } from "@/components/emergency/EmergencyRecovery";
-import { initProtectionSystem, sanitizeErrorObject } from "@/utils/errorTestUtils";
+import { initProtectionSystem } from "@/utils/errorTestUtils";
 import { HelpButton } from "@/components/help/HelpButton";
 import { HealthStatusIndicator } from "@/components/monitoring/HealthStatusIndicator";
 import { DOMErrorHandler } from "@/components/errors/DOMErrorHandler";
@@ -37,21 +37,16 @@ const queryClient = new QueryClient({
 function logError(error: Error, info: React.ErrorInfo) {
   console.error("[AppContent error]", error, info);
   
-  // Sanitize the error object before passing it to errorCollector
-  const sanitizedError = sanitizeErrorObject(error);
-  
-  // Ensure sanitizedError has name and message properties for ErrorData type compatibility
-  errorCollector.captureError(new Error(sanitizedError.message), {
+  errorCollector.captureError(error, {
     component: "AppContent",
     source: "app",
     details: { 
-      componentStack: info.componentStack,
-      originalError: sanitizedError
+      componentStack: info.componentStack
     },
     severity: 'high'
   });
   
-  captureException(new Error(sanitizedError.message));
+  captureException(error);
 }
 
 export function AppContent() {
@@ -72,41 +67,36 @@ export function AppContent() {
   
   return (
     <ErrorBoundary
-      FallbackComponent={({ error }) => {
-        // Ensure error is an Error object and sanitize it
-        const sanitizedError = sanitizeErrorObject(error);
-        
-        return (
-          <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white p-4">
-            <div className="max-w-md w-full p-6 border border-gray-800 rounded-lg bg-gray-950 shadow-lg">
-              <h2 className="text-xl font-bold text-red-400 mb-2">Σφάλμα εφαρμογής</h2>
-              <p className="text-gray-300 mb-4">Παρουσιάστηκε ένα σφάλμα κατά τη φόρτωση της εφαρμογής.</p>
-              <pre className="mt-2 text-sm bg-gray-800 p-3 rounded overflow-auto max-h-48">{sanitizedError.message}</pre>
-              <button 
-                onClick={() => window.location.reload()}
-                className="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
-              >
-                Επαναφόρτωση Σελίδας
-              </button>
-              <button 
-                onClick={() => {
-                  // Try automatic recovery
-                  try {
-                    const { SiteBackupService } = require("@/utils/site-protection/SiteBackupService");
-                    SiteBackupService.restoreFromBackup();
-                  } catch (e) {
-                    console.error("Failed to restore from backup:", e);
-                    window.location.reload();
-                  }
-                }}
-                className="mt-2 w-full py-2 bg-amber-600 hover:bg-amber-700 text-white rounded transition-colors"
-              >
-                Αυτόματη Αποκατάσταση
-              </button>
-            </div>
+      FallbackComponent={({ error }) => (
+        <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white p-4">
+          <div className="max-w-md w-full p-6 border border-gray-800 rounded-lg bg-gray-950 shadow-lg">
+            <h2 className="text-xl font-bold text-red-400 mb-2">Σφάλμα εφαρμογής</h2>
+            <p className="text-gray-300 mb-4">Παρουσιάστηκε ένα σφάλμα κατά τη φόρτωση της εφαρμογής.</p>
+            <pre className="mt-2 text-sm bg-gray-800 p-3 rounded overflow-auto max-h-48">{error.message}</pre>
+            <button 
+              onClick={() => window.location.reload()}
+              className="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+            >
+              Επαναφόρτωση Σελίδας
+            </button>
+            <button 
+              onClick={() => {
+                // Try automatic recovery
+                try {
+                  const { SiteBackupService } = require("@/utils/site-protection/SiteBackupService");
+                  SiteBackupService.restoreFromBackup();
+                } catch (e) {
+                  console.error("Failed to restore from backup:", e);
+                  window.location.reload();
+                }
+              }}
+              className="mt-2 w-full py-2 bg-amber-600 hover:bg-amber-700 text-white rounded transition-colors"
+            >
+              Αυτόματη Αποκατάσταση
+            </button>
           </div>
-        );
-      }}
+        </div>
+      )}
       onError={logError}
     >
       <DOMErrorHandler />

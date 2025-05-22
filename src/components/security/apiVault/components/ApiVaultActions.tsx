@@ -2,7 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Lock, Upload, Download, ShieldAlert, Server, RefreshCw } from "lucide-react";
-import { useAuth } from "@/contexts/SupabaseAuthContext";
+import { useAuth } from "@/providers/SupabaseAuthProvider";
 import { useSupabaseSync } from "../hooks/useSupabaseSync";
 import { ApiKey } from "../types";
 
@@ -14,6 +14,7 @@ interface ApiVaultActionsProps {
   isLocked: boolean;
   apiKeys: ApiKey[];
   setApiKeys?: React.Dispatch<React.SetStateAction<ApiKey[]>>;
+  // Add the missing props from the error
   isRecovering?: boolean;
   isTestingKeys?: boolean;
   handleRecoverClick?: () => void;
