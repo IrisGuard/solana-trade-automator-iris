@@ -1,6 +1,5 @@
 
-import * as React from 'react';
-import * as ReactHooks from 'react';
+import React from 'react';
 
 // Helper function to safely define a property if it doesn't exist
 const safelyDefineProperty = (obj, prop, value) => {
@@ -59,7 +58,9 @@ export function ensureReactCompatibility(): void {
       
       // Apply essential functions safely
       Object.entries(essentialReactFunctions).forEach(([key, value]) => {
-        safelyDefineProperty(window.React, key, value);
+        if (value) { // Only apply if the function actually exists
+          safelyDefineProperty(window.React, key, value);
+        }
       });
       
       // Log success

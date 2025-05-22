@@ -4,12 +4,12 @@
  * with various React versions including React 18.3.1
  */
 import React from 'react';
-import { createElement, Fragment } from 'react';
 
-// Define JSX runtime functions - using our safe exports from react-runtime
-const jsx = createElement;
-const jsxs = createElement;
-const jsxDEV = createElement;
+// Define JSX runtime functions using React's createElement
+const jsx = React.createElement;
+const jsxs = React.createElement;
+const jsxDEV = React.createElement;
+const Fragment = React.Fragment;
 
 // Export all the functions
 export {

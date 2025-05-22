@@ -1,6 +1,6 @@
 
 // This file creates a compatibility layer for React
-import * as React from 'react';
+import React from 'react';
 
 // Extract components and hooks we need directly
 const {
@@ -46,6 +46,6 @@ export {
 // Additional hooks that might be needed
 export const useImperativeHandle = React.useImperativeHandle || function() {};
 export const useDebugValue = React.useDebugValue || function() {};
-export const Profiler = React.Profiler || function() { return null; };
+export const Profiler = React.Profiler || 'Profiler'; // Use string fallback if not available
 
 export default _React;

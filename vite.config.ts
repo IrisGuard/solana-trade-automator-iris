@@ -27,8 +27,8 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       alias: {
         "@": path.resolve(__dirname, "./src"),
         // Fix JSX runtime issue with CORRECT absolute paths
-        'react/jsx-runtime': path.resolve(__dirname, "./src/jsx-runtime-bridge.ts"),
-        'react/jsx-dev-runtime': path.resolve(__dirname, "./src/jsx-runtime-bridge.ts"),
+        'react/jsx-runtime': path.resolve(__dirname, "./src/utils/react-core-bridge.ts"),
+        'react/jsx-dev-runtime': path.resolve(__dirname, "./src/utils/react-core-bridge.ts"),
         // Add explicit references to React hooks modules
         'react-router-dom': path.resolve(__dirname, "./node_modules/react-router-dom"),
         'react': path.resolve(__dirname, "./node_modules/react"),
