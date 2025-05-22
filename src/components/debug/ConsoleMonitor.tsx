@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import { useErrorReporting } from "@/hooks/useErrorReporting";
@@ -76,7 +75,8 @@ export function ConsoleMonitor() {
             message.includes('Unhandled error') ||
             message.includes('Cannot read properties of') ||
             message.includes('is not defined') ||
-            message.includes('is not a function')
+            message.includes('is not a function') ||
+            message.includes('Objects are not valid as a React child')
           ) {
             // Create an error object to report and sanitize it
             const error = new Error(message);

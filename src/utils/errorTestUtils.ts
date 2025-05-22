@@ -55,7 +55,11 @@ export function sanitizeErrorObject(error: unknown): SanitizedError {
           !propertiesToCheck.includes(key)) {
         // Safely convert any value to string, handle objects carefully
         const value = (error as any)[key];
-        if (typeof value === 'object' && value !== null) {
+        if (value === null) {
+          result[key] = 'null';
+        } else if (value === undefined) {
+          result[key] = 'undefined';
+        } else if (typeof value === 'object') {
           try {
             result[key] = JSON.stringify(value);
           } catch (e) {

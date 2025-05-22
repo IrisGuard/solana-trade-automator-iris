@@ -12,7 +12,7 @@ interface ErrorDialogProps {
     stack?: string;
     timestamp?: string;
     url?: string;
-  };
+  } | Error | string | unknown;
   onClose: () => void;
 }
 

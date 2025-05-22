@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { BotActionStatus } from './types';
 
 export function useBotActions() {
-  const [status, setStatus] = useState<BotActionStatus>('idle');
+  const [status, setStatus] = useState('idle');
   const [isStarting, setIsStarting] = useState(false);
   const [isPausing, setIsPausing] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
@@ -33,16 +33,19 @@ export function useBotActions() {
   
   const pauseBot = useCallback(async () => {
     setIsPausing(true);
+    setStatus('loading');
     
     try {
       // Simulate pausing the bot
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Success
+      setStatus('success');
       toast.success('Bot paused successfully');
       return true;
     } catch (error) {
       console.error('Failed to pause bot:', error);
+      setStatus('error');
       toast.error('Failed to pause bot');
       return false;
     } finally {
@@ -52,16 +55,19 @@ export function useBotActions() {
   
   const stopBot = useCallback(async () => {
     setIsStopping(true);
+    setStatus('loading');
     
     try {
       // Simulate stopping the bot
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Success
+      setStatus('success');
       toast.success('Bot stopped successfully');
       return true;
     } catch (error) {
       console.error('Failed to stop bot:', error);
+      setStatus('error');
       toast.error('Failed to stop bot');
       return false;
     } finally {

@@ -21,13 +21,13 @@ export function WalletErrorFallback({ error, resetErrorBoundary }: FallbackProps
   const errorMessage = sanitizedError.message || 'Unknown error';
   
   // Έλεγχος για συγκεκριμένα σφάλματα
-  const isSubstringError = errorMessage.includes('substring is not a function');
-  const isPublicKeyError = errorMessage.includes('Objects are not valid as a React child') && 
+  const isSubstringError = typeof errorMessage === 'string' && errorMessage.includes('substring is not a function');
+  const isPublicKeyError = typeof errorMessage === 'string' && errorMessage.includes('Objects are not valid as a React child') && 
                           errorMessage.includes('PublicKey');
-  const isConnectionError = errorMessage.includes('Failed to fetch') || 
-                           errorMessage.includes('Network Error');
-  const isPermissionError = errorMessage.includes('User rejected') || 
-                           errorMessage.includes('permission');
+  const isConnectionError = typeof errorMessage === 'string' && (errorMessage.includes('Failed to fetch') || 
+                           errorMessage.includes('Network Error'));
+  const isPermissionError = typeof errorMessage === 'string' && (errorMessage.includes('User rejected') || 
+                           errorMessage.includes('permission'));
   
   // Προσδιορισμός του κατάλληλου μηνύματος σφάλματος
   const getErrorMessage = () => {
@@ -40,7 +40,7 @@ export function WalletErrorFallback({ error, resetErrorBoundary }: FallbackProps
     } else if (isPermissionError) {
       return 'Απορρίφθηκε η άδεια σύνδεσης με το πορτοφόλι';
     } else {
-      return errorMessage;
+      return String(errorMessage);
     }
   };
 
