@@ -3,6 +3,8 @@ import { heliusKeyManager } from './HeliusKeyManager';
 import { HELIUS_RPC_URL, HELIUS_API_BASE_URL } from './HeliusConfig';
 import { sanitizeErrorObject } from '@/utils/errorTestUtils';
 import { toast } from 'sonner';
+import { transactionService } from './TransactionService';
+import { tokenService } from './TokenService';
 
 class HeliusService {
   private initialized = false;
@@ -108,10 +110,44 @@ class HeliusService {
     }
     
     try {
-      return await this.makeApiRequest(`v0/addresses/${walletAddress}/balances`, {});
+      return await tokenService.getTokenBalances(walletAddress);
     } catch (error) {
       const sanitizedError = sanitizeErrorObject(error);
       console.error('Error getting token balances:', sanitizedError.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Get token metadata for specified token addresses
+   */
+  async getTokenMetadata(tokenAddresses: string[]) {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    
+    try {
+      return await tokenService.getTokenMetadata(tokenAddresses);
+    } catch (error) {
+      const sanitizedError = sanitizeErrorObject(error);
+      console.error('Error getting token metadata:', sanitizedError.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Get transaction history for a wallet address
+   */
+  async getTransactionHistory(walletAddress: string, limit: number = 10) {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    
+    try {
+      return await transactionService.getTransactionHistory(walletAddress, limit);
+    } catch (error) {
+      const sanitizedError = sanitizeErrorObject(error);
+      console.error('Error getting transaction history:', sanitizedError.message);
       throw error;
     }
   }

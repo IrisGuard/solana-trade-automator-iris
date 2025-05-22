@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { ApiKeyEntry } from '@/services/api-keys/types';
 
 export function useApiKeysDashboard() {
-  const [apiKeys, setApiKeys] = useState<ApiKeyEntry[]>([]);
+  const [apiKeys, setApiKeys] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   
   // Load API keys

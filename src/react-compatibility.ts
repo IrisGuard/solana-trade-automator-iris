@@ -38,13 +38,15 @@ const reactFunctions = {
     if (React?.useImperativeHandle) {
       return React.useImperativeHandle(ref, init, deps);
     }
-    return undefined;
   },
-  useDebugValue: function useDebugValue(value, format) { 
+  useDebugValue: function useDebugValue(value, formatFn) { 
     if (React?.useDebugValue) {
-      return format ? React.useDebugValue(value, format) : React.useDebugValue(value);
+      if (formatFn) {
+        return React.useDebugValue(value, formatFn);
+      } else {
+        return React.useDebugValue(value);
+      }
     }
-    return undefined;
   },
   useId: function useId() { 
     return (React?.useId || function() { return Math.random().toString(36).slice(2); })(); 

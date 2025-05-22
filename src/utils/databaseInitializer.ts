@@ -68,8 +68,7 @@ export async function syncHeliusKeys(): Promise<boolean> {
     console.error('Error syncing Helius keys:', error);
     errorCollector.captureError(error, { 
       component: 'syncHeliusKeys',
-      source: 'databaseInitializer',
-      description: 'Failed to synchronize Helius API keys'
+      source: 'databaseInitializer'
     });
     return false;
   }
