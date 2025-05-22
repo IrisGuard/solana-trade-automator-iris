@@ -1,3 +1,4 @@
+
 /**
  * React 18.3.1 Compatibility Layer
  * 
@@ -34,10 +35,16 @@ const reactFunctions = {
     return (React?.useLayoutEffect || React?.useEffect || function() {})(effect, deps); 
   },
   useImperativeHandle: function useImperativeHandle(ref, init, deps) { 
-    return (React?.useImperativeHandle || function() {})(ref, init, deps); 
+    if (React?.useImperativeHandle) {
+      return React.useImperativeHandle(ref, init, deps);
+    }
+    return undefined;
   },
-  useDebugValue: function useDebugValue(value) { 
-    return (React?.useDebugValue || function() {})(value); 
+  useDebugValue: function useDebugValue(value, format) { 
+    if (React?.useDebugValue) {
+      return format ? React.useDebugValue(value, format) : React.useDebugValue(value);
+    }
+    return undefined;
   },
   useId: function useId() { 
     return (React?.useId || function() { return Math.random().toString(36).slice(2); })(); 
