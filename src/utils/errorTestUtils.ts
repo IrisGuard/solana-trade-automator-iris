@@ -1,120 +1,129 @@
 
 /**
- * Utility functions for error handling and sanitization
+ * Utility to safely convert any error object to a serializable object
+ * This is critical for ensuring errors can be safely displayed in React components
  */
 
-/**
- * Safely sanitizes an error object to ensure all properties are serializable
- * and won't cause React rendering issues
- * 
- * @param error The error object to sanitize
- * @returns A sanitized version of the error object with safe-to-render values
- */
-export function sanitizeErrorObject(error: any): { 
+// Define a type for sanitized error objects
+export interface SanitizedError {
   message: string;
   name: string;
   stack?: string;
-  timestamp?: string;
-  url?: string;
+  code?: string;
   [key: string]: string | undefined;
-} {
-  // Handle null or undefined
-  if (error == null) {
-    return { message: 'Unknown error (null)', name: 'Error', sanitized: 'true' };
+}
+
+/**
+ * Safely converts any error object to a simple object with string properties
+ * This prevents "Objects are not valid as React child" errors
+ */
+export function sanitizeErrorObject(error: unknown): SanitizedError {
+  // Default error object if input is undefined or null
+  if (!error) {
+    return {
+      message: 'Unknown error occurred',
+      name: 'Error',
+    };
   }
 
-  try {
-    // If it's already a string, just return a simple object
-    if (typeof error === 'string') {
-      return { message: error, name: 'Error', sanitized: 'true' };
+  // Handle Error instances
+  if (error instanceof Error) {
+    const result: SanitizedError = {
+      message: String(error.message || 'No message provided'),
+      name: String(error.name || 'Error'),
+    };
+
+    if (error.stack) {
+      result.stack = String(error.stack);
     }
 
-    // For errors or objects, create a sanitized version
-    const sanitized: { 
-      message: string;
-      name: string;
-      [key: string]: string | undefined;
-    } = {
-      message: 'Unknown error',
-      name: 'Error'
-    };
-    
-    // Process common error properties - ensure all values are strings
-    if (error.message) sanitized.message = String(error.message);
-    if (error.name) sanitized.name = String(error.name);
-    if (error.stack) sanitized.stack = String(error.stack);
-    if (error.code) sanitized.code = String(error.code);
-    if (error.fileName) sanitized.fileName = String(error.fileName);
-    if (error.lineNumber) sanitized.lineNumber = String(error.lineNumber);
-    if (error.columnNumber) sanitized.columnNumber = String(error.columnNumber);
-    if (error.timestamp) sanitized.timestamp = String(error.timestamp);
-    if (error.url) sanitized.url = String(error.url);
-    
-    // If the error has no standard properties, try to stringify it or add generic message
-    if (!sanitized.message || sanitized.message === 'Unknown error') {
-      try {
-        sanitized.message = JSON.stringify(error);
-      } catch {
-        sanitized.message = 'Unserializable error object';
+    // Handle custom properties that might exist on error objects
+    // Iterate through all properties and convert them to strings
+    for (const key in error) {
+      if (Object.prototype.hasOwnProperty.call(error, key) && 
+          key !== 'message' && key !== 'name' && key !== 'stack') {
+        // Safely convert any value to string, handle objects carefully
+        const value = (error as any)[key];
+        if (typeof value === 'object' && value !== null) {
+          try {
+            result[key] = JSON.stringify(value);
+          } catch (e) {
+            result[key] = String(value);
+          }
+        } else {
+          result[key] = String(value);
+        }
       }
     }
-    
-    sanitized.sanitized = 'true';
-    return sanitized;
-  } catch (e) {
-    // Fallback if anything goes wrong during sanitization
-    return { 
-      message: 'Error during sanitization', 
-      name: 'SanitizationError',
-      sanitizationError: String(e),
-      sanitized: 'true'
+
+    return result;
+  }
+
+  // Handle string errors
+  if (typeof error === 'string') {
+    return {
+      message: error,
+      name: 'Error',
     };
   }
-}
 
-/**
- * Initialize site protection system with error handling
- */
-export function initProtectionSystem() {
-  const system = {
-    initialized: true,
-    checkHealth: () => {
-      console.log('[Health] Running site health check');
-      return true;
-    },
-    recover: () => {
-      console.log('[Health] Running recovery procedure');
-      return true;
-    }
-  };
-  
-  return system;
-}
+  // Handle object errors that aren't Error instances
+  if (typeof error === 'object' && error !== null) {
+    const result: SanitizedError = {
+      message: String((error as any).message || 'Unknown error'),
+      name: String((error as any).name || 'Error'),
+    };
 
-/**
- * Clear all captured errors and reset error state
- */
-export function clearAllErrors() {
-  console.log('[ErrorSystem] Clearing all errors');
-  
-  try {
-    // Clear errors from lovableChat if available
-    if (window.lovableChat && typeof window.lovableChat.clearErrors === 'function') {
-      window.lovableChat.clearErrors();
+    // Copy all properties as strings
+    for (const key in error) {
+      if (Object.prototype.hasOwnProperty.call(error, key)) {
+        const value = (error as any)[key];
+        if (typeof value === 'object' && value !== null) {
+          try {
+            result[key] = JSON.stringify(value);
+          } catch (e) {
+            result[key] = String(value);
+          }
+        } else {
+          result[key] = String(value);
+        }
+      }
     }
-    
-    // Dispatch clear errors event
-    window.dispatchEvent(new CustomEvent('lovable-clear-errors'));
-    
-    return true;
-  } catch (e) {
-    console.error('[ErrorSystem] Failed to clear errors:', e);
-    return false;
+
+    return result;
   }
+
+  // Handle any other type of error
+  return {
+    message: String(error),
+    name: 'Error',
+  };
 }
 
-export default {
-  sanitizeErrorObject,
-  initProtectionSystem,
-  clearAllErrors
-};
+/**
+ * Test function to verify that sanitizeErrorObject works as expected
+ */
+export function testSanitizeError(): void {
+  const testCases = [
+    new Error('Test error'),
+    { message: 'Object error', code: 500 },
+    'String error',
+    null,
+    undefined,
+    { complex: { nested: true, data: [1, 2, 3] } }
+  ];
+
+  console.group('Testing sanitizeErrorObject');
+  testCases.forEach((testCase, index) => {
+    const result = sanitizeErrorObject(testCase);
+    console.log(`Test case ${index}:`, result);
+    // Make sure all properties are strings
+    for (const key in result) {
+      console.assert(
+        typeof result[key] === 'string' || result[key] === undefined,
+        `Property ${key} should be a string or undefined, got ${typeof result[key]}`
+      );
+    }
+  });
+  console.groupEnd();
+}

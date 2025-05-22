@@ -2,7 +2,7 @@
 import * as React from 'react';
 
 // Helper function to safely define a property if it doesn't exist
-const safelyDefineProperty = (obj, prop, value) => {
+const safelyDefineProperty = (obj: any, prop: string, value: any) => {
   if (!obj[prop]) {
     try {
       Object.defineProperty(obj, prop, { 
@@ -11,7 +11,7 @@ const safelyDefineProperty = (obj, prop, value) => {
         writable: true
       });
     } catch (e) {
-      console.warn(`Could not define ${prop} on object: ${e.message}`);
+      console.warn(`Could not define ${prop} on object: ${(e as Error).message}`);
     }
   }
 };
@@ -22,11 +22,13 @@ export function ensureReactCompatibility(): void {
     try {
       // Create a full copy of React in the window if it doesn't exist
       if (!window.React) {
-        window.React = {};
+        // Use React as the base to ensure proper typing
+        window.React = {...React} as typeof React;
+        
         // Copy React properties
         for (const key in React) {
           if (Object.prototype.hasOwnProperty.call(React, key)) {
-            window.React[key] = React[key];
+            (window.React as any)[key] = React[key];
           }
         }
         console.log('Created window.React from React module');
@@ -48,19 +50,19 @@ export function ensureReactCompatibility(): void {
         createElement: React.createElement || function() {},
         createContext: React.createContext || function() {},
         Fragment: React.Fragment || Symbol('Fragment'),
-        useState: React.useState || function(initial) { return [initial, () => {}]; },
+        useState: React.useState || function(initial: any) { return [initial, () => {}]; },
         useEffect: React.useEffect || function() {},
         useContext: React.useContext || function() { return undefined; },
-        useRef: React.useRef || function(val) { return {current: val}; },
-        useReducer: React.useReducer || function(r, s) { return [s, () => {}]; },
-        useCallback: React.useCallback || function(fn) { return fn; },
-        useMemo: React.useMemo || function(fn) { return fn(); },
+        useRef: React.useRef || function(val: any) { return {current: val}; },
+        useReducer: React.useReducer || function(r: any, s: any) { return [s, () => {}]; },
+        useCallback: React.useCallback || function(fn: any) { return fn; },
+        useMemo: React.useMemo || function(fn: any) { return fn(); },
         useLayoutEffect: React.useLayoutEffect || function() {},
         useImperativeHandle: React.useImperativeHandle || function() {},
         useDebugValue: React.useDebugValue || function() {},
         useId: React.useId || function() { return Math.random().toString(36).slice(2); },
         Children: React.Children || {
-          map: (children, fn) => Array.isArray(children) ? children.map(fn) : children ? [fn(children)] : []
+          map: (children: any, fn: any) => Array.isArray(children) ? children.map(fn) : children ? [fn(children)] : []
         }
       };
       
@@ -74,7 +76,8 @@ export function ensureReactCompatibility(): void {
       // Log success
       console.log('React patches applied successfully with React 18.3.1 compatibility');
     } catch (error) {
-      console.error('Error applying React patches:', error);
+      const err = error instanceof Error ? error : new Error(String(error));
+      console.error('Error applying React patches:', err);
     }
   }
 }

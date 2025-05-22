@@ -48,12 +48,15 @@ export {
 // Apply these to the global React object
 if (typeof window !== 'undefined') {
   // Initialize window.React with the React object itself
-  window.React = window.React || {};
+  if (!window.React) {
+    // Create a proper typed React object instead of an empty object
+    window.React = {...React} as typeof React;
+  }
   
   // Copy all properties from React to window.React
   for (const key in React) {
     if (Object.prototype.hasOwnProperty.call(React, key)) {
-      window.React[key] = React[key];
+      (window.React as any)[key] = React[key];
     }
   }
   
@@ -67,7 +70,7 @@ if (typeof window !== 'undefined') {
   };
   
   Object.entries(reactExports).forEach(([name, fn]) => {
-    if (!window.React[name]) {
+    if (!(window.React as any)[name]) {
       try {
         Object.defineProperty(window.React, name, {
           value: fn,
