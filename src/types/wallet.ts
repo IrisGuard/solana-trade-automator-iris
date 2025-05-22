@@ -1,4 +1,7 @@
 
+/**
+ * Interface representing a token in the wallet
+ */
 export interface Token {
   address: string;
   symbol: string;
@@ -7,9 +10,5 @@ export interface Token {
   decimals: number;
   mint: string;
   logo?: string;
-}
-
-export interface WalletBalance {
-  sol: number;
-  tokens: Token[];
+  price?: number; // Προσθέτουμε την ιδιότητα price ως προαιρετική
 }

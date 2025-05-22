@@ -68,7 +68,9 @@ export function useTradingBot(inputTokens: any[] = []) {
     const token = tokens.find(t => t.address === tokenAddress);
     if (token) {
       setSelectedTokenDetails(token);
-      setSelectedTokenPrice(token.price || null);
+      // Δεν χρησιμοποιούμε το token.price καθώς δεν είναι μέρος του τύπου Token
+      // Αντί αυτού, μπορούμε να το αναζητήσουμε από κάπου αλλού ή να το ορίσουμε null
+      setSelectedTokenPrice(null);
       updateConfig({ selectedToken: tokenAddress });
       console.log("Selected token:", token);
     }
