@@ -59,7 +59,7 @@ const reactFunctions = {
   // JSX runtime
   jsx: React?.createElement || function(type, props) { return null; },
   jsxs: React?.createElement || function(type, props) { return null; },
-  jsxDEV: React?.createElement || function() { return null; },
+  jsxDEV: React?.createElement || function(type, props) { return null; },
   
   // Other React APIs
   Children: React?.Children || {
