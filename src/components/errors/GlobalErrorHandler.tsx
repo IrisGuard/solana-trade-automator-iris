@@ -21,15 +21,16 @@ export function GlobalErrorHandler() {
         // Use getRecentErrors instead of getErrors to match implementation
         const allErrors = (errorCollector.getRecentErrors ? errorCollector.getRecentErrors() : errorCollector.getErrors()).map(e => {
           // Ensure error is an Error object with required properties
-          const sanitizedError = sanitizeErrorObject(e.error instanceof Error ? e.error : new Error('Unknown error'));
+          const errorObj = e.error instanceof Error ? e.error : new Error('Unknown error');
+          const sanitizedError = sanitizeErrorObject(errorObj);
           
           // Create a properly typed ErrorData object
           const typedErrorData: ErrorData = {
             id: `err_${e.timestamp || Date.now()}`,
-            error: sanitizedError,
+            error: errorObj, // Use the actual Error object, not the sanitized version
             timestamp: e.timestamp ? new Date(e.timestamp).toISOString() : new Date().toISOString(),
-            message: sanitizedError.message,
-            stack: sanitizedError.stack,
+            message: String(sanitizedError.message),
+            stack: String(sanitizedError.stack || ''),
             component: e.data?.component || null,
             source: e.data?.source || 'client',
             url: window.location.href,
@@ -59,9 +60,9 @@ export function GlobalErrorHandler() {
           setLastError(allErrors[0]);
         }
       } catch (error) {
-        // Sanitize any errors that occur during error processing
-        const sanitizedError = sanitizeErrorObject(error);
-        console.error("Error processing errors in GlobalErrorHandler:", sanitizedError);
+        // Handle any errors during error processing
+        const error2 = error instanceof Error ? error : new Error(String(error));
+        console.error("Error processing errors in GlobalErrorHandler:", error2);
       }
     };
     
@@ -97,9 +98,9 @@ export function GlobalErrorHandler() {
       
     } catch (e) {
       // Sanitize any errors that occur during error handling
-      const sanitizedError = sanitizeErrorObject(e);
-      console.error("Σφάλμα κατά την αποστολή του σφάλματος:", sanitizedError);
-      reportError(sanitizedError, {
+      const error2 = e instanceof Error ? e : new Error(String(e));
+      console.error("Σφάλμα κατά την αποστολή του σφάλματος:", error2);
+      reportError(error2, {
         component: 'GlobalErrorHandler',
         severity: 'low',
       });

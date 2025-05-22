@@ -40,16 +40,18 @@ function logError(error: Error, info: React.ErrorInfo) {
   // Sanitize the error object before passing it to errorCollector
   const sanitizedError = sanitizeErrorObject(error);
   
-  errorCollector.captureError(sanitizedError, {
+  // Ensure sanitizedError has name and message properties for ErrorData type compatibility
+  errorCollector.captureError(new Error(sanitizedError.message), {
     component: "AppContent",
     source: "app",
     details: { 
-      componentStack: info.componentStack
+      componentStack: info.componentStack,
+      originalError: sanitizedError
     },
     severity: 'high'
   });
   
-  captureException(sanitizedError);
+  captureException(new Error(sanitizedError.message));
 }
 
 export function AppContent() {

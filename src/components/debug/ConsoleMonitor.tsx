@@ -82,13 +82,15 @@ export function ConsoleMonitor() {
             const error = new Error(message);
             const sanitizedError = sanitizeErrorObject(error);
             
-            reportError(sanitizedError, {
+            reportError(new Error(sanitizedError.message), {
               component: 'ConsoleMonitor',
               source: 'client',
               severity: 'medium',
               showToast: true,
               toastTitle: "Σφάλμα εφαρμογής",
-              additional: sanitizedError.message.substring(0, 150) // Use 'additional' instead of 'toastDescription'
+              additional: typeof sanitizedError.message === 'string' ? 
+                sanitizedError.message.substring(0, 150) : 
+                String(sanitizedError.message).substring(0, 150) 
             });
           }
         }

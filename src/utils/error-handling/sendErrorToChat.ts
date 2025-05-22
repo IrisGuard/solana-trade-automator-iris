@@ -28,11 +28,11 @@ export function sendErrorToChat(error: Error | unknown, options: { component?: s
     
     // Create error detail object with only string values
     const errorData: Record<string, string> = {
-      name: sanitizedError.name,
-      message: sanitizedError.message,
-      stack: sanitizedError.stack,
-      timestamp: sanitizedError.timestamp,
-      url: sanitizedError.url,
+      name: String(sanitizedError.name || ''),
+      message: String(sanitizedError.message || ''),
+      stack: String(sanitizedError.stack || ''),
+      timestamp: String(sanitizedError.timestamp || ''),
+      url: String(sanitizedError.url || ''),
       component: options.component ? String(options.component) : 'unknown'
     };
 

@@ -10,20 +10,29 @@
  * @param error The error object to sanitize
  * @returns A sanitized version of the error object with safe-to-render values
  */
-export function sanitizeErrorObject(error: any): Record<string, string | number | boolean> {
+export function sanitizeErrorObject(error: any): Record<string, string | number | boolean> & { 
+  message: string;
+  name: string;
+} {
   // Handle null or undefined
   if (error == null) {
-    return { message: 'Unknown error (null)', sanitized: true };
+    return { message: 'Unknown error (null)', name: 'Error', sanitized: true };
   }
 
   try {
     // If it's already a string, just return a simple object
     if (typeof error === 'string') {
-      return { message: error, sanitized: true };
+      return { message: error, name: 'Error', sanitized: true };
     }
 
     // For errors or objects, create a sanitized version
-    const sanitized: Record<string, string | number | boolean> = {};
+    const sanitized: Record<string, string | number | boolean> & {
+      message: string;
+      name: string;
+    } = {
+      message: 'Unknown error',
+      name: 'Error'
+    };
     
     // Process common error properties
     if (error.message) sanitized.message = String(error.message);
@@ -37,7 +46,7 @@ export function sanitizeErrorObject(error: any): Record<string, string | number 
     if (error.url) sanitized.url = String(error.url);
     
     // If the error has no standard properties, try to stringify it or add generic message
-    if (Object.keys(sanitized).length === 0) {
+    if (!sanitized.message || sanitized.message === 'Unknown error') {
       try {
         sanitized.message = JSON.stringify(error);
       } catch {
@@ -51,6 +60,7 @@ export function sanitizeErrorObject(error: any): Record<string, string | number 
     // Fallback if anything goes wrong during sanitization
     return { 
       message: 'Error during sanitization', 
+      name: 'SanitizationError',
       sanitizationError: String(e),
       sanitized: true
     };
@@ -76,7 +86,36 @@ export function initProtectionSystem() {
   return system;
 }
 
+/**
+ * Clear all captured errors and reset error state
+ */
+export function clearAllErrors() {
+  console.log('[ErrorSystem] Clearing all errors');
+  
+  try {
+    // Clear errors from collector if available
+    const { errorCollector } = require('./error-handling/collector');
+    if (errorCollector && typeof errorCollector.clearErrors === 'function') {
+      errorCollector.clearErrors();
+    }
+    
+    // Clear errors from lovableChat if available
+    if (window.lovableChat && typeof window.lovableChat.clearErrors === 'function') {
+      window.lovableChat.clearErrors();
+    }
+    
+    // Dispatch clear errors event
+    window.dispatchEvent(new CustomEvent('lovable-clear-errors'));
+    
+    return true;
+  } catch (e) {
+    console.error('[ErrorSystem] Failed to clear errors:', e);
+    return false;
+  }
+}
+
 export default {
   sanitizeErrorObject,
-  initProtectionSystem
+  initProtectionSystem,
+  clearAllErrors
 };
