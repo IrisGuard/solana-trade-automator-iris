@@ -5,11 +5,12 @@
  */
 import * as React from 'react';
 
-// Define JSX runtime functions using React's createElement
-const jsx = React.createElement;
-const jsxs = React.createElement;
-const jsxDEV = React.createElement;
-const Fragment = React.Fragment;
+// Define JSX runtime functions using React's createElement function
+// Access it safely with property access instead of destructuring
+const jsx = React?.createElement;
+const jsxs = React?.createElement;
+const jsxDEV = React?.createElement;
+const Fragment = React?.Fragment || Symbol('Fragment');
 
 // Export all the functions
 export {

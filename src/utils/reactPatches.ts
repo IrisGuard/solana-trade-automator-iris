@@ -23,22 +23,15 @@ export function ensureReactCompatibility(): void {
       // Create a full copy of React in the window if it doesn't exist
       if (!window.React) {
         // Use React as the base to ensure proper typing
-        window.React = {...React} as typeof React;
-        
-        // Copy React properties
-        for (const key in React) {
-          if (Object.prototype.hasOwnProperty.call(React, key)) {
-            (window.React as any)[key] = React[key];
-          }
-        }
+        window.React = Object.create(React);
         console.log('Created window.React from React module');
       }
       
       // Create JSX functions aliases
       const jsxFunctions = {
-        jsx: React.createElement || function() {}, 
-        jsxs: React.createElement || function() {},
-        jsxDEV: React.createElement || function() {}
+        jsx: React?.createElement, 
+        jsxs: React?.createElement,
+        jsxDEV: React?.createElement
       };
       
       Object.entries(jsxFunctions).forEach(([key, value]) => {
@@ -47,21 +40,21 @@ export function ensureReactCompatibility(): void {
       
       // Make sure all essential React functions are available
       const essentialReactFunctions = {
-        createElement: React.createElement || function() {},
-        createContext: React.createContext || function() {},
-        Fragment: React.Fragment || Symbol('Fragment'),
-        useState: React.useState || function(initial: any) { return [initial, () => {}]; },
-        useEffect: React.useEffect || function() {},
-        useContext: React.useContext || function() { return undefined; },
-        useRef: React.useRef || function(val: any) { return {current: val}; },
-        useReducer: React.useReducer || function(r: any, s: any) { return [s, () => {}]; },
-        useCallback: React.useCallback || function(fn: any) { return fn; },
-        useMemo: React.useMemo || function(fn: any) { return fn(); },
-        useLayoutEffect: React.useLayoutEffect || function() {},
-        useImperativeHandle: React.useImperativeHandle || function() {},
-        useDebugValue: React.useDebugValue || function() {},
-        useId: React.useId || function() { return Math.random().toString(36).slice(2); },
-        Children: React.Children || {
+        createElement: React?.createElement,
+        createContext: React?.createContext,
+        Fragment: React?.Fragment || Symbol('Fragment'),
+        useState: React?.useState || function(initial: any) { return [initial, () => {}]; },
+        useEffect: React?.useEffect || function() {},
+        useContext: React?.useContext || function() { return undefined; },
+        useRef: React?.useRef || function(val: any) { return {current: val}; },
+        useReducer: React?.useReducer || function(r: any, s: any) { return [s, () => {}]; },
+        useCallback: React?.useCallback || function(fn: any) { return fn; },
+        useMemo: React?.useMemo || function(fn: any) { return fn(); },
+        useLayoutEffect: React?.useLayoutEffect || function() {},
+        useImperativeHandle: React?.useImperativeHandle || function() {},
+        useDebugValue: React?.useDebugValue || function() {},
+        useId: React?.useId || function() { return Math.random().toString(36).slice(2); },
+        Children: React?.Children || {
           map: (children: any, fn: any) => Array.isArray(children) ? children.map(fn) : children ? [fn(children)] : []
         }
       };

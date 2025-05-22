@@ -18,17 +18,17 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       react({
         // Use options that are actually supported by the SWC React plugin
         tsDecorators: true,
-        // Use our custom JSX runtime with hooks
-        jsxImportSource: "react",
+        // Use the default JSX runtime that comes with React
+        jsxImportSource: undefined,
       }),
       mode === 'development' && componentTagger(),
     ].filter(Boolean) as PluginOption[],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
-        // Fix JSX runtime issue with CORRECT absolute paths
-        'react/jsx-runtime': path.resolve(__dirname, "./src/jsx-runtime-bridge.ts"),
-        'react/jsx-dev-runtime': path.resolve(__dirname, "./src/jsx-runtime-bridge.ts"),
+        // Custom bridge to fix React 18.3.1 compatibility issues
+        'react/jsx-runtime': path.resolve(__dirname, "./src/react-compatibility.ts"),
+        'react/jsx-dev-runtime': path.resolve(__dirname, "./src/react-compatibility.ts"),
         // Add explicit references to React hooks modules
         'react-router-dom': path.resolve(__dirname, "./node_modules/react-router-dom"),
         'react': path.resolve(__dirname, "./node_modules/react"),
@@ -80,9 +80,6 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         'react',
         'react-dom',
         'react-router-dom',
-        // Include specific hooks that are causing issues
-        'react/jsx-runtime',
-        'react/jsx-dev-runtime'
       ],
       // Force optimization of problematic dependencies
       force: true,
@@ -100,14 +97,14 @@ export default defineConfig(({ mode }: ConfigEnv) => {
           // Enable rollup polyfills plugin
           rollupNodePolyFill() as any,
         ],
-        // IMPORTANT: Remove React from external to ensure proper bundling
-        external: ['process/browser'],
+        // Configure externals to improve compatibility
+        external: [],
         onwarn(warning, warn) {
           if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
             return;
           }
           // Ignore "mixed named/default exports" warning for React 18.3.1
-          if (warning.code === 'MIXED_EXPORTS' && 
+          if ((warning.code === 'MIXED_EXPORTS' || warning.code === 'CIRCULAR_DEPENDENCY') && 
               warning.id && 
               (warning.id.includes('react') || warning.id.includes('jsx-runtime'))) {
             return;

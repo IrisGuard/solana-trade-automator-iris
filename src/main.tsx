@@ -1,6 +1,6 @@
 
 // Import React 18.3.1 compatibility layer first - this is most critical
-import './react-runtime';
+import './react-compatibility';
 
 // Import polyfills and patches
 import './polyfills';
