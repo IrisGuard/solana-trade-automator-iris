@@ -3,11 +3,11 @@ import { useState, useEffect, useCallback } from '../../react-compatibility';
 import { toast } from 'sonner';
 
 export function usePriceSubscription(tokenAddress: string | null, isActive: boolean) {
-  const [currentPrice, setCurrentPrice] = useState<number | null>(null);
-  const [priceHistory, setPriceHistory] = useState<{ price: number; timestamp: number }[]>([]);
+  const [currentPrice, setCurrentPrice] = useState(null);
+  const [priceHistory, setPriceHistory] = useState([]);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   
   // Subscribe to price updates
   const subscribe = useCallback(() => {

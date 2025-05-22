@@ -25,7 +25,7 @@ const DEFAULT_CONFIG: TradingBotConfig = {
  * Hook για τη διαχείριση της διαμόρφωσης του trading bot
  */
 export function useConfig() {
-  const [config, setConfig] = useState<TradingBotConfig>(DEFAULT_CONFIG);
+  const [config, setConfig] = useState(DEFAULT_CONFIG);
   
   // Ενημερώνει τις ρυθμίσεις του bot
   const updateConfig = useCallback((newConfig: Partial<TradingBotConfig>) => {
