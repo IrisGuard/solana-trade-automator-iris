@@ -1,11 +1,11 @@
-
 import { defineConfig, type ConfigEnv, type PluginOption } from "vite";
-import react from "@vitejs/plugin-react-swc";
+import react from "@vitejs/plugin-react";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
 import rollupNodePolyFill from 'rollup-plugin-node-polyfills';
 import { createRequire } from 'module';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }: ConfigEnv) => {
@@ -16,11 +16,8 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       port: 8080,
     },
     plugins: [
-      react({
-        // Use options that are actually supported by the SWC React plugin
-        tsDecorators: true,
-        // Removed jsxRuntime as it's not a valid option in this version
-      }),
+      react(),
+      nodePolyfills(),
       mode === 'development' && componentTagger(),
     ].filter(Boolean) as PluginOption[],
     resolve: {
@@ -32,9 +29,9 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         // Fix polyfill path issues - explicitly map each required polyfill
         buffer: 'buffer/',
         // Fix the process polyfill path - important change
-        process: 'process', 
+        process: 'process/browser',
         stream: 'stream-browserify',
-        util: 'util/',
+        util: 'util',
         crypto: 'crypto-browserify',
         assert: 'assert/',
         // Add React alias to ensure consistent version
@@ -84,6 +81,8 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       force: true,
     },
     build: {
+      outDir: 'dist',
+      sourcemap: true,
       commonjsOptions: {
         transformMixedEsModules: true,
         // Improve CommonJS handling for React
