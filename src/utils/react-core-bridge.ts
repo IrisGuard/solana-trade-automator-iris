@@ -6,12 +6,12 @@
 import * as React from 'react';
 
 // Core React functionality with fallbacks
-const createElement = React.createElement || function() {};
+const createElement = React.createElement || function(type, props) { return null; };
 const Fragment = React.Fragment || Symbol('React.Fragment');
-const createContext = React.createContext || function() {}; 
+const createContext = React.createContext || function(defaultValue) { return { Provider: () => null, Consumer: () => null }; };
 
 // Essential React hooks with fallbacks
-const useState = React.useState || function() { return [undefined, () => {}]; };
+const useState = React.useState || function(initialValue) { return [initialValue, () => {}]; };
 const useEffect = React.useEffect || function() {};
 const useContext = React.useContext || function() { return undefined; };
 const useRef = React.useRef || function(value) { return {current: value}; };
@@ -21,9 +21,9 @@ const useMemo = React.useMemo || function(fn) { return fn(); };
 const useLayoutEffect = React.useLayoutEffect || function() {};
 
 // JSX runtime aliases
-const jsx = React.createElement || function() {};
-const jsxs = React.createElement || function() {};
-const jsxDEV = React.createElement || function() {};
+const jsx = React.createElement || function(type, props) { return null; };
+const jsxs = React.createElement || function(type, props) { return null; };
+const jsxDEV = React.createElement || function(type, props) { return null; };
 
 // Export all functions
 export {

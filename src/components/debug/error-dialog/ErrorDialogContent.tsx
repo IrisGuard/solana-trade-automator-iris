@@ -22,9 +22,9 @@ export function ErrorDialogContent({ error, onClose, errorCode }: ErrorDialogCon
     new Date().toLocaleString();
   
   // Ensure all values are strings
-  const stackTrace = safeError.stack || 'No stack trace available';
-  const errorMessage = safeError.message || 'Unknown error';
-  const errorUrl = safeError.url || window.location.href;
+  const stackTrace = String(safeError.stack || 'No stack trace available');
+  const errorMessage = String(safeError.message || 'Unknown error');
+  const errorUrl = String(safeError.url || window.location.href);
   
   return (
     <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden">
