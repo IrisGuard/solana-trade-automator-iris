@@ -2,6 +2,7 @@
 import { useState, useCallback } from '../../react-compatibility';
 import { toast } from 'sonner';
 import { BotActionStatus } from './types';
+import { sanitizeErrorObject } from '@/utils/errorTestUtils';
 
 export function useBotActions() {
   const [status, setStatus] = useState('idle');
@@ -22,7 +23,8 @@ export function useBotActions() {
       toast.success('Bot started successfully');
       return true;
     } catch (error) {
-      console.error('Failed to start bot:', error);
+      const safeError = sanitizeErrorObject(error);
+      console.error('Failed to start bot:', safeError.message);
       setStatus('error');
       toast.error('Failed to start bot');
       return false;
@@ -44,7 +46,8 @@ export function useBotActions() {
       toast.success('Bot paused successfully');
       return true;
     } catch (error) {
-      console.error('Failed to pause bot:', error);
+      const safeError = sanitizeErrorObject(error);
+      console.error('Failed to pause bot:', safeError.message);
       setStatus('error');
       toast.error('Failed to pause bot');
       return false;
@@ -66,7 +69,8 @@ export function useBotActions() {
       toast.success('Bot stopped successfully');
       return true;
     } catch (error) {
-      console.error('Failed to stop bot:', error);
+      const safeError = sanitizeErrorObject(error);
+      console.error('Failed to stop bot:', safeError.message);
       setStatus('error');
       toast.error('Failed to stop bot');
       return false;

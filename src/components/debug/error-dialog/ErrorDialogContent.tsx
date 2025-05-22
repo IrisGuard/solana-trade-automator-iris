@@ -4,16 +4,10 @@ import { Button } from '@/components/ui/button';
 import { DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { sanitizeErrorObject } from '@/utils/errorTestUtils';
+import { sanitizeErrorObject, SanitizedError } from '@/utils/errorTestUtils';
 
 interface ErrorDialogContentProps {
-  error: {
-    message?: string | unknown;
-    stack?: string | unknown;
-    timestamp?: string | unknown;
-    url?: string | unknown;
-    [key: string]: any;
-  };
+  error: SanitizedError | unknown;
   onClose: () => void;
   errorCode?: string;
 }
