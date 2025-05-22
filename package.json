@@ -81,6 +81,7 @@
     "util": "^0.12.5",
     "uuid": "^9.0.1",
     "vaul": "^0.8.0",
+    "vite-plugin-node-polyfills": "^0.19.0",
     "zod": "^3.22.4",
     "zxcvbn": "^4.4.2"
   },
