@@ -1,6 +1,9 @@
 
 // This file creates a compatibility layer for React
-import React, { 
+import * as React from 'react';
+
+// Extract components and hooks we need directly
+const {
   useState,
   useEffect,
   useCallback,
@@ -14,9 +17,10 @@ import React, {
   createElement,
   Fragment,
   Children
-} from 'react';
+} = React;
 
-let _React: any = React;
+// Store React in a variable for compatibility with code expecting default import
+let _React = React;
 
 // JSX Runtime functions
 export const jsx = React.createElement || createElement;
