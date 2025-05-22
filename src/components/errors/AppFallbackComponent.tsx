@@ -9,7 +9,8 @@ interface AppFallbackComponentProps {
 
 export function AppFallbackComponent({ error, resetErrorBoundary }: AppFallbackComponentProps) {
   // Make sure error is properly stringified
-  const errorMessage = error ? String(error.message || 'Unknown error') : 'Unknown application error';
+  const sanitizedError = error ? sanitizeErrorObject(error) : { message: 'Unknown application error', name: 'Error' };
+  const errorMessage = sanitizedError.message;
   
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">

@@ -1,6 +1,8 @@
 
 import { heliusKeyManager } from './HeliusKeyManager';
 import { HELIUS_RPC_URL, HELIUS_API_BASE_URL } from './HeliusConfig';
+import { sanitizeErrorObject } from '@/utils/errorTestUtils';
+import { toast } from 'sonner';
 
 class HeliusService {
   private initialized = false;
@@ -16,7 +18,8 @@ class HeliusService {
       this.initialized = true;
       console.log('HeliusService initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize HeliusService:', error);
+      const sanitizedError = sanitizeErrorObject(error);
+      console.error('Failed to initialize HeliusService:', sanitizedError.message);
       this.initialized = false;
     }
   }
@@ -52,7 +55,8 @@ class HeliusService {
 
       return await response.json();
     } catch (error) {
-      console.error(`Error making Helius API request to ${endpoint}:`, error);
+      const sanitizedError = sanitizeErrorObject(error);
+      console.error(`Error making Helius API request to ${endpoint}:`, sanitizedError.message);
       throw error;
     }
   }
@@ -62,8 +66,12 @@ class HeliusService {
       const response = await this.makeApiRequest('token-balances', { address });
       return response.tokens || [];
     } catch (error) {
-      console.error('Error fetching token balances:', error);
-      throw error;
+      const sanitizedError = sanitizeErrorObject(error);
+      console.error('Error fetching token balances:', sanitizedError.message);
+      toast.error('Σφάλμα κατά την ανάκτηση υπολοίπων token', {
+        description: sanitizedError.message
+      });
+      return [];
     }
   }
 
@@ -72,8 +80,12 @@ class HeliusService {
       const response = await this.makeApiRequest('token-metadata', { mintAccounts: addresses });
       return response || [];
     } catch (error) {
-      console.error('Error fetching token metadata:', error);
-      throw error;
+      const sanitizedError = sanitizeErrorObject(error);
+      console.error('Error fetching token metadata:', sanitizedError.message);
+      toast.error('Σφάλμα κατά την ανάκτηση metadata token', {
+        description: sanitizedError.message
+      });
+      return [];
     }
   }
 
@@ -93,7 +105,8 @@ class HeliusService {
 
       return response.ok;
     } catch (error) {
-      console.error('Error checking API key:', error);
+      const sanitizedError = sanitizeErrorObject(error);
+      console.error('Error checking API key:', sanitizedError.message);
       return false;
     }
   }
@@ -120,7 +133,8 @@ class HeliusService {
       const data = await response.json();
       return data || [];
     } catch (error) {
-      console.error("Error fetching transaction history:", error);
+      const sanitizedError = sanitizeErrorObject(error);
+      console.error("Error fetching transaction history:", sanitizedError.message);
       return [];
     }
   }

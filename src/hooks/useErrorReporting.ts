@@ -1,4 +1,6 @@
 
+import { sanitizeErrorObject } from '@/utils/errorTestUtils';
+
 interface ErrorContext {
   component?: string;
   source?: string;
@@ -7,7 +9,7 @@ interface ErrorContext {
   severity?: 'low' | 'medium' | 'high' | 'critical';
   showToast?: boolean;
   toastTitle?: string;
-  toastDescription?: string; // Added this property
+  toastDescription?: string;
   showUI?: boolean;
   sendToChat?: boolean;
   useCollector?: boolean;
@@ -16,9 +18,12 @@ interface ErrorContext {
 
 export function useErrorReporting() {
   const reportError = (error: unknown, context?: ErrorContext) => {
-    // Extract meaningful information from the error
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    const errorStack = error instanceof Error ? error.stack : undefined;
+    // Sanitize the error to ensure it's safe for display and logging
+    const sanitizedError = sanitizeErrorObject(error);
+    
+    // Extract meaningful information from the sanitized error
+    const errorMessage = sanitizedError.message;
+    const errorStack = sanitizedError.stack;
     
     // Log to console with context
     console.error('Error reported:', {

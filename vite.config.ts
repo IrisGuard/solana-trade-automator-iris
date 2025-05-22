@@ -27,8 +27,8 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       alias: {
         "@": path.resolve(__dirname, "./src"),
         // Fix JSX runtime issue with CORRECT absolute paths
-        'react/jsx-runtime': path.resolve(__dirname, "./src/utils/react-core-bridge.ts"),
-        'react/jsx-dev-runtime': path.resolve(__dirname, "./src/utils/react-core-bridge.ts"),
+        'react/jsx-runtime': path.resolve(__dirname, "./src/jsx-runtime-bridge.ts"),
+        'react/jsx-dev-runtime': path.resolve(__dirname, "./src/jsx-runtime-bridge.ts"),
         // Add explicit references to React hooks modules
         'react-router-dom': path.resolve(__dirname, "./node_modules/react-router-dom"),
         'react': path.resolve(__dirname, "./node_modules/react"),
@@ -104,6 +104,12 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         external: ['process/browser'],
         onwarn(warning, warn) {
           if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
+            return;
+          }
+          // Ignore "mixed named/default exports" warning for React 18.3.1
+          if (warning.code === 'MIXED_EXPORTS' && 
+              warning.id && 
+              (warning.id.includes('react') || warning.id.includes('jsx-runtime'))) {
             return;
           }
           warn(warning);

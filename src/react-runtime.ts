@@ -2,30 +2,28 @@
 // This file creates a compatibility layer for React
 import * as React from 'react';
 
-// Extract components and hooks we need directly
-const {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  useRef,
-  useContext,
-  createContext,
-  useReducer,
-  useLayoutEffect,
-  useId,
-  Fragment,
-  Children
-} = React;
-
 // Store React in a variable for compatibility with code expecting default import
-let _React = React;
+const _React = React;
+
+// Extract components and hooks we need directly
+const useState = React.useState || function() { return [undefined, () => {}]; };
+const useEffect = React.useEffect || function() {};
+const useCallback = React.useCallback || function(fn) { return fn; };
+const useMemo = React.useMemo || function(fn) { return fn(); };
+const useRef = React.useRef || function(val) { return {current: val}; };
+const useContext = React.useContext || function() { return undefined; };
+const createContext = React.createContext || function() {};
+const useReducer = React.useReducer || function(r, i) { return [i, () => {}]; };
+const useLayoutEffect = React.useLayoutEffect || React.useEffect || function() {};
+const useId = React.useId || function() { return Math.random().toString(36).substring(7); };
+const Fragment = React.Fragment || Symbol('Fragment');
+const Children = React.Children;
 
 // JSX Runtime functions
-export const jsx = React.createElement || function() {};
-export const jsxs = React.createElement || function() {};
-export const jsxDEV = React.createElement || function() {};
-export const jsxsDEV = React.createElement || function() {};
+const jsx = React.createElement || function() {};
+const jsxs = React.createElement || function() {};
+const jsxDEV = React.createElement || function() {};
+const jsxsDEV = React.createElement || function() {};
 
 // For compatibility with older code
 export {
@@ -40,7 +38,11 @@ export {
   useId,
   createContext,
   Fragment,
-  Children
+  Children,
+  jsx,
+  jsxs,
+  jsxDEV,
+  jsxsDEV
 };
 
 // Additional hooks that might be needed

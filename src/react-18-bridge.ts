@@ -27,10 +27,10 @@ const useTransition = React.useTransition || function() { return [false, functio
 
 // Core React functions
 const Fragment = React.Fragment || Symbol('React.Fragment');
-const createElement = React.createElement;
-const createContext = React.createContext;
-const forwardRef = React.forwardRef;
-const memo = React.memo;
+const createElement = React.createElement || function() {};
+const createContext = React.createContext || function() {};
+const forwardRef = React.forwardRef || function(r) { return r; };
+const memo = React.memo || function(c) { return c; };
 
 // Create JSX runtime function exports that use createElement directly
 const jsx = createElement;
@@ -48,7 +48,14 @@ export {
 // Apply these to the global React object
 if (typeof window !== 'undefined') {
   // Initialize window.React with the React object itself
-  window.React = window.React || React;
+  window.React = window.React || {};
+  
+  // Copy all properties from React to window.React
+  for (const key in React) {
+    if (Object.prototype.hasOwnProperty.call(React, key)) {
+      window.React[key] = React[key];
+    }
+  }
   
   // Apply hooks
   const reactExports = {

@@ -5,25 +5,43 @@
  */
 import * as React from 'react';
 
-// Core React functionality
-export const createElement = React.createElement;
-export const Fragment = React.Fragment;
-export const createContext = React.createContext; 
+// Core React functionality with fallbacks
+const createElement = React.createElement || function() {};
+const Fragment = React.Fragment || Symbol('React.Fragment');
+const createContext = React.createContext || function() {}; 
 
-// Essential React hooks
-export const useState = React.useState;
-export const useEffect = React.useEffect;
-export const useContext = React.useContext;
-export const useRef = React.useRef;
-export const useReducer = React.useReducer;
-export const useCallback = React.useCallback;
-export const useMemo = React.useMemo;
-export const useLayoutEffect = React.useLayoutEffect;
+// Essential React hooks with fallbacks
+const useState = React.useState || function() { return [undefined, () => {}]; };
+const useEffect = React.useEffect || function() {};
+const useContext = React.useContext || function() { return undefined; };
+const useRef = React.useRef || function(value) { return {current: value}; };
+const useReducer = React.useReducer || function(r, i) { return [i, () => {}]; };
+const useCallback = React.useCallback || function(fn) { return fn; };
+const useMemo = React.useMemo || function(fn) { return fn(); };
+const useLayoutEffect = React.useLayoutEffect || function() {};
 
 // JSX runtime aliases
-export const jsx = React.createElement;
-export const jsxs = React.createElement;
-export const jsxDEV = React.createElement;
+const jsx = React.createElement || function() {};
+const jsxs = React.createElement || function() {};
+const jsxDEV = React.createElement || function() {};
+
+// Export all functions
+export {
+  createElement,
+  Fragment,
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useRef,
+  useReducer,
+  useCallback,
+  useMemo,
+  useLayoutEffect,
+  jsx,
+  jsxs,
+  jsxDEV
+};
 
 // Log initialization
 console.log('React Core Bridge initialized');

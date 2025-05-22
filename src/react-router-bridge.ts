@@ -6,7 +6,10 @@
  */
 
 // Import our React hooks directly from React
-import React, { 
+import * as React from 'react';
+
+// Extract all needed functions from React
+const { 
   useState, 
   useEffect, 
   useRef, 
@@ -18,7 +21,7 @@ import React, {
   useId,
   createElement,
   Fragment
-} from 'react';
+} = React;
 
 // Import React Router
 import * as ReactRouter from 'react-router-dom';
@@ -77,7 +80,14 @@ if (typeof window !== 'undefined') {
   
   // Create window.React if it doesn't exist
   if (!window.React) {
-    window.React = Object.create(React);
+    window.React = Object.create({});
+    
+    // Copy all properties from React to window.React
+    for (const key in React) {
+      if (Object.prototype.hasOwnProperty.call(React, key)) {
+        window.React[key] = React[key];
+      }
+    }
   }
   
   // Add all required hooks to window.React
@@ -85,7 +95,6 @@ if (typeof window !== 'undefined') {
     if (!window.React[hookName] && hook) {
       try {
         window.React[hookName] = hook;
-        console.log(`[RouterBridge] Added ${hookName} to global React`);
       } catch (e) {
         console.warn(`[RouterBridge] Failed to add ${hookName}: ${e.message}`);
       }
