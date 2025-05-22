@@ -20,22 +20,23 @@ export class ErrorCollector {
     
     const errorId = this.generateErrorId();
     
+    // Ensure all properties are strings to avoid rendering issues
     const errorData: ErrorData = {
       id: errorId,
       error: errorObj,
-      message: errorMessage,
-      stack: errorStack || null,
+      message: String(errorMessage || 'Unknown error'),
+      stack: errorStack ? String(errorStack) : null,
       timestamp: new Date().toISOString(),
-      component: options.component || null,
-      source: options.source || 'client',
+      component: options.component ? String(options.component) : null,
+      source: options.source ? String(options.source) : 'client',
       url: window.location.href,
       browserInfo: this.getBrowserInfo(),
-      errorCode: options.errorCode || null,
-      context: options.context || null,
+      errorCode: options.errorCode ? String(options.errorCode) : null,
+      context: options.context ? String(options.context) : null,
       metadata: options.metadata || null,
       status: options.status || null,
-      errorId: options.errorId || null,
-      errorType: options.errorType,
+      errorId: options.errorId ? String(options.errorId) : null,
+      errorType: options.errorType ? String(options.errorType) : undefined,
       details: options.details,
       severity: options.severity || 'medium',
       options: options

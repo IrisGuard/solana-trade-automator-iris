@@ -1,5 +1,6 @@
 
 import React from "react";
+import { sanitizeErrorObject } from "@/utils/errorTestUtils";
 
 interface AppFallbackComponentProps {
   error?: Error;

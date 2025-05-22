@@ -1,6 +1,6 @@
 
 // This file creates a compatibility layer for React
-import React from 'react';
+import * as React from 'react';
 
 // Extract components and hooks we need directly
 const {

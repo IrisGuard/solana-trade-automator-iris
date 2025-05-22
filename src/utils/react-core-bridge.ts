@@ -3,7 +3,7 @@
  * Core React functionality bridge for React 18.3.1
  * Provides simplified, reliable access to essential React features
  */
-import React from 'react';
+import * as React from 'react';
 
 // Core React functionality
 export const createElement = React.createElement;
