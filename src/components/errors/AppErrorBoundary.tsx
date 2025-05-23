@@ -42,7 +42,7 @@ export function AppErrorBoundary({ children, fallbackComponent }: AppErrorBounda
       component: 'AppErrorBoundary',
       sendToChat: true,
       useCollector: true,
-      severity: isNetworkError ? 'high' : 'critical',
+      severity: isNetworkError ? 'high' : 'high', // Changed from 'critical' to 'high'
       details: {
         componentStack: info.componentStack,
         errorType: isNetworkError ? 'network' : 

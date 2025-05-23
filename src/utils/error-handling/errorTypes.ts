@@ -1,34 +1,9 @@
 
-// Define common error types to be used throughout the application
+export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
 
-export interface BotError extends Error {
-  code?: string;
-  status?: number;
-  source?: string;
+export interface ErrorContext {
   component?: string;
-  metadata?: {
-    rpcEndpoint?: string;
-    timestamp?: number;
-    tokenAddress?: string;
-    walletAddress?: string;
-    [key: string]: any;
-  };
+  source?: string;
+  details?: any;
+  severity?: ErrorSeverity;
 }
-
-export enum ErrorSource {
-  CLIENT = 'client',
-  SERVER = 'server',
-  BLOCKCHAIN = 'blockchain',
-  API = 'api'
-}
-
-export enum ErrorSeverity {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  CRITICAL = 'critical'
-}
-
-// Import RPC_ENDPOINTS from constants instead of defining here
-import { RPC_ENDPOINTS } from './constants';
-export { RPC_ENDPOINTS };

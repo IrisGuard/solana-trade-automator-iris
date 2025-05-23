@@ -37,13 +37,12 @@ export function ErrorDashboard() {
   const getBadgeVariant = (severity?: ErrorSeverity | string) => {
     switch (severity) {
       case 'critical':
-        return 'destructive';
       case 'high':
         return 'destructive';
       case 'medium':
-        return 'warning';
-      case 'low':
         return 'secondary';
+      case 'low':
+        return 'outline';
       default:
         return 'outline';
     }
@@ -69,7 +68,7 @@ export function ErrorDashboard() {
       return (
         <div className="text-center py-10 text-muted-foreground">
           <Info className="h-12 w-12 mx-auto mb-3 opacity-20" />
-          <p>{t("errors.noErrorsFound")}</p>
+          <p>{t("Δεν βρέθηκαν σφάλματα")}</p>
         </div>
       );
     }
@@ -99,7 +98,7 @@ export function ErrorDashboard() {
               
               {error.resolved && (
                 <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                  {t("errors.resolved")}
+                  {t("Επιλύθηκε")}
                 </Badge>
               )}
             </div>
@@ -113,22 +112,22 @@ export function ErrorDashboard() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">{t("errors.errorDashboard")}</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t("Πίνακας Σφαλμάτων")}</h2>
           <p className="text-muted-foreground">
-            {t("errors.errorDashboardDescription")}
+            {t("Παρακολούθηση και διαχείριση σφαλμάτων εφαρμογής")}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="text-sm py-1.5">
-            {totalErrors} {t("errors.totalErrors")}
+            {totalErrors} {t("Σύνολο σφαλμάτων")}
           </Badge>
           <Button variant="outline" size="sm" onClick={refreshErrors}>
             <RefreshCw className="h-4 w-4 mr-2" />
-            {t("errors.refresh")}
+            {t("Ανανέωση")}
           </Button>
           <Button variant="outline" size="sm" onClick={() => clearErrors(selectedTab)}>
             <Trash2 className="h-4 w-4 mr-2" />
-            {t("errors.clearErrors")}
+            {t("Καθαρισμός σφαλμάτων")}
           </Button>
         </div>
       </div>
@@ -137,28 +136,28 @@ export function ErrorDashboard() {
         <TabsList className="grid grid-cols-4 md:w-[600px]">
           <TabsTrigger value="application">
             <AlertCircle className="h-4 w-4 mr-2" />
-            {t("errors.application")}
+            {t("Εφαρμογή")}
             {applicationErrors.length > 0 && (
               <Badge variant="secondary" className="ml-2">{applicationErrors.length}</Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="network">
             <Wifi className="h-4 w-4 mr-2" />
-            {t("errors.network")}
+            {t("Δίκτυο")}
             {networkErrors.length > 0 && (
               <Badge variant="secondary" className="ml-2">{networkErrors.length}</Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="console">
             <Terminal className="h-4 w-4 mr-2" />
-            {t("errors.console")}
+            {t("Κονσόλα")}
             {consoleErrors.length > 0 && (
               <Badge variant="secondary" className="ml-2">{consoleErrors.length}</Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="database">
             <Database className="h-4 w-4 mr-2" />
-            {t("errors.database")}
+            {t("Βάση δεδομένων")}
             {databaseErrors.length > 0 && (
               <Badge variant="secondary" className="ml-2">{databaseErrors.length}</Badge>
             )}
@@ -168,9 +167,9 @@ export function ErrorDashboard() {
         <div className="grid md:grid-cols-3 gap-4">
           <Card className="md:col-span-2">
             <CardHeader className="pb-3">
-              <CardTitle>{t("errors.errorList")}</CardTitle>
+              <CardTitle>{t("Λίστα σφαλμάτων")}</CardTitle>
               <CardDescription>
-                {t("errors.selectErrorForDetails")}
+                {t("Επιλέξτε σφάλμα για περισσότερες λεπτομέρειες")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -182,32 +181,32 @@ export function ErrorDashboard() {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle>{t("errors.details")}</CardTitle>
+              <CardTitle>{t("Λεπτομέρειες")}</CardTitle>
               <CardDescription>
                 {selectedError 
-                  ? t("errors.errorDetails") 
-                  : t("errors.noErrorSelected")}
+                  ? t("Λεπτομέρειες σφάλματος") 
+                  : t("Δεν έχει επιλεγεί σφάλμα")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {selectedError ? (
                 <div className="space-y-4">
                   <div>
-                    <div className="text-sm font-medium">{t("errors.message")}</div>
+                    <div className="text-sm font-medium">{t("Μήνυμα")}</div>
                     <div className="mt-1 p-2 bg-muted rounded-md text-sm">
-                      {selectedError.message || t("errors.unknownError")}
+                      {selectedError.message || t("Άγνωστο σφάλμα")}
                     </div>
                   </div>
                   
                   <div>
-                    <div className="text-sm font-medium">{t("errors.component")}</div>
+                    <div className="text-sm font-medium">{t("Συστατικό")}</div>
                     <div className="mt-1 p-2 bg-muted rounded-md text-sm">
-                      {selectedError.component || selectedError.source || t("errors.unknown")}
+                      {selectedError.component || selectedError.source || t("Άγνωστο")}
                     </div>
                   </div>
                   
                   <div>
-                    <div className="text-sm font-medium">{t("errors.timestamp")}</div>
+                    <div className="text-sm font-medium">{t("Χρονική σήμανση")}</div>
                     <div className="mt-1 p-2 bg-muted rounded-md text-sm">
                       {new Date(selectedError.timestamp).toLocaleString()}
                     </div>
@@ -215,7 +214,7 @@ export function ErrorDashboard() {
                   
                   {selectedError.stack && (
                     <div>
-                      <div className="text-sm font-medium">{t("errors.stackTrace")}</div>
+                      <div className="text-sm font-medium">{t("Ίχνος στοίβας")}</div>
                       <ScrollArea className="h-[120px] mt-1">
                         <div className="p-2 bg-muted rounded-md text-xs font-mono whitespace-pre overflow-auto">
                           {selectedError.stack}
@@ -230,14 +229,14 @@ export function ErrorDashboard() {
                       className="w-full mt-4"
                     >
                       <CheckCircle2 className="h-4 w-4 mr-2" />
-                      {t("errors.markAsResolved")}
+                      {t("Σήμανση ως επιλυμένο")}
                     </Button>
                   )}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center h-[300px] text-center text-muted-foreground">
                   <Info className="h-12 w-12 mb-4 opacity-20" />
-                  <p>{t("errors.selectErrorToViewDetails")}</p>
+                  <p>{t("Επιλέξτε σφάλμα για προβολή λεπτομερειών")}</p>
                 </div>
               )}
             </CardContent>
