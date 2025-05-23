@@ -1,6 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
-import { Database } from './types';
+import type { Database } from './types';
 
 // Use createClient instead of createClientComponentClient
 const supabaseUrl = 'https://lvkbyfocssuzcdphpmfu.supabase.co';
