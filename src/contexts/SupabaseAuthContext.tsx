@@ -1,15 +1,22 @@
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { AuthContextType, AuthState, User, Session } from '@/types/auth';
+import type { AuthContextType, User } from '@/types/auth';
 import { errorCollector } from '@/utils/error-handling/collector';
+import type { AuthSession } from '@supabase/supabase-js';
 
 // Create auth context
 const SupabaseAuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Provider component
 export function SupabaseAuthProvider({ children }: { children: React.ReactNode }) {
-  const [authState, setAuthState] = useState<AuthState>({
+  const [authState, setAuthState] = useState<{
+    user: User | null;
+    session: AuthSession | null;
+    loading: boolean;
+    error: Error | null;
+    initialized: boolean;
+  }>({
     user: null,
     session: null,
     loading: true,

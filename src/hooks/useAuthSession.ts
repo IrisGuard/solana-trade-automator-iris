@@ -1,15 +1,15 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { User, Session } from '@/types/auth';
+import { User } from '@/types/auth';
 import { errorCollector } from '@/utils/error-handling/collector';
 import { useErrorReporting } from './useErrorReporting';
+import type { AuthSession } from '@supabase/supabase-js';
 
 /**
  * Hook for managing Supabase authentication session with proper cleanup
  */
 export function useAuthSession() {
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<AuthSession | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const { reportError } = useErrorReporting();
@@ -24,7 +24,7 @@ export function useAuthSession() {
       
       if (sessionError) throw sessionError;
       
-      setSession(currentSession as Session);
+      setSession(currentSession as AuthSession);
       
       if (currentSession) {
         // Get user details if we have a session
@@ -59,7 +59,7 @@ export function useAuthSession() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         console.log('Auth state changed:', event);
-        setSession(currentSession as Session | null);
+        setSession(currentSession as AuthSession | null);
         setUser(currentSession?.user as User | null);
         setLoading(false);
       }
