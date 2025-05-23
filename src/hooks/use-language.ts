@@ -20,9 +20,9 @@ export function useLanguage(): LanguageContext {
   
   return {
     t,
-    currentLanguage: 'en', // Changed to English by default
+    currentLanguage: 'en', // Set to English by default
     changeLanguage: (lang: string) => {}, // No-op
-    language: 'en', // Changed to English by default
+    language: 'en', // Set to English by default
     setLanguage: (lang: string) => {} // No-op but matches the required interface
   };
 }

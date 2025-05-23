@@ -13,62 +13,33 @@ export function GeographicRestrictionSettings() {
       <div className="space-y-4 pt-2">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-sm font-medium">Ενεργοποίηση Γεωγραφικών Περιορισμών</h4>
-            <p className="text-xs text-muted-foreground">Περιορισμός συναλλαγών βάσει τοποθεσίας</p>
+            <h4 className="text-sm font-medium">Enable Geographic Restrictions</h4>
+            <p className="text-xs text-muted-foreground">Restrict transactions based on location</p>
           </div>
           <Switch />
         </div>
         
         <div className="space-y-2">
-          <Label>Επιτρεπόμενες Χώρες</Label>
+          <Label>Allowed Countries</Label>
           <TooltipProvider>
             <ToggleGroup type="multiple" className="flex flex-wrap gap-2">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <ToggleGroupItem value="gr" aria-label="Ελλάδα" className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                  <ToggleGroupItem value="gr" aria-label="Greece" className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
                     🇬🇷 GR
                   </ToggleGroupItem>
                 </TooltipTrigger>
-                <TooltipContent>Ελλάδα</TooltipContent>
+                <TooltipContent>Greece</TooltipContent>
               </Tooltip>
               
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <ToggleGroupItem value="cy" aria-label="Κύπρος" className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                  <ToggleGroupItem value="cy" aria-label="Cyprus" className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
                     🇨🇾 CY
                   </ToggleGroupItem>
                 </TooltipTrigger>
-                <TooltipContent>Κύπρος</TooltipContent>
+                <TooltipContent>Cyprus</TooltipContent>
               </Tooltip>
-              
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <ToggleGroupItem value="de" aria-label="Γερμανία" className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-                    🇩🇪 DE
-                  </ToggleGroupItem>
-                </TooltipTrigger>
-                <TooltipContent>Γερμανία</TooltipContent>
-              </Tooltip>
-              
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <ToggleGroupItem value="fr" aria-label="Γαλλία" className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-                    🇫🇷 FR
-                  </ToggleGroupItem>
-                </TooltipTrigger>
-                <TooltipContent>Γαλλία</TooltipContent>
-              </Tooltip>
-              
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <ToggleGroupItem value="uk" aria-label="Ηνωμένο Βασίλειο" className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-                    🇬🇧 UK
-                  </ToggleGroupItem>
-                </TooltipTrigger>
-                <TooltipContent>Ηνωμένο Βασίλειο</TooltipContent>
-              </Tooltip>
-              
-              <Button variant="outline" size="sm">+ Προσθήκη</Button>
             </ToggleGroup>
           </TooltipProvider>
         </div>

@@ -21,7 +21,7 @@ export function SecurityTable({
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h4 className="font-medium text-foreground">Ρυθμίσεις Ασφαλείας</h4>
+        <h4 className="font-medium text-foreground">Security Settings</h4>
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -29,7 +29,7 @@ export function SecurityTable({
             onClick={handleDisableAll}
             className="text-foreground hover:bg-destructive/10 hover:text-destructive"
           >
-            Απενεργοποίηση Όλων
+            Disable All
           </Button>
           <Button
             variant="outline"
@@ -37,7 +37,7 @@ export function SecurityTable({
             onClick={handleEnableAll}
             className="text-foreground hover:bg-primary/10 hover:text-primary"
           >
-            Ενεργοποίηση Όλων
+            Enable All
           </Button>
         </div>
       </div>
@@ -46,9 +46,9 @@ export function SecurityTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-foreground">Λειτουργία</TableHead>
-              <TableHead className="text-foreground">Περιγραφή</TableHead>
-              <TableHead className="text-right text-foreground">Κατάσταση</TableHead>
+              <TableHead className="text-foreground">Feature</TableHead>
+              <TableHead className="text-foreground">Description</TableHead>
+              <TableHead className="text-right text-foreground">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

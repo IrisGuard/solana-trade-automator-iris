@@ -6,7 +6,7 @@ import { TransactionNotificationSettings } from "../TransactionNotificationSetti
 export function TransactionNotificationItem() {
   return (
     <AccordionItem value="item-2">
-      <AccordionTrigger>Ειδοποιήσεις Συναλλαγών</AccordionTrigger>
+      <AccordionTrigger>Transaction Notifications</AccordionTrigger>
       <TransactionNotificationSettings />
     </AccordionItem>
   );

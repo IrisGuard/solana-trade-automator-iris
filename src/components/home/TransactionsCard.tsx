@@ -25,7 +25,7 @@ export function TransactionsCard({ walletAddress, displayAddress }: Transactions
     <Card>
       <CardHeader className="flex flex-row items-center justify-between py-4">
         <CardTitle className="text-base font-medium">
-          Πρόσφατες Συναλλαγές {displayAddress && `(${displayAddress})`}
+          Recent Transactions {displayAddress && `(${displayAddress})`}
         </CardTitle>
         {transactions.length > 5 && (
           <Button
@@ -34,7 +34,7 @@ export function TransactionsCard({ walletAddress, displayAddress }: Transactions
             size="sm"
             className="h-8 text-xs"
           >
-            {showAll ? "Εμφάνιση λιγότερων" : "Εμφάνιση όλων"}
+            {showAll ? "Show less" : "Show all"}
           </Button>
         )}
       </CardHeader>
@@ -60,7 +60,7 @@ export function TransactionsCard({ walletAddress, displayAddress }: Transactions
                         : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
                     )}
                   >
-                    {transaction.type === "buy" ? "Αγορά" : "Πώληση"}
+                    {transaction.type === "buy" ? "Buy" : "Sell"}
                   </Badge>
                   <div>
                     <div className="font-medium">
@@ -82,7 +82,7 @@ export function TransactionsCard({ walletAddress, displayAddress }: Transactions
           </div>
         ) : (
           <div className="flex justify-center items-center py-8 text-muted-foreground">
-            Δεν βρέθηκαν συναλλαγές
+            No transactions found
           </div>
         )}
       </CardContent>

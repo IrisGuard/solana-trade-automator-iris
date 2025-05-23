@@ -54,7 +54,7 @@ export function AppNavigation({ variant = "default", className }: { variant?: "d
   const items = [
     {
       icon: <Home className="h-5 w-5" />,
-      label: "Αρχική",
+      label: "Home",
       href: "/"
     },
     {
@@ -64,12 +64,12 @@ export function AppNavigation({ variant = "default", className }: { variant?: "d
     },
     {
       icon: <Wallet className="h-5 w-5" />,
-      label: "Πορτοφόλι",
+      label: "Wallet",
       href: "/wallet"
     },
     {
       icon: <Activity className="h-5 w-5" />,
-      label: "Χαρτοφυλάκιο",
+      label: "Portfolio",
       href: "/portfolio"
     },
     {
@@ -84,7 +84,7 @@ export function AppNavigation({ variant = "default", className }: { variant?: "d
     },
     {
       icon: <HelpCircle className="h-5 w-5" />,
-      label: "Βοήθεια",
+      label: "Help",
       href: "/help"
     }
   ];

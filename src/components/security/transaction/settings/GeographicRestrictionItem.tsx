@@ -6,7 +6,7 @@ import { GeographicRestrictionSettings } from "../GeographicRestrictionSettings"
 export function GeographicRestrictionItem() {
   return (
     <AccordionItem value="item-3">
-      <AccordionTrigger>Γεωγραφικοί Περιορισμοί</AccordionTrigger>
+      <AccordionTrigger>Geographic Restrictions</AccordionTrigger>
       <GeographicRestrictionSettings />
     </AccordionItem>
   );

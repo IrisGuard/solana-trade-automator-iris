@@ -65,8 +65,8 @@ export function WalletConnectedContent({
         <Alert>
           <InfoIcon className="h-4 w-4" />
           <AlertDescription>
-            Δεν βρέθηκαν tokens στο πορτοφόλι σας ή δεν έχουν φορτωθεί ακόμη. Αν η φόρτωση είναι σε εξέλιξη, 
-            παρακαλώ περιμένετε λίγο.
+            No tokens found in your wallet or they haven't loaded yet. If loading is in progress, 
+            please wait a moment.
           </AlertDescription>
         </Alert>
       )}

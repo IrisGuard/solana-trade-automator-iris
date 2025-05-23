@@ -30,11 +30,11 @@ export function TransactionLimitsSection() {
   
   return (
     <div className="space-y-4">
-      <h3 className="font-medium">Όρια Συναλλαγών</h3>
+      <h3 className="font-medium">Transaction Limits</h3>
       
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="daily-limit">Ημερήσιο Όριο</Label>
+          <Label htmlFor="daily-limit">Daily Limit</Label>
           <div className="flex items-center gap-2">
             <Input 
               id="daily-limit" 
@@ -45,7 +45,7 @@ export function TransactionLimitsSection() {
             />
             <Select value={currency} onValueChange={setCurrency}>
               <SelectTrigger className="w-24">
-                <SelectValue placeholder="Νόμισμα" />
+                <SelectValue placeholder="Currency" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="sol">SOL</SelectItem>
@@ -57,7 +57,7 @@ export function TransactionLimitsSection() {
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="transaction-limit">Όριο ανά Συναλλαγή</Label>
+          <Label htmlFor="transaction-limit">Limit per Transaction</Label>
           <div className="flex items-center gap-2">
             <Input 
               id="transaction-limit" 
@@ -68,7 +68,7 @@ export function TransactionLimitsSection() {
             />
             <Select value={currency} onValueChange={setCurrency}>
               <SelectTrigger className="w-24">
-                <SelectValue placeholder="Νόμισμα" />
+                <SelectValue placeholder="Currency" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="sol">SOL</SelectItem>
@@ -81,7 +81,7 @@ export function TransactionLimitsSection() {
       </div>
       
       <Button variant="outline" size="sm" onClick={handleSave} disabled={isLoading}>
-        {isLoading ? "Αποθήκευση..." : "Αποθήκευση Ορίων"}
+        {isLoading ? "Saving..." : "Save Limits"}
       </Button>
     </div>
   );

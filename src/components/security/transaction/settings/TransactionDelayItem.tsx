@@ -10,7 +10,7 @@ export function TransactionDelayItem() {
   return (
     <AccordionItem value="transaction-delay">
       <AccordionTrigger>
-        {t("security.transactionDelay.title")}
+        {t("security.transactionDelay.title", "Transaction Delay")}
       </AccordionTrigger>
       <TransactionDelaySettings />
     </AccordionItem>
