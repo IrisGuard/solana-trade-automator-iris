@@ -1,8 +1,10 @@
+
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useState, useEffect, useCallback } from 'react';
 import { Token } from '@/types/wallet';
 import { PublicKey } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { toast } from 'sonner';
 
 // Export Token for other components to use
 export type { Token };
@@ -24,7 +26,7 @@ export function useTokens() {
     setError(null);
 
     try {
-      console.log('Fetching real tokens from Solana blockchain...');
+      console.log('Φόρτωση tokens από το Solana blockchain (mainnet)...');
       
       // Get all token accounts for the wallet
       const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
@@ -37,6 +39,9 @@ export function useTokens() {
       // Get SOL balance
       const solBalance = await connection.getBalance(publicKey);
       const solAmount = solBalance / 1e9; // Convert lamports to SOL
+
+      console.log(`Βρέθηκαν ${tokenAccounts.value.length} token accounts`);
+      console.log(`SOL Balance: ${solAmount}`);
 
       // Process token accounts
       const tokenList: Token[] = [];
@@ -60,25 +65,40 @@ export function useTokens() {
         const tokenAmount = accountInfo.account.data.parsed.info.tokenAmount;
         
         if (tokenAmount.uiAmount && tokenAmount.uiAmount > 0) {
-          // Try to get token metadata
+          console.log(`Token βρέθηκε: ${mintAddress}, ποσότητα: ${tokenAmount.uiAmount}`);
+          
+          // Try to get token metadata from Jupiter API
           try {
-            const metadataResponse = await fetch(`https://api.solana.fm/v1/tokens/${mintAddress}`);
-            let metadata = null;
-            if (metadataResponse.ok) {
-              metadata = await metadataResponse.json();
+            const response = await fetch(`https://token.jup.ag/strict`);
+            if (response.ok) {
+              const tokenList = await response.json();
+              const tokenInfo = tokenList.find((t: any) => t.address === mintAddress);
+              
+              if (tokenInfo) {
+                tokenList.push({
+                  address: mintAddress,
+                  symbol: tokenInfo.symbol || 'Unknown',
+                  name: tokenInfo.name || 'Unknown Token',
+                  amount: tokenAmount.uiAmount,
+                  decimals: tokenAmount.decimals,
+                  mint: mintAddress,
+                  logo: tokenInfo.logoURI || ''
+                });
+              } else {
+                // Add token without metadata
+                tokenList.push({
+                  address: mintAddress,
+                  symbol: 'Unknown',
+                  name: 'Unknown Token',
+                  amount: tokenAmount.uiAmount,
+                  decimals: tokenAmount.decimals,
+                  mint: mintAddress,
+                  logo: ''
+                });
+              }
             }
-
-            tokenList.push({
-              address: mintAddress,
-              symbol: metadata?.symbol || 'Unknown',
-              name: metadata?.name || 'Unknown Token',
-              amount: tokenAmount.uiAmount,
-              decimals: tokenAmount.decimals,
-              mint: mintAddress,
-              logo: metadata?.logoURI || ''
-            });
           } catch (metaError) {
-            console.warn('Failed to fetch metadata for token:', mintAddress);
+            console.warn('Αποτυχία λήψης metadata για token:', mintAddress);
             // Add token without metadata
             tokenList.push({
               address: mintAddress,
@@ -93,12 +113,21 @@ export function useTokens() {
         }
       }
       
-      console.log(`Found ${tokenList.length} tokens with balances`);
+      console.log(`Συνολικά βρέθηκαν ${tokenList.length} tokens με υπόλοιπα`);
       setTokens(tokenList);
       
+      if (tokenList.length > 0) {
+        toast.success(`Βρέθηκαν ${tokenList.length} tokens στο πορτοφόλι σας`);
+      } else {
+        toast.info('Δεν βρέθηκαν tokens στο πορτοφόλι σας');
+      }
+      
     } catch (err) {
-      console.error('Error fetching real tokens:', err);
+      console.error('Σφάλμα κατά τη λήψη tokens:', err);
       setError('Σφάλμα κατά τη λήψη των tokens από το blockchain');
+      toast.error('Σφάλμα φόρτωσης tokens', {
+        description: 'Παρακαλώ δοκιμάστε ξανά'
+      });
     } finally {
       setIsLoading(false);
     }

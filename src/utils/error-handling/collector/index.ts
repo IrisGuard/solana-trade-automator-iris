@@ -1,3 +1,4 @@
+
 import { ErrorContext, ErrorData, CollectedError, ErrorCollector } from './types';
 
 class SimpleErrorCollector implements ErrorCollector {
@@ -30,6 +31,10 @@ class SimpleErrorCollector implements ErrorCollector {
     return this.errors.slice(0, 10);
   }
 
+  getErrors(): CollectedError[] {
+    return this.errors;
+  }
+
   getErrorCount(): number {
     return this.errors.length;
   }
@@ -43,5 +48,5 @@ export const errorCollector = new SimpleErrorCollector();
 
 // Make it available globally for debugging
 if (typeof window !== 'undefined') {
-  window.errorCollector = errorCollector;
+  (window as any).errorCollector = errorCollector;
 }

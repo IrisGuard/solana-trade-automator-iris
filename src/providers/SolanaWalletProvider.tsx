@@ -17,9 +17,9 @@ export function SolanaWalletProvider({ children }: SolanaWalletProviderProps) {
   // Use mainnet for production
   const network = WalletAdapterNetwork.Mainnet;
   
-  // RPC endpoint - using mainnet
+  // RPC endpoint - using mainnet for real crypto data
   const endpoint = useMemo(() => {
-    // You can use custom RPC endpoint here or Helius API
+    // Use mainnet for real crypto display
     return process.env.REACT_APP_RPC_URL || clusterApiUrl(network);
   }, [network]);
 

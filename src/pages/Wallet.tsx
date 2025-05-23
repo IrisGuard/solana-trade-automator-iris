@@ -15,6 +15,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { AppNavigation } from "@/components/navigation/AppNavigation";
 import { GradientCard } from "@/components/ui/gradient-card";
 import { HeliusSyncComponent } from "@/components/wallet/HeliusSyncComponent";
+import { TokensDisplay } from "@/components/wallet/TokensDisplay";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
@@ -48,7 +49,7 @@ export default function WalletPage() {
     <div className="space-y-6">
       <PageHeader 
         title="Wallet & Trading Bot"
-        description="Manage your wallet and trading bots"
+        description="Διαχειριστείτε το πορτοφόλι και τα trading bots σας"
         breadcrumbs={[{ label: "Wallet" }]}
         variant="purple"
         actions={
@@ -58,11 +59,11 @@ export default function WalletPage() {
             )}
             {isConnected ? (
               <Button variant="outline" onClick={disconnectWallet}>
-                Disconnect
+                Αποσύνδεση
               </Button>
             ) : (
               <Button onClick={connectWallet}>
-                Connect Wallet
+                Σύνδεση Wallet
               </Button>
             )}
           </div>
@@ -80,6 +81,15 @@ export default function WalletPage() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+
+      {/* Main Crypto Display */}
+      <TokensDisplay 
+        tokens={tokens || []}
+        isLoading={isLoadingTokens}
+        error={error}
+        onRefresh={() => refreshWalletData()}
+        isConnected={isConnected}
+      />
 
       <GradientCard variant="purple">
         <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -113,7 +123,7 @@ export default function WalletPage() {
           </TabsContent>
           
           <TabsContent value="swap">
-            <SwapTab isConnected={isConnected} />
+            <SwapTab />
           </TabsContent>
 
           <TabsContent value="trading-bot">
@@ -138,27 +148,27 @@ export default function WalletPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <GradientCard variant="blue">
           <div className="p-4 text-center">
-            <h3 className="text-xl font-bold mb-2">Token Management</h3>
+            <h3 className="text-xl font-bold mb-2">Διαχείριση Tokens</h3>
             <p className="text-muted-foreground mb-4">
-              Manage your tokens on the Solana blockchain safely and easily.
+              Διαχειριστείτε τα tokens σας στο blockchain του Solana με ασφάλεια.
             </p>
           </div>
         </GradientCard>
         
         <GradientCard variant="green">
           <div className="p-4 text-center">
-            <h3 className="text-xl font-bold mb-2">Automated Trading</h3>
+            <h3 className="text-xl font-bold mb-2">Αυτόματο Trading</h3>
             <p className="text-muted-foreground mb-4">
-              Set up Trading Bot for automatic transactions based on your preferences.
+              Ρυθμίστε Trading Bot για αυτόματες συναλλαγές βάσει των προτιμήσεών σας.
             </p>
           </div>
         </GradientCard>
         
         <GradientCard variant="amber">
           <div className="p-4 text-center">
-            <h3 className="text-xl font-bold mb-2">Price Boost Protection</h3>
+            <h3 className="text-xl font-bold mb-2">Προστασία Επενδύσεων</h3>
             <p className="text-muted-foreground mb-4">
-              Protect your investments from sudden market drops.
+              Προστατέψτε τις επενδύσεις σας από απότομες πτώσεις της αγοράς.
             </p>
           </div>
         </GradientCard>
