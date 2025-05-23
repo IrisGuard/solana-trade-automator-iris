@@ -12,7 +12,7 @@ class SimpleErrorCollector implements ErrorCollector {
       timestamp: new Date(),
       component: context?.component,
       source: context?.source,
-      severity: context?.severity,
+      severity: context?.severity || 'medium',
       details: context?.details,
       resolved: false
     };

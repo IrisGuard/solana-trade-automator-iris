@@ -6,4 +6,4 @@ export * from './errorTypes';
 
 // Re-export collector functions and types
 export { errorCollector } from './collector';
-export type { ErrorCollector, ErrorData, ErrorOptions } from './collector/types';
+export type { ErrorCollector, ErrorData, ErrorOptions, CollectedError } from './collector/types';
