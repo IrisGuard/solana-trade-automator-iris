@@ -8,7 +8,6 @@ import { isPhantomInstalled } from "@/utils/phantomWallet";
 import { useLanguage } from "@/hooks/use-language";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useErrorReporting } from "@/hooks/useErrorReporting";
-import { syncAllHeliusData } from "@/utils/syncHeliusKeys";
 import { useUser } from "@/hooks/useUser";
 
 export function WalletConnectButtonSafe({
@@ -22,7 +21,6 @@ export function WalletConnectButtonSafe({
   const [isAttemptingConnect, setIsAttemptingConnect] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [lastAttempt, setLastAttempt] = useState(0);
-  const [showHeliusStatus, setShowHeliusStatus] = useState(false);
   
   const { user } = useUser();
   const { reportError } = useErrorReporting();
@@ -52,20 +50,6 @@ export function WalletConnectButtonSafe({
         try {
           console.log("Refreshing wallet data after connection");
           await refreshWalletData();
-          
-          // Sync with Helius to ensure keys are updated
-          if (user && user.id) {
-            setShowHeliusStatus(true);
-            setTimeout(async () => {
-              try {
-                await syncAllHeliusData(user.id);
-                setShowHeliusStatus(false);
-              } catch (error) {
-                console.error("Error during Helius sync:", error);
-                setShowHeliusStatus(false);
-              }
-            }, 1000);
-          }
         } catch (err) {
           console.error("Error refreshing wallet data:", err);
           reportError(err, {
@@ -149,15 +133,6 @@ export function WalletConnectButtonSafe({
       );
     }
     
-    if (showHeliusStatus) {
-      return (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          <span>Syncing Helius...</span>
-        </>
-      );
-    }
-    
     if (isConnected) {
       return (
         <>
@@ -210,7 +185,7 @@ export function WalletConnectButtonSafe({
       variant={variant}
       size={size}
       onClick={handleClick}
-      disabled={isConnecting || showHeliusStatus}
+      disabled={isConnecting}
       {...props}
     >
       {getButtonContent()}

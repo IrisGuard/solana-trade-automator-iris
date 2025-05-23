@@ -30,11 +30,19 @@ export function MonitoringSystem() {
       console.log("[Debug] sessionStorage available:", !!window.sessionStorage);
       console.log("[Debug] fetch API available:", !!window.fetch);
       
-      // Check Supabase connection
-      checkSupabaseConnection().then(connected => {
-        setSupabaseConnected(connected);
-        console.log("[Debug] Supabase connected:", connected);
-      });
+      // Check Supabase connection with error handling
+      checkSupabaseConnection()
+        .then(connected => {
+          setSupabaseConnected(connected);
+          console.log("[Debug] Supabase connected:", connected);
+          if (!connected) {
+            console.warn("[Warning] Supabase connection failed - running in demo mode");
+          }
+        })
+        .catch(error => {
+          console.error("[Error] Supabase connection check failed:", error);
+          setSupabaseConnected(false);
+        });
       
       // Set monitoring as ready
       setMonitoringReady(true);
@@ -42,7 +50,7 @@ export function MonitoringSystem() {
       
       // Display startup toast to confirm UI is working (only show once per session)
       if (!sessionStorage.getItem('system-monitoring-init')) {
-        toast.info("Monitoring system activated", {
+        toast.info("System ready - running in demo mode", {
           id: "monitoring-system-init",
           duration: 3000
         });
@@ -73,13 +81,12 @@ export function MonitoringSystem() {
       <GlobalErrorHandler />
       <ConsoleMonitor />
       
-      {/* Fallback component that shows if the system takes too long to load */}
       <SystemLoaderFallback />
       
       {monitoringReady && <div id="monitoring-ready" style={{ display: 'none' }} />}
       {supabaseConnected === false && (
-        <div className="fixed top-0 left-0 right-0 bg-red-500 text-white p-2 text-center z-50">
-          Unable to connect to the database. Some features may be unavailable.
+        <div className="fixed top-0 left-0 right-0 bg-yellow-500 text-black p-2 text-center z-50 text-sm">
+          Running in demo mode - Database connection unavailable
         </div>
       )}
     </>
