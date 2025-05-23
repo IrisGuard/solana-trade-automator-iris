@@ -14,11 +14,10 @@ interface ErrorOptionsContextType {
   setUseCollector: (use: boolean) => void;
 }
 
-// Export the context
 export const ErrorOptionsContext = createContext<ErrorOptionsContextType | undefined>(undefined);
 
 export function ErrorOptionsProvider({ children }: { children: React.ReactNode }) {
-  const [errorMessage, setErrorMessage] = useState('Δοκιμαστικό σφάλμα');
+  const [errorMessage, setErrorMessage] = useState('Test error');
   const [showToast, setShowToast] = useState(true);
   const [logToConsole, setLogToConsole] = useState(true);
   const [sendToChat, setSendToChat] = useState(true);

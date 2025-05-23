@@ -32,7 +32,6 @@ export function ErrorTestPanel() {
   const handleSubmitSimpleError = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Create an error with simple options
     const errorOptions = {
       title: errorTitle || "Test Error",
       description: errorDescription || "This is a test error from the Error Test Panel.",
@@ -64,7 +63,6 @@ export function ErrorTestPanel() {
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Error Test Panel</h2>
         
-        {/* Input fields for error message, title, and description */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="error-message">Error Message</Label>
@@ -109,9 +107,8 @@ export function ErrorTestPanel() {
           </div>
         </div>
         
-        {/* Simple Options */}
         <div className="border rounded-md p-4">
-          <h3 className="text-md font-semibold mb-2">Simple Options</h3>
+          <h3 className="text-md font-semibold mb-2">Options</h3>
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <Switch
@@ -140,14 +137,12 @@ export function ErrorTestPanel() {
           </div>
         </div>
         
-        {/* Submit Button */}
         <form onSubmit={handleSubmitSimpleError}>
           <Button type="submit" variant="default">
             Display Error
           </Button>
         </form>
         
-        {/* Footer with Error Options Context */}
         <ErrorTestPanelFooter />
       </div>
     </ErrorOptionsContext.Provider>

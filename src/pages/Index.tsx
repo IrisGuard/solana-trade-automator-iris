@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useLanguage } from "@/hooks/use-language";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { WalletConnectButtonSafe } from "@/components/wallet/WalletConnectButtonSafe";
@@ -14,12 +13,10 @@ import { UserBotsSection } from "@/components/home/UserBotsSection";
 import { FaqSection } from "@/components/home/FaqSection";
 import { FooterSection } from "@/components/home/FooterSection";
 import { Layers, Menu, X, Key, Loader2, Search } from "lucide-react";
-import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function Index() {
-  const { t } = useLanguage();
   const { isConnected } = usePhantomConnection();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -30,7 +27,6 @@ export default function Index() {
   };
   
   useEffect(() => {
-    // Simulate page load to check if components are rendering
     const timer = setTimeout(() => {
       setIsLoading(false);
       console.log("Index page loaded completely");
@@ -40,16 +36,16 @@ export default function Index() {
   }, []);
   
   const handleGoToTestAPI = () => {
-    toast.success("Μετάβαση στη σελίδα Test API");
+    toast.success("Navigate to Test API page");
     navigate("/test-api");
   };
   
   const navigation = [
-    { title: t("general.dashboard"), href: "/dashboard" },
-    { title: t("general.wallet"), href: "/wallet" },
-    { title: t("makerBot.botSettings"), href: "/bot-control" },
-    { title: t("general.apiVault"), href: "/api-vault" },
-    { title: t("general.help"), href: "/help" },
+    { title: "Dashboard", href: "/dashboard" },
+    { title: "Wallet", href: "/wallet" },
+    { title: "Bot Settings", href: "/bot-control" },
+    { title: "API Vault", href: "/api-vault" },
+    { title: "Help", href: "/help" },
   ];
   
   if (isLoading) {
@@ -58,11 +54,11 @@ export default function Index() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center space-y-4">
             <Loader2 className="h-12 w-12 animate-spin mx-auto text-blue-500" />
-            <h2 className="text-xl font-medium">Φόρτωση σελίδας...</h2>
-            <p className="text-gray-400">Παρακαλώ περιμένετε καθώς φορτώνονται τα στοιχεία</p>
+            <h2 className="text-xl font-medium">Loading page...</h2>
+            <p className="text-gray-400">Please wait while the content loads</p>
             <Button onClick={handleGoToTestAPI} className="mt-4 bg-blue-600 hover:bg-blue-700">
               <Search className="mr-2 h-4 w-4" />
-              Μετάβαση στη Σελίδα Test API
+              Go to Test API Page
             </Button>
           </div>
         </div>
@@ -72,7 +68,6 @@ export default function Index() {
   
   return (
     <div className="flex flex-col min-h-screen bg-gray-950 text-white">
-      {/* Header navigation - με βελτιωμένη ευθυγράμμιση για τα Ελληνικά */}
       <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-gray-900/80 border-b border-gray-800">
         <div className="container mx-auto flex justify-between items-center p-4">
           <Link to="/" className="flex items-center gap-2">
@@ -84,7 +79,6 @@ export default function Index() {
             </h1>
           </Link>
           
-          {/* Desktop Navigation - προσαρμοσμένο για ελληνικά */}
           <div className="hidden md:flex items-center gap-2 lg:gap-4">
             {navigation.map((item, index) => (
               <Link 
@@ -109,11 +103,10 @@ export default function Index() {
               className="text-sm lg:text-base text-green-400 hover:text-green-300 transition-colors whitespace-nowrap px-2 py-1 flex items-center gap-1"
             >
               <Key className="h-4 w-4" />
-              {t('apiVault.addHelius')}
+              Add Helius Key
             </Link>
             
             <div className="flex items-center gap-2 ml-2">
-              <LanguageToggle />
               <ThemeToggle />
               <WalletConnectButtonSafe 
                 variant="default" 
@@ -123,21 +116,18 @@ export default function Index() {
             </div>
           </div>
           
-          {/* Mobile menu button */}
           <div className="flex items-center gap-3 md:hidden">
-            <LanguageToggle />
             <ThemeToggle />
             <button 
               onClick={toggleMobileMenu}
               className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-800"
-              aria-label={mobileMenuOpen ? "Κλείσιμο μενού" : "Άνοιγμα μενού"}
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
         
-        {/* Mobile menu - βελτιωμένο για ελληνικά */}
         {mobileMenuOpen && (
           <div className="md:hidden bg-gray-900 border-b border-gray-800">
             <div className="container mx-auto py-3 px-4">
@@ -166,7 +156,7 @@ export default function Index() {
                   className="text-green-400 hover:text-green-300 transition-colors py-2 flex items-center gap-2"
                 >
                   <Key className="h-4 w-4" />
-                  {t('apiVault.addHelius')}
+                  Add Helius Key
                 </Link>
                 <div className="py-2">
                   <WalletConnectButtonSafe 
@@ -181,14 +171,13 @@ export default function Index() {
         )}
       </header>
       
-      {/* Quick access card for Test API at top of page */}
       <div className="mt-20 container mx-auto px-4">
         <Card className="bg-gradient-to-r from-blue-950/50 to-indigo-950/50 border border-blue-800/30 mb-8">
           <CardContent className="p-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl font-bold text-white mb-2">API Testing Tool</h2>
-                <p className="text-gray-300">Δοκιμάστε διάφορα API endpoints και ελέγξτε τις απαντήσεις τους</p>
+                <p className="text-gray-300">Test various API endpoints and check their responses</p>
               </div>
               <Button 
                 size="lg" 
@@ -196,7 +185,7 @@ export default function Index() {
                 className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
               >
                 <Search className="mr-2 h-5 w-5" />
-                Μετάβαση στη Σελίδα Test API
+                Go to Test API Page
               </Button>
             </div>
           </CardContent>
@@ -204,26 +193,14 @@ export default function Index() {
       </div>
       
       <main className="flex-1 pt-16">
-        {/* Hero section */}
         <HeroSection />
-        
-        {/* Features section */}
         <FeaturesSection />
-        
-        {/* How it works section */}
         <HowItWorksSection />
-        
-        {/* User tokens section (or sample if not connected) */}
         <UserTokensSection />
-        
-        {/* User bots section (or sample if not connected) */}
         <UserBotsSection />
-        
-        {/* FAQ section */}
         <FaqSection />
       </main>
       
-      {/* Footer */}
       <FooterSection />
     </div>
   );

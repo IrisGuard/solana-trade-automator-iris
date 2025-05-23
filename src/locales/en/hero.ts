@@ -3,6 +3,7 @@ export const hero = {
   tagline: "Manage your crypto, automate your transactions, and monitor your funds - all in one place",
   dashboardToast: "Navigate to Dashboard",
   botControlToast: "Navigate to Trading Bots",
+  walletToast: "Please connect your wallet",
   dashboard: "Enter Dashboard",
   welcomeMessage: "Welcome to Solana Trade Automator!",
   welcomeDescription: "The leading automated trading platform for the Solana blockchain.",
@@ -20,7 +21,6 @@ export const hero = {
   analyticsDesc: "Detailed statistics and reports to optimize your strategy",
   multiStrategyTitle: "Multiple Strategies",
   multiStrategyDesc: "Choose between different trading strategies for optimal results",
-  // Token related translations
   noActiveBots: "No Active Bots",
   noActiveBotsDesc: "You don't have any active bots at the moment. Start a bot to begin trading.",
   createNewBot: "Create New Bot",

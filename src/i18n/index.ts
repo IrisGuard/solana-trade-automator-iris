@@ -1,20 +1,16 @@
 
-import { useLanguage } from '@/hooks/use-language';
-
-// Το αρχείο αυτό υπάρχει μόνο για συμβατότητα με παλιότερο κώδικα
-// Προτιμήστε να χρησιμοποιείτε το useLanguage() hook αντί για αυτή τη συνάρτηση
+// This file exists only for compatibility with older code
+// Please use the useLanguage() hook instead of this function
 export const t = (key: string): string => {
   console.warn('Deprecated: The direct t() function is deprecated. Please use useLanguage() hook instead');
   
-  // Δημιουργούμε μια απλή λύση που να λειτουργεί μέχρι να γίνει η μετάβαση
   try {
-    // Παλιός τρόπος
     const translations = {
-      'sidebar.dashboard': 'Πίνακας Ελέγχου',
-      'sidebar.wallet': 'Πορτοφόλι',
-      'sidebar.transactions': 'Συναλλαγές',
+      'sidebar.dashboard': 'Dashboard',
+      'sidebar.wallet': 'Wallet',
+      'sidebar.transactions': 'Transactions',
       'sidebar.bots': 'Bots',
-      'sidebar.api_vault': 'Θησαυροφυλάκιο API',
+      'sidebar.api_vault': 'API Vault',
     };
     
     return translations[key as keyof typeof translations] || key;
