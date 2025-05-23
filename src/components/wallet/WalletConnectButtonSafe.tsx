@@ -36,10 +36,10 @@ export function WalletConnectButtonSafe({
     refreshWalletData
   } = useWalletConnection();
   
-  // Συνδυάζουμε την κατάσταση από το hook και την τοπική κατάσταση
+  // Combine state from hook and local state
   const isConnecting = hookConnecting || isAttemptingConnect;
   
-  // Έλεγχος αν το Phantom είναι εγκατεστημένο
+  // Check if Phantom is installed
   const phantomInstalled = isPhantomInstalled();
   
   // Reset retry count when connection status changes
@@ -50,10 +50,10 @@ export function WalletConnectButtonSafe({
       // Refresh wallet data when connected
       const refreshData = async () => {
         try {
-          console.log("Ανανέωση δεδομένων πορτοφολιού μετά τη σύνδεση");
+          console.log("Refreshing wallet data after connection");
           await refreshWalletData();
           
-          // Συγχρονισμός με Helius για να διασφαλίσουμε ότι τα κλειδιά είναι ενημερωμένα
+          // Sync with Helius to ensure keys are updated
           if (user && user.id) {
             setShowHeliusStatus(true);
             setTimeout(async () => {
@@ -61,7 +61,7 @@ export function WalletConnectButtonSafe({
                 await syncAllHeliusData(user.id);
                 setShowHeliusStatus(false);
               } catch (error) {
-                console.error("Σφάλμα κατά τον συγχρονισμό Helius:", error);
+                console.error("Error during Helius sync:", error);
                 setShowHeliusStatus(false);
               }
             }, 1000);
@@ -96,10 +96,10 @@ export function WalletConnectButtonSafe({
       setIsAttemptingConnect(true);
       
       if (!phantomInstalled) {
-        toast.error("Το Phantom wallet δεν είναι εγκατεστημένο", {
-          description: "Παρακαλώ εγκαταστήστε το Phantom Wallet για να συνδεθείτε",
+        toast.error("Phantom wallet is not installed", {
+          description: "Please install Phantom Wallet to connect",
           action: {
-            label: "Εγκατάσταση",
+            label: "Install",
             onClick: () => window.open("https://phantom.app/", "_blank")
           }
         });
@@ -108,7 +108,7 @@ export function WalletConnectButtonSafe({
       
       if (isConnected) {
         await disconnectWallet();
-        toast.success("Το wallet αποσυνδέθηκε");
+        toast.success("Wallet disconnected");
       } else {
         // Increment retry count if attempting to connect
         setRetryCount(prev => prev + 1);
@@ -118,7 +118,7 @@ export function WalletConnectButtonSafe({
         // Only show success toast if we actually connected (handled by the hook)
       }
     } catch (error) {
-      console.error("Σφάλμα στο WalletConnectButtonSafe:", error);
+      console.error("Error in WalletConnectButtonSafe:", error);
       reportError(error, {
         component: 'WalletConnectButtonSafe',
         source: 'client',
@@ -127,12 +127,12 @@ export function WalletConnectButtonSafe({
       
       // Different message based on retry count
       if (retryCount > 2) {
-        toast.error("Επίμονο πρόβλημα σύνδεσης", {
-          description: "Δοκιμάστε να ανανεώσετε τη σελίδα ή να επανεκκινήσετε το Phantom",
+        toast.error("Persistent connection problem", {
+          description: "Try refreshing the page or restart Phantom",
           duration: 5000
         });
       } else {
-        toast.error("Πρόβλημα σύνδεσης με το wallet");
+        toast.error("Problem connecting to wallet");
       }
     } finally {
       setIsAttemptingConnect(false);
@@ -144,7 +144,7 @@ export function WalletConnectButtonSafe({
       return (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          <span>Σύνδεση...</span>
+          <span>Connecting...</span>
         </>
       );
     }
@@ -153,7 +153,7 @@ export function WalletConnectButtonSafe({
       return (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          <span>Συγχρονισμός Helius...</span>
+          <span>Syncing Helius...</span>
         </>
       );
     }
@@ -167,7 +167,7 @@ export function WalletConnectButtonSafe({
             </span>
           )}
           <LogOut className="h-4 w-4" />
-          {children || <span className="sr-only md:not-sr-only md:ml-1">Αποσύνδεση</span>}
+          {children || <span className="sr-only md:not-sr-only md:ml-1">Disconnect</span>}
         </>
       );
     }
@@ -175,7 +175,7 @@ export function WalletConnectButtonSafe({
     return (
       <>
         <Wallet className="mr-2 h-4 w-4" />
-        {children || <span>Σύνδεση με Wallet</span>}
+        {children || <span>Connect Wallet</span>}
       </>
     );
   };
@@ -193,11 +193,11 @@ export function WalletConnectButtonSafe({
               onClick={handleClick}
             >
               <AlertCircle className="mr-2 h-4 w-4 text-destructive" />
-              <span>Wallet Απαιτείται</span>
+              <span>Wallet Required</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent className="bg-background border shadow-lg p-2">
-            <p>Το Phantom wallet δεν είναι εγκατεστημένο. Κάντε κλικ για εγκατάσταση.</p>
+            <p>Phantom wallet is not installed. Click to install.</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

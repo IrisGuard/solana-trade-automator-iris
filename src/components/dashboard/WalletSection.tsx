@@ -24,7 +24,7 @@ export function WalletSection({
   const copyAddress = () => {
     if (walletAddress) {
       navigator.clipboard.writeText(walletAddress);
-      toast.success('Η διεύθυνση αντιγράφηκε');
+      toast.success('Address copied');
     }
   };
 
@@ -39,9 +39,9 @@ export function WalletSection({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Wallet className="h-5 w-5" />
-          Πορτοφόλι
+          Wallet
           <Badge variant={connected ? 'default' : 'secondary'}>
-            {connected ? 'Συνδεδεμένο' : 'Αποσυνδεδεμένο'}
+            {connected ? 'Connected' : 'Disconnected'}
           </Badge>
         </CardTitle>
       </CardHeader>
@@ -49,7 +49,7 @@ export function WalletSection({
         {connected && walletAddress && (
           <>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Διεύθυνση:</span>
+              <span className="text-sm text-muted-foreground">Address:</span>
               <div className="flex items-center gap-2">
                 <code className="bg-muted px-2 py-1 rounded text-sm">
                   {shortAddress}
@@ -72,7 +72,7 @@ export function WalletSection({
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Υπόλοιπο SOL:</span>
+              <span className="text-sm text-muted-foreground">SOL Balance:</span>
               <div className="text-right">
                 {isLoadingBalance ? (
                   <div className="animate-pulse bg-muted h-6 w-20 rounded"></div>
@@ -88,12 +88,12 @@ export function WalletSection({
             <div className="pt-4 border-t">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-muted-foreground">Δίκτυο:</span>
+                  <span className="text-muted-foreground">Network:</span>
                   <div className="font-medium">Solana Mainnet</div>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Κατάσταση:</span>
-                  <div className="font-medium text-green-600">Ενεργό</div>
+                  <span className="text-muted-foreground">Status:</span>
+                  <div className="font-medium text-green-600">Active</div>
                 </div>
               </div>
             </div>

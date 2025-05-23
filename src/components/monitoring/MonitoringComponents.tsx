@@ -16,35 +16,6 @@ export function ErrorDialogsRenderer() {
   return <ErrorDialogs />;
 }
 
-// Component that monitors network status
-export function NetworkErrorDetector() {
-  useEffect(() => {
-    // Monitor for network errors
-    const handleOnline = () => {
-      toast.success("Network reconnected", {
-        description: "Internet connection has been restored"
-      });
-    };
-
-    const handleOffline = () => {
-      toast.error("Network disconnected", {
-        description: "Internet connection interrupted. Check your connection.",
-        duration: 0 // Permanent until reconnected
-      });
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
-  return null;
-}
-
 // Component that checks for publish errors
 export function PublishErrorMonitor() {
   useEffect(() => {
@@ -100,7 +71,6 @@ export function MonitoringSystem() {
     <>
       <ErrorMonitor />
       <ErrorDialogsRenderer />
-      <NetworkErrorDetector />
       <PublishErrorMonitor />
     </>
   );

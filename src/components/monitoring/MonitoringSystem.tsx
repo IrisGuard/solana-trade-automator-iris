@@ -4,7 +4,6 @@ import { consoleLogger } from '@/utils/error-handling/ConsoleLogger';
 import { SiteHealthMonitor } from '@/utils/error-handling/SiteHealthMonitor';
 import { toast } from 'sonner';
 import { GlobalErrorHandler } from '@/components/errors/GlobalErrorHandler';
-import { NetworkStatusMonitor } from './NetworkStatusMonitor';
 import { ConsoleMonitor } from '@/components/debug/ConsoleMonitor';
 import { SystemLoaderFallback } from './SystemLoaderFallback';
 import { checkSupabaseConnection } from '@/integrations/supabase/client';
@@ -43,7 +42,7 @@ export function MonitoringSystem() {
       
       // Display startup toast to confirm UI is working (only show once per session)
       if (!sessionStorage.getItem('system-monitoring-init')) {
-        toast.info("Το σύστημα παρακολούθησης ενεργοποιήθηκε", {
+        toast.info("Monitoring system activated", {
           id: "monitoring-system-init",
           duration: 3000
         });
@@ -53,7 +52,7 @@ export function MonitoringSystem() {
       console.error("[Error] Failed to initialize monitoring system:", err);
       
       // Still try to show a toast in case UI is working
-      toast.error("Σφάλμα στην αρχικοποίηση του συστήματος παρακολούθησης", {
+      toast.error("Error initializing monitoring system", {
         duration: 5000
       });
     }
@@ -72,7 +71,6 @@ export function MonitoringSystem() {
   return (
     <>
       <GlobalErrorHandler />
-      <NetworkStatusMonitor />
       <ConsoleMonitor />
       
       {/* Fallback component that shows if the system takes too long to load */}
@@ -81,7 +79,7 @@ export function MonitoringSystem() {
       {monitoringReady && <div id="monitoring-ready" style={{ display: 'none' }} />}
       {supabaseConnected === false && (
         <div className="fixed top-0 left-0 right-0 bg-red-500 text-white p-2 text-center z-50">
-          Αδυναμία σύνδεσης με τη βάση δεδομένων. Ορισμένες λειτουργίες ενδέχεται να μην είναι διαθέσιμες.
+          Unable to connect to the database. Some features may be unavailable.
         </div>
       )}
     </>

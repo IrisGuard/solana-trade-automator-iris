@@ -34,10 +34,10 @@ export function useWalletConnection() {
       await disconnect();
       setBalance(0);
       setError(null);
-      toast.success('Το πορτοφόλι αποσυνδέθηκε');
+      toast.success('Wallet disconnected');
     } catch (error) {
       console.error('Error disconnecting wallet:', error);
-      toast.error('Σφάλμα κατά την αποσύνδεση');
+      toast.error('Error disconnecting');
     }
   }, [disconnect]);
 
@@ -52,7 +52,7 @@ export function useWalletConnection() {
       setBalance(solBalance);
     } catch (error) {
       console.error('Error fetching balance:', error);
-      setError('Σφάλμα κατά τη λήψη υπολοίπου');
+      setError('Error fetching balance');
     } finally {
       setIsLoadingBalance(false);
     }
@@ -62,7 +62,7 @@ export function useWalletConnection() {
   useEffect(() => {
     if (connected && publicKey) {
       fetchBalance();
-      toast.success('Το πορτοφόλι συνδέθηκε επιτυχώς');
+      toast.success('Wallet connected successfully');
     }
   }, [connected, publicKey, fetchBalance]);
 
