@@ -1,68 +1,66 @@
-import { ErrorContext, ErrorOptions, CollectedError } from './types';
+import type { ErrorContext, ErrorOptions, CollectedError } from './types';
 
 class ErrorCollectorClass {
   private errors: CollectedError[] = [];
   private maxErrors = 100;
 
-  captureError(error: Error, context: ErrorContext = {}, options: ErrorOptions = {}): void {
+  captureError(error: Error | string, context?: ErrorContext): string {
+    const errorId = `error-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    
+    const errorObj = typeof error === 'string' ? new Error(error) : error;
+    
     const collectedError: CollectedError = {
-      id: this.generateId(),
-      message: error.message,
-      stack: error.stack,
-      component: context.component,
-      source: context.source,
+      id: errorId,
+      message: errorObj.message,
+      stack: errorObj.stack,
+      component: context?.component,
+      source: context?.source || 'unknown',
       timestamp: new Date(),
-      severity: context.severity || 'medium',
+      severity: context?.severity || 'medium',
       resolved: false,
-      details: context.details
+      details: context?.details
     };
 
-    // Add error-specific properties if they exist
-    if (options.errorCode) collectedError.details = { ...collectedError.details, errorCode: options.errorCode };
-    if (options.context) collectedError.details = { ...collectedError.details, context: options.context };
-    if (options.metadata) collectedError.details = { ...collectedError.details, metadata: options.metadata };
-    if (options.status) collectedError.details = { ...collectedError.details, status: options.status };
-    if (options.errorId) collectedError.details = { ...collectedError.details, errorId: options.errorId };
-
+    // Add to errors array
     this.errors.unshift(collectedError);
     
-    // Keep only the most recent errors
+    // Keep only the last maxErrors
     if (this.errors.length > this.maxErrors) {
       this.errors = this.errors.slice(0, this.maxErrors);
     }
 
-    // Log to console for debugging
-    console.error('[ErrorCollector]', error);
+    // Log to console
+    console.error(`[ErrorCollector] ${errorObj.message}`, {
+      context,
+      error: errorObj
+    });
 
-    // Call onError callback if provided
-    if (options.onError) {
-      try {
-        options.onError(error);
-      } catch (callbackError) {
-        console.error('[ErrorCollector] Error in onError callback:', callbackError);
-      }
-    }
+    return errorId;
   }
 
-  getErrors(): CollectedError[] {
-    return [...this.errors];
-  }
-
-  getRecentErrors(minutes: number = 5): CollectedError[] {
-    const cutoff = new Date(Date.now() - minutes * 60 * 1000);
-    return this.errors.filter(error => error.timestamp > cutoff);
-  }
-
-  clearErrors(): void {
-    this.errors = [];
+  getRecentErrors(limit = 10): CollectedError[] {
+    return this.errors.slice(0, limit);
   }
 
   getErrorCount(): number {
     return this.errors.length;
   }
 
-  private generateId(): string {
-    return Math.random().toString(36).substr(2, 9);
+  clearErrors(): void {
+    this.errors = [];
+  }
+
+  getErrorById(id: string): CollectedError | undefined {
+    return this.errors.find(error => error.id === id);
+  }
+
+  markErrorResolved(id: string): boolean {
+    const error = this.getErrorById(id);
+    if (error) {
+      error.resolved = true;
+      return true;
+    }
+    return false;
   }
 }
 

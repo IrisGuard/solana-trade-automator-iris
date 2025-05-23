@@ -8,6 +8,13 @@ interface HealthCheckResult {
 }
 
 export const SiteHealthMonitor = {
+  // Start monitoring
+  start(): void {
+    console.log('Site health monitoring started');
+    // Perform initial health check
+    this.checkHealth();
+  },
+
   checkHealth(): HealthCheckResult {
     const issues: string[] = [];
     let criticalIssuesFound = false;

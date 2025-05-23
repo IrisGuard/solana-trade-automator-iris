@@ -70,9 +70,9 @@ export function EnhancedTransactionHistory({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
-          <CardTitle>Πρόσφατες Συναλλαγές</CardTitle>
+          <CardTitle>Recent Transactions</CardTitle>
           <CardDescription>
-            Οι τελευταίες {limit} συναλλαγές σας
+            Your last {limit} transactions
           </CardDescription>
         </div>
         <Button

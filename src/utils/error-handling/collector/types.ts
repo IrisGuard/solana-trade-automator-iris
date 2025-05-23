@@ -26,3 +26,21 @@ export interface CollectedError {
   resolved?: boolean;
   details?: any;
 }
+
+// Add the missing ErrorData interface
+export interface ErrorData {
+  message: string;
+  stack?: string;
+  source?: string;
+  timestamp: Date;
+  component?: string;
+  data?: any;
+}
+
+// Add the missing ErrorCollector interface
+export interface ErrorCollector {
+  captureError(error: Error | string, context?: ErrorContext): void;
+  getRecentErrors(): CollectedError[];
+  getErrorCount(): number;
+  clearErrors(): void;
+}

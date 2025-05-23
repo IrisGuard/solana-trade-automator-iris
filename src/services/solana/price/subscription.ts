@@ -1,28 +1,18 @@
 
-import { TokenPriceData } from './types';
-import { getTokenPrice } from './fetchPrice';
+import { fetchTokenPrice } from './fetchPrice';
 
-// Subscribe to price updates for a token
-export function setupPriceSubscription(
-  tokenAddress: string,
-  callback: (priceData: TokenPriceData) => void
+export function subscribeToPriceUpdates(
+  tokenAddress: string, 
+  callback: (price: number) => void
 ): () => void {
-  // In a real app, this would set up a websocket or polling mechanism
-  const intervalId = setInterval(async () => {
-    const price = await getTokenPrice(tokenAddress);
-    callback(price);
-  }, 10000); // Update every 10 seconds
-  
-  // Return unsubscribe function
-  return () => clearInterval(intervalId);
-}
+  const interval = setInterval(async () => {
+    try {
+      const priceData = await fetchTokenPrice(tokenAddress);
+      callback(priceData.price);
+    } catch (error) {
+      console.error('Error fetching price:', error);
+    }
+  }, 30000); // Update every 30 seconds
 
-// Cancel a price subscription
-export function cancelPriceSubscription(unsubscribeFunction: () => void): void {
-  if (typeof unsubscribeFunction === 'function') {
-    unsubscribeFunction();
-  }
+  return () => clearInterval(interval);
 }
-
-// Alias for subscribeToPriceUpdates to maintain compatibility
-export const subscribeToPriceUpdates = setupPriceSubscription;

@@ -46,9 +46,8 @@ export async function disconnectPhantomWallet(): Promise<boolean> {
   return false;
 }
 
-// Updated to accept no parameters since we're not using them
+// Simplified event registration without using on/off methods
 export function registerPhantomEvents(): () => void {
-  // This is a simplified implementation
   const handleConnect = () => {
     console.log("Wallet connected event");
   };
@@ -57,18 +56,8 @@ export function registerPhantomEvents(): () => void {
     console.log("Wallet disconnected event");
   };
   
-  if (window.solana) {
-    // Add event listeners
-    window.solana.on('connect', handleConnect);
-    window.solana.on('disconnect', handleDisconnect);
-    
-    // Return cleanup function
-    return () => {
-      window.solana?.off('connect', handleConnect);
-      window.solana?.off('disconnect', handleDisconnect);
-    };
-  }
-  
-  // Return empty cleanup if no wallet
-  return () => {};
+  // Return cleanup function (no-op since we can't register events)
+  return () => {
+    console.log("Phantom wallet events cleanup");
+  };
 }

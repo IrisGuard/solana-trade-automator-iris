@@ -5,7 +5,7 @@ export interface ApiKey {
   service: string;
   value: string;
   created: Date;
-  expires?: Date | null;
+  expires?: string | null; // Changed from Date to string to match main types
   status: 'active' | 'expired' | 'revoked';
 }
 
@@ -17,7 +17,8 @@ export const demoKeys: ApiKey[] = [
     service: 'helius',
     value: 'demo-key-••••••••••••',
     created: new Date(),
-    status: 'active'
+    status: 'active',
+    expires: null
   }
 ];
 

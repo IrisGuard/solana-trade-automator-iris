@@ -1,15 +1,16 @@
 
-import { TokenPrice } from './types';
+// Re-export functions
+export { fetchTokenPrice } from './fetchPrice';
+export { getTokenPriceHistory } from './priceHistory';
+export { subscribeToPriceUpdates } from './subscription';
 
-export function getMockTokenPrice(tokenAddress: string): TokenPrice {
-  return {
-    price: Math.random() * 100,
-    change24h: (Math.random() - 0.5) * 20,
-    priceChange24h: (Math.random() - 0.5) * 20,
-    volume24h: Math.random() * 1000000,
-    marketCap: Math.random() * 10000000,
-    lastUpdated: new Date()
-  };
-}
+// Mock price service for compatibility
+export const priceService = {
+  fetchTokenPrice: async (tokenAddress: string) => {
+    const { fetchTokenPrice } = await import('./fetchPrice');
+    return fetchTokenPrice(tokenAddress);
+  }
+};
 
-export { TokenPrice, TokenPrices } from './types';
+// Use export type for TypeScript types
+export type { TokenPrice, TokenPrices } from '../token/types';

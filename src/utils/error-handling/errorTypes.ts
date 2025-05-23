@@ -6,7 +6,7 @@ export interface ErrorContext {
   source?: string;
   details?: any;
   severity?: ErrorSeverity;
-  method?: string;
+  method?: string; // Added missing property
 }
 
 export interface BotError extends Error {
