@@ -1,5 +1,4 @@
 
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
@@ -48,10 +47,14 @@ export default defineConfig(({ mode }) => ({
       'react-dom',
       'react-router-dom'
     ],
+    esbuildOptions: {
+      target: 'es2020',
+    },
     force: true
   },
   build: {
     outDir: 'dist',
+    target: 'es2020',
     commonjsOptions: {
       include: [/node_modules/],
       transformMixedEsModules: true
@@ -68,4 +71,3 @@ export default defineConfig(({ mode }) => ({
     }
   }
 }));
-

@@ -1,32 +1,25 @@
 
-import * as React from 'react';
-
-// Βεβαιώνουμε ότι το React είναι διαθέσιμο στο window για προβλήματα συμβατότητας
-
-// Προσθήκη τύπων για το window object
-declare global {
-  interface Window {
-    React: typeof React;
-  }
-}
-
-// Εξαγωγή της συνάρτησης για εφαρμογή συμβατότητας με το React
-export function ensureReactCompatibility(): void {
-  if (typeof window !== 'undefined') {
-    try {
-      // Δημιουργία πλήρους αντιγράφου του React στο window
-      window.React = { ...React };
+/**
+ * Ensure React compatibility with various modules and environments
+ */
+export function ensureReactCompatibility() {
+  try {
+    // Ensure Buffer is available
+    if (typeof window !== 'undefined' && !window.Buffer) {
+      console.log('Adding Buffer compatibility layer for React components');
       
-      // Καταγραφή επιτυχίας
-      console.log('React patches applied successfully');
-    } catch (error) {
-      console.error('Error applying React patches:', error);
+      // Use our pre-loaded polyfills
+      if (typeof global !== 'undefined' && global.Buffer) {
+        (window as any).Buffer = global.Buffer;
+      }
     }
+    
+    // Ensure polyfills are properly initialized
+    if (typeof window !== 'undefined' && !window.__REACT_COMPAT_LAYER) {
+      (window as any).__REACT_COMPAT_LAYER = true;
+      console.log('React compatibility layer initialized');
+    }
+  } catch (e) {
+    console.error('Failed to initialize React compatibility layer:', e);
   }
 }
-
-// Βεβαιώνουμε ότι το patch εφαρμόζεται αυτόματα κατά την εισαγωγή του module
-ensureReactCompatibility();
-
-// Για συμβατότητα με παλαιότερες εκδόσεις κώδικα
-export default ensureReactCompatibility;

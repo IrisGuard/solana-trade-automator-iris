@@ -1,7 +1,6 @@
 
-
-// Import Supabase client using require-style import for better compatibility
-const { createClient } = require('@supabase/supabase-js');
+// Import Supabase client using standard ES module import
+import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 // Use the correct Supabase URL and anon key for production
@@ -31,4 +30,3 @@ export const checkSupabaseConnection = async (): Promise<boolean> => {
     return false;
   }
 };
-
