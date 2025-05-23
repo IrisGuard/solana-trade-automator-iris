@@ -1,6 +1,6 @@
 
 export function useLanguage() {
   return {
-    t: (key: string) => key
+    t: (key: string, fallback?: string) => fallback || key
   };
 }
