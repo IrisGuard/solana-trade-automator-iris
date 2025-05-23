@@ -44,7 +44,7 @@ export function displayError(
     errorCollector.captureError(error, {
       component: component || 'ErrorDisplay',
       source: source,
-      severity,
+      severity, // Now we can pass the severity
       details: { title, description, duration }
     });
   }
