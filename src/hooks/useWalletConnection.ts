@@ -14,6 +14,7 @@ export function useWalletConnection() {
   const [balance, setBalance] = useState<number>(0);
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   
   // Use tokens hook
   const {
@@ -25,7 +26,12 @@ export function useWalletConnection() {
 
   // Connect wallet
   const connectWallet = useCallback(() => {
-    setVisible(true);
+    try {
+      setVisible(true);
+    } catch (err) {
+      console.error('Error showing wallet modal:', err);
+      toast.error('Error connecting wallet');
+    }
   }, [setVisible]);
 
   // Disconnect wallet
@@ -41,35 +47,57 @@ export function useWalletConnection() {
     }
   }, [disconnect]);
 
-  // Fetch SOL balance
+  // Fetch SOL balance with retries
   const fetchBalance = useCallback(async () => {
     if (!publicKey || !connection) return;
 
     setIsLoadingBalance(true);
     try {
+      console.log('Fetching SOL balance for:', publicKey.toString());
       const lamports = await connection.getBalance(publicKey);
       const solBalance = lamports / LAMPORTS_PER_SOL;
+      console.log('SOL balance fetched:', solBalance);
       setBalance(solBalance);
+      setError(null);
+      setRetryCount(0);
     } catch (error) {
       console.error('Error fetching balance:', error);
       setError('Error fetching balance');
+      
+      // Implement retry logic
+      if (retryCount < 3) {
+        setTimeout(() => {
+          setRetryCount(prev => prev + 1);
+          fetchBalance();
+        }, 2000);
+      }
     } finally {
       setIsLoadingBalance(false);
     }
-  }, [publicKey, connection]);
+  }, [publicKey, connection, retryCount]);
 
   // Auto-fetch balance when connected
   useEffect(() => {
     if (connected && publicKey) {
       fetchBalance();
+      refreshTokens();
       toast.success('Wallet connected successfully');
     }
-  }, [connected, publicKey, fetchBalance]);
+  }, [connected, publicKey, fetchBalance, refreshTokens]);
 
-  // Refresh all wallet data
+  // Refresh all wallet data with improved error handling
   const refreshWalletData = useCallback(async (walletAddress?: string) => {
-    await fetchBalance();
-    await refreshTokens();
+    console.log('Refreshing wallet data...');
+    try {
+      await fetchBalance();
+      await refreshTokens();
+      console.log('Wallet data refreshed successfully');
+      return true;
+    } catch (err) {
+      console.error('Error refreshing wallet data:', err);
+      toast.error('Failed to refresh wallet data');
+      return false;
+    }
   }, [fetchBalance, refreshTokens]);
 
   return {

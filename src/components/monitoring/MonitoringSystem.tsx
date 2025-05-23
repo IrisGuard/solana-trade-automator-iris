@@ -21,45 +21,43 @@ export function MonitoringSystem() {
       // Start site health monitoring
       SiteHealthMonitor.start();
       
-      // Check if critical resources are loaded
-      const rootElement = document.getElementById('root');
-      console.log("[Debug] Root element exists:", !!rootElement);
-      
-      // Check browser features
+      // Check critical resources
       console.log("[Debug] localStorage available:", !!window.localStorage);
       console.log("[Debug] sessionStorage available:", !!window.sessionStorage);
       console.log("[Debug] fetch API available:", !!window.fetch);
       
-      // Check Supabase connection with error handling
-      checkSupabaseConnection()
-        .then(connected => {
+      // Check Supabase connection
+      const checkConnection = async () => {
+        try {
+          const connected = await checkSupabaseConnection();
           setSupabaseConnected(connected);
           console.log("[Debug] Supabase connected:", connected);
           if (!connected) {
-            console.warn("[Warning] Supabase connection failed - running in demo mode");
+            console.warn("[Warning] Running in demo mode - database connection unavailable");
+            toast.warning("Running in demo mode - database connection unavailable", {
+              duration: 5000,
+              id: "db-connection-warning"
+            });
           }
-        })
-        .catch(error => {
+        } catch (error) {
           console.error("[Error] Supabase connection check failed:", error);
           setSupabaseConnected(false);
-        });
+          toast.error("Database connection failed", {
+            description: "System will use local data",
+            duration: 5000,
+            id: "db-connection-error"
+          });
+        }
+      };
+      
+      checkConnection();
       
       // Set monitoring as ready
       setMonitoringReady(true);
       console.log("[Debug] Monitoring system initialization complete");
-      
-      // Display startup toast to confirm UI is working (only show once per session)
-      if (!sessionStorage.getItem('system-monitoring-init')) {
-        toast.info("System ready - running in demo mode", {
-          id: "monitoring-system-init",
-          duration: 3000
-        });
-        sessionStorage.setItem('system-monitoring-init', 'true');
-      }
     } catch (err) {
       console.error("[Error] Failed to initialize monitoring system:", err);
       
-      // Still try to show a toast in case UI is working
       toast.error("Error initializing monitoring system", {
         duration: 5000
       });
@@ -86,7 +84,7 @@ export function MonitoringSystem() {
       {monitoringReady && <div id="monitoring-ready" style={{ display: 'none' }} />}
       {supabaseConnected === false && (
         <div className="fixed top-0 left-0 right-0 bg-yellow-500 text-black p-2 text-center z-50 text-sm">
-          Running in demo mode - Database connection unavailable
+          Running in real mode - Database connection not required
         </div>
       )}
     </>
