@@ -1,4 +1,5 @@
 
+
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
@@ -28,3 +29,4 @@ export const checkSupabaseConnection = async (): Promise<boolean> => {
     return false;
   }
 };
+
