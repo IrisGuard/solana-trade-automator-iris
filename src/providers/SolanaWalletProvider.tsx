@@ -2,43 +2,36 @@
 import React, { useMemo } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl } from '@solana/web3.js';
+
+// Import wallet adapter CSS
+import '@solana/wallet-adapter-react-ui/styles.css';
 
 interface SolanaWalletProviderProps {
   children: React.ReactNode;
 }
 
 export function SolanaWalletProvider({ children }: SolanaWalletProviderProps) {
-  // Χρήση mainnet-beta για production
+  // Use mainnet for production
   const network = WalletAdapterNetwork.Mainnet;
   
-  // RPC endpoint - χρήση του κύριου mainnet endpoint
+  // RPC endpoint - using mainnet
   const endpoint = useMemo(() => {
-    try {
-      return clusterApiUrl(network);
-    } catch (error) {
-      console.error('Error getting cluster API URL:', error);
-      return 'https://api.mainnet-beta.solana.com';
-    }
+    // You can use custom RPC endpoint here or Helius API
+    return process.env.REACT_APP_RPC_URL || clusterApiUrl(network);
   }, [network]);
 
-  // Λίστα των υποστηριζόμενων wallets
-  const wallets = useMemo(() => {
-    try {
-      return [
-        new PhantomWalletAdapter(),
-      ];
-    } catch (error) {
-      console.error('Error initializing wallets:', error);
-      return [];
-    }
-  }, []);
+  // Supported wallets
+  const wallets = useMemo(() => [
+    new PhantomWalletAdapter(),
+    new SolflareWalletAdapter(),
+  ], []);
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect={false}>
+      <WalletProvider wallets={wallets} autoConnect={true}>
         <WalletModalProvider>
           {children}
         </WalletModalProvider>

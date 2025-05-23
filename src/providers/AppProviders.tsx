@@ -1,10 +1,12 @@
 
 import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './ThemeProvider';
 import { LanguageProvider } from './LanguageProvider';
-import { AuthProvider } from './AuthProvider';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SolanaWalletProvider } from './SolanaWalletProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { Toaster } from 'sonner';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,15 +25,18 @@ interface AppProvidersProps {
 export function AppProviders({ children }: AppProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <LanguageProvider defaultLanguage="el">
-          <TooltipProvider>
-            <AuthProvider>
-              {children}
-            </AuthProvider>
-          </TooltipProvider>
-        </LanguageProvider>
-      </ThemeProvider>
+      <BrowserRouter>
+        <ThemeProvider>
+          <LanguageProvider defaultLanguage="el">
+            <SolanaWalletProvider>
+              <TooltipProvider>
+                {children}
+                <Toaster position="top-right" />
+              </TooltipProvider>
+            </SolanaWalletProvider>
+          </LanguageProvider>
+        </ThemeProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }
