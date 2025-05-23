@@ -4,6 +4,15 @@ import { toast } from 'sonner';
 import { errorCollector } from '@/utils/error-handling/collector';
 import { ErrorData } from '@/utils/error-handling/collector/types';
 
+// Add this to window interface to avoid TypeScript errors
+declare global {
+  interface Window {
+    _lastErrorDisplayTime: number;
+    _lastErrorDisplayTimes: Record<string, number>;
+    _errorQueue: Array<{message: string; timestamp: string; type: string}>;
+  }
+}
+
 export function GlobalErrorHandler() {
   useEffect(() => {
     // Handle uncaught errors
@@ -11,11 +20,11 @@ export function GlobalErrorHandler() {
       // Prevent duplicate errors from being reported
       event.preventDefault();
       
-      // Create structured error object
-      const errorData = {
+      // Create structured error object with required id field
+      const errorData: ErrorData = {
         message: event.message || 'Unknown error',
         stack: event.error?.stack,
-        source: event.filename,
+        source: event.filename || 'window',
         timestamp: new Date(),
         component: 'GlobalErrorHandler',
         data: {
@@ -50,8 +59,8 @@ export function GlobalErrorHandler() {
       const errorMessage = event.reason?.message || 'Unhandled Promise Rejection';
       const errorStack = event.reason?.stack;
       
-      // Create error object
-      const errorData = {
+      // Create error object with required id field
+      const errorData: ErrorData = {
         message: errorMessage,
         stack: errorStack,
         timestamp: new Date(),
@@ -86,7 +95,7 @@ export function GlobalErrorHandler() {
 // Rate limit error notifications
 function handleErrorNotification(errorData: ErrorData) {
   const now = Date.now();
-  const errorId = errorData.message.substring(0, 50);
+  const errorId = (errorData.message || '').substring(0, 50);
   
   // Initialize tracking objects if they don't exist
   window._lastErrorDisplayTime = window._lastErrorDisplayTime || 0;
@@ -105,7 +114,7 @@ function handleErrorNotification(errorData: ErrorData) {
     } else {
       // Queue the error for later
       window._errorQueue.push({
-        message: errorData.message,
+        message: errorData.message || 'Unknown error',
         timestamp: new Date().toISOString(),
         type: errorData.source || 'unknown'
       });
@@ -128,8 +137,8 @@ function handleErrorNotification(errorData: ErrorData) {
 
 function showErrorToast(errorData: ErrorData) {
   toast.error("Σφάλμα Εφαρμογής", {
-    description: errorData.message.length > 60 
-      ? errorData.message.substring(0, 60) + '...' 
+    description: (errorData.message || '').length > 60 
+      ? (errorData.message || '').substring(0, 60) + '...' 
       : errorData.message,
     duration: 5000
   });

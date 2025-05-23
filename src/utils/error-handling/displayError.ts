@@ -13,6 +13,7 @@ export interface DisplayErrorOptions {
   useCollector?: boolean;
   component?: string;
   severity?: 'low' | 'medium' | 'high' | 'critical';
+  source?: string;
   details?: any;
   action?: {
     label: string;
@@ -34,14 +35,15 @@ export function displayError(
     logToConsole = true,
     useCollector = true,
     component,
-    severity = 'medium'
+    severity = 'medium',
+    source = 'client'
   } = options;
 
   // Collect the error for monitoring
   if (useCollector) {
     errorCollector.captureError(error, {
       component: component || 'ErrorDisplay',
-      source: 'displayError',
+      source: source,
       severity,
       details: { title, description, duration }
     });

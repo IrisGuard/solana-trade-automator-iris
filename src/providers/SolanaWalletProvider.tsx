@@ -14,14 +14,16 @@ interface SolanaWalletProviderProps {
 }
 
 export function SolanaWalletProvider({ children }: SolanaWalletProviderProps) {
-  // Use mainnet for production
+  // Use mainnet for real crypto data display
   const network = WalletAdapterNetwork.Mainnet;
   
   // RPC endpoint - using mainnet for real crypto data
   const endpoint = useMemo(() => {
-    // Use mainnet for real crypto display
-    return process.env.REACT_APP_RPC_URL || clusterApiUrl(network);
-  }, [network]);
+    // Use Solana mainnet RPC endpoint for production
+    const defaultEndpoint = clusterApiUrl(network);
+    // You can also specify a custom RPC endpoint if needed
+    return 'https://api.mainnet-beta.solana.com';
+  }, []);
 
   // Supported wallets
   const wallets = useMemo(() => [
