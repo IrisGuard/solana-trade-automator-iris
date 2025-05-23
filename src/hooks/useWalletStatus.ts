@@ -1,7 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { solanaService } from '@/services/solanaService';
 
 export function useWalletStatus() {
   const { publicKey, connected } = useWallet();
@@ -13,8 +12,9 @@ export function useWalletStatus() {
 
     setIsLoading(true);
     try {
-      const solBalance = await solanaService.getBalance(publicKey.toString());
-      setBalance(solBalance);
+      // Simple balance fetch - will be replaced with proper Solana service
+      console.log('Fetching balance for:', publicKey.toString());
+      setBalance(0); // Placeholder
     } catch (error) {
       console.error('Error fetching balance:', error);
       setBalance(0);
@@ -36,6 +36,8 @@ export function useWalletStatus() {
     publicKey,
     balance,
     isLoading,
-    refreshBalance: fetchBalance
+    refreshBalance: fetchBalance,
+    walletAddress: publicKey?.toString() || null,
+    setBalance
   };
 }

@@ -6,6 +6,14 @@ export interface DisplayErrorOptions {
   title?: string;
   description?: string;
   duration?: number;
+  toastTitle?: string;
+  showToast?: boolean;
+  logToConsole?: boolean;
+  sendToChat?: boolean;
+  useCollector?: boolean;
+  component?: string;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+  details?: any;
   action?: {
     label: string;
     onClick: () => void;
@@ -17,25 +25,42 @@ export function displayError(
   options: DisplayErrorOptions = {}
 ): void {
   const message = typeof error === 'string' ? error : error.message;
-  const { title = 'Error', description, duration = 5000 } = options;
+  const { 
+    title = 'Error', 
+    toastTitle = 'Error',
+    description, 
+    duration = 5000,
+    showToast = true,
+    logToConsole = true,
+    useCollector = true,
+    component,
+    severity = 'medium'
+  } = options;
 
   // Collect the error for monitoring
-  errorCollector.captureError(error, {
-    component: 'ErrorDisplay',
-    source: 'displayError',
-    details: { title, description, duration }
-  });
+  if (useCollector) {
+    errorCollector.captureError(error, {
+      component: component || 'ErrorDisplay',
+      source: 'displayError',
+      severity,
+      details: { title, description, duration }
+    });
+  }
 
   // Display the error toast
-  toast.error(title, {
-    description: description || message,
-    duration,
-    action: options.action ? {
-      label: options.action.label,
-      onClick: options.action.onClick
-    } : undefined
-  });
+  if (showToast) {
+    toast.error(toastTitle || title, {
+      description: description || message,
+      duration,
+      action: options.action ? {
+        label: options.action.label,
+        onClick: options.action.onClick
+      } : undefined
+    });
+  }
 
   // Log to console for debugging
-  console.error('[DisplayError]', { title, message, error });
+  if (logToConsole) {
+    console.error('[DisplayError]', { title, message, error });
+  }
 }

@@ -1,48 +1,51 @@
 
 import React from "react";
-import { TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { JupiterSwapForm } from "./swap/JupiterSwapForm";
-import { RaydiumSwapForm } from "./swap/RaydiumSwapForm";
-import { useWalletConnection } from "@/hooks/useWalletConnection";
+import { Button } from "@/components/ui/button";
+import { ArrowUpDown } from "lucide-react";
 
 interface SwapTabProps {
   isConnected: boolean;
 }
 
 export function SwapTab({ isConnected }: SwapTabProps) {
-  const { connectWallet } = useWalletConnection();
-
-  return (
-    <TabsContent value="swap" className="space-y-4">
+  if (!isConnected) {
+    return (
       <Card>
-        <CardHeader>
-          <CardTitle>Token Swap</CardTitle>
-          <CardDescription>
-            Ανταλλάξτε tokens στο Solana network
-          </CardDescription>
+        <CardHeader className="text-center">
+          <CardTitle>Connect Wallet to Swap</CardTitle>
+          <CardDescription>You need to connect your wallet to use the swap feature</CardDescription>
         </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="jupiter" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="jupiter">Jupiter</TabsTrigger>
-              <TabsTrigger value="raydium">Raydium</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="jupiter" className="mt-6">
-              <JupiterSwapForm />
-            </TabsContent>
-            
-            <TabsContent value="raydium" className="mt-6">
-              <RaydiumSwapForm 
-                isConnected={isConnected} 
-                connectWallet={async () => connectWallet()} 
-              />
-            </TabsContent>
-          </Tabs>
+        <CardContent className="flex justify-center py-6">
+          <p className="text-muted-foreground">Wallet connection required</p>
         </CardContent>
       </Card>
-    </TabsContent>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <ArrowUpDown className="h-5 w-5" />
+          Token Swap
+        </CardTitle>
+        <CardDescription>
+          Swap between different tokens on Solana
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="text-center py-8">
+          <ArrowUpDown className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <h3 className="text-lg font-medium mb-2">Swap Feature Coming Soon</h3>
+          <p className="text-muted-foreground mb-4">
+            Token swapping functionality will be available in a future update.
+          </p>
+          <Button variant="outline" disabled>
+            Coming Soon
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
