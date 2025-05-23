@@ -5,11 +5,13 @@ export interface ErrorData {
   timestamp: Date;
   component?: string;
   source?: string;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
 }
 
 interface ErrorContext {
   component?: string;
   source?: string;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
   details?: any;
 }
 
@@ -24,7 +26,8 @@ class ErrorCollector {
       stack: error.stack,
       timestamp: new Date(),
       component: context?.component,
-      source: context?.source
+      source: context?.source,
+      severity: context?.severity
     };
     
     this.errors.push(errorData);
