@@ -27,7 +27,7 @@ class ErrorCollector {
       timestamp: new Date(),
       component: context?.component,
       source: context?.source,
-      severity: context?.severity
+      severity: context?.severity || 'medium'
     };
     
     this.errors.push(errorData);
