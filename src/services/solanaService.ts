@@ -1,26 +1,21 @@
 
-import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
+import { connectionManager } from '@/services/solana/rpc/ConnectionManager';
 import { errorCollector } from '@/utils/error-handling/collector';
 
 class SolanaService {
-  private connection: Connection;
-
-  constructor() {
-    // Use mainnet-beta for production, devnet for development
-    const endpoint = process.env.NODE_ENV === 'production' 
-      ? clusterApiUrl('mainnet-beta')
-      : clusterApiUrl('devnet');
-    
-    this.connection = new Connection(endpoint);
-  }
-
   async getBalance(publicKey: string): Promise<number> {
     try {
       const pubKey = new PublicKey(publicKey);
-      const balance = await this.connection.getBalance(pubKey);
+      
+      const balance = await connectionManager.executeWithFallback(async (connection) => {
+        return await connection.getBalance(pubKey);
+      });
+      
       return balance / 1000000000; // Convert from lamports to SOL
     } catch (error) {
-      errorCollector.captureError(error, {
+      console.error('[SolanaService] Error getting balance:', error);
+      errorCollector.captureError(error as Error, {
         component: 'SolanaService',
         source: 'getBalance',
         details: { publicKey }
@@ -32,12 +27,17 @@ class SolanaService {
   async getTokenAccounts(publicKey: string) {
     try {
       const pubKey = new PublicKey(publicKey);
-      const tokenAccounts = await this.connection.getParsedTokenAccountsByOwner(pubKey, {
-        programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA')
+      
+      const tokenAccounts = await connectionManager.executeWithFallback(async (connection) => {
+        return await connection.getParsedTokenAccountsByOwner(pubKey, {
+          programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA')
+        });
       });
+      
       return tokenAccounts.value;
     } catch (error) {
-      errorCollector.captureError(error, {
+      console.error('[SolanaService] Error getting token accounts:', error);
+      errorCollector.captureError(error as Error, {
         component: 'SolanaService',
         source: 'getTokenAccounts', 
         details: { publicKey }
@@ -49,10 +49,15 @@ class SolanaService {
   async getTransactionHistory(publicKey: string, limit: number = 10) {
     try {
       const pubKey = new PublicKey(publicKey);
-      const signatures = await this.connection.getSignaturesForAddress(pubKey, { limit });
+      
+      const signatures = await connectionManager.executeWithFallback(async (connection) => {
+        return await connection.getSignaturesForAddress(pubKey, { limit });
+      });
+      
       return signatures;
     } catch (error) {
-      errorCollector.captureError(error, {
+      console.error('[SolanaService] Error getting transaction history:', error);
+      errorCollector.captureError(error as Error, {
         component: 'SolanaService',
         source: 'getTransactionHistory',
         details: { publicKey, limit }
@@ -61,8 +66,8 @@ class SolanaService {
     }
   }
 
-  getConnection(): Connection {
-    return this.connection;
+  getConnection() {
+    return connectionManager.getConnection();
   }
 }
 

@@ -5,11 +5,11 @@ import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
-import { clusterApiUrl } from '@solana/web3.js';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { SupabaseAuthProvider } from "@/providers/SupabaseAuthProvider";
 import { MonitoringSystem } from "@/components/monitoring/MonitoringSystem";
+import { getBestRpcEndpoint } from "@/services/solana/rpc/endpoints";
 import MainDashboard from "./pages/MainDashboard";
 
 import '@solana/wallet-adapter-react-ui/styles.css';
@@ -24,9 +24,9 @@ const queryClient = new QueryClient({
   },
 });
 
-// Use Mainnet for real crypto data display
-const network = WalletAdapterNetwork.Mainnet;
-const endpoint = clusterApiUrl(network);
+// Use a reliable RPC endpoint
+const endpoint = getBestRpcEndpoint();
+console.log(`[App] Using RPC endpoint: ${endpoint}`);
 
 const wallets = [
   new PhantomWalletAdapter(),
