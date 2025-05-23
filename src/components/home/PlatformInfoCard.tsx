@@ -3,34 +3,31 @@ import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { useLanguage } from "@/hooks/use-language";
 
 export function PlatformInfoCard() {
-  const { t } = useLanguage();
-  
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("platform.title")}</CardTitle>
-        <CardDescription>{t("platform.subtitle")}</CardDescription>
+        <CardTitle>Platform Features</CardTitle>
+        <CardDescription>Advanced trading automation for Solana</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <p>
-          {t("platform.description")}
+          Our platform provides professional-grade trading automation tools for the Solana ecosystem.
         </p>
         <div className="bg-muted p-3 rounded-lg">
-          <h4 className="font-medium mb-2">{t("platform.howItWorks")}</h4>
+          <h4 className="font-medium mb-2">Key Features</h4>
           <ul className="space-y-1 list-disc pl-5 text-sm">
-            <li>{t("platform.feature1")}</li>
-            <li>{t("platform.feature2")}</li>
-            <li>{t("platform.feature3")}</li>
-            <li>{t("platform.feature4")}</li>
-            <li>{t("platform.feature5")}</li>
+            <li>Real-time portfolio tracking</li>
+            <li>Automated trading strategies</li>
+            <li>Advanced risk management</li>
+            <li>Professional analytics dashboard</li>
+            <li>Secure API key management</li>
           </ul>
         </div>
         <Button variant="outline" className="w-full" asChild>
           <Link to="/bot-control">
-            {t("platform.createBot")}
+            Create Trading Bot
           </Link>
         </Button>
       </CardContent>

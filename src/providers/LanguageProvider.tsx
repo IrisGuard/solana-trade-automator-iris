@@ -1,10 +1,8 @@
 
 import React, { createContext, useState, useContext, ReactNode } from 'react';
-import { en } from "@/locales/en";
-import { el } from "@/locales/el";
 
-// Available languages
-export type LanguageType = 'en' | 'el';
+// Available languages - English only
+export type LanguageType = 'en';
 
 type TranslationParams = Record<string, string> | string;
 
@@ -21,10 +19,37 @@ interface LanguageProviderProps {
   defaultLanguage?: LanguageType;
 }
 
-// Combined translations
+// Simple English translations
 const translations = {
-  en: en,
-  el: el
+  en: {
+    general: {
+      welcome: "Welcome",
+      home: "Home",
+      dashboard: "Dashboard",
+      wallet: "Wallet",
+      transactions: "Transactions",
+      security: "Security",
+      settings: "Settings",
+      help: "Help",
+      loading: "Loading",
+      connect: "Connect",
+      disconnect: "Disconnect"
+    },
+    wallet: {
+      connectWallet: "Connect Wallet",
+      walletConnected: "Wallet Connected",
+      walletDisconnected: "Wallet Disconnected",
+      walletAddress: "Wallet Address",
+      walletBalance: "Wallet Balance",
+      tokensBalance: "Token Balance"
+    },
+    platform: {
+      title: "Platform Features",
+      subtitle: "Advanced trading automation",
+      description: "Our platform provides professional trading tools",
+      createBot: "Create Trading Bot"
+    }
+  }
 };
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children, defaultLanguage = 'en' }) => {
@@ -41,21 +66,13 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children, de
     }
     
     try {
-      // Search for translation in selected language
+      // Search for translation in English
       let text = keys.reduce((obj: any, key) => {
         return obj?.[key];
       }, translations[language]);
       
-      // If not found, try in English as fallback
-      if (text === undefined && language !== 'en') {
-        text = keys.reduce((obj: any, key) => {
-          return obj?.[key];
-        }, translations['en']);
-      }
-      
-      // If still not found, return defaultValue if exists, otherwise the key
+      // If not found, return defaultValue if exists, otherwise the key
       if (text === undefined) {
-        console.warn(`Translation not found for key: ${key}`);
         return defaultValue || key;
       }
       
@@ -68,7 +85,6 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children, de
       
       return text;
     } catch (e) {
-      console.warn(`Error looking for translation for key: ${key}`, e);
       return defaultValue || key;
     }
   };

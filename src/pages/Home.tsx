@@ -6,13 +6,11 @@ import { WalletDisconnectedContent } from "@/components/home/WalletDisconnectedC
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Loader2, Home as HomeIcon, Wallet, Bot, Shield, HelpCircle } from "lucide-react";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
-import { useLanguage } from "@/hooks/use-language";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { EnhancedLandingNav } from "@/components/home/enhanced/EnhancedLandingNav";
 import { GradientHeading } from "@/components/ui/gradient-heading";
 import { GradientCard } from "@/components/ui/gradient-card";
-import { HeliusSyncComponent } from "@/components/wallet/HeliusSyncComponent";
 
 export default function Home() {
   const [isPageLoading, setIsPageLoading] = useState(true);
@@ -33,23 +31,14 @@ export default function Home() {
     tokenPrices
   } = useWalletConnection();
   
-  const { t } = useLanguage();
-  
-  // Διασφαλίζουμε ότι το walletAddress είναι string πριν χρησιμοποιήσουμε substring
+  // Ensure walletAddress is string before using substring
   const displayAddress = typeof walletAddress === 'string' && walletAddress ? 
     `${walletAddress.substring(0, 4)}...${walletAddress.substring(walletAddress.length - 4)}` : 
-    "Δεν έχει συνδεθεί πορτοφόλι";
+    "No wallet connected";
   
   // Wrapper for connectWallet to match expected return type
   const handleConnectWallet = async () => {
     await connectWallet();
-  };
-  
-  // Handle HeliusSync callback
-  const handleHeliusSync = () => {
-    if (isConnected && walletAddress) {
-      refreshWalletData(walletAddress);
-    }
   };
   
   useEffect(() => {
@@ -69,7 +58,7 @@ export default function Home() {
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="flex flex-col items-center space-y-4">
           <Loader2 className="h-10 w-10 text-primary animate-spin" />
-          <p className="text-muted-foreground">Φόρτωση σελίδας...</p>
+          <p className="text-muted-foreground">Loading page...</p>
         </div>
       </div>
     );
@@ -79,22 +68,15 @@ export default function Home() {
     <div className="space-y-8">
       <div className="mb-8">
         <GradientHeading as="h1" variant="blue" className="mb-2">
-          Καλώς ήρθατε στο Solana Trade Automator
+          Welcome to Solana Trade Automator
         </GradientHeading>
         <p className="text-lg text-muted-foreground max-w-3xl">
-          Αυτοματοποιήστε τις συναλλαγές σας στο Solana blockchain και διαχειριστείτε τα περιουσιακά σας στοιχεία με ασφάλεια και ευκολία.
+          Automate your trades on the Solana blockchain and manage your assets with security and ease.
         </p>
       </div>
 
       {/* Enhanced Navigation Menu */}
       <EnhancedLandingNav />
-
-      {/* Helius Sync Button */}
-      {isConnected && (
-        <div className="flex justify-end">
-          <HeliusSyncComponent onSync={handleHeliusSync} />
-        </div>
-      )}
 
       {/* Main Card */}
       <GradientCard
@@ -102,9 +84,9 @@ export default function Home() {
         header={
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <div className="flex-1">
-              <CardTitle className="text-xl sm:text-2xl">Κατάσταση Πορτοφολιού</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl">Wallet Status</CardTitle>
               <CardDescription className="text-sm sm:text-base">
-                Συνδεθείτε με το πορτοφόλι σας για να διαχειριστείτε τα tokens σας
+                Connect your wallet to manage your tokens
               </CardDescription>
             </div>
           </div>
@@ -114,7 +96,7 @@ export default function Home() {
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Σφάλμα σύνδεσης: {connectionError}. Παρακαλώ δοκιμάστε ξανά αργότερα.
+              Connection error: {connectionError}. Please try again later.
             </AlertDescription>
           </Alert>
         )}
@@ -147,11 +129,11 @@ export default function Home() {
             </div>
             <h3 className="text-xl font-bold mb-2">Trading Bot</h3>
             <p className="text-muted-foreground mb-4">
-              Αυτοματοποιήστε τις συναλλαγές σας με τη χρήση προηγμένων αλγορίθμων και στρατηγικών.
+              Automate your trading with advanced algorithms and strategies.
             </p>
             <Link to="/bot-control">
               <Button variant="outline" className="border-purple-400/30 hover:bg-purple-500/10">
-                Ρυθμίσεις Bot
+                Bot Settings
               </Button>
             </Link>
           </div>
@@ -162,13 +144,13 @@ export default function Home() {
             <div className="bg-emerald-500/10 p-3 rounded-full mb-4">
               <Wallet className="h-8 w-8 text-emerald-500" />
             </div>
-            <h3 className="text-xl font-bold mb-2">Διαχείριση Πορτοφολιού</h3>
+            <h3 className="text-xl font-bold mb-2">Wallet Management</h3>
             <p className="text-muted-foreground mb-4">
-              Παρακολουθήστε το υπόλοιπο και τα tokens σας με απλό και εύχρηστο τρόπο.
+              Monitor your balance and tokens in an easy and user-friendly way.
             </p>
             <Link to="/wallet">
               <Button variant="outline" className="border-emerald-400/30 hover:bg-emerald-500/10">
-                Το Πορτοφόλι μου
+                My Wallet
               </Button>
             </Link>
           </div>
@@ -179,13 +161,13 @@ export default function Home() {
             <div className="bg-amber-500/10 p-3 rounded-full mb-4">
               <Shield className="h-8 w-8 text-amber-500" />
             </div>
-            <h3 className="text-xl font-bold mb-2">Ασφάλεια</h3>
+            <h3 className="text-xl font-bold mb-2">Security</h3>
             <p className="text-muted-foreground mb-4">
-              Προηγμένα χαρακτηριστικά ασφαλείας για την προστασία των περιουσιακών σας στοιχείων.
+              Advanced security features to protect your assets.
             </p>
             <Link to="/api-vault">
               <Button variant="outline" className="border-amber-400/30 hover:bg-amber-500/10">
-                Ρυθμίσεις Ασφαλείας
+                Security Settings
               </Button>
             </Link>
           </div>
