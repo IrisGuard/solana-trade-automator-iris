@@ -118,6 +118,13 @@ export type Database = {
             referencedRelation: "bots"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_bot_performance_bot"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["id"]
+          },
         ]
       }
       bot_templates: {
@@ -194,6 +201,13 @@ export type Database = {
           },
           {
             foreignKeyName: "fk_bot"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_bot_transactions_bot"
             columns: ["bot_id"]
             isOneToOne: false
             referencedRelation: "bots"
