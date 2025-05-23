@@ -42,10 +42,12 @@ export default defineConfig(({ mode }) => ({
       '@solana/wallet-adapter-base',
       '@solana/wallet-adapter-react',
       '@solana/wallet-adapter-wallets',
+      '@supabase/supabase-js',
       'react',
       'react-dom',
       'react-router-dom'
     ],
+    force: true
   },
   build: {
     outDir: 'dist',
@@ -55,6 +57,7 @@ export default defineConfig(({ mode }) => ({
         manualChunks: {
           vendor: ['react', 'react-dom'],
           solana: ['@solana/web3.js', '@solana/wallet-adapter-react'],
+          supabase: ['@supabase/supabase-js'],
         },
       },
     }
