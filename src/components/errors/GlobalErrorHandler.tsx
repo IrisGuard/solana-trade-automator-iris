@@ -9,7 +9,7 @@ declare global {
   interface Window {
     _lastErrorDisplayTime?: number;
     _lastErrorDisplayTimes?: Record<string, number>;
-    _errorQueue?: Array<{message: string; timestamp: string; type: string}>;
+    _errorQueue?: Array<{message: string; stack?: string; timestamp: string; type: string}>;
   }
 }
 
@@ -40,6 +40,7 @@ export function GlobalErrorHandler() {
       errorCollector.captureError(event.error || new Error(event.message), {
         component: 'GlobalErrorHandler',
         source: 'window',
+        severity: 'medium',
         details: {
           lineno: event.lineno,
           colno: event.colno,
@@ -73,7 +74,7 @@ export function GlobalErrorHandler() {
       // Add to error collector
       errorCollector.captureError(
         event.reason instanceof Error ? event.reason : new Error(errorMessage),
-        { component: 'GlobalErrorHandler', source: 'promise' }
+        { component: 'GlobalErrorHandler', source: 'promise', severity: 'medium' }
       );
       
       // Show error toast (rate limited)
@@ -115,6 +116,7 @@ function handleErrorNotification(errorData: ErrorData) {
       // Queue the error for later
       window._errorQueue.push({
         message: errorData.message || 'Unknown error',
+        stack: errorData.stack,
         timestamp: new Date().toISOString(),
         type: errorData.source || 'unknown'
       });

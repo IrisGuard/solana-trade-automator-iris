@@ -46,8 +46,21 @@ export function ErrorTestPanel() {
     displayError(new Error(errorMessage || "Test error message"), errorOptions);
   };
   
+  const contextValue = {
+    errorMessage,
+    showToast: allErrorOptions.showToast,
+    logToConsole: allErrorOptions.logToConsole,
+    sendToChat: false,
+    useCollector: allErrorOptions.useCollector,
+    setErrorMessage,
+    setShowToast: (show: boolean) => setAllErrorOptions(prev => ({ ...prev, showToast: show })),
+    setLogToConsole: (log: boolean) => setAllErrorOptions(prev => ({ ...prev, logToConsole: log })),
+    setSendToChat: () => {},
+    setUseCollector: (use: boolean) => setAllErrorOptions(prev => ({ ...prev, useCollector: use }))
+  };
+  
   return (
-    <ErrorOptionsContext.Provider value={{ options: allErrorOptions, setOptions: setAllErrorOptions }}>
+    <ErrorOptionsContext.Provider value={contextValue}>
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Error Test Panel</h2>
         

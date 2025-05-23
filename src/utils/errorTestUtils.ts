@@ -1,6 +1,7 @@
 
 import { toast } from 'sonner';
 import { errorCollector } from './error-handling/collector';
+import { displayError } from './error-handling/displayError';
 
 export function clearAllErrors() {
   try {
@@ -18,5 +19,50 @@ export function clearAllErrors() {
   } catch (error) {
     console.error('Error clearing errors:', error);
     toast.error('Σφάλμα κατά τον καθαρισμό σφαλμάτων');
+  }
+}
+
+export interface GenerateTestErrorOptions {
+  message: string;
+  errorType?: string;
+  component?: string;
+  details?: any;
+  toastTitle?: string;
+  showToast?: boolean;
+  sendToChat?: boolean;
+  logToConsole?: boolean;
+  useCollector?: boolean;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+}
+
+export function generateTestError(options: GenerateTestErrorOptions) {
+  const {
+    message,
+    errorType = 'test',
+    component = 'TestButton',
+    details,
+    toastTitle = 'Test Error',
+    showToast = true,
+    sendToChat = false,
+    logToConsole = true,
+    useCollector = true,
+    severity = 'medium'
+  } = options;
+
+  const error = new Error(message);
+  
+  displayError(error, {
+    title: toastTitle,
+    showToast,
+    logToConsole,
+    useCollector,
+    component,
+    severity,
+    source: errorType,
+    details
+  });
+  
+  if (sendToChat) {
+    console.log(`[SendToChat] ${message}`, { errorType, component, details });
   }
 }
