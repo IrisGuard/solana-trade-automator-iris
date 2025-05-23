@@ -13,21 +13,21 @@ export default function Security() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-gradient mb-1">Ασφάλεια</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-gradient mb-1">Security</h2>
         <p className="text-muted-foreground">
-          Διαχειριστείτε τις ρυθμίσεις ασφαλείας και την προστασία του λογαριασμού σας
+          Manage your security settings and account protection
         </p>
       </div>
       
       <Alert className="bg-primary/5 border border-primary/20">
         <ShieldCheck className="h-5 w-5 text-primary" />
-        <AlertTitle className="text-foreground">Ενισχυμένη ασφάλεια</AlertTitle>
+        <AlertTitle className="text-foreground">Enhanced Security</AlertTitle>
         <AlertDescription className="text-foreground/90">
-          Η πλατφόρμα μας χρησιμοποιεί προηγμένα μέτρα ασφαλείας για την προστασία του λογαριασμού σας και των συναλλαγών σας.
+          Our platform uses advanced security measures to protect your account and transactions.
         </AlertDescription>
       </Alert>
       
-      {/* Κάρτες ασφαλείας για τους χρήστες */}
+      {/* Security cards for users */}
       <div className="grid gap-6 md:grid-cols-2">
         <TwoFactorCard />
         <AccountAccessCard />
@@ -37,27 +37,27 @@ export default function Security() {
       <SessionsCard />
       <PlatformSecurityCard />
       
-      {/* Απλοποιημένη κάρτα πληροφοριών για την ασφάλεια της πλατφόρμας */}
+      {/* Simplified platform security information card */}
       <Card className="card-highlight">
         <CardHeader>
-          <CardTitle className="text-xl text-foreground">Ασφάλεια Πλατφόρμας</CardTitle>
+          <CardTitle className="text-xl text-foreground">Platform Security</CardTitle>
           <CardDescription>
-            Η πλατφόρμα μας διαθέτει προηγμένα μέτρα ασφαλείας που διαχειρίζονται από την ομάδα υποστήριξης
+            Our platform features advanced security measures managed by the support team
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="bg-muted p-4 rounded-lg">
-              <h4 className="font-medium mb-2 text-foreground">Ασφάλεια σε πολλαπλά επίπεδα</h4>
+              <h4 className="font-medium mb-2 text-foreground">Multi-layer Security</h4>
               <p className="text-sm text-muted-foreground">
-                Η πλατφόρμα μας εφαρμόζει ασφάλεια σε πολλαπλά επίπεδα, συμπεριλαμβανομένης της κρυπτογράφησης δεδομένων και των προηγμένων ελέγχων πρόσβασης.
+                Our platform implements multi-layer security, including data encryption and advanced access controls.
               </p>
             </div>
             
             <div className="bg-muted p-4 rounded-lg">
-              <h4 className="font-medium mb-2 text-foreground">Τακτικοί έλεγχοι</h4>
+              <h4 className="font-medium mb-2 text-foreground">Regular Audits</h4>
               <p className="text-sm text-muted-foreground">
-                Πραγματοποιούμε τακτικούς ελέγχους ασφαλείας για να διασφαλίσουμε ότι το σύστημα είναι προστατευμένο από τις νεότερες απειλές.
+                We conduct regular security audits to ensure the system is protected from the latest threats.
               </p>
             </div>
           </div>

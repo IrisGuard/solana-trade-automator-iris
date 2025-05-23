@@ -18,17 +18,17 @@ export default function Transactions() {
     return (
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h2 className="text-3xl font-bold tracking-tight">Συναλλαγές</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Transactions</h2>
         </div>
         <Card>
           <CardHeader className="text-center">
-            <CardTitle>Συνδεθείτε με το Wallet</CardTitle>
+            <CardTitle>Connect Your Wallet</CardTitle>
             <CardDescription>
-              Συνδεθείτε για να δείτε τις συναλλαγές σας
+              Connect to view your transactions
             </CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center py-6">
-            <Button onClick={connectWallet}>Σύνδεση με Wallet</Button>
+            <Button onClick={connectWallet}>Connect Wallet</Button>
           </CardContent>
         </Card>
       </div>
@@ -38,38 +38,38 @@ export default function Transactions() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-3xl font-bold tracking-tight">Συναλλαγές</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Transactions</h2>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => refreshWalletData()}>Ανανέωση</Button>
+          <Button variant="outline" onClick={() => refreshWalletData()}>Refresh</Button>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Συνολικές Συναλλαγές</CardDescription>
+            <CardDescription>Total Transactions</CardDescription>
             <CardTitle className="text-2xl font-bold">24</CardTitle>
           </CardHeader>
           <CardContent>
-            <Badge variant="outline">Τελευταίες 30 ημέρες</Badge>
+            <Badge variant="outline">Last 30 days</Badge>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Εισερχόμενες</CardDescription>
+            <CardDescription>Incoming</CardDescription>
             <CardTitle className="text-2xl font-bold">10</CardTitle>
           </CardHeader>
           <CardContent>
-            <Badge variant="success">+2 από προηγούμενο μήνα</Badge>
+            <Badge variant="success">+2 from previous month</Badge>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Εξερχόμενες</CardDescription>
+            <CardDescription>Outgoing</CardDescription>
             <CardTitle className="text-2xl font-bold">14</CardTitle>
           </CardHeader>
           <CardContent>
-            <Badge variant="destructive">+5 από προηγούμενο μήνα</Badge>
+            <Badge variant="destructive">+5 from previous month</Badge>
           </CardContent>
         </Card>
       </div>

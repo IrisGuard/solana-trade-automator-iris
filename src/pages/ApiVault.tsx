@@ -14,7 +14,7 @@ export default function ApiVaultPage() {
     <div className="space-y-6">
       <PageHeader 
         title="API Vault"
-        description="Ασφαλής διαχείριση API κλειδιών και πιστοποιητικών"
+        description="Secure management of API keys and credentials"
         breadcrumbs={[{ label: "API Vault" }]}
         variant="amber"
       />
@@ -30,10 +30,10 @@ export default function ApiVaultPage() {
             <>
               <CardTitle className="flex items-center gap-2">
                 <Shield className="h-5 w-5" />
-                Ασφαλής Αποθήκευση
+                Secure Storage
               </CardTitle>
               <CardDescription>
-                Διαχειριστείτε τα API κλειδιά σας με ασφάλεια
+                Manage your API keys securely
               </CardDescription>
             </>
           }
@@ -41,17 +41,17 @@ export default function ApiVaultPage() {
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Φόρτωση...</p>
+              <p className="mt-4 text-muted-foreground">Loading...</p>
             </div>
           ) : !user ? (
             <div className="text-center py-8">
               <Lock className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">Συνδεθείτε για να διαχειριστείτε τα API κλειδιά σας</p>
+              <p className="text-muted-foreground">Connect to manage your API keys</p>
             </div>
           ) : (
             <div className="text-center py-8">
               <Key className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">Δεν βρέθηκαν αποθηκευμένα API κλειδιά</p>
+              <p className="text-muted-foreground">No stored API keys found</p>
             </div>
           )}
         </GradientCard>

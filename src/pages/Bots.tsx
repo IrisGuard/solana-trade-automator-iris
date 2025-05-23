@@ -25,8 +25,8 @@ const mockTemplates = [
   },
   {
     title: "Price Boost Bot",
-    description: "Προστασία επενδύσεων από πτώσεις τιμών στην αγορά",
-    features: ["Αυτόματη υποστήριξη τιμών", "Έξυπνοι αλγόριθμοι", "Διαχείριση ρίσκου"]
+    description: "Investment protection from market price drops",
+    features: ["Automatic price support", "Smart algorithms", "Risk management"]
   }
 ];
 
@@ -39,8 +39,8 @@ export default function Bots() {
   return (
     <div className="space-y-6">
       <PageHeader 
-        title="Διαχείριση Bots"
-        description="Δημιουργήστε και διαχειριστείτε τα trading bots σας"
+        title="Bot Management"
+        description="Create and manage your trading bots"
         breadcrumbs={[{ label: "Bots" }]}
         variant="green"
       />
@@ -87,27 +87,27 @@ export default function Bots() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <GradientCard variant="blue">
           <div className="p-4 text-center">
-            <h3 className="text-xl font-bold mb-2">Αυτοματοποιημένο Trading</h3>
+            <h3 className="text-xl font-bold mb-2">Automated Trading</h3>
             <p className="text-muted-foreground mb-4">
-              Δημιουργήστε bots που εκτελούν συναλλαγές αυτόματα βάσει των παραμέτρων που ορίζετε.
+              Create bots that execute trades automatically based on parameters you define.
             </p>
           </div>
         </GradientCard>
         
         <GradientCard variant="purple">
           <div className="p-4 text-center">
-            <h3 className="text-xl font-bold mb-2">Διαφορετικές Στρατηγικές</h3>
+            <h3 className="text-xl font-bold mb-2">Different Strategies</h3>
             <p className="text-muted-foreground mb-4">
-              Επιλέξτε από μια ποικιλία στρατηγικών trading για να βελτιστοποιήσετε τις αποδόσεις σας.
+              Choose from a variety of trading strategies to optimize your returns.
             </p>
           </div>
         </GradientCard>
         
         <GradientCard variant="amber">
           <div className="p-4 text-center">
-            <h3 className="text-xl font-bold mb-2">Προστασία Επενδύσεων</h3>
+            <h3 className="text-xl font-bold mb-2">Investment Protection</h3>
             <p className="text-muted-foreground mb-4">
-              Η λειτουργία Price Boost προστατεύει τις επενδύσεις σας από απότομες πτώσεις στην αγορά.
+              Price Boost feature protects your investments from sudden market drops.
             </p>
           </div>
         </GradientCard>

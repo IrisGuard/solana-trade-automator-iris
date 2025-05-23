@@ -33,7 +33,9 @@ const translations = {
       help: "Help",
       loading: "Loading",
       connect: "Connect",
-      disconnect: "Disconnect"
+      disconnect: "Disconnect",
+      bots: "Bots",
+      apiVault: "API Vault"
     },
     wallet: {
       connectWallet: "Connect Wallet",
@@ -48,6 +50,13 @@ const translations = {
       subtitle: "Advanced trading automation",
       description: "Our platform provides professional trading tools",
       createBot: "Create Trading Bot"
+    },
+    bots: {
+      title: "Bot Management",
+      description: "Create and manage your trading bots",
+      automatedTrading: "Automated Trading",
+      differentStrategies: "Different Strategies",
+      investmentProtection: "Investment Protection"
     }
   }
 };

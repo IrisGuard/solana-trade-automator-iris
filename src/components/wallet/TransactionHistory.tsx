@@ -32,13 +32,13 @@ export function TransactionHistory({ walletAddress }: TransactionHistoryProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Ιστορικό Συναλλαγών</CardTitle>
+          <CardTitle>Transaction History</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center p-8 text-center text-muted-foreground">
             <div className="flex flex-col items-center gap-2">
               <WalletIcon className="h-10 w-10 opacity-50" />
-              <p>Συνδέστε το wallet σας για να δείτε το ιστορικό συναλλαγών</p>
+              <p>Connect your wallet to view transaction history</p>
             </div>
           </div>
         </CardContent>
@@ -49,7 +49,7 @@ export function TransactionHistory({ walletAddress }: TransactionHistoryProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center space-y-0">
-        <CardTitle className="flex-1">Ιστορικό Συναλλαγών</CardTitle>
+        <CardTitle className="flex-1">Transaction History</CardTitle>
         <Button 
           variant="outline" 
           size="sm" 
@@ -62,15 +62,15 @@ export function TransactionHistory({ walletAddress }: TransactionHistoryProps) {
           ) : (
             <RefreshCw className="h-4 w-4" />
           )}
-          <span className="sr-only">Ανανέωση</span>
+          <span className="sr-only">Refresh</span>
         </Button>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4">
-            <TabsTrigger value="all">Όλες</TabsTrigger>
-            <TabsTrigger value="sent">Αποστολές</TabsTrigger>
-            <TabsTrigger value="received">Λήψεις</TabsTrigger>
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="sent">Sent</TabsTrigger>
+            <TabsTrigger value="received">Received</TabsTrigger>
             <TabsTrigger value="tokens">Tokens</TabsTrigger>
           </TabsList>
           <TabsContent value="all">

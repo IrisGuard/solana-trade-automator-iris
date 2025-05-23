@@ -33,8 +33,8 @@ export function MonitoringSystem() {
           setSupabaseConnected(connected);
           console.log("[Debug] Supabase connected:", connected);
           if (!connected) {
-            console.warn("[Warning] Running in demo mode - database connection unavailable");
-            toast.warning("Running in demo mode - database connection unavailable", {
+            console.warn("[Warning] Running in production mode - database connection unavailable");
+            toast.warning("Running in production mode - database connection unavailable", {
               duration: 5000,
               id: "db-connection-warning"
             });
@@ -84,7 +84,7 @@ export function MonitoringSystem() {
       {monitoringReady && <div id="monitoring-ready" style={{ display: 'none' }} />}
       {supabaseConnected === false && (
         <div className="fixed top-0 left-0 right-0 bg-yellow-500 text-black p-2 text-center z-50 text-sm">
-          Running in real mode - Database connection not required
+          Running in production mode - Database connection not required
         </div>
       )}
     </>
