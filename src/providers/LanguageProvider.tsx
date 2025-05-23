@@ -19,7 +19,7 @@ interface LanguageProviderProps {
   defaultLanguage?: LanguageType;
 }
 
-// Simple English translations
+// Complete English translations
 const translations = {
   en: {
     general: {
@@ -35,7 +35,12 @@ const translations = {
       connect: "Connect",
       disconnect: "Disconnect",
       bots: "Bots",
-      apiVault: "API Vault"
+      apiVault: "API Vault",
+      refresh: "Refresh",
+      all: "All",
+      sent: "Sent",
+      received: "Received",
+      tokens: "Tokens"
     },
     wallet: {
       connectWallet: "Connect Wallet",
@@ -57,6 +62,37 @@ const translations = {
       automatedTrading: "Automated Trading",
       differentStrategies: "Different Strategies",
       investmentProtection: "Investment Protection"
+    },
+    transactions: {
+      title: "Transactions",
+      totalTransactions: "Total Transactions",
+      incoming: "Incoming",
+      outgoing: "Outgoing",
+      last30Days: "Last 30 days",
+      fromPreviousMonth: "from previous month",
+      connectToView: "Connect to view your transactions",
+      transactionHistory: "Transaction History",
+      connectWalletToView: "Connect your wallet to view transaction history"
+    },
+    security: {
+      title: "Security",
+      description: "Manage your security settings and account protection",
+      enhancedSecurity: "Enhanced Security",
+      enhancedSecurityDesc: "Our platform uses advanced security measures to protect your account and transactions.",
+      platformSecurity: "Platform Security",
+      platformSecurityDesc: "Our platform features advanced security measures managed by the support team",
+      multiLayerSecurity: "Multi-layer Security",
+      multiLayerSecurityDesc: "Our platform implements multi-layer security, including data encryption and advanced access controls.",
+      regularAudits: "Regular Audits",
+      regularAuditsDesc: "We conduct regular security audits to ensure the system is protected from the latest threats."
+    },
+    apiVault: {
+      title: "API Vault",
+      description: "Secure management of API keys and credentials",
+      secureStorage: "Secure Storage",
+      manageApiKeys: "Manage your API keys securely",
+      connectToManage: "Connect to manage your API keys",
+      noStoredKeys: "No stored API keys found"
     }
   }
 };
