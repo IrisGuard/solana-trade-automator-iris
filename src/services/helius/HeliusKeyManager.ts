@@ -25,6 +25,13 @@ export class HeliusKeyManager {
   clearKey(): void {
     this.currentKey = null;
   }
+
+  async forceReload(): Promise<void> {
+    // Force reload implementation
+    console.log('HeliusKeyManager: Force reloading keys...');
+    // In a real implementation, this would reload keys from storage
+    return Promise.resolve();
+  }
 }
 
 export const heliusKeyManager = HeliusKeyManager.getInstance();

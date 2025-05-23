@@ -27,8 +27,8 @@ export interface CollectedError {
   details?: any;
 }
 
-// Add the missing ErrorData interface
 export interface ErrorData {
+  id: string;
   message: string;
   stack?: string;
   source?: string;
@@ -37,7 +37,6 @@ export interface ErrorData {
   data?: any;
 }
 
-// Add the missing ErrorCollector interface
 export interface ErrorCollector {
   captureError(error: Error | string, context?: ErrorContext): void;
   getRecentErrors(): CollectedError[];

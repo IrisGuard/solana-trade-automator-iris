@@ -4,12 +4,12 @@ export interface Transaction {
   type: string;
   token: string;
   amount: string;
-  price?: string; // Made optional
+  price: string; // Made required
   value: string;
   timestamp: string;
   status: string;
   bot: string;
-  signature?: string; // Added missing property
+  signature?: string;
 }
 
 export type TransactionFilterType = 'all' | 'sent' | 'received';

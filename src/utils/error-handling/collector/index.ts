@@ -1,34 +1,33 @@
-
-import { ErrorCollector, ErrorData, ErrorContext } from './types';
+import { ErrorContext, ErrorData, CollectedError, ErrorCollector } from './types';
 
 class SimpleErrorCollector implements ErrorCollector {
-  private errors: ErrorData[] = [];
+  private errors: CollectedError[] = [];
 
-  captureError(error: any, context?: ErrorContext): void {
-    const errorData: ErrorData = {
-      message: error.message || String(error),
-      stack: error.stack,
+  captureError(error: Error | string, context?: ErrorContext): void {
+    const errorData: CollectedError = {
+      id: `error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      message: typeof error === 'string' ? error : error.message,
+      stack: typeof error === 'string' ? undefined : error.stack,
       timestamp: new Date(),
       component: context?.component,
-      source: context?.source || 'client',
-      error: error instanceof Error ? error : undefined,
-      data: context?.details
+      source: context?.source,
+      severity: context?.severity,
+      details: context?.details,
+      resolved: false
     };
     
-    this.errors.push(errorData);
+    this.errors.unshift(errorData);
+    
+    // Keep only last 100 errors
+    if (this.errors.length > 100) {
+      this.errors = this.errors.slice(0, 100);
+    }
+    
     console.error('Error captured:', errorData);
   }
 
-  captureException(error: Error, context?: ErrorContext): void {
-    this.captureError(error, context);
-  }
-
-  getErrors(): ErrorData[] {
-    return [...this.errors];
-  }
-
-  getRecentErrors(limit: number = 10): ErrorData[] {
-    return this.errors.slice(-limit);
+  getRecentErrors(): CollectedError[] {
+    return this.errors.slice(0, 10);
   }
 
   getErrorCount(): number {

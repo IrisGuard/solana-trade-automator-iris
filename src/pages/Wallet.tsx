@@ -48,7 +48,7 @@ export default function WalletPage() {
     <div className="space-y-6">
       <PageHeader 
         title="Wallet & Trading Bot"
-        description="Διαχειριστείτε το πορτοφόλι σας και τα trading bots"
+        description="Manage your wallet and trading bots"
         breadcrumbs={[{ label: "Wallet" }]}
         variant="purple"
         actions={
@@ -58,11 +58,11 @@ export default function WalletPage() {
             )}
             {isConnected ? (
               <Button variant="outline" onClick={disconnectWallet}>
-                Αποσύνδεση
+                Disconnect
               </Button>
             ) : (
               <Button onClick={connectWallet}>
-                Σύνδεση Πορτοφολιού
+                Connect Wallet
               </Button>
             )}
           </div>
@@ -84,41 +84,53 @@ export default function WalletPage() {
       <GradientCard variant="purple">
         <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid grid-cols-2 md:grid-cols-7 w-full">
-            <TabsTrigger value="overview" className="text-sm">Επισκόπηση</TabsTrigger>
+            <TabsTrigger value="overview" className="text-sm">Overview</TabsTrigger>
             <TabsTrigger value="tokens" className="text-sm">Tokens</TabsTrigger>
             <TabsTrigger value="swap" className="text-sm">Swap</TabsTrigger>
             <TabsTrigger value="trading-bot" className="text-sm">Trading Bot</TabsTrigger>
             <TabsTrigger value="maker-bot" className="text-sm">Maker Bot</TabsTrigger>
             <TabsTrigger value="api-vault" className="text-sm">API Vault</TabsTrigger>
-            <TabsTrigger value="simulation" className="text-sm">Προσομοίωση</TabsTrigger>
+            <TabsTrigger value="simulation" className="text-sm">Simulation</TabsTrigger>
           </TabsList>
 
-          <WalletOverview 
-            isConnected={isConnected}
-            walletAddress={walletAddress}
-            solBalance={solBalance}
-            handleConnectWallet={connectWallet}
-            handleDisconnectWallet={disconnectWallet}
-          />
+          <TabsContent value="overview">
+            <WalletOverview 
+              isConnected={isConnected}
+              walletAddress={walletAddress}
+              solBalance={solBalance}
+              handleConnectWallet={connectWallet}
+              handleDisconnectWallet={disconnectWallet}
+            />
+          </TabsContent>
 
-          <TokensTab 
-            isConnected={isConnected}
-            tokenBalance={tokens && tokens.length > 0 ? tokens[0].amount : 0}
-            solBalance={solBalance}
-            handleConnectWallet={connectWallet}
-          />
+          <TabsContent value="tokens">
+            <TokensTab 
+              isConnected={isConnected}
+              tokenBalance={tokens && tokens.length > 0 ? tokens[0].amount : 0}
+              solBalance={solBalance}
+              handleConnectWallet={connectWallet}
+            />
+          </TabsContent>
           
-          <SwapTab isConnected={isConnected} />
+          <TabsContent value="swap">
+            <SwapTab isConnected={isConnected} />
+          </TabsContent>
 
-          <EnhancedTradingBotTab />
+          <TabsContent value="trading-bot">
+            <EnhancedTradingBotTab />
+          </TabsContent>
 
-          <MakerBotTab 
-            isConnected={isConnected}
-          />
+          <TabsContent value="maker-bot">
+            <MakerBotTab />
+          </TabsContent>
 
-          <ApiVaultTab />
+          <TabsContent value="api-vault">
+            <ApiVaultTab />
+          </TabsContent>
 
-          <SimulationTab />
+          <TabsContent value="simulation">
+            <SimulationTab />
+          </TabsContent>
         </Tabs>
       </GradientCard>
       
@@ -126,18 +138,18 @@ export default function WalletPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <GradientCard variant="blue">
           <div className="p-4 text-center">
-            <h3 className="text-xl font-bold mb-2">Διαχείριση Tokens</h3>
+            <h3 className="text-xl font-bold mb-2">Token Management</h3>
             <p className="text-muted-foreground mb-4">
-              Διαχειριστείτε τα tokens σας στο Solana blockchain με ασφάλεια και ευκολία.
+              Manage your tokens on the Solana blockchain safely and easily.
             </p>
           </div>
         </GradientCard>
         
         <GradientCard variant="green">
           <div className="p-4 text-center">
-            <h3 className="text-xl font-bold mb-2">Αυτοματοποιημένο Trading</h3>
+            <h3 className="text-xl font-bold mb-2">Automated Trading</h3>
             <p className="text-muted-foreground mb-4">
-              Ρυθμίστε το Trading Bot για αυτόματες συναλλαγές βάσει των προτιμήσεών σας.
+              Set up Trading Bot for automatic transactions based on your preferences.
             </p>
           </div>
         </GradientCard>
@@ -146,7 +158,7 @@ export default function WalletPage() {
           <div className="p-4 text-center">
             <h3 className="text-xl font-bold mb-2">Price Boost Protection</h3>
             <p className="text-muted-foreground mb-4">
-              Προστατέψτε τις επενδύσεις σας από απότομες πτώσεις στην αγορά.
+              Protect your investments from sudden market drops.
             </p>
           </div>
         </GradientCard>
