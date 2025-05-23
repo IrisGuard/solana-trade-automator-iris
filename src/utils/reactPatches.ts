@@ -2,6 +2,14 @@
 /**
  * Ensure React compatibility with various modules and environments
  */
+
+// Extend Window interface to include our compatibility layer marker
+declare global {
+  interface Window {
+    __REACT_COMPAT_LAYER?: boolean;
+  }
+}
+
 export function ensureReactCompatibility() {
   try {
     // Ensure Buffer is available
@@ -16,7 +24,7 @@ export function ensureReactCompatibility() {
     
     // Ensure polyfills are properly initialized
     if (typeof window !== 'undefined' && !window.__REACT_COMPAT_LAYER) {
-      (window as any).__REACT_COMPAT_LAYER = true;
+      window.__REACT_COMPAT_LAYER = true;
       console.log('React compatibility layer initialized');
     }
   } catch (e) {

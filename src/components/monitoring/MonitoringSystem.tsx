@@ -26,7 +26,7 @@ export function MonitoringSystem() {
       console.log("[Debug] sessionStorage available:", !!window.sessionStorage);
       console.log("[Debug] fetch API available:", !!window.fetch);
       
-      // Check Supabase connection with proper error handling
+      // Check Supabase connection with improved error handling
       const checkConnection = async () => {
         try {
           console.log("[Debug] Testing Supabase connection...");
@@ -36,13 +36,13 @@ export function MonitoringSystem() {
           
           if (connected) {
             console.log("[Success] Database connection established");
-            toast.success("Database connection established", {
+            toast.success("Η σύνδεση με τη βάση δεδομένων εγκαταστάθηκε", {
               duration: 3000,
               id: "db-connection-success"
             });
           } else {
             console.warn("[Warning] Database connection unavailable - using demo mode");
-            toast.warning("Demo mode - Database connection unavailable", {
+            toast.warning("Demo mode - Η σύνδεση με τη βάση δεδομένων δεν είναι διαθέσιμη", {
               duration: 5000,
               id: "db-connection-warning"
             });
@@ -50,8 +50,8 @@ export function MonitoringSystem() {
         } catch (error) {
           console.error("[Error] Supabase connection check failed:", error);
           setSupabaseConnected(false);
-          toast.error("Database connection failed", {
-            description: "Running in demo mode with local data",
+          toast.error("Αποτυχία σύνδεσης με τη βάση δεδομένων", {
+            description: "Λειτουργία σε demo mode με τοπικά δεδομένα",
             duration: 5000,
             id: "db-connection-error"
           });
@@ -66,8 +66,8 @@ export function MonitoringSystem() {
     } catch (err) {
       console.error("[Error] Failed to initialize monitoring system:", err);
       
-      toast.error("Monitoring system initialization failed", {
-        description: "Some features may not work properly",
+      toast.error("Αποτυχία αρχικοποίησης συστήματος παρακολούθησης", {
+        description: "Κάποιες λειτουργίες μπορεί να μη λειτουργούν σωστά",
         duration: 5000
       });
     }
@@ -93,12 +93,12 @@ export function MonitoringSystem() {
       {monitoringReady && <div id="monitoring-ready" style={{ display: 'none' }} />}
       {supabaseConnected === false && (
         <div className="fixed top-0 left-0 right-0 bg-yellow-500 text-black p-2 text-center z-50 text-sm">
-          Demo Mode - Database features limited
+          Demo Mode - Περιορισμένες λειτουργίες βάσης δεδομένων
         </div>
       )}
       {supabaseConnected === true && (
         <div className="fixed top-0 left-0 right-0 bg-green-500 text-white p-2 text-center z-50 text-sm">
-          ✓ Production Ready - All systems operational
+          ✓ Έτοιμο για παραγωγή - Όλα τα συστήματα λειτουργούν
         </div>
       )}
     </>

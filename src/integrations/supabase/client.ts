@@ -1,7 +1,10 @@
 
-// Import Supabase client using standard ES module import
-import { createClient } from '@supabase/supabase-js';
+// Import Supabase client using default import for maximum compatibility
+import supabaseJs from '@supabase/supabase-js';
 import type { Database } from './types';
+
+// Extract createClient from the default import
+const { createClient } = supabaseJs;
 
 // Use the correct Supabase URL and anon key for production
 const supabaseUrl = 'https://lvkbyfocssuzcdphpmfu.supabase.co';
