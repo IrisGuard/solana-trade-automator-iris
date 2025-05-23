@@ -1,4 +1,5 @@
 
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
@@ -51,6 +52,10 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     outDir: 'dist',
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true
+    },
     rollupOptions: {
       external: [],
       output: {
@@ -63,3 +68,4 @@ export default defineConfig(({ mode }) => ({
     }
   }
 }));
+
