@@ -2,8 +2,9 @@
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { useState, useEffect, useCallback } from 'react';
-import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { toast } from 'sonner';
+import { useTokens } from './useTokens';
 
 export function useWalletConnection() {
   const { connection } = useConnection();
@@ -11,6 +12,14 @@ export function useWalletConnection() {
   const { setVisible } = useWalletModal();
   const [balance, setBalance] = useState<number>(0);
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
+  
+  // Use tokens hook
+  const {
+    tokens,
+    isLoading: isLoadingTokens,
+    error: tokensError,
+    refreshTokens,
+  } = useTokens();
 
   // Connect wallet
   const connectWallet = useCallback(() => {
@@ -50,9 +59,16 @@ export function useWalletConnection() {
   useEffect(() => {
     if (connected && publicKey) {
       fetchBalance();
+      refreshTokens();
       toast.success('Το πορτοφόλι συνδέθηκε επιτυχώς');
     }
-  }, [connected, publicKey, fetchBalance]);
+  }, [connected, publicKey, fetchBalance, refreshTokens]);
+
+  // Refresh all wallet data
+  const refreshWalletData = useCallback(async () => {
+    await fetchBalance();
+    await refreshTokens();
+  }, [fetchBalance, refreshTokens]);
 
   return {
     // Wallet state
@@ -61,14 +77,28 @@ export function useWalletConnection() {
     connecting,
     balance,
     isLoadingBalance,
+    tokens,
+    isLoadingTokens,
+    tokensError,
     
     // Actions
     connectWallet,
     disconnectWallet,
     refreshBalance: fetchBalance,
+    refreshTokens,
+    refreshWalletData,
     
     // Computed values
     walletAddress: publicKey?.toString() || null,
     shortAddress: publicKey ? `${publicKey.toString().slice(0, 4)}...${publicKey.toString().slice(-4)}` : null,
+    
+    // Aliases for compatibility
+    isConnected: connected,
+    isConnecting: connecting,
+    solBalance: balance,
+    tokenPrices: {},
+    selectTokenForTrading: (tokenAddress: string) => {
+      console.log('Selected token for trading:', tokenAddress);
+    },
   };
 }

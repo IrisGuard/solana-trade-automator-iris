@@ -1,23 +1,18 @@
 
-// Define the Token type that's used in wallet-related components
 export interface Token {
   address: string;
   symbol: string;
   name: string;
   amount: number;
   decimals: number;
-  logo?: string;
-  mint?: string;
+  logoURI?: string;
 }
 
-// Add TokenPrice interface
 export interface TokenPrice {
   price: number;
-  priceChange24h: number;
-  lastUpdated?: Date;
+  change24h: number;
 }
 
-// Add TokenPrices interface
 export interface TokenPrices {
   [tokenAddress: string]: TokenPrice;
 }

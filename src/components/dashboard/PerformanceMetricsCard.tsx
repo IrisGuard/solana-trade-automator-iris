@@ -2,7 +2,7 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { ArrowUpRight, ArrowDownRight, TrendingUp, ChartBar } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, TrendingUp, BarChart3 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 // Mock performance data
