@@ -49,7 +49,7 @@
     "@solana/wallet-adapter-wallets": "^0.19.25",
     "@solana/web3.js": "^1.87.6",
     "@supabase/ssr": "^0.0.10",
-    "@supabase/supabase-js": "^2.22.0",
+    "@supabase/supabase-js": "^2.49.8",
     "@tanstack/react-query": "^5.17.19",
     "assert": "^2.1.0",
     "axios": "^1.6.5",

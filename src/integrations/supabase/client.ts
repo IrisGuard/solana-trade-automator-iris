@@ -1,4 +1,5 @@
 
+
 // Fix the createClient import to work with the current version of @supabase/supabase-js
 import { createClient as supabaseCreateClient } from '@supabase/supabase-js';
 import type { Database } from './types';
@@ -29,3 +30,4 @@ export const checkSupabaseConnection = async (): Promise<boolean> => {
     return false;
   }
 };
+
