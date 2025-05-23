@@ -33,18 +33,23 @@ export async function connectPhantomWallet(onlyIfTrusted = false) {
   }
 }
 
-export async function disconnectPhantomWallet() {
+export async function disconnectPhantomWallet(): Promise<boolean> {
   if (window.solana) {
     try {
       await window.solana.disconnect();
+      return true;
     } catch (error) {
       console.error('Failed to disconnect from Phantom wallet:', error);
       throw error;
     }
   }
+  return false;
 }
 
-export function registerPhantomEvents() {
+export function registerPhantomEvents(
+  onConnected?: (publicKey: string) => void,
+  onDisconnected?: () => Promise<void>
+): () => void {
   // Stub implementation for events
   return () => {};
 }

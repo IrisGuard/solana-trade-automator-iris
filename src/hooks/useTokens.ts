@@ -1,9 +1,11 @@
-
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useState, useEffect, useCallback } from 'react';
 import { Token } from '@/types/wallet';
 import { PublicKey } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+
+// Export Token for other components to use
+export type { Token };
 
 export function useTokens() {
   const { connection } = useConnection();

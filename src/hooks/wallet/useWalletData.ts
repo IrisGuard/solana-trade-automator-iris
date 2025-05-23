@@ -66,6 +66,7 @@ export function useWalletData() {
           processedTokens.forEach(token => {
             prices[token.address] = {
               price: Math.random() * 100,
+              change24h: (Math.random() * 20) - 10,
               priceChange24h: (Math.random() * 20) - 10,
               lastUpdated: new Date()
             };
