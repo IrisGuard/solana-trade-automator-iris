@@ -27,6 +27,35 @@ export function EnhancedTradingBotTab() {
   // Convert botStatus to the expected type for EnhancedPanel
   const normalizedBotStatus = botStatus === 'error' ? 'idle' : botStatus;
 
+  // Convert config.enabledStrategies to match expected format for panel
+  const adaptedConfig = {
+    ...config,
+    // Convert string array to object with boolean flags
+    enabledStrategies: Array.isArray(config.enabledStrategies) ? 
+      {
+        dca: config.enabledStrategies.includes('dca'),
+        grid: config.enabledStrategies.includes('grid'),
+        momentum: config.enabledStrategies.includes('momentum')
+      } : config.enabledStrategies
+  };
+
+  // Create an adapter for updateConfig to handle the type difference
+  const handleConfigUpdate = (newConfig: any) => {
+    // If enabledStrategies is an object, convert it back to an array
+    if (newConfig.enabledStrategies && typeof newConfig.enabledStrategies === 'object') {
+      const enabledStrategiesArray = Object.entries(newConfig.enabledStrategies)
+        .filter(([_, enabled]) => enabled)
+        .map(([strategy]) => strategy);
+      
+      updateConfig({
+        ...newConfig,
+        enabledStrategies: enabledStrategiesArray
+      });
+    } else {
+      updateConfig(newConfig);
+    }
+  };
+
   return (
     <Tabs defaultValue="trading">
       <TabsContent value="trading">
@@ -42,8 +71,8 @@ export function EnhancedTradingBotTab() {
             <div className="grid gap-4 md:grid-cols-2 mb-6">
               <div className="space-y-4">
                 <EnhancedPanel
-                  config={config}
-                  updateConfig={updateConfig}
+                  config={adaptedConfig}
+                  updateConfig={handleConfigUpdate}
                   selectToken={selectToken}
                   selectedTokenPrice={selectedTokenPrice}
                   selectedTokenDetails={selectedTokenDetails}

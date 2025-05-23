@@ -46,10 +46,29 @@ export async function disconnectPhantomWallet(): Promise<boolean> {
   return false;
 }
 
-export function registerPhantomEvents(
-  onConnected?: (publicKey: string) => void,
-  onDisconnected?: () => Promise<void>
-): () => void {
-  // Stub implementation for events
+// Updated to accept no parameters since we're not using them
+export function registerPhantomEvents(): () => void {
+  // This is a simplified implementation
+  const handleConnect = () => {
+    console.log("Wallet connected event");
+  };
+  
+  const handleDisconnect = () => {
+    console.log("Wallet disconnected event");
+  };
+  
+  if (window.solana) {
+    // Add event listeners
+    window.solana.on('connect', handleConnect);
+    window.solana.on('disconnect', handleDisconnect);
+    
+    // Return cleanup function
+    return () => {
+      window.solana?.off('connect', handleConnect);
+      window.solana?.off('disconnect', handleDisconnect);
+    };
+  }
+  
+  // Return empty cleanup if no wallet
   return () => {};
 }

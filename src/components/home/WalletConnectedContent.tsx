@@ -40,7 +40,8 @@ export function WalletConnectedContent({
       key, 
       { 
         price: value.price, 
-        priceChange24h: value.priceChange24h || value.change24h || 0 
+        priceChange24h: value.priceChange24h || value.change24h || 0,
+        change24h: value.change24h || value.priceChange24h || 0
       }
     ])
   ) : {};

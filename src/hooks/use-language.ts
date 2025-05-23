@@ -1,14 +1,24 @@
 
-import { useState } from 'react';
+import { useContext } from 'react';
 
-export function useLanguage() {
-  const [language, setLanguage] = useState('el');
+// Simple language context
+interface LanguageContext {
+  t: (key: string) => string;
+  currentLanguage: string;
+  changeLanguage: (lang: string) => void;
+}
+
+// Simplified mock language hook
+export function useLanguage(): LanguageContext {
+  // Simple translation function that returns the key
+  const t = (key: string): string => {
+    // In a real app, this would look up translations
+    return key;
+  };
   
-  const t = (key: string, fallback?: string) => fallback || key;
-
   return {
-    language,
-    setLanguage,
-    t
+    t,
+    currentLanguage: 'el', // Greek by default
+    changeLanguage: () => {}, // No-op
   };
 }
