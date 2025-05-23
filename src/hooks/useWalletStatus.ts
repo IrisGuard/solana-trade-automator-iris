@@ -13,7 +13,6 @@ export function useWalletStatus() {
   const [lastBalanceCheck, setLastBalanceCheck] = useState(0);
   const [isRefreshingBalance, setIsRefreshingBalance] = useState(false);
 
-  // Αρχικοποίηση του state μετά από μικρή καθυστέρηση
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsInitializing(false);
@@ -22,15 +21,12 @@ export function useWalletStatus() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Check if user has previously connected wallet
   const wasConnected = localStorage.getItem('walletConnected') === 'true';
 
-  // Refresh balance with throttling
   const refreshBalance = useCallback(async () => {
     if (!publicKey || isRefreshingBalance) return;
     
     const now = Date.now();
-    // Don't refresh more than once every 10 seconds
     if (now - lastBalanceCheck < 10000) {
       console.log('Skipping balance refresh (throttled)');
       return;
@@ -46,22 +42,17 @@ export function useWalletStatus() {
     } catch (err) {
       console.error('Error refreshing balance:', err);
       errorCollector.captureError(err, {
-        component: 'useWalletStatus', 
-        method: 'refreshBalance'
+        component: 'useWalletStatus'
       });
-      
-      // Don't set error state here to avoid UI disruption
     } finally {
       setIsRefreshingBalance(false);
     }
   }, [publicKey, lastBalanceCheck, isRefreshingBalance]);
 
-  // Load balance when wallet connects or changes
   useEffect(() => {
     if (connected && publicKey) {
       refreshBalance();
       
-      // Αποθήκευση της κατάστασης σύνδεσης
       try {
         localStorage.setItem('walletConnected', 'true');
       } catch (err) {
@@ -72,7 +63,6 @@ export function useWalletStatus() {
     }
   }, [connected, publicKey, refreshBalance]);
 
-  // Αποσύνδεση του wallet αν χρειάζεται (αν το user έχει κάνει explicit disconnect)
   useEffect(() => {
     try {
       const userDisconnected = localStorage.getItem('userDisconnected') === 'true';
@@ -83,8 +73,7 @@ export function useWalletStatus() {
     } catch (err) {
       console.error('Error handling disconnect state:', err);
       errorCollector.captureError(err, {
-        component: 'useWalletStatus', 
-        method: 'handleDisconnectState'
+        component: 'useWalletStatus'
       });
     }
   }, [connected, disconnect]);
@@ -99,18 +88,15 @@ export function useWalletStatus() {
       console.error('Error disconnecting wallet:', err);
       setError('Αποτυχία αποσύνδεσης πορτοφολιού');
       errorCollector.captureError(err, {
-        component: 'useWalletStatus', 
-        method: 'handleDisconnect'
+        component: 'useWalletStatus'
       });
       toast.error('Failed to disconnect wallet');
     }
   }, [disconnect]);
 
-  // Detect and handle Phantom installation status
   const isPhantomInstalled = typeof window !== 'undefined' && 
     window.phantom?.solana?.isPhantom || false;
 
-  // Connect wallet with error handling
   const connectWallet = useCallback(async () => {
     if (!isPhantomInstalled) {
       setError('Phantom wallet is not installed');
@@ -126,15 +112,12 @@ export function useWalletStatus() {
     
     try {
       localStorage.removeItem('userDisconnected');
-      // In actual implementation this would connect via wallet adapter
-      // For now just return publicKey if already connected
       return publicKey?.toString() || null;
     } catch (err) {
       console.error('Connection error:', err);
       setError('Failed to connect wallet');
       errorCollector.captureError(err, {
-        component: 'useWalletStatus', 
-        method: 'connectWallet'
+        component: 'useWalletStatus'
       });
       toast.error('Failed to connect wallet');
       return null;

@@ -16,6 +16,7 @@ interface Window {
   errorCollector?: {
     captureError: (error: any, context?: any) => void;
     getErrors: () => any[];
+    getErrorCount: () => number;
     clearErrors: () => void;
   };
   _lastErrorDisplayTime?: number;

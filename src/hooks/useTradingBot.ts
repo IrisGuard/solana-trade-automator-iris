@@ -14,7 +14,7 @@ export interface TradingBotConfig {
   tradeAmount: number;
   maxBudget: number;
   autoRebalance: boolean;
-  trailingStop: number;
+  trailingStop: boolean;
   enabledStrategies: string[];
 }
 
@@ -42,7 +42,7 @@ export function useTradingBot() {
     tradeAmount: 50,
     maxBudget: 1000,
     autoRebalance: false,
-    trailingStop: 5,
+    trailingStop: false,
     enabledStrategies: ['simple']
   });
 
@@ -59,7 +59,6 @@ export function useTradingBot() {
     setConfig(prev => ({ ...prev, selectedToken: tokenAddress }));
     
     if (tokenAddress) {
-      // In real implementation, fetch real price from an API
       setSelectedTokenPrice({
         price: Math.random() * 100 + 10,
         priceChange24h: (Math.random() - 0.5) * 20
@@ -109,7 +108,6 @@ export function useTradingBot() {
     selectedTokenPrice,
     selectedTokenDetails,
     tokens: tokens || [],
-    // Legacy props for compatibility
     isActive: botStatus === 'running',
     selectedToken: config.selectedToken || '',
     strategy: config.strategy,

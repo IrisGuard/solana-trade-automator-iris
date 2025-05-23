@@ -8,7 +8,6 @@ export interface TokenPrice {
   lastUpdated?: Date;
 }
 
-// Alias for TokenPriceData for compatibility
 export type TokenPriceData = TokenPrice;
 
 export interface TokenPrices {

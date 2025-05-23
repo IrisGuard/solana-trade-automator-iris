@@ -7,6 +7,7 @@ export interface ErrorData {
   source?: string;
   error?: Error;
   data?: any;
+  id?: string;
 }
 
 export interface ErrorOptions {
@@ -31,5 +32,6 @@ export interface ErrorCollector {
   captureException(error: Error, context?: ErrorContext): void;
   getErrors(): ErrorData[];
   getRecentErrors(limit?: number): ErrorData[];
+  getErrorCount(): number;
   clearErrors(): void;
 }

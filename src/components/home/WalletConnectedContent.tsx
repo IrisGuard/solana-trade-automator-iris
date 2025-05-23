@@ -5,7 +5,7 @@ import { TokensCard } from "./TokensCard";
 import { BotStatusCard } from "./BotStatusCard";
 import { PlatformInfoCard } from "./PlatformInfoCard";
 import { WalletInfoCard } from "./WalletInfoCard";
-import { Token } from "@/types/wallet";
+import { Token, TokenPrices } from "@/types/wallet";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InfoIcon } from "lucide-react";
 
@@ -14,7 +14,7 @@ interface WalletConnectedContentProps {
   displayAddress?: string;
   solBalance?: number;
   tokens?: Token[];
-  tokenPrices?: Record<string, { price: number; priceChange24h: number }>;
+  tokenPrices?: TokenPrices;
   isLoadingTokens?: boolean;
   connectionError?: string | null;
   selectTokenForTrading?: (tokenAddress: string) => any;
@@ -30,10 +30,20 @@ export function WalletConnectedContent({
   connectionError,
   selectTokenForTrading
 }: WalletConnectedContentProps) {
-  // Format wallet address for display if not provided
   const shortAddress = displayAddress || (walletAddress && typeof walletAddress === 'string' ? 
     `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}` : 
     '');
+
+  // Convert TokenPrices to the format expected by TokensCard
+  const tokenPricesFormatted = tokenPrices ? Object.fromEntries(
+    Object.entries(tokenPrices).map(([key, value]) => [
+      key, 
+      { 
+        price: value.price, 
+        priceChange24h: value.priceChange24h || value.change24h || 0 
+      }
+    ])
+  ) : {};
     
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -46,7 +56,7 @@ export function WalletConnectedContent({
         <TokensCard 
           walletAddress={walletAddress}
           tokens={tokens}
-          tokenPrices={tokenPrices}
+          tokenPrices={tokenPricesFormatted}
           isLoading={isLoadingTokens || false}
           onSelectToken={selectTokenForTrading}
         />
