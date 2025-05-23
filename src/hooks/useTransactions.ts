@@ -5,7 +5,6 @@ import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
 import { Transaction } from "@/types/transaction-types";
 import { heliusService } from "@/services/helius/HeliusService";
-import { mockTransactions } from "@/services/mocks/mockTransactions";
 import { errorCollector } from "@/utils/error-handling/collector";
 
 interface UseTransactionsProps {
@@ -113,8 +112,8 @@ export const useTransactions = ({ walletAddress, limit = 10 }: UseTransactionsPr
         
         setTransactions(mappedTransactions);
       } else {
-        console.log('No real transactions found, using mock data for testing');
-        setTransactions(mockTransactions.slice(0, limit));
+        console.log('No transactions found for wallet');
+        setTransactions([]);
       }
     } catch (error) {
       console.error('Error fetching transactions:', error);
@@ -124,12 +123,12 @@ export const useTransactions = ({ walletAddress, limit = 10 }: UseTransactionsPr
         details: { walletAddress, limit }
       });
       
-      toast.error('Προσωρινό πρόβλημα φόρτωσης συναλλαγών', {
-        description: 'Χρησιμοποιούνται δοκιμαστικά δεδομένα'
+      toast.error('Error loading transactions', {
+        description: 'Please try again later'
       });
       
-      // Use mock data on error
-      setTransactions(mockTransactions.slice(0, limit));
+      // Set empty array on error instead of mock data
+      setTransactions([]);
     } finally {
       setLoading(false);
     }

@@ -3,25 +3,22 @@ import { useState } from "react";
 import { ApiKey } from "../types";
 import { toast } from "sonner";
 import { saveKeysToStorage } from "../utils/storageUtils";
-import { demoKeys } from "../data/demoKeys";
 
 export function useApiKeyOperations(initialApiKeys: ApiKey[] = []) {
-  // If no initial keys provided, use demo keys
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>(
-    initialApiKeys.length > 0 ? initialApiKeys : demoKeys
-  );
+  // Start with empty array instead of demo keys
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>(initialApiKeys);
   
-  // Σημαία ασφαλείας που διασφαλίζει ότι μόνο διαγραφές που έχει ξεκινήσει ο χρήστης επιτρέπονται
+  // Security flag to ensure only user-initiated deletions are allowed
   const [userInitiatedDelete, setUserInitiatedDelete] = useState(false);
 
-  // Νέος κωδικός ασφαλείας για προστασία από μη εξουσιοδοτημένες διαγραφές
+  // New security code for protection against unauthorized deletions
   const [securityToken, setSecurityToken] = useState<string>(
     `sec-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
   );
 
-  // Προσθήκη νέου κλειδιού
+  // Add new key
   const addNewKey = (newKey: ApiKey) => {
-    // Διασφάλιση ότι το κλειδί έχει ID και ημερομηνία δημιουργίας
+    // Ensure the key has ID and creation date
     const keyWithDefaults = {
       ...newKey,
       id: newKey.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
@@ -35,55 +32,55 @@ export function useApiKeyOperations(initialApiKeys: ApiKey[] = []) {
     // Save to localStorage with redundancy
     saveKeysToStorage(updatedKeys, false, "");
     
-    toast.success("Το κλειδί προστέθηκε επιτυχώς");
+    toast.success("API key added successfully");
   };
 
-  // Διαγραφή κλειδιού - Protected with user confirmation and security token
+  // Delete key - Protected with user confirmation and security token
   const deleteKey = (id: string) => {
-    // Επαλήθευση ότι η διαγραφή έχει εκκινηθεί από τον χρήστη
+    // Verify that deletion was initiated by the user
     if (!userInitiatedDelete) {
-      console.error("Η διαγραφή κλειδιού απορρίφθηκε - απαιτείται επιβεβαίωση χρήστη");
-      toast.error("Η διαγραφή κλειδιού απέτυχε - απαιτείται αλληλεπίδραση χρήστη");
+      console.error("Key deletion rejected - user confirmation required");
+      toast.error("Key deletion failed - user interaction required");
       return;
     }
     
-    // Επιπλέον έλεγχος ασφαλείας για προστασία από προγραμματικές διαγραφές
+    // Additional security check for protection against programmatic deletions
     const currentTime = Date.now();
     const tokenParts = securityToken.split('-');
     if (tokenParts.length < 2 || currentTime - parseInt(tokenParts[1]) > 300000) {
-      console.error("Η διαγραφή κλειδιού απορρίφθηκε - άκυρο token ασφαλείας");
-      toast.error("Η διαγραφή κλειδιού απέτυχε - επικοινωνήστε με την υποστήριξη");
+      console.error("Key deletion rejected - invalid security token");
+      toast.error("Key deletion failed - contact support");
       return;
     }
     
-    // Επαναφορά σημαίας μετά από κάθε χρήση
+    // Reset flag after each use
     setUserInitiatedDelete(false);
     
-    // Δημιουργία αντιγράφου ασφαλείας πριν τη διαγραφή
+    // Create backup before deletion
     const backupKeys = [...apiKeys];
     localStorage.setItem(`apiKeys_before_delete_${Date.now()}`, JSON.stringify(backupKeys));
     
-    // Εκτέλεση της διαγραφής
+    // Execute deletion
     const updatedKeys = apiKeys.filter(key => key.id !== id);
     setApiKeys(updatedKeys);
     
-    // Αποθήκευση στο localStorage με αντίγραφο ασφαλείας
+    // Save to localStorage with backup
     saveKeysToStorage(updatedKeys, false, "");
     
-    // Ανανέωση του token ασφαλείας
+    // Refresh security token
     setSecurityToken(`sec-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`);
     
-    toast.success("Το κλειδί διαγράφηκε επιτυχώς");
+    toast.success("Key deleted successfully");
   };
 
-  // Μέθοδος για ενεργοποίηση της σημαίας διαγραφής από τον χρήστη - ΜΟΝΟ από UI components
+  // Method to enable deletion flag from user - ONLY from UI components
   const confirmKeyDeletion = (id: string) => {
     setUserInitiatedDelete(true);
-    // Μετά την ενεργοποίηση της σημαίας, άμεση διαγραφή του κλειδιού
+    // After enabling the flag, immediate deletion of the key
     setTimeout(() => deleteKey(id), 0);
   };
 
-  // Ενημέρωση κλειδιού
+  // Update key
   const updateKey = (updatedKey: ApiKey) => {
     const updatedKeys = apiKeys.map(key => 
       key.id === updatedKey.id ? { ...key, ...updatedKey } : key
@@ -91,21 +88,21 @@ export function useApiKeyOperations(initialApiKeys: ApiKey[] = []) {
     
     setApiKeys(updatedKeys);
     
-    // Αποθήκευση στο localStorage με αντίγραφο ασφαλείας
+    // Save to localStorage with backup
     saveKeysToStorage(updatedKeys, false, "");
     
-    toast.success("Το κλειδί ενημερώθηκε επιτυχώς");
+    toast.success("Key updated successfully");
   };
 
-  // Διαχείριση μαζικής εισαγωγής
+  // Handle bulk import
   const handleImport = (importedKeys: ApiKey[]) => {
     // Make backup before import
     localStorage.setItem(`apiKeys_before_import_${Date.now()}`, JSON.stringify(apiKeys));
     
-    // Έλεγχος για διπλότυπα συγκρίνοντας τις τιμές των κλειδιών
+    // Check for duplicates by comparing key values
     const existingKeyValues = new Set(apiKeys.map(key => key.key));
     
-    // Φιλτράρισμα κλειδιών που υπάρχουν ήδη
+    // Filter keys that already exist
     const newKeys = importedKeys.filter(key => !existingKeyValues.has(key.key))
       .map(key => ({
         ...key,
@@ -114,21 +111,21 @@ export function useApiKeyOperations(initialApiKeys: ApiKey[] = []) {
         status: key.status || 'active'
       }));
     
-    // Προσθήκη νέων κλειδιών
+    // Add new keys
     if (newKeys.length > 0) {
       const updatedKeys = [...apiKeys, ...newKeys];
       setApiKeys(updatedKeys);
       
-      // Αποθήκευση στο localStorage με αντίγραφο ασφαλείας
+      // Save to localStorage with backup
       saveKeysToStorage(updatedKeys, false, "");
       
       if (newKeys.length !== importedKeys.length) {
-        toast.warning(`Προστέθηκαν ${newKeys.length} νέα κλειδιά. ${importedKeys.length - newKeys.length} παραλείφθηκαν ως διπλότυπα.`);
+        toast.warning(`Added ${newKeys.length} new keys. ${importedKeys.length - newKeys.length} skipped as duplicates.`);
       } else {
-        toast.success(`Προστέθηκαν ${newKeys.length} νέα κλειδιά επιτυχώς!`);
+        toast.success(`Added ${newKeys.length} new keys successfully!`);
       }
     } else if (importedKeys.length > 0) {
-      toast.warning("Όλα τα κλειδιά υπάρχουν ήδη στην κλειδοθήκη σας");
+      toast.warning("All keys already exist in your vault");
     }
   };
 
@@ -136,7 +133,7 @@ export function useApiKeyOperations(initialApiKeys: ApiKey[] = []) {
     apiKeys,
     setApiKeys,
     addNewKey,
-    // Η δημόσια μέθοδος είναι πλέον confirmKeyDeletion αντί για deleteKey
+    // The public method is now confirmKeyDeletion instead of deleteKey
     deleteKey: confirmKeyDeletion,
     updateKey,
     handleImport

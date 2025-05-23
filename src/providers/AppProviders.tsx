@@ -27,7 +27,7 @@ export function AppProviders({ children }: AppProvidersProps) {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <ThemeProvider>
-          <LanguageProvider defaultLanguage="el">
+          <LanguageProvider defaultLanguage="en">
             <SolanaWalletProvider>
               <TooltipProvider>
                 {children}
