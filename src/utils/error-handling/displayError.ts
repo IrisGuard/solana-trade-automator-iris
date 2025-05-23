@@ -18,6 +18,7 @@ interface DisplayErrorOptions {
   component?: string;
   severity?: 'low' | 'medium' | 'high' | 'critical';
   sendToChat?: boolean;
+  details?: any;
 }
 
 export function displayError(error: Error | string, options: DisplayErrorOptions = {}) {
@@ -28,7 +29,8 @@ export function displayError(error: Error | string, options: DisplayErrorOptions
     logToConsole = true,
     useCollector = true,
     component = "Unknown",
-    severity = "medium"
+    severity = "medium",
+    details
   } = options;
 
   const errorMessage = typeof error === 'string' ? error : error.message;
@@ -46,7 +48,7 @@ export function displayError(error: Error | string, options: DisplayErrorOptions
       component,
       source: 'displayError',
       severity,
-      details: options
+      details: { ...details, options }
     });
   }
 
