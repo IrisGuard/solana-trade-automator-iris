@@ -11,14 +11,14 @@ interface TokensHeaderProps {
 export function TokensHeader({ searchQuery, onSearchChange }: TokensHeaderProps) {
   return (
     <div className="space-y-1.5">
-      <h2 className="text-2xl font-semibold tracking-tight">Τα Tokens σας</h2>
+      <h2 className="text-2xl font-semibold tracking-tight">Your Tokens</h2>
       <p className="text-sm text-muted-foreground">
-        Διαχειριστείτε τα Solana SPL tokens σας και δημιουργήστε trading bots
+        Manage your Solana SPL tokens and create trading bots
       </p>
       <div className="relative mt-2">
         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Αναζήτηση tokens..."
+          placeholder="Search tokens..."
           className="pl-8"
           type="search" 
           value={searchQuery}

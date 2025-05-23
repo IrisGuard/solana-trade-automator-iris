@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Copy } from "lucide-react";
@@ -20,9 +21,9 @@ export function WalletInfoCard({ walletAddress, balance }: WalletInfoCardProps) 
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold">Πληροφορίες Πορτοφολιού</h3>
+            <h3 className="text-lg font-semibold">Wallet Information</h3>
             <p className="text-sm text-muted-foreground">
-              Διεύθυνση: {walletAddress}
+              Address: {walletAddress}
             </p>
           </div>
           <Button variant="outline" size="icon" onClick={handleCopyAddress}>
@@ -33,7 +34,7 @@ export function WalletInfoCard({ walletAddress, balance }: WalletInfoCardProps) 
       <CardContent>
         <div className="space-y-2">
           <p>
-            <strong>Υπόλοιπο SOL:</strong> {balance}
+            <strong>SOL Balance:</strong> {balance}
           </p>
         </div>
       </CardContent>

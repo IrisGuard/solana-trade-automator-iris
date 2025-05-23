@@ -7,25 +7,23 @@ import { Button } from "@/components/ui/button";
 
 interface WalletTokensListProps {
   tokens: Token[];
-  isLoading?: boolean; // Added isLoading as an optional prop
+  isLoading?: boolean;
 }
 
 export function WalletTokensList({ tokens, isLoading }: WalletTokensListProps) {
-  // Display loading state if isLoading is true
   if (isLoading) {
     return (
       <div className="py-4 text-center text-muted-foreground">
         <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
-        <p>Φόρτωση tokens...</p>
+        <p>Loading tokens...</p>
       </div>
     );
   }
   
-  // Display empty state if no tokens
   if (tokens.length === 0) {
     return (
       <div className="py-4 text-center text-muted-foreground">
-        <p>Δεν βρέθηκαν tokens</p>
+        <p>No tokens found</p>
       </div>
     );
   }
@@ -33,8 +31,8 @@ export function WalletTokensList({ tokens, isLoading }: WalletTokensListProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Υπόλοιπο Token</CardTitle>
-        <CardDescription>Τα Solana SPL tokens σας</CardDescription>
+        <CardTitle>Token Balance</CardTitle>
+        <CardDescription>Your Solana SPL tokens</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {tokens.map((token, index) => (
@@ -60,7 +58,7 @@ export function WalletTokensList({ tokens, isLoading }: WalletTokensListProps) {
                 className="h-auto p-0 text-xs" 
                 onClick={() => window.open(`https://solscan.io/token/${token.address}`, '_blank')}
               >
-                Προβολή <ExternalLink className="h-3 w-3 ml-1" />
+                View <ExternalLink className="h-3 w-3 ml-1" />
               </Button>
             </div>
           </div>

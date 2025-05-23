@@ -1,129 +1,69 @@
+import { ErrorContext, ErrorOptions, CollectedError } from './types';
 
-import { ErrorData, ErrorOptions } from './types';
+class ErrorCollectorClass {
+  private errors: CollectedError[] = [];
+  private maxErrors = 100;
 
-/**
- * ErrorCollector Class
- * Responsible for collecting, storing, and retrieving errors that occur in the application.
- */
-export class ErrorCollector {
-  private errors: ErrorData[] = [];
-  private maxErrors: number = 100;
-  private errorCount: number = 0;
-
-  /**
-   * Capture an error with additional context
-   */
-  public captureError(error: Error | string, options: ErrorOptions = {}): string {
-    const errorMessage = typeof error === 'string' ? error : error.message;
-    const errorStack = typeof error === 'string' ? null : error.stack;
-    
-    const errorId = this.generateErrorId();
-    
-    const errorData: ErrorData = {
-      id: errorId,
-      error: typeof error === 'string' ? new Error(error) : error,
-      message: errorMessage,
-      stack: errorStack,
-      timestamp: new Date().toISOString(),
-      component: options.component || null,
-      source: options.source || 'client',
-      url: window.location.href,
-      browserInfo: this.getBrowserInfo(),
-      errorCode: options.errorCode || null,
-      context: options.context || null,
-      metadata: options.metadata || null,
-      status: options.status || null,
-      errorId: options.errorId || null,
-      errorType: options.errorType,
-      details: options.details,
-      severity: options.severity || 'medium', // Updated to include 'critical'
-      options: options
+  captureError(error: Error, context: ErrorContext = {}, options: ErrorOptions = {}): void {
+    const collectedError: CollectedError = {
+      id: this.generateId(),
+      message: error.message,
+      stack: error.stack,
+      component: context.component,
+      source: context.source,
+      timestamp: new Date(),
+      severity: context.severity || 'medium',
+      resolved: false,
+      details: context.details
     };
 
-    this.addError(errorData);
-    this.errorCount++;
+    // Add error-specific properties if they exist
+    if (options.errorCode) collectedError.details = { ...collectedError.details, errorCode: options.errorCode };
+    if (options.context) collectedError.details = { ...collectedError.details, context: options.context };
+    if (options.metadata) collectedError.details = { ...collectedError.details, metadata: options.metadata };
+    if (options.status) collectedError.details = { ...collectedError.details, status: options.status };
+    if (options.errorId) collectedError.details = { ...collectedError.details, errorId: options.errorId };
+
+    this.errors.unshift(collectedError);
     
-    // Log to console in development
-    if (process.env.NODE_ENV !== 'production') {
-      console.error(`[ErrorCollector] ${errorData.message}`, errorData);
+    // Keep only the most recent errors
+    if (this.errors.length > this.maxErrors) {
+      this.errors = this.errors.slice(0, this.maxErrors);
     }
 
-    // Call the onError callback if provided
+    // Log to console for debugging
+    console.error('[ErrorCollector]', error);
+
+    // Call onError callback if provided
     if (options.onError) {
       try {
-        options.onError(errorData);
+        options.onError(error);
       } catch (callbackError) {
         console.error('[ErrorCollector] Error in onError callback:', callbackError);
       }
     }
-
-    return errorId;
   }
 
-  /**
-   * Add an error to the collection
-   */
-  private addError(errorData: ErrorData): void {
-    // Add to beginning of array for chronological ordering
-    this.errors.unshift(errorData);
-    
-    // Limit the number of stored errors
-    if (this.errors.length > this.maxErrors) {
-      this.errors.pop();
-    }
-
-    // Report to monitoring system if configured
-    this.reportError(errorData);
+  getErrors(): CollectedError[] {
+    return [...this.errors];
   }
 
-  /**
-   * Get all captured errors
-   */
-  public getErrors(): ErrorData[] {
-    return this.errors;
+  getRecentErrors(minutes: number = 5): CollectedError[] {
+    const cutoff = new Date(Date.now() - minutes * 60 * 1000);
+    return this.errors.filter(error => error.timestamp > cutoff);
   }
 
-  /**
-   * Clear all errors
-   */
-  public clearErrors(): void {
+  clearErrors(): void {
     this.errors = [];
   }
 
-  /**
-   * Get browser and system information
-   */
-  private getBrowserInfo() {
-    return {
-      userAgent: navigator.userAgent,
-      language: navigator.language,
-      platform: navigator.platform,
-      screenSize: `${window.screen.width}x${window.screen.height}`,
-      timestamp: new Date().toISOString()
-    };
+  getErrorCount(): number {
+    return this.errors.length;
   }
 
-  /**
-   * Generate a unique error ID
-   */
-  private generateErrorId(): string {
-    return `error_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-  }
-
-  /**
-   * Report error to remote services if configured
-   */
-  private reportError(errorData: ErrorData): void {
-    // Implementation left empty for now - would connect to backend service
-  }
-
-  /**
-   * Returns the total number of errors captured
-   */
-  public getErrorCount(): number {
-    return this.errorCount;
+  private generateId(): string {
+    return Math.random().toString(36).substr(2, 9);
   }
 }
 
-// Export a singleton instance for global use
-export const errorCollector = new ErrorCollector();
+export const errorCollector = new ErrorCollectorClass();

@@ -1,20 +1,27 @@
 
-export interface Transaction {
-  id: string;
-  type: 'buy' | 'sell' | 'swap' | 'transfer';
-  token: string;
-  tokenSymbol: string;
-  amount: number;
-  price: number;
-  timestamp: Date;
-  status: 'confirmed' | 'pending' | 'failed';
-  signature?: string;
-  fee?: number;
-}
+import { Transaction } from '@/types/transaction-types';
 
-export const mockTransactions: Transaction[] = [];
-
-export function getRecentTransactions(walletAddress: string, limit: number = 10): Transaction[] {
-  console.log(`Getting recent transactions for ${walletAddress}, limit: ${limit}`);
-  return mockTransactions.slice(0, limit);
-}
+export const mockTransactions: Transaction[] = [
+  {
+    id: '1',
+    type: 'buy',
+    token: 'SOL',
+    amount: '10.5',
+    price: '$23.45',
+    value: '$246.23',
+    timestamp: new Date().toISOString(),
+    status: 'completed',
+    bot: 'Trading Bot 1'
+  },
+  {
+    id: '2',
+    type: 'sell',
+    token: 'USDC',
+    amount: '100.0',
+    price: '$1.00',
+    value: '$100.00',
+    timestamp: new Date(Date.now() - 3600000).toISOString(),
+    status: 'completed',
+    bot: 'Market Maker Bot'
+  }
+];

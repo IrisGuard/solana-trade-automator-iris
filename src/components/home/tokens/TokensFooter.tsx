@@ -16,7 +16,7 @@ export function TokensFooter({ selectedToken, isLoading, onTradingClick }: Token
   return (
     <div className="w-full flex items-center justify-between">
       <p className="text-sm text-muted-foreground">
-        Επιλεγμένο token για συναλλαγές
+        Selected token for trading
       </p>
       <Button 
         onClick={() => onTradingClick(selectedToken)}
@@ -25,11 +25,11 @@ export function TokensFooter({ selectedToken, isLoading, onTradingClick }: Token
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
-            Φόρτωση...
+            Loading...
           </>
         ) : (
           <>
-            Δημιουργία Bot 
+            Create Bot 
             <ArrowRight className="ml-2 h-4 w-4" />
           </>
         )}

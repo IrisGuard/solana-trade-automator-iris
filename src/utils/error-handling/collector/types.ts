@@ -1,37 +1,28 @@
 
-export interface ErrorData {
-  message: string;
-  stack?: string;
-  timestamp: Date;
-  component?: string;
-  source?: string;
-  error?: Error;
-  data?: any;
-  id?: string;
-}
-
-export interface ErrorOptions {
-  component?: string;
-  source?: string;
-  details?: any;
-  errorType?: string;
-  method?: string;
-  severity?: 'low' | 'medium' | 'high';
-}
-
 export interface ErrorContext {
   component?: string;
   source?: string;
   details?: any;
-  method?: string;
-  severity?: 'low' | 'medium' | 'high';
+  severity?: 'low' | 'medium' | 'high' | 'critical';
 }
 
-export interface ErrorCollector {
-  captureError(error: any, context?: ErrorContext): void;
-  captureException(error: Error, context?: ErrorContext): void;
-  getErrors(): ErrorData[];
-  getRecentErrors(limit?: number): ErrorData[];
-  getErrorCount(): number;
-  clearErrors(): void;
+export interface ErrorOptions {
+  errorCode?: string;
+  context?: any;
+  metadata?: any;
+  status?: string;
+  errorId?: string;
+  onError?: (error: Error) => void;
+}
+
+export interface CollectedError {
+  id: string;
+  message: string;
+  stack?: string;
+  component?: string;
+  source?: string;
+  timestamp: Date;
+  severity?: string;
+  resolved?: boolean;
+  details?: any;
 }
