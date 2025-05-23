@@ -2,9 +2,10 @@
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { useState, useEffect, useCallback } from 'react';
-import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { toast } from 'sonner';
 import { useTokens } from './useTokens';
+import { isPhantomInstalled } from '@/utils/phantomWallet';
 
 export function useWalletConnection() {
   const { connection } = useConnection();
@@ -12,6 +13,7 @@ export function useWalletConnection() {
   const { setVisible } = useWalletModal();
   const [balance, setBalance] = useState<number>(0);
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Use tokens hook
   const {
@@ -31,6 +33,7 @@ export function useWalletConnection() {
     try {
       await disconnect();
       setBalance(0);
+      setError(null);
       toast.success('Το πορτοφόλι αποσυνδέθηκε');
     } catch (error) {
       console.error('Error disconnecting wallet:', error);
@@ -49,7 +52,7 @@ export function useWalletConnection() {
       setBalance(solBalance);
     } catch (error) {
       console.error('Error fetching balance:', error);
-      toast.error('Σφάλμα κατά τη λήψη υπολοίπου');
+      setError('Σφάλμα κατά τη λήψη υπολοίπου');
     } finally {
       setIsLoadingBalance(false);
     }
@@ -59,13 +62,12 @@ export function useWalletConnection() {
   useEffect(() => {
     if (connected && publicKey) {
       fetchBalance();
-      refreshTokens();
       toast.success('Το πορτοφόλι συνδέθηκε επιτυχώς');
     }
-  }, [connected, publicKey, fetchBalance, refreshTokens]);
+  }, [connected, publicKey, fetchBalance]);
 
   // Refresh all wallet data
-  const refreshWalletData = useCallback(async () => {
+  const refreshWalletData = useCallback(async (walletAddress?: string) => {
     await fetchBalance();
     await refreshTokens();
   }, [fetchBalance, refreshTokens]);
@@ -80,6 +82,8 @@ export function useWalletConnection() {
     tokens,
     isLoadingTokens,
     tokensError,
+    error,
+    isPhantomInstalled: isPhantomInstalled(),
     
     // Actions
     connectWallet,

@@ -6,14 +6,14 @@ export interface Token {
   amount: number;
   decimals: number;
   logoURI?: string;
-  logo?: string; // Add both logoURI and logo for compatibility
-  mint?: string; // Add mint property for Solana tokens
+  logo?: string;
+  mint?: string;
 }
 
 export interface TokenPrice {
   price: number;
   change24h: number;
-  priceChange24h?: number; // Add alias for compatibility
+  priceChange24h?: number;
   volume24h?: number;
   marketCap?: number;
   lastUpdated?: Date;
@@ -32,4 +32,17 @@ export interface WalletState {
   tokenPrices: TokenPrices;
   isLoadingTokens: boolean;
   error: string | null;
+}
+
+export interface TokenBalance {
+  mint: string;
+  owner: string;
+  amount: number;
+  decimals: number;
+}
+
+export interface TokenDetails extends Token {
+  price?: number;
+  value?: number;
+  change24h?: number;
 }

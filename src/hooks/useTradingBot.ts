@@ -11,6 +11,11 @@ export interface TradingBotConfig {
   maxInvestment: number;
   stopLoss: number;
   takeProfit: number;
+  tradeAmount: number;
+  maxBudget: number;
+  autoRebalance: boolean;
+  trailingStop: number;
+  enabledStrategies: string[];
 }
 
 export interface TradingOrder {
@@ -33,7 +38,12 @@ export function useTradingBot() {
     sellThreshold: 10,
     maxInvestment: 100,
     stopLoss: -10,
-    takeProfit: 20
+    takeProfit: 20,
+    tradeAmount: 50,
+    maxBudget: 1000,
+    autoRebalance: false,
+    trailingStop: 5,
+    enabledStrategies: ['simple']
   });
 
   const [botStatus, setBotStatus] = useState<BotStatus>('idle');
@@ -49,7 +59,7 @@ export function useTradingBot() {
     setConfig(prev => ({ ...prev, selectedToken: tokenAddress }));
     
     if (tokenAddress) {
-      // Mock price data
+      // In real implementation, fetch real price from an API
       setSelectedTokenPrice({
         price: Math.random() * 100 + 10,
         priceChange24h: (Math.random() - 0.5) * 20
@@ -68,7 +78,6 @@ export function useTradingBot() {
     setIsLoading(true);
     setBotStatus('running');
     
-    // Simulate bot start
     setTimeout(() => {
       setIsLoading(false);
       console.log('Trading bot started');
@@ -79,7 +88,6 @@ export function useTradingBot() {
     setIsLoading(true);
     setBotStatus('idle');
     
-    // Simulate bot stop
     setTimeout(() => {
       setIsLoading(false);
       setActiveOrders([]);

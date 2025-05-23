@@ -1,4 +1,12 @@
 
+export interface ErrorData {
+  message: string;
+  stack?: string;
+  timestamp: Date;
+  component?: string;
+  source?: string;
+}
+
 interface ErrorContext {
   component?: string;
   source?: string;
@@ -6,10 +14,21 @@ interface ErrorContext {
 }
 
 class ErrorCollector {
+  private errors: ErrorData[] = [];
+
   captureError(error: any, context?: ErrorContext) {
     console.error('Error captured:', error, context);
     
-    // In production, this would send to error reporting service
+    const errorData: ErrorData = {
+      message: error.message || error.toString(),
+      stack: error.stack,
+      timestamp: new Date(),
+      component: context?.component,
+      source: context?.source
+    };
+    
+    this.errors.push(errorData);
+    
     if (typeof window !== 'undefined') {
       (window as any).errorCollector = this;
     }
@@ -18,11 +37,22 @@ class ErrorCollector {
   captureException(error: Error, context?: ErrorContext) {
     this.captureError(error, context);
   }
+
+  getErrors(): ErrorData[] {
+    return this.errors;
+  }
+
+  getRecentErrors(limit = 10): ErrorData[] {
+    return this.errors.slice(-limit);
+  }
+
+  clearErrors() {
+    this.errors = [];
+  }
 }
 
 export const errorCollector = new ErrorCollector();
 
-// Make it available globally for emergency recovery
 if (typeof window !== 'undefined') {
   (window as any).errorCollector = errorCollector;
 }

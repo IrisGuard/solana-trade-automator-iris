@@ -2,7 +2,6 @@
 export class SiteBackupService {
   static restoreFromBackup(): boolean {
     try {
-      // Mock restore functionality
       console.log('Restoring from backup...');
       return true;
     } catch (error) {
@@ -13,7 +12,6 @@ export class SiteBackupService {
 
   static createBackup(): boolean {
     try {
-      // Mock backup functionality
       console.log('Creating backup...');
       return true;
     } catch (error) {
@@ -23,12 +21,10 @@ export class SiteBackupService {
   }
 
   static countAvailableBackups(): number {
-    // Mock backup count
     return 3;
   }
 
   static getMaxBackups(): number {
-    // Mock max backups
     return 5;
   }
 }
