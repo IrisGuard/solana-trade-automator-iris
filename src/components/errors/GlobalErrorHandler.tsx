@@ -138,7 +138,7 @@ function handleErrorNotification(errorData: ErrorData) {
 }
 
 function showErrorToast(errorData: ErrorData) {
-  toast.error("Σφάλμα Εφαρμογής", {
+  toast.error("Application Error", {
     description: (errorData.message || '').length > 60 
       ? (errorData.message || '').substring(0, 60) + '...' 
       : errorData.message,
