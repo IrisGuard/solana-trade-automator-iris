@@ -20,8 +20,6 @@ export function SolanaWalletProvider({ children }: SolanaWalletProviderProps) {
   // RPC endpoint - using mainnet for real crypto data
   const endpoint = useMemo(() => {
     // Use Solana mainnet RPC endpoint for production
-    const defaultEndpoint = clusterApiUrl(network);
-    // You can also specify a custom RPC endpoint if needed
     return 'https://api.mainnet-beta.solana.com';
   }, []);
 

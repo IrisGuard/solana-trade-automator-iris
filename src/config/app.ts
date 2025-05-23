@@ -1,11 +1,11 @@
 
 // Application configuration
 export const APP_CONFIG = {
-  // Demo mode - using Devnet to prevent real transactions
-  DEMO_MODE: true,
+  // Production mode - using Mainnet for real data
+  DEMO_MODE: false,
   
   // Solana network configuration
-  NETWORK: 'devnet' as const,
+  NETWORK: 'mainnet-beta' as const,
   
   // Application metadata
   APP_NAME: 'Solana Trade Automator',
@@ -13,7 +13,7 @@ export const APP_CONFIG = {
   
   // Features flags
   FEATURES: {
-    REAL_TRADING: false, // Disabled for demo
+    REAL_TRADING: true, // Enabled for production
     ERROR_REPORTING: true,
     MONITORING: true,
     DEBUG_MODE: import.meta.env.DEV,
@@ -23,6 +23,14 @@ export const APP_CONFIG = {
   SUPABASE: {
     URL: 'https://lvkbyfocssuzcdphpmfu.supabase.co',
     ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2a2J5Zm9jc3N1emNkcGhwbWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY4MDk3NTIsImV4cCI6MjA2MjM4NTc1Mn0.fkQe2TgniccYP-AvrYnFL_ladauqL7-ULiTagMDszhc'
+  },
+  
+  // Color scheme
+  COLORS: {
+    PRIMARY: '#9945FF',
+    SECONDARY: '#14F195', 
+    ACCENT: '#FF6B35',
+    BACKGROUND: '#0D0D0D'
   }
 };
 

@@ -17,6 +17,7 @@ interface DisplayErrorOptions {
   useCollector?: boolean;
   component?: string;
   severity?: 'low' | 'medium' | 'high' | 'critical';
+  sendToChat?: boolean;
 }
 
 export function displayError(error: Error | string, options: DisplayErrorOptions = {}) {

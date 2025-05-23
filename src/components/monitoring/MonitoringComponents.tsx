@@ -1,36 +1,35 @@
-
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { useConsoleErrorMonitor } from "@/hooks/useConsoleErrorMonitor";
 import { useErrorDialogInChat } from "@/components/debug/ErrorDialogInChat";
-import { displayError } from "@/utils/errorUtils";
+import { displayError } from "@/utils/error-handling/displayError";
 
-// Component που παρακολουθεί για σφάλματα κονσόλας
+// Component that monitors for console errors
 export function ErrorMonitor() {
   useConsoleErrorMonitor();
   return null;
 }
 
-// Component για την εμφάνιση των διαλογικών παραθύρων σφάλματος
+// Component for displaying error dialogs
 export function ErrorDialogsRenderer() {
   const { ErrorDialogs } = useErrorDialogInChat();
   return <ErrorDialogs />;
 }
 
-// Component που παρακολουθεί την κατάσταση του δικτύου
+// Component that monitors network status
 export function NetworkErrorDetector() {
   useEffect(() => {
-    // Παρακολούθηση για σφάλματα δικτύου
+    // Monitor for network errors
     const handleOnline = () => {
-      toast.success("Επανασύνδεση δικτύου", {
-        description: "Η σύνδεση στο διαδίκτυο αποκαταστάθηκε"
+      toast.success("Network reconnected", {
+        description: "Internet connection has been restored"
       });
     };
 
     const handleOffline = () => {
-      toast.error("Απώλεια δικτύου", {
-        description: "Η σύνδεση στο διαδίκτυο διακόπηκε. Ελέγξτε τη σύνδεσή σας.",
-        duration: 0 // Μόνιμο μέχρι να επανασυνδεθεί
+      toast.error("Network disconnected", {
+        description: "Internet connection interrupted. Check your connection.",
+        duration: 0 // Permanent until reconnected
       });
     };
 
@@ -46,29 +45,29 @@ export function NetworkErrorDetector() {
   return null;
 }
 
-// Component που ελέγχει για σφάλματα δημοσίευσης
+// Component that checks for publish errors
 export function PublishErrorMonitor() {
   useEffect(() => {
-    // Έλεγχος για σφάλματα κατά τη δημοσίευση
+    // Check for publish errors
     const handlePublishErrors = () => {
       try {
-        // Έλεγχος αν βρισκόμαστε σε περιβάλλον production
+        // Check if we're in production environment
         if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-          console.log("Εκτελείται έλεγχος για σφάλματα δημοσίευσης...");
+          console.log("Running publish error checks...");
           
-          // Έλεγχος Supabase σύνδεσης
+          // Check Supabase connection
           fetch('https://lvkbyfocssuzcdphpmfu.supabase.co/rest/v1/', {
             headers: {
               'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2a2J5Zm9jc3N1emNkcGhwbWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY4MDk3NTIsImV4cCI6MjA2MjM4NTc1Mn0.fkQe2TgniccYP-AvrYnFL_ladauqL7-ULiTagMDszhc'
             }
           })
             .then(response => {
-              if (!response.ok) throw new Error("Αδυναμία σύνδεσης με το Supabase");
-              console.log("Επιτυχής σύνδεση με το Supabase");
+              if (!response.ok) throw new Error("Cannot connect to Supabase");
+              console.log("Successful Supabase connection");
             })
             .catch(error => {
               displayError(error, {
-                toastTitle: "Σφάλμα κατά τη δημοσίευση",
+                title: "Publish Error",
                 showToast: true,
                 component: 'PublishErrorMonitor',
                 sendToChat: true,
@@ -79,14 +78,14 @@ export function PublishErrorMonitor() {
               });
             });
             
-          // Άλλοι έλεγχοι που μπορείτε να προσθέσετε...
+          // Other checks can be added here...
         }
       } catch (e) {
-        console.error("Σφάλμα κατά τον έλεγχο σφαλμάτων δημοσίευσης:", e);
+        console.error("Error during publish error checks:", e);
       }
     };
     
-    // Εκτέλεση του ελέγχου μετά από λίγο για να επιτρέψουμε στην εφαρμογή να φορτώσει πλήρως
+    // Execute check after a brief delay to allow the app to fully load
     const timer = setTimeout(handlePublishErrors, 3000);
     
     return () => clearTimeout(timer);
@@ -95,7 +94,7 @@ export function PublishErrorMonitor() {
   return null;
 }
 
-// Συγκεντρωτικό component για όλα τα monitoring components
+// Comprehensive monitoring system component
 export function MonitoringSystem() {
   return (
     <>

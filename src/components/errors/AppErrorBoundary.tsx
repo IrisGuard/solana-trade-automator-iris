@@ -35,14 +35,14 @@ export function AppErrorBoundary({ children, fallbackComponent }: AppErrorBounda
                          error.message.includes('element type');
     
     displayError(error, {
-      toastTitle: isNetworkError ? "Σφάλμα δικτύου" : 
-                 isRenderError ? "Σφάλμα απεικόνισης" : 
-                 "Σφάλμα εφαρμογής",
+      title: isNetworkError ? "Network Error" : 
+             isRenderError ? "Rendering Error" : 
+             "Application Error",
       showToast: true,
       component: 'AppErrorBoundary',
       sendToChat: true,
       useCollector: true,
-      severity: isNetworkError ? 'high' : 'high', // Changed from 'critical' to 'high'
+      severity: isNetworkError ? 'high' : 'high',
       details: {
         componentStack: info.componentStack,
         errorType: isNetworkError ? 'network' : 
@@ -53,7 +53,7 @@ export function AppErrorBoundary({ children, fallbackComponent }: AppErrorBounda
     
     setHasError(true);
     
-    // Αποθήκευση λεπτομερειών σφάλματος
+    // Store error details
     const errorDetails = {
       message: error.message,
       stack: error.stack,
@@ -64,13 +64,13 @@ export function AppErrorBoundary({ children, fallbackComponent }: AppErrorBounda
       isRenderError
     };
     
-    // Αποθήκευση του σφάλματος στο localStorage για προσωρινή διατήρηση
+    // Store error in localStorage for temporary persistence
     try {
       const storedErrors = JSON.parse(localStorage.getItem('app_errors') || '[]');
       storedErrors.push(errorDetails);
-      localStorage.setItem('app_errors', JSON.stringify(storedErrors.slice(-10))); // Διατήρηση των τελευταίων 10 σφαλμάτων
+      localStorage.setItem('app_errors', JSON.stringify(storedErrors.slice(-10)));
     } catch (e) {
-      console.error("Σφάλμα κατά την αποθήκευση του σφάλματος:", e);
+      console.error("Error storing error details:", e);
       reportError(e instanceof Error ? e : new Error("Failed to store error"), {
         component: "AppErrorBoundary",
         severity: "low"
@@ -79,7 +79,7 @@ export function AppErrorBoundary({ children, fallbackComponent }: AppErrorBounda
 
     // Auto-reload on specific errors that might be temporary
     if (isNetworkError && !localStorage.getItem('attempted_reload')) {
-      toast.error("Προσπάθεια επαναφόρτωσης...", { duration: 3000 });
+      toast.error("Attempting to reload...", { duration: 3000 });
       localStorage.setItem('attempted_reload', 'true');
       
       // Set a timeout to reload the page

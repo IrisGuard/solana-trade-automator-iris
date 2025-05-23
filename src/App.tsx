@@ -24,8 +24,8 @@ const queryClient = new QueryClient({
   },
 });
 
-// Use Devnet to prevent real transactions (DEMO ONLY)
-const network = WalletAdapterNetwork.Devnet;
+// Use Mainnet for real crypto data display
+const network = WalletAdapterNetwork.Mainnet;
 const endpoint = clusterApiUrl(network);
 
 const wallets = [
@@ -34,21 +34,23 @@ const wallets = [
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <SupabaseAuthProvider>
-        <ConnectionProvider endpoint={endpoint}>
-          <WalletProvider wallets={wallets} autoConnect>
-            <WalletModalProvider>
-              <BrowserRouter>
-                <MonitoringSystem />
-                <MainDashboard />
-                <Toaster />
-              </BrowserRouter>
-            </WalletModalProvider>
-          </WalletProvider>
-        </ConnectionProvider>
-      </SupabaseAuthProvider>
-    </QueryClientProvider>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+      <QueryClientProvider client={queryClient}>
+        <SupabaseAuthProvider>
+          <ConnectionProvider endpoint={endpoint}>
+            <WalletProvider wallets={wallets} autoConnect>
+              <WalletModalProvider>
+                <BrowserRouter>
+                  <MonitoringSystem />
+                  <MainDashboard />
+                  <Toaster />
+                </BrowserRouter>
+              </WalletModalProvider>
+            </WalletProvider>
+          </ConnectionProvider>
+        </SupabaseAuthProvider>
+      </QueryClientProvider>
+    </div>
   );
 }
 
