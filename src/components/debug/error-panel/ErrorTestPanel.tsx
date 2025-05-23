@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { displayError } from '@/utils/error-handling/displayError';
 import { Button } from '@/components/ui/button';
@@ -31,7 +32,7 @@ export function ErrorTestPanel() {
   const handleSubmitSimpleError = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Create an error with simple options - make sure to exclude 'source' if missing
+    // Create an error with simple options
     const errorOptions = {
       title: errorTitle || "Test Error",
       description: errorDescription || "This is a test error from the Error Test Panel.",
@@ -39,7 +40,6 @@ export function ErrorTestPanel() {
       logToConsole: simpleOptions.logToConsole,
       useCollector: simpleOptions.useCollector,
       component: "ErrorTestPanel",
-      // Only include severity if it's needed
       severity: selectedSeverity as 'low' | 'medium' | 'high' | 'critical'
     };
     
@@ -129,7 +129,7 @@ export function ErrorTestPanel() {
         
         {/* Submit Button */}
         <form onSubmit={handleSubmitSimpleError}>
-          <Button type="submit" variant="primary">
+          <Button type="submit" variant="default">
             Display Error
           </Button>
         </form>

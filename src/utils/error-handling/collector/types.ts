@@ -6,6 +6,18 @@ export interface ErrorContext {
   details?: any;
 }
 
+export interface ErrorOptions {
+  component?: string;
+  source?: string;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+  details?: any;
+  showToast?: boolean;
+  logToConsole?: boolean;
+  useCollector?: boolean;
+  title?: string;
+  toastTitle?: string;
+}
+
 export interface ErrorData {
   id?: string; // Made optional as it's generated internally
   message: string;

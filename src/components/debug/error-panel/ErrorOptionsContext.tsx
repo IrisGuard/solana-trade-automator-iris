@@ -14,7 +14,8 @@ interface ErrorOptionsContextType {
   setUseCollector: (use: boolean) => void;
 }
 
-const ErrorOptionsContext = createContext<ErrorOptionsContextType | undefined>(undefined);
+// Export the context
+export const ErrorOptionsContext = createContext<ErrorOptionsContextType | undefined>(undefined);
 
 export function ErrorOptionsProvider({ children }: { children: React.ReactNode }) {
   const [errorMessage, setErrorMessage] = useState('Δοκιμαστικό σφάλμα');

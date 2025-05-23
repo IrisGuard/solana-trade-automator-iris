@@ -28,6 +28,11 @@ export default function WalletPage() {
   // Default tab
   const [activeTab, setActiveTab] = React.useState("overview");
 
+  // Handle refresh without parameters
+  const handleRefresh = () => {
+    refreshWalletData();
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader 
@@ -48,7 +53,7 @@ export default function WalletPage() {
             )}
             
             {isConnected && (
-              <Button onClick={refreshWalletData}>
+              <Button onClick={handleRefresh}>
                 Ανανέωση
               </Button>
             )}
@@ -73,7 +78,7 @@ export default function WalletPage() {
         tokens={tokens || []}
         isLoading={isLoadingTokens}
         error={error}
-        onRefresh={() => refreshWalletData()}
+        onRefresh={handleRefresh}
         isConnected={isConnected}
       />
 
@@ -110,7 +115,7 @@ export default function WalletPage() {
       
       {/* User guidance information */}
       {isConnected && (
-        <Alert variant="info" className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+        <Alert className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
           <AlertDescription className="text-blue-700 dark:text-blue-300">
             💡 <strong>Πληροφορία:</strong> Η εφαρμογή τώρα εμφανίζει πραγματικά δεδομένα από το Solana mainnet. 
             Συνδεθείτε με το Phantom wallet σας για να δείτε τα tokens σας.

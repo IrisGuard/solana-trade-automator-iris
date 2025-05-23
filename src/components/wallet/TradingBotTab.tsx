@@ -7,14 +7,14 @@ import { TradingBotContent } from "./trading-bot/TradingBotContent";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
 
 export function TradingBotTab() {
-  const { isConnected } = useWalletConnection();
+  const { isConnected, walletAddress, connectWallet } = useWalletConnection();
   const tradingBotState = useTradingBot();
   
   const [tab, setTab] = useState("settings");
   
   // Handle connect wallet
   const handleConnectWallet = () => {
-    // This is handled by the WalletMultiButton component
+    connectWallet();
   };
   
   if (!isConnected) {
@@ -31,9 +31,9 @@ export function TradingBotTab() {
   return (
     <TabsContent value="trading-bot" className="space-y-4">
       <TradingBotContent
-        tradingBotState={tradingBotState}
-        tab={tab}
-        setTab={setTab}
+        isConnected={isConnected}
+        walletAddress={walletAddress}
+        handleConnectWallet={handleConnectWallet}
       />
     </TabsContent>
   );

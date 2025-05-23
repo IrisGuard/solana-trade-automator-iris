@@ -7,9 +7,9 @@ import { ErrorData } from '@/utils/error-handling/collector/types';
 // Add this to window interface to avoid TypeScript errors
 declare global {
   interface Window {
-    _lastErrorDisplayTime: number;
-    _lastErrorDisplayTimes: Record<string, number>;
-    _errorQueue: Array<{message: string; timestamp: string; type: string}>;
+    _lastErrorDisplayTime?: number;
+    _lastErrorDisplayTimes?: Record<string, number>;
+    _errorQueue?: Array<{message: string; timestamp: string; type: string}>;
   }
 }
 

@@ -16,7 +16,7 @@ import { HeliusSyncComponent } from "@/components/wallet/HeliusSyncComponent";
 export default function BotControlPage() {
   const [activeTab, setActiveTab] = useState<string>("settings");
   const tradingBotState = useTradingBot();
-  const { isConnected, refreshWalletData, walletAddress } = useWalletConnection();
+  const { isConnected, refreshWalletData, walletAddress, connectWallet } = useWalletConnection();
 
   // Handle HeliusSync callback
   const handleHeliusSync = () => {
@@ -42,7 +42,7 @@ export default function BotControlPage() {
         <AppNavigation variant="colorful" />
       </div>
       
-      <ConnectivityStatus connected={isConnected} />
+      <ConnectivityStatus isConnected={isConnected} />
       
       {isConnected && (
         <>
@@ -59,9 +59,9 @@ export default function BotControlPage() {
               }
             >
               <TradingBotContent 
-                tradingBotState={tradingBotState}
-                tab={activeTab}
-                setTab={setActiveTab}
+                isConnected={isConnected}
+                walletAddress={walletAddress}
+                handleConnectWallet={connectWallet}
               />
             </GradientCard>
           </div>
