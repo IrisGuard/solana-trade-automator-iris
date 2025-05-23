@@ -21,4 +21,14 @@ export class SiteBackupService {
       return false;
     }
   }
+
+  static countAvailableBackups(): number {
+    // Mock backup count
+    return 3;
+  }
+
+  static getMaxBackups(): number {
+    // Mock max backups
+    return 5;
+  }
 }
